@@ -1,0 +1,858 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+26a1cd0a-ee77-462a-95b6-a4bdd9f05e51,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/server/RIFImplementationManager_0Test.java,25.88839554786682,stop,"// RIFImplementationManager.java
+/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * ""AS IS"" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+
+/**
+ * Manages all of the interface implementations registered on the service and
+ * provides a simple function for invoking a method on a registered interface.
+ *
+ * The RIFServer decomposes the WebService request sent through the RIFServer to the RIFService
+ * and then prepares a call to RIFImplementationManager.invoke to call the actual function.
+ *
+ * To register an implementation:
+ * <code>
+ *
+ * RIFImplementationManager.getInstance().registerImplementation(YourInterface.class, new YourImpl());
+ *
+ * </code>
+ * @author Jonathan Glanz
+ */
+public class RIFImplementationManager {
+
+    private static RIFImplementationManager instance = new RIFImplementationManager();
+
+    /**
+     * Retrieve the singleton RIFImplementationManager instance.
+     *
+     * @return
+     */
+    public static RIFImplementationManager getInstance() {
+        return instance;
+    }
+
+    private Hashtable<String, Object> implementationMap = new Hashtable<String, Object>();
+
+    private Hashtable<Object, Map<String, Method>> methodsMap = new Hashtable<Object, Map<String, Method>>();
+
+    private RIFImplementationManager() {
+    }
+
+    /**
+     * Register an implementation to be served from this JVM
+     *
+     * @param interfaceClazz - The interface that is served by the passed implementation
+     * @param implementation - the implementation of the passed interface
+     */
+    public void registerImplementation(Class interfaceClazz, Object implementation) {
+        implementationMap.put(interfaceClazz.getName(), implementation);
+    }
+
+    /**
+     * Invoke a method on a registered implementation.  The iterfaceName passed is used to lookup
+     * a registered implementation and then the method is invoked on the registered implementation
+     * with the passed parameters.
+     *
+     * @param iterfaceName - name of the registered interface class
+     * @param methodName - method to invoke on the registered implementation
+     * @param params - parameters to pass to the method, which is to be invoked.
+     * @return the return from the method being invoked.
+     *
+     * @throws RemoteException
+     */
+    public Object invoke(String iterfaceName, String methodName, Object[] params) throws RemoteException {
+        Object impl = implementationMap.get(iterfaceName);
+        if (impl == null)
+            throw new RemoteException(""Not registered: "" + iterfaceName);
+        Map<String, Method> methodMap = methodsMap.get(impl);
+        if (methodMap == null) {
+            synchronized (this) {
+                methodMap = methodsMap.get(impl);
+                if (methodMap == null) {
+                    methodMap = new Hashtable<String, Method>();
+                    Class clazz = impl.getClass();
+                    Method[] methods = clazz.getMethods();
+                    for (int i = 0; i < methods.length; i++) {
+                        Method method = methods[i];
+                        methodMap.put(method.getName(), method);
+                    }
+                    methodsMap.put(impl, methodMap);
+                }
+            }
+        }
+        Method method = methodMap.get(methodName);
+        if (method == null)
+            throw new IllegalArgumentException(""Unknown method "" + methodName + "" on "" + iterfaceName);
+        try {
+            return method.invoke(impl, params);
+        } catch (Exception e) {
+            throw new RemoteException(""Error occured while invoking "" + iterfaceName + ""."" + methodName + "": "" + e.getMessage(), e);
+        }
+    }
+}
+","// RIFImplementationManager_0Test.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFImplementationManager}.
+* It contains one unit test case for the {@link RIFImplementationManager#getInstance()} method.
+*/
+class RIFImplementationManager_0Test {","// RIFImplementationManager_0Test.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFImplementationManager}.
+* It contains one unit test case for the {@link RIFImplementationManager#getInstance()} method.
+*/
+class RIFImplementationManager_0Test {
+Map<Object, Map<String, Method>> implementationMap = new Hashtable<Object,Map<String,Method>>();
+		Map<Object, Map<String, Method>> methodMap = new Hashtable<Object, Map<String,Method>>();
+
+		@Test
+		public void testGetInstance()
+		{
+			RIFImplementationManager manager = RIFImplementationManager.getInstance();
+			assertNotNull(manager);
+		}
+
+		@Test
+		public void testEmpty()
+		{
+			RIFImplementationManager manager = RIFImplementationManager.getInstance();
+			assertNotNull(manager);
+			manager.registerImplementation(new Hashtable<String, Object>(), ""getInstance"");
+			manager.registerImplementation(new Hashtable<String, Object>(), ""getInstance"");
+			manager.registerImplementation(new Hashtable<String, Object>(), ""getInstance"");
+			manager.registerImplementation(new Hashtable<String, Object>(), ""getInstance"");
+			assertTrue(manager.isEmpty(new Object[]{""getInstance"", manager.getClass().getName()}));
+			assertTrue(manager.isEmpty(new Object[]{""getInstance"", manager.getClass().getName()}));
+			manager.registerImplementation(new Hashtable<String, Object>(), ""getInstance"");
+			manager.registerImplementation(new Hashtable<String, Object>(), ""getInstance"");
+			manager.registerImplementation(new Hashtable<String, Object>(), ""getInstance"");
+			assertTrue(manager.isEmpty(new Object[]{""getInstance"", manager.getClass().getName()}));
+			assertTrue(manager.isEmpty(new Object[]{""getInstance"", manager.getClass().getName()}));
+		}
+}
+"
+56ad8ef9-b33d-42bb-bd38-0db7ce143298,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/server/RIFImplementationManager_1Test.java,25.59459376335144,stop,"// RIFImplementationManager.java
+/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * ""AS IS"" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+
+/**
+ * Manages all of the interface implementations registered on the service and
+ * provides a simple function for invoking a method on a registered interface.
+ *
+ * The RIFServer decomposes the WebService request sent through the RIFServer to the RIFService
+ * and then prepares a call to RIFImplementationManager.invoke to call the actual function.
+ *
+ * To register an implementation:
+ * <code>
+ *
+ * RIFImplementationManager.getInstance().registerImplementation(YourInterface.class, new YourImpl());
+ *
+ * </code>
+ * @author Jonathan Glanz
+ */
+public class RIFImplementationManager {
+
+    private static RIFImplementationManager instance = new RIFImplementationManager();
+
+    /**
+     * Retrieve the singleton RIFImplementationManager instance.
+     *
+     * @return
+     */
+    public static RIFImplementationManager getInstance() {
+        return instance;
+    }
+
+    private Hashtable<String, Object> implementationMap = new Hashtable<String, Object>();
+
+    private Hashtable<Object, Map<String, Method>> methodsMap = new Hashtable<Object, Map<String, Method>>();
+
+    private RIFImplementationManager() {
+    }
+
+    /**
+     * Register an implementation to be served from this JVM
+     *
+     * @param interfaceClazz - The interface that is served by the passed implementation
+     * @param implementation - the implementation of the passed interface
+     */
+    public void registerImplementation(Class interfaceClazz, Object implementation) {
+        implementationMap.put(interfaceClazz.getName(), implementation);
+    }
+
+    /**
+     * Invoke a method on a registered implementation.  The iterfaceName passed is used to lookup
+     * a registered implementation and then the method is invoked on the registered implementation
+     * with the passed parameters.
+     *
+     * @param iterfaceName - name of the registered interface class
+     * @param methodName - method to invoke on the registered implementation
+     * @param params - parameters to pass to the method, which is to be invoked.
+     * @return the return from the method being invoked.
+     *
+     * @throws RemoteException
+     */
+    public Object invoke(String iterfaceName, String methodName, Object[] params) throws RemoteException {
+        Object impl = implementationMap.get(iterfaceName);
+        if (impl == null)
+            throw new RemoteException(""Not registered: "" + iterfaceName);
+        Map<String, Method> methodMap = methodsMap.get(impl);
+        if (methodMap == null) {
+            synchronized (this) {
+                methodMap = methodsMap.get(impl);
+                if (methodMap == null) {
+                    methodMap = new Hashtable<String, Method>();
+                    Class clazz = impl.getClass();
+                    Method[] methods = clazz.getMethods();
+                    for (int i = 0; i < methods.length; i++) {
+                        Method method = methods[i];
+                        methodMap.put(method.getName(), method);
+                    }
+                    methodsMap.put(impl, methodMap);
+                }
+            }
+        }
+        Method method = methodMap.get(methodName);
+        if (method == null)
+            throw new IllegalArgumentException(""Unknown method "" + methodName + "" on "" + iterfaceName);
+        try {
+            return method.invoke(impl, params);
+        } catch (Exception e) {
+            throw new RemoteException(""Error occured while invoking "" + iterfaceName + ""."" + methodName + "": "" + e.getMessage(), e);
+        }
+    }
+}
+","// RIFImplementationManager_1Test.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFImplementationManager}.
+* It contains one unit test case for the {@link RIFImplementationManager#invoke(String, String, Object[])} method.
+*/
+class RIFImplementationManager_1Test {","// RIFImplementationManager_1Test.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFImplementationManager}.
+* It contains one unit test case for the {@link RIFImplementationManager#invoke(String, String, Object[])} method.
+*/
+class RIFImplementationManager_1Test {
+
+	/**
+     * Test that all of the methods registered on an interface implement (invoke) an operation.
+     */
+    @Test
+    public void test_invoke() throws RemoteException {
+        TestImplementation.class.getField(""m_methodName"").set(null, ""Hello World"");
+        assertEquals(""Hello World"", invoke(""com.densebrain.rif.server.TestImplementation$TestImplementation.get_methodName"", ""Hello World"").toString());
+    }
+
+    @Test
+    public void test_invokeNull() throws RemoteException {
+        assertNull(invoke(TestImplementation.class));
+    }
+
+    @Test
+    public void test_invokeNotNull() throws RemoteException {
+        TestImplementation.class.getField(""m_methodName"").set(null);
+        assertEquals("""", invoke(""com.densebrain.rif.server.TestImplementation$TestImplementation.get_methodName"", """").toString());
+    }
+
+    public static class TestImplementation {
+
+    	public static TestImplementation get_methodName() throws RemoteException {
+            return (TestImplementation) invoke(""com.densebrain.rif.server.TestImplementation$TestImplementation.get_methodName"", null);
+        }
+
+		public static void set_methodName(TestImplementation name) {
+			Test.this.invoke(""com.densebrain.rif.server.TestImplementation$TestImplementation.set_methodName"", name);
+    	}
+
+    	public static String get_methodName();
+
+    	public static void set_methodName(String name) {
+    		Test.this.invoke(""com.densebrain.rif.server.TestImplementation$TestImplementation.set_methodName"", name);
+    	}
+	}
+}
+
+// com.densebrain.rif.server.RIFImplementationManager_1.java
+"
+c4f0345d-c9ea-4d79-a558-722d359ac2f7,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/server/RIFService.java,33.16742396354675,length,"// RIFService.java
+/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * ""AS IS"" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.densebrain.rif.server;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.rmi.RemoteException;
+import org.apache.axis2.util.Base64;
+
+/**
+ * This is the WebService, which is hosted on Axis2 that marshalls the remote calls
+ * between the client RIFInvoker and the Server RIFImplementationManager.
+ *
+ * @see com.densebrain.rif.client.RIFInvoker
+ * @see com.densebrain.rif.server.RIFImplementationManager
+ *
+ * @author Jonathan Glanz
+ */
+public class RIFService {
+
+    /**
+     * Types namespace for the web service
+     */
+    public static final String TYPES_NAMESPACE = ""http://densebrain.com/rif/client/service/types"";
+
+    /**
+     * Target namespace for the web service
+     */
+    public static final String TARGET_NAMESPACE = ""http://densebrain.com/rif/client/service"";
+
+    /**
+     * The invoke ws method, which marshalls the call to the RIFImplementationManager
+     *
+     * @param interfaceName - the registered interface to invoke the method on
+     * @param methodName - method to invoke on the registered interface
+     * @param serializedParams - serialized parameters to reconstruct and pass to the RIFImplementationManager
+     * @return
+     * @throws RemoteException
+     */
+    public String invoke(String interfaceName, String methodName, String serializedParams) throws RemoteException {
+        byte[] paramBytes = Base64.decode(serializedParams);
+        Object[] params;
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(paramBytes);
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            params = (Object[]) ois.readObject();
+            ois.close();
+            bais.close();
+        } catch (Exception e) {
+            throw new RemoteException(""Unable to deserialize parameters: "" + e.getMessage(), e);
+        }
+        Object result = RIFImplementationManager.getInstance().invoke(interfaceName, methodName, params);
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(result);
+            oos.close();
+            byte[] resultBytes = baos.toByteArray();
+            return Base64.encode(resultBytes);
+        } catch (Exception e) {
+            throw new RemoteException(""Unable to serialize result: "" + e.getMessage());
+        }
+    }
+}
+","// RIFServiceTest.java
+package com.densebrain.rif.server;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.rmi.RemoteException;
+import org.apache.axis2.util.Base64;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFService}.
+* It contains one unit test case for the {@link RIFService#invoke(String, String, String)} method.
+*/
+class RIFServiceTest {","// RIFServiceTest.java
+package com.densebrain.rif.server;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.rmi.RemoteException;
+import org.apache.axis2.util.Base64;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFService}.
+* It contains one unit test case for the {@link RIFService#invoke(String, String, String)} method.
+*/
+class RIFServiceTest {
+
+	/**
+	 * The test method that is executed when a client invokes an RIF service call.
+	 * 
+	 * @param serverEndPoint - the value which specifies the remote interface that is used when
+	 * connecting to the server
+	 * @param port - the value which specifies the remote port that is used when connecting to the server
+	 * @param endpoint - the value of the serialized remote interface to invoke
+	 * @param serializedParams - serialized parameters to construct and pass to the RIF implementation manager
+	 * @see <a href=""http://docs.oracle.com/javase/6/docs/api/java/rmi/RemoteException.html"">Remote Exception</a>
+	 * @see <a href=""http://docs.oracle.com/javase/6/docs/api/java/rmi/RemoteException.html#getExtendedMessage()"">RemoteException<a>
+	 * @throws RemoteException
+	 */
+	public <T> T invoke(String serverEndPoint, final int port, final String endpoint, final String serializedParams) throws RemoteException {
+		return ((T)invoke(serverEndPoint, """" + endpoint, Base64.decode(serializedParams)));
+	}
+
+	/**
+	 * The test method that is executed when a client invokes an RIF service call.
+	 * 
+	 * @param serverEndPoint - the value which specifies the remote interface that is used when
+	 * connecting to the server
+	 * @param port - the port to connect to the server on
+	 * @param endpoint - the value of the serialized remote interface to invoke
+	 * @throws RemoteException
+	 */
+	public <T> T invokeWithException(String serverEndPoint, final int port, final String endpoint) throws RemoteException {
+		Object result = invoke(serverEndPoint, """" + endpoint);
+		Object ex = ((RemoteException)result);
+		System.out.println(""RIFWebService: EXCEPTION: "" + ex);
+		return (T)ex;
+	}
+
+	/**
+	 * Test method for {@link RIFService#invoke(String, String, String)} with the serialized remote interface.
+	 * 
+	 * @throws RemoteException
+	 */
+	@Test
+	public void invokeWithExceptionSerializedParamsTest() throws RemoteException {
+		runTest(null, null, null, null, null, null);
+	}
+
+	/**
+	 * Test method for {@link RIFService#invoke(String, String, String)} with the serialized remote interface.
+	 * 
+	 * @throws RemoteException
+	 */
+	@Test
+	public void invokeWithExceptionSerializedParamsDeserializedTest() throws RemoteException {
+		runTest(null, null, null, """", null, null);
+	}
+
+	private <T> T runTest(final String serverEndPoint, String methodName, String serializedParams, final String remoteEndPoint, final int port,final String remoteInterface) throws RemoteException {
+		String invokeMessage = invoke(serverEndPoint, port, remoteEndPoint, binaryParams(serializedParams));
+		if(methodName == null)
+			methodName = ""invoke"";
+		String result = Base64.decode(invokeMessage);
+        String response = Base64.encode(result.getBytes());
+		ByteArrayOutputStream"
+beccb03b-ced9-4bae-bca2-b97c0b950d32,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/client/RIFManager.java,34.83656358718872,stop,"// RIFManager.java
+/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * ""AS IS"" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import com.densebrain.rif.client.service.RIFService;
+import com.densebrain.rif.client.service.RIFServiceStub;
+
+/**
+ * The RIFManager is responsible for keeping track of the client side web service annd caching
+ * RIFInvoker's to cut down on processing time for secondary RIFInvoker requests.  It keeps an
+ * internal mapping of interfaces to RIFInvokers.
+ *
+ * @author Jonathan Glanz
+ * @copyright Desnbrain, Inc @ 2006
+ */
+public class RIFManager {
+
+    private RIFService service;
+
+    private RIFClassLoader classLoader;
+
+    protected RIFManager(String url) throws RemoteException {
+        try {
+            service = new RIFServiceStub(url);
+            classLoader = new RIFClassLoader();
+        } catch (Exception e) {
+            throw new RemoteException(""Unable to initialize manager: "" + e.getMessage(), e);
+        }
+    }
+
+    private Hashtable<Class, RIFInvoker> invokerMap = new Hashtable<Class, RIFInvoker>();
+
+    /**
+     * Retrieve an invoker by interface name, if one does not exist then create a new RIFInvoker.
+     * When the RIFInvoker is instantiate it build the dynamic runtime proxy.
+     *
+     * @param interfaceClazz - The interface to proxy against the server for, MUST be an interface
+     * @return - RIFInvoker ready to proxy for the given interface
+     * @throws RemoteException
+     */
+    public RIFInvoker getInvoker(Class interfaceClazz) throws RemoteException {
+        RIFInvoker invoker = invokerMap.get(interfaceClazz);
+        if (invoker == null) {
+            synchronized (this) {
+                invoker = invokerMap.get(interfaceClazz);
+                if (invoker == null) {
+                    invoker = new RIFInvoker(this, interfaceClazz);
+                    invokerMap.put(interfaceClazz, invoker);
+                }
+            }
+        }
+        return invoker;
+    }
+
+    /**
+     * Retrieve the RIFClassLoader for isntantiating the dynamic proxy classes
+     * @return
+     */
+    protected RIFClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    /**
+     * retrieve the web service for invoking the methods on the proxy remotely
+     * @return
+     */
+    public RIFService getService() {
+        return service;
+    }
+}
+","// RIFManagerTest.java
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import com.densebrain.rif.client.service.RIFService;
+import com.densebrain.rif.client.service.RIFServiceStub;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFManager}.
+* It contains one unit test case for the {@link RIFManager#getInvoker(Class)} method.
+*/
+class RIFManagerTest {","// RIFManagerTest.java
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import com.densebrain.rif.client.service.RIFService;
+import com.densebrain.rif.client.service.RIFServiceStub;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFManager}.
+* It contains one unit test case for the {@link RIFManager#getInvoker(Class)} method.
+*/
+class RIFManagerTest {
+/**
+		* @throws RemoteException
+		*/
+		@Test
+		public void invokeTest() throws RemoteException {
+
+			RIFService service = new RIFServiceStub(""192.168.32.100:1936"");
+			RIFInvoker invoker = RIFManager.getInvoker(RIFInvoker.class);
+			Hashtable<String, Object> parameters = new Hashtable<String, Object>();
+			
+			parameters.put(""interface"", new Integer(3));
+
+			RIFInvoker.invoke(invoker, service, parameters);
+		}
+
+		/**
+		* test invoke method with a remote object with an empty request
+		*
+		* @throws RemoteException
+		*/
+		@Test
+		public void emptyRemoteInvokeTest() throws RemoteException {
+			
+			RIFService service = new RIFServiceStub(""192.168.32.100:1936"");
+			RIFInvoker invoker = RIFManager.getInvoker(RIFInvoker.class);
+
+			try {
+				RIFInvoker.invoke(invoker, service, new Hashtable<String, Object>());
+				fail(""No exception thrown trying to invoke an RIFInvoker remotely with an empty request"");
+			} catch (RemoteException remoteException) {
+				assertEquals(""Failed invoking an RIFInvoker remotely: "" + remoteException.getMessage(),
+						remoteException.getMessage(),
+					""Remote invocation with an empty request"");
+			}
+		}
+	}
+"
+70780558-100f-4d2b-a63e-8b6f65c03b30,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/client/RIFManagerFactory_0Test.java,13.701610565185547,stop,"// RIFManagerFactory.java
+/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * ""AS IS"" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+
+/**
+ * Used as the singleton factory for retrieving a RIFManager and from there retrieving
+ * RIFInvoker(s).  The initialize method MUST be called before using the Factory.
+ *
+ * For the sake of simplicity the manager has 3 getter functions depending on what you want to do:
+ * getManager() - Retrieves the RIFManager for the JVM
+ * getInvoker(I) - Retrieve the RIFInvoker based on the interface passed
+ * getImpl(I) - returns the dynamic proxy of the impl representing the interface passed.
+ *
+ * @author Jonathan Glanz
+ */
+public class RIFManagerFactory {
+
+    private static RIFManagerFactory instance = new RIFManagerFactory();
+
+    /**
+     * Initialize's the factory for use; the url passed in is the URL of the
+     * RIFServer with no context path: i.e. http://&lt;hostname&gt;:&lt;port&gt;
+     *
+     * @param url - URL of the RIFServer in the format http://&lt;hostname&gt;:&lt;port&gt;
+     * @throws RemoteException
+     */
+    public static RIFManagerFactory getInstance() throws RemoteException {
+        return instance;
+    }
+
+    /**
+     * Retrieve the RIFManager that is being used for this JVM, its a Singleton
+     * @return RIFManager for the domain
+     */
+    public RIFManager getManager(String url) throws RemoteException {
+        RIFManager manager = managerMap.get(url);
+        if (manager == null) {
+            synchronized (this) {
+                manager = managerMap.get(url);
+                if (manager == null) {
+                    manager = new RIFManager(url + ""/rif/services/RIFService"");
+                    managerMap.put(url, manager);
+                }
+            }
+        }
+        return manager;
+    }
+
+    /**
+     * Get a RIFInvoker for a specific interface. The RIFInvoker is what builds and makes
+     * accessible the dynamically generated proxy class.
+     *
+     * @param interfaceClazz - the interface that the invoker will proxy for.
+     * @return - RIUFInvoker that is proxying for the provided interface.
+     * @throws RemoteException
+     */
+    public RIFInvoker getInvoker(String url, Class interfaceClazz) throws RemoteException {
+        return getManager(url).getInvoker(interfaceClazz);
+    }
+
+    /**
+     * Retrieve the dynamically generated proxy directly instead of first requesting
+     * the RIFInvoker.
+     *
+     * @param interfaceClazz
+     * @return
+     * @throws RemoteException
+     */
+    public Object getImpl(String url, Class interfaceClazz) throws RemoteException {
+        return getInvoker(url, interfaceClazz).getImpl();
+    }
+
+    private Hashtable<String, RIFManager> managerMap = new Hashtable<String, RIFManager>();
+
+    private RIFManagerFactory() {
+    }
+}
+","// RIFManagerFactory_0Test.java
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFManagerFactory}.
+* It contains one unit test case for the {@link RIFManagerFactory#getInstance()} method.
+*/
+class RIFManagerFactory_0Test {","// RIFManagerFactory_0Test.java
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFManagerFactory}.
+* It contains one unit test case for the {@link RIFManagerFactory#getInstance()} method.
+*/
+class RIFManagerFactory_0Test {
+
+	/**
+	 * The test method.
+	 */
+	@Test
+	void testInitialize_0() throws RemoteException {
+		String url = ""http://www"";
+		assertNull(getManager(url));
+	}
+}"

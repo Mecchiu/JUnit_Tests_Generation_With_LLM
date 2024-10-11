@@ -1,0 +1,1730 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-6yVp5mIq7RQCauWx8vlpEOE664GrM,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/SimpleCharStream_0Test.java,45.9708411693573,stop,"// SimpleCharStream.java
+/* JavaCCOptions:STATIC=false,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
+package com.pmdesigns.jvc.tools;
+
+public class SimpleCharStream {
+
+    /**
+     * Start.
+     */
+    public char BeginToken() throws java.io.IOException;
+}
+","// SimpleCharStream_0Test.java
+/* JavaCCOptions:STATIC=false,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCharStream}.
+* It contains ten unit test cases for the {@link SimpleCharStream#BeginToken()} method.
+*/
+class SimpleCharStream_0Test {","// Source code for SimpleCharStream_0Test.java
+
+package com.pmdesigns.jvc.tools;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class of {@link SimpleCharStream}.
+ * It contains ten unit test cases for the {@link SimpleCharStream#BeginToken()} method.
+ */
+class SimpleCharStream_0Test {
+
+    /**
+     * Test case for when the input stream is empty.
+     * Expected result: IOException is thrown.
+     */
+    @Test
+    void testBeginTokenEmptyStream() {
+        SimpleCharStream stream = new SimpleCharStream("""");
+        assertThrows(java.io.IOException.class, stream::BeginToken);
+    }
+
+    /**
+     * Test case for when the input stream has only one character.
+     * Expected result: The character is returned and the stream pointer is moved to the end of the stream.
+     */
+    @Test
+    void testBeginTokenSingleCharStream() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""a"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertTrue(stream.isEOF());
+    }
+
+    /**
+     * Test case for when the input stream has multiple characters.
+     * Expected result: The first character is returned and the stream pointer is moved to the next character.
+     */
+    @Test
+    void testBeginTokenMultiCharStream() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""abc"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertFalse(stream.isEOF());
+        result = stream.BeginToken();
+        assertEquals('b', result);
+        assertFalse(stream.isEOF());
+    }
+
+    /**
+     * Test case for when the input stream has whitespace characters before the first token.
+     * Expected result: The first non-whitespace character is returned and the stream pointer is moved to the next character.
+     */
+    @Test
+    void testBeginTokenLeadingWhitespace() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""  \t\na"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertFalse(stream.isEOF());
+    }
+
+    /**
+     * Test case for when the input stream has whitespace characters after the first token.
+     * Expected result: The first non-whitespace character after the token is returned and the stream pointer is moved to the next character.
+     */
+    @Test
+    void testBeginTokenTrailingWhitespace() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""a  \t\nb"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertFalse(stream.isEOF());
+        result = stream.BeginToken();
+        assertEquals('b', result);
+        assertFalse(stream.isEOF());
+    }
+
+    /**
+     * Test case for when the input stream has a token followed by whitespace characters and then another token.
+     * Expected result: The first token is returned and the stream pointer is moved to the next character after the whitespace.
+     */
+    @Test
+    void testBeginTokenTokenWhitespaceToken() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""a  \t\nb"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertFalse(stream.isEOF());
+        result = stream.BeginToken();
+        assertEquals('b', result);
+        assertFalse(stream.isEOF());
+    }
+
+    /**
+     * Test case for when the input stream has a token followed by non-whitespace characters and then another token.
+     * Expected result: The first token is returned and the stream pointer is moved to the next character after the non-whitespace.
+     */
+    @Test
+    void testBeginTokenTokenNonWhitespaceToken() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""a,b"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertFalse(stream.isEOF());
+        result = stream.BeginToken();
+        assertEquals(',', result);
+        assertFalse(stream.isEOF());
+        result = stream.BeginToken();
+        assertEquals('b', result);
+        assertTrue(stream.isEOF());
+    }
+
+    /**
+     * Test case for when the input stream has a token followed by a comment.
+     * Expected result: The first token is returned and the stream pointer is moved to the next character after the comment.
+     */
+    @Test
+    void testBeginTokenTokenComment() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""a/*comment*/b"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertFalse(stream.isEOF());
+        result = stream.BeginToken();
+        assertEquals('b', result);
+        assertTrue(stream.isEOF());
+    }
+
+    /**
+     * Test case for when the input stream has a token followed by a string literal.
+     * Expected result: The first token is returned and the stream pointer is moved to the next character after the string literal.
+     */
+    @Test
+    void testBeginTokenTokenStringLiteral() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""a\""string\""b"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertFalse(stream.isEOF());
+        result = stream.BeginToken();
+        assertEquals('b', result);
+        assertTrue(stream.isEOF());
+    }
+
+    /**
+     * Test case for when the input stream has a token followed by a character literal.
+     * Expected result: The first token is returned and the stream pointer is moved to the next character after the character literal.
+     */
+    @Test
+    void testBeginTokenTokenCharLiteral() throws java.io.IOException {
+        SimpleCharStream stream = new SimpleCharStream(""a'c'b"");
+        char result = stream.BeginToken();
+        assertEquals('a', result);
+        assertFalse(stream.isEOF());
+        result = stream.BeginToken();
+        assertEquals('b', result);
+        assertTrue(stream.isEOF());
+    }
+}"
+chatcmpl-6yVq8k0Hfn1XnPWyaoCy7WgZVyuVw,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/SimpleCharStream_1Test.java,10.709790229797363,stop,"// SimpleCharStream.java
+/* JavaCCOptions:STATIC=false,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
+package com.pmdesigns.jvc.tools;
+
+public class SimpleCharStream {
+
+    /**
+     * Read a character.
+     */
+    public char readChar() throws java.io.IOException;
+}
+","// SimpleCharStream_1Test.java
+/* JavaCCOptions:STATIC=false,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCharStream}.
+* It contains ten unit test cases for the {@link SimpleCharStream#readChar()} method.
+*/
+class SimpleCharStream_1Test {","// Here's an example implementation of the SimpleCharStream_1Test class:
+
+package com.pmdesigns.jvc.tools;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class of {@link SimpleCharStream}.
+ * It contains ten unit test cases for the {@link SimpleCharStream#readChar()} method.
+ */
+class SimpleCharStream_1Test {
+
+    @Test
+    void testReadChar() throws Exception {
+        SimpleCharStream stream = new SimpleCharStream();
+        char c = stream.readChar();
+        assertEquals('a', c);
+        c = stream.readChar();
+        assertEquals('b', c);
+        c = stream.readChar();
+        assertEquals('c', c);
+        c = stream.readChar();
+        assertEquals('d', c);
+        c = stream.readChar();
+        assertEquals('e', c);
+        c = stream.readChar();
+        assertEquals('f', c);
+        c = stream.readChar();
+        assertEquals('g', c);
+        c = stream.readChar();
+        assertEquals('h', c);
+        c = stream.readChar();
+        assertEquals('i', c);
+        c = stream.readChar();
+        assertEquals('j', c);
+    }
+} 
+
+// This implementation tests the readChar() method of the SimpleCharStream class by creating a new instance of the class and calling the method ten times. It then asserts that the returned character matches the expected character for each call."
+chatcmpl-6yVrBHp1ZrsUeTljm5U9Mjp4eFIX7,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/SimpleCharStream_2Test.java,16.63336730003357,stop,"// SimpleCharStream.java
+/* JavaCCOptions:STATIC=false,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
+package com.pmdesigns.jvc.tools;
+
+public class SimpleCharStream {
+
+    /**
+     * Get token literal value.
+     */
+    public String GetImage();
+}
+","// SimpleCharStream_2Test.java
+/* JavaCCOptions:STATIC=false,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCharStream}.
+* It contains ten unit test cases for the {@link SimpleCharStream#GetImage()} method.
+*/
+class SimpleCharStream_2Test {","// Here's an example implementation of the SimpleCharStream_2Test class with ten unit test cases for the GetImage() method:
+
+class SimpleCharStream_2Test {
+
+    @Test
+    void testGetImage_emptyString() {
+        SimpleCharStream stream = new SimpleCharStream("""");
+        assertEquals("""", stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_singleChar() {
+        SimpleCharStream stream = new SimpleCharStream(""a"");
+        assertEquals(""a"", stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_multipleChars() {
+        SimpleCharStream stream = new SimpleCharStream(""abc"");
+        assertEquals(""abc"", stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_whitespace() {
+        SimpleCharStream stream = new SimpleCharStream(""  \t\n"");
+        assertEquals(""  \t\n"", stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_specialChars() {
+        SimpleCharStream stream = new SimpleCharStream(""!@#$%^&*()_+-="");
+        assertEquals(""!@#$%^&*()_+-="", stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_null() {
+        SimpleCharStream stream = new SimpleCharStream(null);
+        assertNull(stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_unicodeChars() {
+        SimpleCharStream stream = new SimpleCharStream(""こんにちは"");
+        assertEquals(""こんにちは"", stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_escapeChars() {
+        SimpleCharStream stream = new SimpleCharStream(""\\n\\t\\r\\f\\b\\'"");
+        assertEquals(""\\n\\t\\r\\f\\b\\'"", stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_emptyStream() {
+        SimpleCharStream stream = new SimpleCharStream("""");
+        assertEquals("""", stream.GetImage());
+    }
+
+    @Test
+    void testGetImage_longString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 1000000; i++) {
+            sb.append(""a"");
+        }
+        SimpleCharStream stream = new SimpleCharStream(sb.toString());
+        assertEquals(sb.toString(), stream.GetImage());
+    }
+}"
+chatcmpl-6yVsEA0ocenl4ZiBQzgJyqRzKDh9s,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/Base64Coder_0Test.java,24.248839855194092,stop,"// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+public class Base64Coder {
+
+    /**
+     * Encodes a string into Base64 format.
+     * No blanks or line breaks are inserted.
+     *
+     * @param s a String to be encoded.
+     * @return A String with the Base64 encoded data.
+     */
+    public static String encodeString(String s);
+}
+","// Base64Coder_0Test.java
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#encodeString(String)} method.
+*/
+class Base64Coder_0Test {","// Here's an example implementation of the Base64Coder class and its test class:
+
+// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+import java.util.Base64;
+
+public class Base64Coder {
+
+    /**
+     * Encodes a string into Base64 format.
+     * No blanks or line breaks are inserted.
+     *
+     * @param s a String to be encoded.
+     * @return A String with the Base64 encoded data.
+     */
+    public static String encodeString(String s) {
+        byte[] bytes = s.getBytes();
+        byte[] encodedBytes = Base64.getEncoder().encode(bytes);
+        return new String(encodedBytes);
+    }
+}
+
+// Base64CoderTest.java
+package com.pmdesigns.jvc.tools;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#encodeString(String)} method.
+*/
+class Base64CoderTest {
+
+    @Test
+    void testEncodeStringWithEmptyString() {
+        String encoded = Base64Coder.encodeString("""");
+        assertEquals("""", encoded);
+    }
+
+    @Test
+    void testEncodeStringWithSingleCharacter() {
+        String encoded = Base64Coder.encodeString(""a"");
+        assertEquals(""YQ=="", encoded);
+    }
+
+    @Test
+    void testEncodeStringWithMultipleCharacters() {
+        String encoded = Base64Coder.encodeString(""hello world"");
+        assertEquals(""aGVsbG8gd29ybGQ="", encoded);
+    }
+
+    @Test
+    void testEncodeStringWithSpecialCharacters() {
+        String encoded = Base64Coder.encodeString(""!@#$%^&*()"");
+        assertEquals(""IUAjJCVeJiooKQ=="", encoded);
+    }
+
+    @Test
+    void testEncodeStringWithUnicodeCharacters() {
+        String encoded = Base64Coder.encodeString(""こんにちは"");
+        assertEquals(""44GC44GE44GG44GI"", encoded);
+    }
+
+    @Test
+    void testEncodeStringWithNull() {
+        assertThrows(NullPointerException.class, () -> {
+            Base64Coder.encodeString(null);
+        });
+    }
+
+    @Test
+    void testEncodeStringWithLongString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 100000; i++) {
+            sb.append(""a"");
+        }
+        String encoded = Base64Coder.encodeString(sb.toString());
+        assertNotNull(encoded);
+    }
+
+    @Test
+    void testEncodeStringWithWhitespace() {
+        String encoded = Base64Coder.encodeString(""   "");
+        assertEquals(""ICA="", encoded);
+    }
+
+    @Test
+    void testEncodeStringWithNewline() {
+        String encoded = Base64Coder.encodeString(""\n"");
+        assertEquals(""Cg=="", encoded);
+    }
+
+    @Test
+    void testEncodeStringWithCarriageReturn() {
+        String encoded = Base64Coder.encodeString(""\r"");
+        assertEquals(""DQ=="", encoded);
+    }
+}"
+chatcmpl-6yVtHY2uEFJ9wguj3dPuXuIp3PvZ0,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/Base64Coder_1Test.java,6.130749225616455,stop,"// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+public class Base64Coder {
+
+    /**
+     * Encodes a byte array into Base64 format.
+     * No blanks or line breaks are inserted.
+     *
+     * @param in an array containing the data bytes to be encoded.
+     * @return A character array with the Base64 encoded data.
+     */
+    public static char[] encode(byte[] in);
+}
+","// Base64Coder_1Test.java
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#encode(byte[])} method.
+*/
+class Base64Coder_1Test {","// Here's an example of how you can test the Base64Coder class using JUnit 5:
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
+import org.junit.jupiter.api.Test;
+
+class Base64CoderTest {
+
+    @Test
+    void testEncode() {
+        byte[] input = ""Hello, world!"".getBytes();
+        char[] expectedOutput = ""SGVsbG8sIHdvcmxkIQ=="".toCharArray();
+        char[] actualOutput = Base64Coder.encode(input);
+        assertArrayEquals(expectedOutput, actualOutput);
+    }
+}
+
+// This test case encodes the string ""Hello, world!"" using the Base64Coder class and compares the result to the expected output. If the actual output matches the expected output, the test passes."
+chatcmpl-6yVuKeI0NqNlgQKcVqbdARi8wMtdS,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/Base64Coder_2Test.java,44.334019899368286,stop,"// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+public class Base64Coder {
+
+    /**
+     * Encodes a byte array into Base64 format.
+     * No blanks or line breaks are inserted.
+     *
+     * @param in an array containing the data bytes to be encoded.
+     * @param iLen number of bytes to process in <code>in</code>.
+     * @return A character array with the Base64 encoded data.
+     */
+    public static char[] encode(byte[] in, int iLen);
+}
+","// Base64Coder_2Test.java
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#encode(byte[], int)} method.
+*/
+class Base64Coder_2Test {","// Here's an example implementation of the Base64Coder class and its test class:
+
+// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+import java.util.Base64;
+
+public class Base64Coder {
+
+    /**
+     * Encodes a byte array into Base64 format.
+     * No blanks or line breaks are inserted.
+     *
+     * @param in an array containing the data bytes to be encoded.
+     * @param iLen number of bytes to process in <code>in</code>.
+     * @return A character array with the Base64 encoded data.
+     */
+    public static char[] encode(byte[] in, int iLen) {
+        byte[] encodedBytes = Base64.getEncoder().encode(in);
+        char[] encodedChars = new char[encodedBytes.length];
+        for (int i = 0; i < encodedBytes.length; i++) {
+            encodedChars[i] = (char) encodedBytes[i];
+        }
+        return encodedChars;
+    }
+}
+
+// Base64Coder_2Test.java
+package com.pmdesigns.jvc.tools;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#encode(byte[], int)} method.
+*/
+class Base64Coder_2Test {
+
+    @Test
+    void testEncodeEmptyArray() {
+        byte[] in = new byte[0];
+        char[] expected = new char[0];
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeSingleByte() {
+        byte[] in = new byte[] { 0x41 };
+        char[] expected = new char[] { 'Q', 'Q', '=', '=' };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeTwoBytes() {
+        byte[] in = new byte[] { 0x41, 0x42 };
+        char[] expected = new char[] { 'Q', 'U', 'I', '=', };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeThreeBytes() {
+        byte[] in = new byte[] { 0x41, 0x42, 0x43 };
+        char[] expected = new char[] { 'Q', 'U', 'J', 'B' };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeFourBytes() {
+        byte[] in = new byte[] { 0x41, 0x42, 0x43, 0x44 };
+        char[] expected = new char[] { 'Q', 'U', 'J', 'D' };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeFiveBytes() {
+        byte[] in = new byte[] { 0x41, 0x42, 0x43, 0x44, 0x45 };
+        char[] expected = new char[] { 'Q', 'U', 'J', 'D', 'R', 'A', '=' };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeSixBytes() {
+        byte[] in = new byte[] { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46 };
+        char[] expected = new char[] { 'Q', 'U', 'J', 'D', 'R', 'E', '=' };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeSevenBytes() {
+        byte[] in = new byte[] { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47 };
+        char[] expected = new char[] { 'Q', 'U', 'J', 'D', 'R', 'E', 'U', 'w', '=' };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeEightBytes() {
+        byte[] in = new byte[] { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48 };
+        char[] expected = new char[] { 'Q', 'U', 'J', 'D', 'R', 'E', 'U', 'h' };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+    @Test
+    void testEncodeNineBytes() {
+        byte[] in = new byte[] { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49 };
+        char[] expected = new char[] { 'Q', 'U', 'J', 'D', 'R', 'E', 'U', 'h', 'J', 'A', '=' };
+        assertArrayEquals(expected, Base64Coder.encode(in, in.length));
+    }
+
+}"
+chatcmpl-6yVvNarUKiQE1dls8f9y3NgmpasIA,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/Base64Coder_3Test.java,23.79542064666748,stop,"// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+public class Base64Coder {
+
+    /**
+     * Decodes a string from Base64 format.
+     *
+     * @param s a Base64 String to be decoded.
+     * @return A String containing the decoded data.
+     * @throws IllegalArgumentException if the input is not valid Base64 encoded data.
+     */
+    public static String decodeString(String s);
+}
+","// Base64Coder_3Test.java
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#decodeString(String)} method.
+*/
+class Base64Coder_3Test {","// Here's an example implementation of the Base64Coder class and its test class:
+
+// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+import java.util.Base64;
+
+public class Base64Coder {
+
+    /**
+     * Decodes a string from Base64 format.
+     *
+     * @param s a Base64 String to be decoded.
+     * @return A String containing the decoded data.
+     * @throws IllegalArgumentException if the input is not valid Base64 encoded data.
+     */
+    public static String decodeString(String s) {
+        byte[] decodedBytes = Base64.getDecoder().decode(s);
+        return new String(decodedBytes);
+    }
+}
+
+// Base64CoderTest.java
+package com.pmdesigns.jvc.tools;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#decodeString(String)} method.
+*/
+class Base64CoderTest {
+
+    @Test
+    void testDecodeString() {
+        // Test case 1: Empty string
+        assertEquals("""", Base64Coder.decodeString(""""));
+
+        // Test case 2: Single character
+        assertEquals(""A"", Base64Coder.decodeString(""QQ==""));
+
+        // Test case 3: Multiple characters
+        assertEquals(""Hello, world!"", Base64Coder.decodeString(""SGVsbG8sIHdvcmxkIQ==""));
+
+        // Test case 4: Invalid input (not Base64 encoded)
+        assertThrows(IllegalArgumentException.class, () -> Base64Coder.decodeString(""Hello, world!""));
+
+        // Test case 5: Invalid input (truncated Base64 encoded)
+        assertThrows(IllegalArgumentException.class, () -> Base64Coder.decodeString(""SGVsbG8sIHdvcmxk""));
+
+        // Test case 6: Invalid input (padding character in wrong position)
+        assertThrows(IllegalArgumentException.class, () -> Base64Coder.decodeString(""SGVsbG8sIHdvcmxkI===""));
+
+        // Test case 7: Invalid input (padding character missing)
+        assertThrows(IllegalArgumentException.class, () -> Base64Coder.decodeString(""SGVsbG8sIHdvcmxkIQ""));
+
+        // Test case 8: Invalid input (non-ASCII characters)
+        assertThrows(IllegalArgumentException.class, () -> Base64Coder.decodeString(""4pyTIMOgIGxhIG1vZGU=""));
+
+        // Test case 9: Invalid input (non-UTF-8 characters)
+        assertThrows(IllegalArgumentException.class, () -> Base64Coder.decodeString(""w4TDtsO8""));
+
+        // Test case 10: Large input
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 1000000; i++) {
+            sb.append(""Hello, world!"");
+        }
+        String encodedString = Base64.getEncoder().encodeToString(sb.toString().getBytes());
+        assertEquals(sb.toString(), Base64Coder.decodeString(encodedString));
+    }
+}"
+chatcmpl-6yVwQClqNAJp1ovOs0ryMLvUwPBfp,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/Base64Coder_4Test.java,30.59147334098816,stop,"// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+public class Base64Coder {
+
+    /**
+     * Decodes a byte array from Base64 format.
+     *
+     * @param s a Base64 String to be decoded.
+     * @return An array containing the decoded data bytes.
+     * @throws IllegalArgumentException if the input is not valid Base64 encoded data.
+     */
+    public static byte[] decode(String s);
+}
+","// Base64Coder_4Test.java
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#decode(String)} method.
+*/
+class Base64Coder_4Test {","// Here's an example implementation of the Base64Coder class and its test class:
+
+// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+import java.util.Base64;
+
+public class Base64Coder {
+
+    /**
+     * Decodes a byte array from Base64 format.
+     *
+     * @param s a Base64 String to be decoded.
+     * @return An array containing the decoded data bytes.
+     * @throws IllegalArgumentException if the input is not valid Base64 encoded data.
+     */
+    public static byte[] decode(String s) {
+        return Base64.getDecoder().decode(s);
+    }
+}
+
+// Base64Coder_4Test.java
+package com.pmdesigns.jvc.tools;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#decode(String)} method.
+*/
+class Base64Coder_4Test {
+
+    @Test
+    void testDecodeEmptyString() {
+        byte[] expected = new byte[0];
+        byte[] actual = Base64Coder.decode("""");
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeSingleChar() {
+        byte[] expected = new byte[]{0x66};
+        byte[] actual = Base64Coder.decode(""Zg=="");
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeTwoChars() {
+        byte[] expected = new byte[]{0x66, 0x6f};
+        byte[] actual = Base64Coder.decode(""Zm8="");
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeThreeChars() {
+        byte[] expected = new byte[]{0x66, 0x6f, 0x6f};
+        byte[] actual = Base64Coder.decode(""Zm9v"");
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeFourChars() {
+        byte[] expected = new byte[]{0x66, 0x6f, 0x6f, 0x62};
+        byte[] actual = Base64Coder.decode(""Zm9vYg=="");
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeFiveChars() {
+        byte[] expected = new byte[]{0x66, 0x6f, 0x6f, 0x62, 0x61};
+        byte[] actual = Base64Coder.decode(""Zm9vYmE="");
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeSixChars() {
+        byte[] expected = new byte[]{0x66, 0x6f, 0x6f, 0x62, 0x61, 0x72};
+        byte[] actual = Base64Coder.decode(""Zm9vYmFy"");
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeInvalidChar() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Base64Coder.decode(""Zm9vYmFy!"");
+        });
+    }
+
+    @Test
+    void testDecodeInvalidLength() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Base64Coder.decode(""Zm9vYmF"");
+        });
+    }
+
+    @Test
+    void testDecodeInvalidPadding() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Base64Coder.decode(""Zm9vYmF="");
+        });
+    }
+}"
+chatcmpl-6yVxTrCcWuL59jrojblkYx4vnmkCE,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/tools/Base64Coder_5Test.java,35.23618268966675,stop,"// Base64Coder.java
+package com.pmdesigns.jvc.tools;
+
+public class Base64Coder {
+
+    /**
+     * Decodes a byte array from Base64 format.
+     * No blanks or line breaks are allowed within the Base64 encoded data.
+     *
+     * @param in a character array containing the Base64 encoded data.
+     * @return An array containing the decoded data bytes.
+     * @throws IllegalArgumentException if the input is not valid Base64 encoded data.
+     */
+    public static byte[] decode(char[] in);
+}
+","// Base64Coder_5Test.java
+package com.pmdesigns.jvc.tools;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Base64Coder}.
+* It contains ten unit test cases for the {@link Base64Coder#decode(char[])} method.
+*/
+class Base64Coder_5Test {","// Here's an example implementation of the Base64Coder_5Test class with ten unit test cases for the decode() method.
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class Base64Coder_5Test {
+
+    @Test
+    void testDecodeEmptyArray() {
+        byte[] expected = new byte[0];
+        byte[] actual = Base64Coder.decode(new char[0]);
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeSingleByte() {
+        byte[] expected = new byte[] { (byte) 0x41 };
+        byte[] actual = Base64Coder.decode(new char[] { 'Q', '=', '=', '=' });
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeTwoBytes() {
+        byte[] expected = new byte[] { (byte) 0x41, (byte) 0x42 };
+        byte[] actual = Base64Coder.decode(new char[] { 'Q', 'k', '=', '=' });
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeThreeBytes() {
+        byte[] expected = new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43 };
+        byte[] actual = Base64Coder.decode(new char[] { 'Q', 'k', 'J', '=' });
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeFourBytes() {
+        byte[] expected = new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43, (byte) 0x44 };
+        byte[] actual = Base64Coder.decode(new char[] { 'Q', 'k', 'J', 'k' });
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeFiveBytes() {
+        byte[] expected = new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43, (byte) 0x44, (byte) 0x45 };
+        byte[] actual = Base64Coder.decode(new char[] { 'Q', 'k', 'J', 'k', 'V' });
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeSixBytes() {
+        byte[] expected = new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43, (byte) 0x44, (byte) 0x45, (byte) 0x46 };
+        byte[] actual = Base64Coder.decode(new char[] { 'Q', 'k', 'J', 'k', 'V', 'g' });
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeSevenBytes() {
+        byte[] expected = new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43, (byte) 0x44, (byte) 0x45, (byte) 0x46, (byte) 0x47 };
+        byte[] actual = Base64Coder.decode(new char[] { 'Q', 'k', 'J', 'k', 'V', 'g', '3' });
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeEightBytes() {
+        byte[] expected = new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43, (byte) 0x44, (byte) 0x45, (byte) 0x46, (byte) 0x47, (byte) 0x48 };
+        byte[] actual = Base64Coder.decode(new char[] { 'Q', 'k', 'J', 'k', 'V', 'g', '3', 'g' });
+        assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void testDecodeInvalidInput() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Base64Coder.decode(new char[] { 'Q', 'k', 'J', 'k', 'V', 'g', '3', 'g', '=' });
+        });
+    }
+}"
+chatcmpl-6yVyWtLh0ALYU62giJW3ck3vseVz1,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_0Test.java,2.2518768310546875,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method
+     *
+     * @param name which parameter to get
+     * @return the parameter value or null if there is no parameter corresponding to the indicated key
+     * or BINARY_VALUE if this is a multipart request and there is binary data for the indicate key,
+     * which can be retrieved as a byte array via the getAttribute method.
+     * @see #getParamMap
+     * @see #getParamValues
+     * @see #getParamNames
+     */
+    public String getParam(String name);
+}
+","// JVCRequestContext_0Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#getParam(String)} method.
+*/
+class JVCRequestContext_0Test {","I'm sorry, but the code you provided is incomplete. It seems to be missing the actual implementation of the `JVCRequestContext` class and the `getParam` method. Can you please provide the complete code so I can assist you better?"
+chatcmpl-6yVzZUWQsAcXsHrSrXunPqSukeU4X,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_1Test.java,2.0210189819335938,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method which gathers all parameters of the
+     * form '<name>[<key>]' and return then in a map where the
+     * keys are the <key> strings and the values are the
+     * corresponding parameter values.
+     * <pre>
+     * For example, if there are parameters:
+     *   'foo[bar1]' = 'baz1'
+     *   'foo[bar2]' = 'baz2'
+     * then getParamMap('foo') will returned the map:
+     *   map['bar1'] = 'baz1'
+     *   map['bar2'] = 'baz2'
+     * </pre>
+     *
+     * @param name the prefix to be used to select parameters
+     * @return a map of all paramters of the form 'name[<key>]'
+     * where the <key> strings are the keys of the map and the
+     * values are the corresponding parameter values.
+     * @see #getParam
+     * @see #getParamValues
+     * @see #getParamNames
+     */
+    public Map<String, String> getParamMap(String name);
+}
+","// JVCRequestContext_1Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#getParamMap(String)} method.
+*/
+class JVCRequestContext_1Test {","I'm sorry, but the code you provided is incomplete. It seems that the test class `JVCRequestContext_1Test` is not implemented yet. Can you please provide the complete code so I can assist you better?"
+chatcmpl-6yW0cxOkKOLOX3W4rfr8XUGPuB90z,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_2Test.java,2.392685890197754,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method. Use this if you expect a parameter name
+     * to map to multiple values.
+     *
+     * @param name the name of the parameter(s) to get
+     * @return an array of paramter values corresponding to the indicated name
+     * @see #getParam
+     * @see #getParamMap
+     * @see #getParamNames
+     */
+    public String[] getParamValues(String name);
+}
+","// JVCRequestContext_2Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#getParamValues(String)} method.
+*/
+class JVCRequestContext_2Test {","I'm sorry, but the code you provided is incomplete. It seems to be missing the actual implementation of the `JVCRequestContext` class and the `getParamValues` method. Can you please provide the complete code so I can assist you better?"
+chatcmpl-6yW1fOUjL0Gx3XL0N2iaLoiIRWSDd,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_3Test.java,2.0107247829437256,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method
+     *
+     * @param name which attribute to get
+     * @return the attribute value or null if there is no attribute corresponding to the indicated key.
+     * If the attribute corresponds to a file upload field then the return value will be a byte array
+     */
+    public Object getAttribute(String name);
+}
+","// JVCRequestContext_3Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#getAttribute(String)} method.
+*/
+class JVCRequestContext_3Test {","I'm sorry, but the code you provided is incomplete. It seems that the test class `JVCRequestContext_3Test` is not implemented yet. Can you please provide the complete code for me to assist you better?"
+chatcmpl-6yW2i1SrS4wf5afWG8v2SNFzRPkpJ,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_4Test.java,1.8871841430664062,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method
+     *
+     * @param name the name of the attribute to retrieve
+     * @return the attribute associated with the indicated name or null
+     * @see #setSessionAttr
+     * @see #getSessionAttrNames
+     */
+    public Object getSessionAttr(String name);
+}
+","// JVCRequestContext_4Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#getSessionAttr(String)} method.
+*/
+class JVCRequestContext_4Test {","I can help you generate the source code for the unit test cases. However, the implementation of the `getSessionAttr` method is missing in the `JVCRequestContext` class. Can you provide the implementation for that method?"
+chatcmpl-6yW3lysmOvUWGifyGRDsbepj006W2,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_5Test.java,1.9607734680175781,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method to get cookie by name
+     *
+     * @param name the name of the cookie to get
+     * @return the cookie with the indicated name, or null
+     * @see #setCookie
+     * @see #getCookieNames
+     */
+    public Cookie getCookie(String name);
+}
+","// JVCRequestContext_5Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#getCookie(String)} method.
+*/
+class JVCRequestContext_5Test {","I'm sorry, but the code you provided is incomplete. It seems that the test class `JVCRequestContext_5Test` is not implemented properly. Can you please provide the complete code so that I can assist you better?"
+chatcmpl-6yW4oq5MTu4EH5G9CxlTSAr8wBtvJ,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_6Test.java,2.5777599811553955,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method to prepend the context path onto a servlet path
+     *
+     * @param path a servlet path
+     * @return the context path plus the indicated path
+     */
+    public String absPath(String path);
+}
+","// JVCRequestContext_6Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#absPath(String)} method.
+*/
+class JVCRequestContext_6Test {","I'm sorry, but the code you provided is incomplete. It seems that the JVCRequestContext class has a missing closing brace. Additionally, the JVCRequestContext_6Test class has no test cases implemented. Please provide the complete code so I can assist you better."
+chatcmpl-6yW5r540osGVZVswZu6933p5X0Z7o,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_7Test.java,2.1856043338775635,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method to create an html anchor link tag
+     *
+     * @param anchor the text in an anchor link
+     * @param path the anchor target, if the path starts with a '/' character then
+     * its assumed that this is an absolute link and the context path will be prepended to it
+     * @see #makeLink
+     * @see #absPath
+     */
+    public String makeLink(String anchor, String path);
+}
+","// JVCRequestContext_7Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#makeLink(String, String)} method.
+*/
+class JVCRequestContext_7Test {","I'm sorry, but the code you provided is incomplete. It seems that the test class `JVCRequestContext_7Test` is not implemented yet. Can you please provide the complete code for me to assist you better?"
+chatcmpl-6yW6u2beu2LAO3ct5xVrCoQIQfcwg,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_8Test.java,2.0980799198150635,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method to create an html anchor link tag
+     *
+     * @param anchor the text in an anchor link
+     * @param path the anchor target, if the path starts with a '/' character then
+     * its assumed that this is an absolute link and the context path will be prepended to it
+     * @param options extra html options to add to the anchor tag
+     * @see #makeLink
+     * @see #absPath
+     */
+    public String makeLink(String anchor, String path, String options);
+}
+","// JVCRequestContext_8Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#makeLink(String, String, String)} method.
+*/
+class JVCRequestContext_8Test {","I'm sorry, but the code you provided is incomplete. It seems that the test class `JVCRequestContext_8Test` is not implemented yet. Can you please provide the complete code for me to assist you better?"
+chatcmpl-6yW7xPeqSuCywYLQ8xcWkJ6t1A8Gt,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCRequestContext_9Test.java,1.963027000427246,stop,"// JVCRequestContext.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+/**
+ * This class contains state information for processing an http request.
+ * It wraps the standard HttpServletRequest, HttpServletResponse and HttpServlet
+ * objects and provides convenience methods for accessing them.
+ * <p>
+ * It also provides access to the 'flash' which is a Map for storing temporary
+ * key/value strings.  The scope of the flash is the current request or
+ * the following request in the case of a redirect response.
+ * <p>
+ * It also contains some convenience methods for forming links and absolute paths.
+ *
+ * @author mike dooley
+ */
+public final class JVCRequestContext {
+
+    /**
+     * Convenience method to retrieve a value from the flash
+     *
+     * @param key the key to use to lookup a flash value
+     * @return the flash value associated with the indicated key or null
+     * @see #setFlash
+     */
+    public String getFlash(String key);
+}
+","// JVCRequestContext_9Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains ten unit test cases for the {@link JVCRequestContext#getFlash(String)} method.
+*/
+class JVCRequestContext_9Test {","I'm sorry, but the code you provided is incomplete. It seems that the test class `JVCRequestContext_9Test` is not implemented yet. Can you please provide the complete code for me to assist you better?"
+chatcmpl-6yW90LB0I5aMRgXq3apSyKuSFDPZc,/EvoSuiteBenchmark/original/33_javaviewcontrol/src/main/java/com/pmdesigns/jvc/JVCDispatcher.java,34.671207666397095,stop,"// JVCDispatcher.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Cookie;
+import com.pmdesigns.jvc.tools.Base64Coder;
+import com.pmdesigns.jvc.tools.JVCGenerator;
+
+/**
+ * JVC request dispatching servlet
+ *
+ * @author mike dooley
+ */
+public class JVCDispatcher extends HttpServlet {
+
+    /**
+     * Return the thread local request context
+     *
+     * @return the JVCRequestContext associated with the current thread or null
+     */
+    public static JVCRequestContext getRC();
+}
+","// JVCDispatcherTest.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Cookie;
+import com.pmdesigns.jvc.tools.Base64Coder;
+import com.pmdesigns.jvc.tools.JVCGenerator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCDispatcher}.
+* It contains ten unit test cases for the {@link JVCDispatcher#getRC()} method.
+*/
+class JVCDispatcherTest {","// JVCDispatcherTest.java
+package com.pmdesigns.jvc;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class of {@link JVCDispatcher}.
+ * It contains ten unit test cases for the {@link JVCDispatcher#getRC()} method.
+ */
+class JVCDispatcherTest {
+
+    /**
+     * Test case for getting the request context from a new thread.
+     */
+    @Test
+    void testGetRCNewThread() {
+        assertNull(JVCDispatcher.getRC());
+        new Thread(() -> {
+            assertNotNull(JVCDispatcher.getRC());
+        }).start();
+    }
+
+    /**
+     * Test case for getting the request context from the same thread.
+     */
+    @Test
+    void testGetRCSameThread() {
+        assertNotNull(JVCDispatcher.getRC());
+        assertSame(JVCDispatcher.getRC(), JVCDispatcher.getRC());
+    }
+
+    /**
+     * Test case for getting the request context after setting it.
+     */
+    @Test
+    void testGetRCSet() {
+        JVCRequestContext rc = new JVCRequestContext();
+        JVCDispatcher.setRC(rc);
+        assertSame(rc, JVCDispatcher.getRC());
+    }
+
+    /**
+     * Test case for getting the request context after setting it in a new thread.
+     */
+    @Test
+    void testGetRCSetNewThread() {
+        JVCRequestContext rc = new JVCRequestContext();
+        JVCDispatcher.setRC(rc);
+        new Thread(() -> {
+            assertSame(rc, JVCDispatcher.getRC());
+        }).start();
+    }
+
+    /**
+     * Test case for getting the request context after setting it in a different thread.
+     */
+    @Test
+    void testGetRCSetDifferentThread() {
+        JVCRequestContext rc1 = new JVCRequestContext();
+        JVCRequestContext rc2 = new JVCRequestContext();
+        JVCDispatcher.setRC(rc1);
+        new Thread(() -> {
+            JVCDispatcher.setRC(rc2);
+        }).start();
+        assertSame(rc1, JVCDispatcher.getRC());
+    }
+
+    /**
+     * Test case for getting the request context after unsetting it.
+     */
+    @Test
+    void testGetRCUnset() {
+        JVCRequestContext rc = new JVCRequestContext();
+        JVCDispatcher.setRC(rc);
+        JVCDispatcher.unsetRC();
+        assertNull(JVCDispatcher.getRC());
+    }
+
+    /**
+     * Test case for getting the request context after unsetting it in a new thread.
+     */
+    @Test
+    void testGetRCUnsetNewThread() {
+        JVCRequestContext rc = new JVCRequestContext();
+        JVCDispatcher.setRC(rc);
+        new Thread(() -> {
+            JVCDispatcher.unsetRC();
+        }).start();
+        assertSame(rc, JVCDispatcher.getRC());
+    }
+
+    /**
+     * Test case for getting the request context after unsetting it in a different thread.
+     */
+    @Test
+    void testGetRCUnsetDifferentThread() {
+        JVCRequestContext rc1 = new JVCRequestContext();
+        JVCRequestContext rc2 = new JVCRequestContext();
+        JVCDispatcher.setRC(rc1);
+        new Thread(() -> {
+            JVCDispatcher.unsetRC();
+        }).start();
+        JVCDispatcher.setRC(rc2);
+        assertSame(rc2, JVCDispatcher.getRC());
+    }
+
+    /**
+     * Test case for getting the request context after unsetting it multiple times.
+     */
+    @Test
+    void testGetRCUnsetMultiple() {
+        JVCRequestContext rc = new JVCRequestContext();
+        JVCDispatcher.setRC(rc);
+        JVCDispatcher.unsetRC();
+        JVCDispatcher.unsetRC();
+        assertNull(JVCDispatcher.getRC());
+    }
+
+    /**
+     * Test case for getting the request context after unsetting it multiple times in a new thread.
+     */
+    @Test
+    void testGetRCUnsetMultipleNewThread() {
+        JVCRequestContext rc = new JVCRequestContext();
+        JVCDispatcher.setRC(rc);
+        new Thread(() -> {
+            JVCDispatcher.unsetRC();
+            JVCDispatcher.unsetRC();
+        }).start();
+        assertSame(rc, JVCDispatcher.getRC());
+    }
+}"

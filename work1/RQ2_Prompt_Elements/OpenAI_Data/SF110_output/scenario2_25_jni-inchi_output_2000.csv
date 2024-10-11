@@ -1,0 +1,2309 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wrC7yaMYD2w13gfpLINXA5KANqh5,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStereo0D0.java,82.56059765815735,length,"// JniInchiStereo0D.java
+package net.sf.jniinchi;
+
+/**
+ * Encapsulates properites of InChI Stereo Parity.  See <tt>inchi_api.h</tt>.
+ *
+ * @author Sam Adams
+ */
+public class JniInchiStereo0D {
+
+    /**
+     * <p>Convenience method for generating 0D stereo parities at tetrahedral
+     * atom centres.
+     *
+     * <p><b>Usage notes from <i>inchi_api.h</i>:</b>
+     * <pre>
+     *  4 neighbors
+     *
+     *           X                    neighbor[4] : {#W, #X, #Y, #Z}
+     *           |                    central_atom: #A
+     *        W--A--Y                 type        : INCHI_StereoType_Tetrahedral
+     *           |
+     *           Z
+     *  parity: if (X,Y,Z) are clockwize when seen from W then parity is 'e' otherwise 'o'
+     *  Example (see AXYZW above): if W is above the plane XYZ then parity = 'e'
+     *
+     *  3 neighbors
+     *
+     *             Y          Y       neighbor[4] : {#A, #X, #Y, #Z}
+     *            /          /        central_atom: #A
+     *        X--A  (e.g. O=S   )     type        : INCHI_StereoType_Tetrahedral
+     *            \          \
+     *             Z          Z
+     *
+     *  parity: if (X,Y,Z) are clockwize when seen from A then parity is 'e',
+     *                                                         otherwise 'o'
+     *  unknown parity = 'u'
+     *  Example (see AXYZ above): if A is above the plane XYZ then parity = 'e'
+     *  This approach may be used also in case of an implicit H attached to A.
+     *
+     *  ==============================================
+     *  Note. Correspondence to CML 0D stereo parities
+     *  ==============================================
+     *  a list of 4 atoms corresponds to CML atomRefs4
+     *
+     *  tetrahedral atom
+     *  ================
+     *  CML atomParity > 0 <=> INCHI_PARITY_EVEN
+     *  CML atomParity < 0 <=> INCHI_PARITY_ODD
+     *
+     *                               | 1   1   1   1  |  where xW is x-coordinate of
+     *                               | xW  xX  xY  xZ |  atom W, etc. (xyz is a
+     *  CML atomParity = determinant | yW  yX  yY  yZ |  'right-handed' Cartesian
+     *                               | zW  zX  xY  zZ |  coordinate system)
+     * </pre>
+     *
+     * @param atC Central atom
+     * @param at0 Neighbour atom 0
+     * @param at1 Neighbour atom 1
+     * @param at2 Neighbour atom 2
+     * @param at3 Neighbour atom 3
+     * @param parity Parity
+     */
+    public static JniInchiStereo0D createNewTetrahedralStereo0D(final JniInchiAtom atC, final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, INCHI_PARITY parity) {
+        JniInchiStereo0D stereo = new JniInchiStereo0D(atC, at0, at1, at2, at3, INCHI_STEREOTYPE.TETRAHEDRAL, parity);
+        return stereo;
+    }
+}
+","// JniInchiStereo0DTest.java
+package net.sf.jniinchi;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStereo0D}.
+* It contains ten unit test cases for the {@link JniInchiStereo0D#createNewTetrahedralStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)} method.
+*/
+class JniInchiStereo0DTest {","// JniInchiStereo0DTest.java
+package net.sf.jniinchi;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStereo0D}.
+* It contains ten unit test cases for the {@link JniInchiStereo0D#createNewTetrahedralStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)} method.
+*/
+class JniInchiStereo0DTest {
+
+	/**
+	 * Test case 1 for {@link JniInchiStereo0D#createNewTetrahedralStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * 
+	 * <p>Test case 1 tests the method with the following parameters:
+	 * <ul>
+	 * <li>atC = new JniInchiAtom(""C"", 0.0, 0.0, 0.0, 0.0);</li>
+	 * <li>at0 = new JniInchiAtom(""H"", 1.0, 0.0, 0.0, 0.0);</li>
+	 * <li>at1 = new JniInchiAtom(""H"", 0.0, 1.0, 0.0, 0.0);</li>
+	 * <li>at2 = new JniInchiAtom(""H"", 0.0, 0.0, 1.0, 0.0);</li>
+	 * <li>at3 = new JniInchiAtom(""H"", 0.0, 0.0, 0.0, 1.0);</li>
+	 * <li>parity = INCHI_PARITY.EVEN;</li>
+	 * </ul>
+	 * </p>
+	 * 
+	 * <p>The expected result is that the method returns a new JniInchiStereo0D object with the following properties:
+	 * <ul>
+	 * <li>central_atom = atC;</li>
+	 * <li>neighbor[0] = at0;</li>
+	 * <li>neighbor[1] = at1;</li>
+	 * <li>neighbor[2] = at2;</li>
+	 * <li>neighbor[3] = at3;</li>
+	 * <li>type = INCHI_STEREOTYPE.TETRAHEDRAL;</li>
+	 * <li>parity = INCHI_PARITY.EVEN;</li>
+	 * </ul>
+	 * </p>
+	 */
+	@Test
+	void testCase1() {
+		JniInchiAtom atC = new JniInchiAtom(""C"", 0.0, 0.0, 0.0, 0.0);
+		JniInchiAtom at0 = new JniInchiAtom(""H"", 1.0, 0.0, 0.0, 0.0);
+		JniInchiAtom at1 = new JniInchiAtom(""H"", 0.0, 1.0, 0.0, 0.0);
+		JniInchiAtom at2 = new JniInchiAtom(""H"", 0.0, 0.0, 1.0, 0.0);
+		JniInchiAtom at3 = new JniInchiAtom(""H"", 0.0, 0.0, 0.0, 1.0);
+		INCHI_PARITY parity = INCHI_PARITY.EVEN;
+		JniInchiStereo0D stereo = JniInchiStereo0D.createNewTetrahedralStereo0D(atC, at0, at1, at2, at3, parity);
+		assertEquals(atC, stereo.central_atom);
+		assertEquals(at0, stereo.neighbor[0]);
+		assertEquals(at1, stereo.neighbor[1]);
+		assertEquals(at2, stereo.neighbor[2]);
+		assertEquals(at3, stereo.neighbor[3]);
+		assertEquals(INCHI_STEREOTYPE.TETRAHEDRAL, stereo.type);
+		assertEquals(INCHI_PARITY.EVEN, stereo.parity);
+	}
+	
+	/**
+	 * Test case 2 for {@link JniInchiStereo0D#createNewTetrahedralStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * 
+	 * <p>Test case 2 tests the method with the following parameters:
+	 * <ul>
+	 * <li>atC = new JniInchiAtom(""C"", 0.0, 0.0, 0.0, 0.0);</li>
+	 * <li>at0 = new JniInchiAtom(""H"", 1.0, 0.0, 0.0, 0.0);</li>
+	 * <li>at1 = new JniInchiAtom(""H"", 0.0, 1.0, 0.0, 0.0);</li>
+	 * <li>at2 = new JniInchiAtom(""H"", 0.0, 0.0, 1.0, 0.0);</li>
+	 * <li>at3 = new JniInchiAtom(""H"", 0.0, 0.0, 0.0, 1.0);</li>
+	 * <li>parity = INCHI_PARITY.ODD;</li>
+	 * </ul>
+	 * </p>
+	 * 
+	 * <p>The expected result is that the method returns a new JniInchiStereo0D object with the following properties:
+	 * <ul>
+	 * <li>central_atom = atC;</li>
+	 * <li>neighbor[0] = at0;</li>
+	 * <li>neighbor[1] = at1;</li>
+	 * <li>neighbor[2] = at2;</li>
+	 * <li>neighbor[3] = at3;</li>
+	 * <li>type = INCHI_STEREOTYPE.TETRAHEDRAL;</li>
+	 * <li>parity = INCHI_PARITY.ODD;</li>
+	 * </ul>
+	 * </p>
+	 */
+	@Test
+	void testCase2() {
+		JniInchiAtom atC = new JniInchiAtom(""C"", 0.0, 0.0, 0.0, 0.0);
+		JniInchiAtom at0 = new JniInchiAtom(""H"", 1.0, 0.0, 0.0, 0.0);
+		JniInchiAtom at1 = new JniInchiAtom(""H"", 0.0, 1.0, 0.0, 0.0);
+		JniInchiAtom at2 = new JniInchiAtom(""H"", 0.0, 0.0, 1.0, 0.0);
+		JniInchiAtom at3 = new JniInchiAtom(""H"", 0.0, 0.0, 0.0, 1.0);
+		INCHI_PARITY parity = INCHI_PARITY.ODD;
+		JniInchiStereo0D stereo = JniInchiStereo0D.createNewTetrahedralStereo0D(atC, at0, at1, at2, at3, parity);
+		assertEquals(atC, stereo.central_atom);
+		assertEquals(at0, stereo.neighbor[0]);
+		assertEquals(at1, stereo.neighbor[1]);
+		assertEquals(at2, stereo.neighbor[2]);
+		assertEquals(at3, stereo.neighbor[3]);
+		assertEquals(INCHI_STEREOTYPE.TETRAHEDRAL, stereo.type);
+		assertEquals(INCHI_PARITY.ODD, stereo.parity);
+	}
+	
+	/**
+	 * Test case 3 for {@link JniInchiStereo0D#createNewTetrahedralStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * 
+	 * <p>Test case 3 tests the method with the following parameters:
+	 * <ul>
+	 * <li>atC = new JniInchiAtom(""C"", 0"
+cmpl-6wrDSkkzgo5jqpt6qLDXaM6bbtVJJ,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStereo0D1.java,68.77256298065186,length,"// JniInchiStereo0D.java
+package net.sf.jniinchi;
+
+/**
+ * Encapsulates properites of InChI Stereo Parity.  See <tt>inchi_api.h</tt>.
+ *
+ * @author Sam Adams
+ */
+public class JniInchiStereo0D {
+
+    /**
+     * <p>Convenience method for generating 0D stereo parities at stereogenic
+     * double bonds.
+     *
+     * <p><b>Usage notes from <i>inchi_api.h</i>:</b>
+     * <pre>
+     *  =============================================
+     *  stereogenic bond >A=B< or cumulene >A=C=C=B<
+     *  =============================================
+     *
+     *                              neighbor[4]  : {#X,#A,#B,#Y} in this order
+     *  X                           central_atom : NO_ATOM
+     *   \            X      Y      type         : INCHI_StereoType_DoubleBond
+     *    A==B         \    /
+     *        \         A==B
+     *         Y
+     *
+     *  parity= 'e'    parity= 'o'   unknown parity = 'u'
+     *
+     *  ==============================================
+     *  Note. Correspondence to CML 0D stereo parities
+     *  ==============================================
+     *
+     *  stereogenic double bond and (not yet defined in CML) cumulenes
+     *  ==============================================================
+     *  CML 'C' (cis)      <=> INCHI_PARITY_ODD
+     *  CML 'T' (trans)    <=> INCHI_PARITY_EVEN
+     * </pre>
+     *
+     * @param at0 Neighbour atom 0
+     * @param at1 Neighbour atom 1
+     * @param at2 Neighbour atom 2
+     * @param at3 Neighbour atom 3
+     * @param parity Parity
+     * @return
+     */
+    public static JniInchiStereo0D createNewDoublebondStereo0D(final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, final INCHI_PARITY parity) {
+        JniInchiStereo0D stereo = new JniInchiStereo0D(null, at0, at1, at2, at3, INCHI_STEREOTYPE.DOUBLEBOND, parity);
+        return stereo;
+    }
+}
+","// JniInchiStereo0DTest.java
+package net.sf.jniinchi;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStereo0D}.
+* It contains ten unit test cases for the {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)} method.
+*/
+class JniInchiStereo0DTest {","// JniInchiStereo0DTest.java
+package net.sf.jniinchi;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStereo0D}.
+* It contains ten unit test cases for the {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)} method.
+*/
+class JniInchiStereo0DTest {
+
+	/**
+	 * Test case for {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * with the following parameters:
+	 * <ul>
+	 * <li>at0 = null</li>
+	 * <li>at1 = null</li>
+	 * <li>at2 = null</li>
+	 * <li>at3 = null</li>
+	 * <li>parity = INCHI_PARITY.ODD</li>
+	 * </ul>
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	void testCreateNewDoublebondStereo0D_1() throws Exception {
+		JniInchiAtom at0 = null;
+		JniInchiAtom at1 = null;
+		JniInchiAtom at2 = null;
+		JniInchiAtom at3 = null;
+		INCHI_PARITY parity = INCHI_PARITY.ODD;
+		JniInchiStereo0D result = JniInchiStereo0D.createNewDoublebondStereo0D(at0, at1, at2, at3, parity);
+		assertNotNull(result);
+	}
+
+	/**
+	 * Test case for {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * with the following parameters:
+	 * <ul>
+	 * <li>at0 = null</li>
+	 * <li>at1 = null</li>
+	 * <li>at2 = null</li>
+	 * <li>at3 = null</li>
+	 * <li>parity = INCHI_PARITY.EVEN</li>
+	 * </ul>
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	void testCreateNewDoublebondStereo0D_2() throws Exception {
+		JniInchiAtom at0 = null;
+		JniInchiAtom at1 = null;
+		JniInchiAtom at2 = null;
+		JniInchiAtom at3 = null;
+		INCHI_PARITY parity = INCHI_PARITY.EVEN;
+		JniInchiStereo0D result = JniInchiStereo0D.createNewDoublebondStereo0D(at0, at1, at2, at3, parity);
+		assertNotNull(result);
+	}
+
+	/**
+	 * Test case for {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * with the following parameters:
+	 * <ul>
+	 * <li>at0 = null</li>
+	 * <li>at1 = null</li>
+	 * <li>at2 = null</li>
+	 * <li>at3 = null</li>
+	 * <li>parity = INCHI_PARITY.UNKNOWN</li>
+	 * </ul>
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	void testCreateNewDoublebondStereo0D_3() throws Exception {
+		JniInchiAtom at0 = null;
+		JniInchiAtom at1 = null;
+		JniInchiAtom at2 = null;
+		JniInchiAtom at3 = null;
+		INCHI_PARITY parity = INCHI_PARITY.UNKNOWN;
+		JniInchiStereo0D result = JniInchiStereo0D.createNewDoublebondStereo0D(at0, at1, at2, at3, parity);
+		assertNotNull(result);
+	}
+
+	/**
+	 * Test case for {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * with the following parameters:
+	 * <ul>
+	 * <li>at0 = null</li>
+	 * <li>at1 = null</li>
+	 * <li>at2 = null</li>
+	 * <li>at3 = null</li>
+	 * <li>parity = INCHI_PARITY.NONE</li>
+	 * </ul>
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	void testCreateNewDoublebondStereo0D_4() throws Exception {
+		JniInchiAtom at0 = null;
+		JniInchiAtom at1 = null;
+		JniInchiAtom at2 = null;
+		JniInchiAtom at3 = null;
+		INCHI_PARITY parity = INCHI_PARITY.NONE;
+		JniInchiStereo0D result = JniInchiStereo0D.createNewDoublebondStereo0D(at0, at1, at2, at3, parity);
+		assertNotNull(result);
+	}
+
+	/**
+	 * Test case for {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * with the following parameters:
+	 * <ul>
+	 * <li>at0 = null</li>
+	 * <li>at1 = null</li>
+	 * <li>at2 = null</li>
+	 * <li>at3 = null</li>
+	 * <li>parity = null</li>
+	 * </ul>
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	void testCreateNewDoublebondStereo0D_5() throws Exception {
+		JniInchiAtom at0 = null;
+		JniInchiAtom at1 = null;
+		JniInchiAtom at2 = null;
+		JniInchiAtom at3 = null;
+		INCHI_PARITY parity = null;
+		JniInchiStereo0D result = JniInchiStereo0D.createNewDoublebondStereo0D(at0, at1, at2, at3, parity);
+		assertNotNull(result);
+	}
+
+	/**
+	 * Test case for {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)}
+	 * with the following parameters:
+	 * <ul>
+	 * <li>at0 = null</li>
+	 * <li>at1 = null</li>
+	 * <li>at2 = null</li>
+	 * <li>at3 = null</li>
+	 * <li>parity = INCHI_PARITY.ODD</li>
+	 * </ul>
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	void testCreateNewDoublebondStereo0D_6() throws Exception {
+		JniInchiAtom at0 = null;
+		JniInchiAtom at1 = null;
+		JniInchiAtom at2 = null;
+		JniInchiAtom at3 = null;
+		INCHI_PARITY parity = INCHI_PARITY.ODD;
+		JniInchiStereo0D result = JniInchiStereo0D.createNewDoublebondStereo0D(at0, at1, at2, at3, parity);
+		assertNotNull(result);
+	}
+
+	/**
+	 * Test case for {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAt"
+cmpl-6wrFW2Hs3i1TqNeskkLc49ZnblDMc,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure0.java,125.60911011695862,length,"// JniInchiStructure.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * Adds atom to inchi molecule.
+     *
+     * @param atom Atom to add
+     * @return Added atom
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiAtom addAtom(JniInchiAtom atom) {
+        atomList.add(atom);
+        return atom;
+    }
+}
+","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addAtom(JniInchiAtom)} method.
+*/
+class JniInchiStructureTest {","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addAtom(JniInchiAtom)} method.
+*/
+class JniInchiStructureTest {
+
+	/**
+	 * Test case 1 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom1() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 2 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom2() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 3 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom3() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 4 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom4() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 5 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom5() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 6 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom6() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 7 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom7() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 8 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom8() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 9 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom9() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+	
+	/**
+	 * Test case 10 for {@link JniInchiStructure#addAtom(JniInchiAtom)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddAtom10() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom result = structure.addAtom(atom);
+		assertEquals(atom, result);
+	}
+}
+
+// JniInchiAtom.java
+package net.sf.jniinchi;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiAtom {
+
+    /**
+     * Creates new atom.
+     *
+     * @param elementSymbol Element symbol
+     */
+    public JniInchiAtom(String elementSymbol) {
+        this.elementSymbol = elementSymbol;
+    }
+}
+
+// JniInchiAtomTest.java
+package net.sf.jniinchi;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiAtom}.
+* It contains ten unit test cases for the {@link JniInchiAtom#JniInchiAtom(String)} constructor.
+*/
+class JniInchiAtomTest {
+		
+	/**
+	 * Test case 1 for {@link JniInchiAtom#JniInchiAtom(String)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testJniInchiAtom1() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		assertEquals(""C"", atom.elementSymbol);
+	}
+	
+	/**
+	 * Test case 2 for {@link JniInchiAtom#JniInchiAtom(String)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testJniInchiAtom2() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		assertEquals(""C"", atom.elementSymbol);
+	}
+	
+	/**
+	 * Test case 3 for {@link JniInchiAtom#JniInchiAtom(String)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testJniInchiAtom3() throws JniInchiException {
+		JniInchiAtom atom = new JniInchiAtom(""C"");
+		assertEquals(""C"", atom.elementSymbol);
+	}
+	
+	/**
+"
+cmpl-6wrGa3ScvNVmdXHzM9onJUe8cdc77,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure1.java,68.658846616745,length,"// JniInchiStructure.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * Adds bond to inchi molecule.
+     *
+     * @param bond Bond to add
+     * @return Added bond
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiBond addBond(JniInchiBond bond) {
+        bondList.add(bond);
+        return bond;
+    }
+}
+","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addBond(JniInchiBond)} method.
+*/
+class JniInchiStructureTest {","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addBond(JniInchiBond)} method.
+*/
+class JniInchiStructureTest {
+
+	/**
+	 * Test case 1 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond1() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 2 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond2() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 3 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond3() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 4 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond4() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 5 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond5() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 6 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond6() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 7 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond7() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 8 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond8() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 9 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond9() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAtom(""C"");
+		JniInchiBond bond = new JniInchiBond(atom1, atom2, JniInchiBond.BondType.SINGLE);
+		structure.addBond(bond);
+		assertEquals(1, structure.getBondList().size());
+	}
+	
+	/**
+	 * Test case 10 for {@link JniInchiStructure#addBond(JniInchiBond)}
+	 * 
+	 * @throws JniInchiException
+	 */
+	@Test
+	void testAddBond10() throws JniInchiException {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiAtom atom1 = new JniInchiAtom(""C"");
+		JniInchiAtom atom2 = new JniInchiAt"
+cmpl-6wrHhW3qxFdu44P8moSQAraAoccZ0,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure2.java,54.92592692375183,length,"// JniInchiStructure.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * Adds 0D stereo parity to inchi molecule.
+     *
+     * @param parity Parity to add
+     * @return Added parity
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiStereo0D addStereo0D(JniInchiStereo0D parity) {
+        stereoList.add(parity);
+        return parity;
+    }
+}
+","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addStereo0D(JniInchiStereo0D)} method.
+*/
+class JniInchiStructureTest {","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addStereo0D(JniInchiStereo0D)} method.
+*/
+class JniInchiStructureTest {
+
+	/**
+	 * Test case 1:
+	 * 
+	 * <pre>
+	 * Input:
+	 * 		parity = null
+	 * </pre>
+	 * 
+	 * <pre>
+	 * Expected:
+	 * 		IllegalArgumentException
+	 * </pre>
+	 */
+	@Test
+	void testAddStereo0D_1() {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiStereo0D parity = null;
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			structure.addStereo0D(parity);
+		});
+	}
+	
+	/**
+	 * Test case 2:
+	 * 
+	 * <pre>
+	 * Input:
+	 * 		parity = new JniInchiStereo0D(new JniInchiAtom[0], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE)
+	 * </pre>
+	 * 
+	 * <pre>
+	 * Expected:
+	 * 		IllegalArgumentException
+	 * </pre>
+	 */
+	@Test
+	void testAddStereo0D_2() {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiStereo0D parity = new JniInchiStereo0D(new JniInchiAtom[0], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE);
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			structure.addStereo0D(parity);
+		});
+	}
+	
+	/**
+	 * Test case 3:
+	 * 
+	 * <pre>
+	 * Input:
+	 * 		parity = new JniInchiStereo0D(new JniInchiAtom[1], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE)
+	 * </pre>
+	 * 
+	 * <pre>
+	 * Expected:
+	 * 		IllegalArgumentException
+	 * </pre>
+	 */
+	@Test
+	void testAddStereo0D_3() {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiStereo0D parity = new JniInchiStereo0D(new JniInchiAtom[1], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE);
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			structure.addStereo0D(parity);
+		});
+	}
+	
+	/**
+	 * Test case 4:
+	 * 
+	 * <pre>
+	 * Input:
+	 * 		parity = new JniInchiStereo0D(new JniInchiAtom[2], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE)
+	 * </pre>
+	 * 
+	 * <pre>
+	 * Expected:
+	 * 		IllegalArgumentException
+	 * </pre>
+	 */
+	@Test
+	void testAddStereo0D_4() {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiStereo0D parity = new JniInchiStereo0D(new JniInchiAtom[2], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE);
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			structure.addStereo0D(parity);
+		});
+	}
+	
+	/**
+	 * Test case 5:
+	 * 
+	 * <pre>
+	 * Input:
+	 * 		parity = new JniInchiStereo0D(new JniInchiAtom[3], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE)
+	 * </pre>
+	 * 
+	 * <pre>
+	 * Expected:
+	 * 		IllegalArgumentException
+	 * </pre>
+	 */
+	@Test
+	void testAddStereo0D_5() {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiStereo0D parity = new JniInchiStereo0D(new JniInchiAtom[3], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE);
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			structure.addStereo0D(parity);
+		});
+	}
+	
+	/**
+	 * Test case 6:
+	 * 
+	 * <pre>
+	 * Input:
+	 * 		parity = new JniInchiStereo0D(new JniInchiAtom[4], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE)
+	 * </pre>
+	 * 
+	 * <pre>
+	 * Expected:
+	 * 		IllegalArgumentException
+	 * </pre>
+	 */
+	@Test
+	void testAddStereo0D_6() {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiStereo0D parity = new JniInchiStereo0D(new JniInchiAtom[4], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE);
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			structure.addStereo0D(parity);
+		});
+	}
+	
+	/**
+	 * Test case 7:
+	 * 
+	 * <pre>
+	 * Input:
+	 * 		parity = new JniInchiStereo0D(new JniInchiAtom[5], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE)
+	 * </pre>
+	 * 
+	 * <pre>
+	 * Expected:
+	 * 		IllegalArgumentException
+	 * </pre>
+	 */
+	@Test
+	void testAddStereo0D_7() {
+		JniInchiStructure structure = new JniInchiStructure();
+		JniInchiStereo0D parity = new JniInchiStereo0D(new JniInchiAtom[5], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE);
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			structure.addStereo0D(parity);
+		});
+	}
+	
+	/**
+	 * Test case 8:
+	 * 
+	 * <pre>
+	 * Input:
+	 * 		parity = new JniInchiStereo0D(new JniInchiAtom[6], JniInchiStereo0D.INCHI_PARITY_NONE, JniInchiStereo0D.INCHI_PARITY_NONE)
+	 * </pre>
+	 * 
+	"
+cmpl-6wrIkiM52ug2qIhW0EwoqMsYMiQ7R,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure3.java,74.07683396339417,length,"// JniInchiStructure.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * Returns atom from structure.
+     *
+     * @param i Index of atom to return.
+     * @return
+     */
+    public JniInchiAtom getAtom(final int i) {
+        return (JniInchiAtom) atomList.get(i);
+    }
+}
+","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getAtom(int)} method.
+*/
+class JniInchiStructureTest {","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getAtom(int)} method.
+*/
+class JniInchiStructureTest {
+
+	/**
+	 * Test case 1 for {@link JniInchiStructure#getAtom(int)}
+	 */
+	@Test
+	void testGetAtom1() {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiAtom> atomList = new ArrayList<JniInchiAtom>();
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		structure.atomList = atomList;
+		assertEquals(structure.getAtom(0), atomList.get(0));
+	}
+	
+	/**
+	 * Test case 2 for {@link JniInchiStructure#getAtom(int)}
+	 */
+	@Test
+	void testGetAtom2() {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiAtom> atomList = new ArrayList<JniInchiAtom>();
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		structure.atomList = atomList;
+		assertEquals(structure.getAtom(1), atomList.get(1));
+	}
+	
+	/**
+	 * Test case 3 for {@link JniInchiStructure#getAtom(int)}
+	 */
+	@Test
+	void testGetAtom3() {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiAtom> atomList = new ArrayList<JniInchiAtom>();
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		structure.atomList = atomList;
+		assertEquals(structure.getAtom(2), atomList.get(2));
+	}
+	
+	/**
+	 * Test case 4 for {@link JniInchiStructure#getAtom(int)}
+	 */
+	@Test
+	void testGetAtom4() {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiAtom> atomList = new ArrayList<JniInchiAtom>();
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		structure.atomList = atomList;
+		assertEquals(structure.getAtom(3), atomList.get(3));
+	}
+	
+	/**
+	 * Test case 5 for {@link JniInchiStructure#getAtom(int)}
+	 */
+	@Test
+	void testGetAtom5() {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiAtom> atomList = new ArrayList<JniInchiAtom>();
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		structure.atomList = atomList;
+		assertEquals(structure.getAtom(4), atomList.get(4));
+	}
+	
+	/**
+	 * Test case 6 for {@link JniInchiStructure#getAtom(int)}
+	 */
+	@Test
+	void testGetAtom6() {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiAtom> atomList = new ArrayList<JniInchiAtom>();
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		atomList.add(new JniInchiAtom(""C""));
+		structure.atomList = atomList;
+		assertEquals(structure.getAtom(5), atomList.get(5));
+	}
+	
+	/**
+	 * Test case 7 for {@link JniInchiStructure#getAtom(int)}
+	 */
+	@Test
+	void testGetAtom7() {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiAtom> atomList = new ArrayList<JniInchiAt"
+cmpl-6wrJwJao2ZkSjr9JEnH0lGYGo7ZG5,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure4.java,80.50394868850708,length,"// JniInchiStructure.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * Returns bond from structure.
+     *
+     * @param i Index of bond to return.
+     * @return
+     */
+    public JniInchiBond getBond(final int i) {
+        return (JniInchiBond) bondList.get(i);
+    }
+}
+","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getBond(int)} method.
+*/
+class JniInchiStructureTest {","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getBond(int)} method.
+*/
+class JniInchiStructureTest {
+
+	/**
+	 * Test case 1.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetBond1() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiBond> bondList = new ArrayList<JniInchiBond>();
+		bondList.add(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE));
+		bondList.add(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE));
+		bondList.add(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE));
+		bondList.add(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN));
+		structure.bondList = bondList;
+		assertEquals(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE), structure.getBond(0));
+		assertEquals(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE), structure.getBond(1));
+		assertEquals(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE), structure.getBond(2));
+		assertEquals(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN), structure.getBond(3));
+	}
+	
+	/**
+	 * Test case 2.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetBond2() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiBond> bondList = new ArrayList<JniInchiBond>();
+		bondList.add(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE));
+		bondList.add(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE));
+		bondList.add(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE));
+		bondList.add(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN));
+		structure.bondList = bondList;
+		assertEquals(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE), structure.getBond(0));
+		assertEquals(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE), structure.getBond(1));
+		assertEquals(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE), structure.getBond(2));
+		assertEquals(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN), structure.getBond(3));
+	}
+	
+	/**
+	 * Test case 3.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetBond3() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiBond> bondList = new ArrayList<JniInchiBond>();
+		bondList.add(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE));
+		bondList.add(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE));
+		bondList.add(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE));
+		bondList.add(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN));
+		structure.bondList = bondList;
+		assertEquals(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE), structure.getBond(0));
+		assertEquals(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE), structure.getBond(1));
+		assertEquals(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE), structure.getBond(2));
+		assertEquals(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN), structure.getBond(3));
+	}
+	
+	/**
+	 * Test case 4.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetBond4() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiBond> bondList = new ArrayList<JniInchiBond>();
+		bondList.add(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE));
+		bondList.add(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE));
+		bondList.add(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE));
+		bondList.add(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN));
+		structure.bondList = bondList;
+		assertEquals(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE), structure.getBond(0));
+		assertEquals(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE), structure.getBond(1));
+		assertEquals(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE), structure.getBond(2));
+		assertEquals(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN), structure.getBond(3));
+	}
+	
+	/**
+	 * Test case 5.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetBond5() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiBond> bondList = new ArrayList<JniInchiBond>();
+		bondList.add(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE));
+		bondList.add(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE));
+		bondList.add(new JniInchiBond(3, 4, JniInchiBond.BondType.TRIPLE));
+		bondList.add(new JniInchiBond(4, 5, JniInchiBond.BondType.ALTERN));
+		structure.bondList = bondList;
+		assertEquals(new JniInchiBond(1, 2, JniInchiBond.BondType.SINGLE), structure.getBond(0));
+		assertEquals(new JniInchiBond(2, 3, JniInchiBond.BondType.DOUBLE), structure.getBond(1));
+		assertEquals(new JniInchiBond(3, 4"
+cmpl-6wrLEFSJKwE8vBSkXP6xt7HmjxSnt,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure5.java,74.49793767929077,length,"// JniInchiStructure.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * Returns stereo parity from structure.
+     *
+     * @param i Index of stereo parity to return.
+     * @return
+     */
+    public JniInchiStereo0D getStereo0D(final int i) {
+        return (JniInchiStereo0D) stereoList.get(i);
+    }
+}
+","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getStereo0D(int)} method.
+*/
+class JniInchiStructureTest {","// JniInchiStructureTest.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getStereo0D(int)} method.
+*/
+class JniInchiStructureTest {
+
+	/**
+	 * Test case 1.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D1() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		structure.stereoList = stereoList;
+		assertEquals(structure.getStereo0D(0), stereoList.get(0));
+	}
+	
+	/**
+	 * Test case 2.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D2() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		structure.stereoList = stereoList;
+		assertEquals(structure.getStereo0D(1), stereoList.get(1));
+	}
+	
+	/**
+	 * Test case 3.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D3() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		structure.stereoList = stereoList;
+		assertEquals(structure.getStereo0D(2), stereoList.get(2));
+	}
+	
+	/**
+	 * Test case 4.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D4() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		structure.stereoList = stereoList;
+		assertEquals(structure.getStereo0D(3), stereoList.get(3));
+	}
+	
+	/**
+	 * Test case 5.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D5() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		structure.stereoList = stereoList;
+		assertEquals(structure.getStereo0D(4), stereoList.get(4));
+	}
+	
+	/**
+	 * Test case 6.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D6() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		structure.stereoList = stereoList;
+		assertEquals(structure.getStereo0D(5), stereoList.get(5));
+	}
+	
+	/**
+	 * Test case 7.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D7() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		structure.stereoList = stereoList;
+		assertEquals(structure.getStereo0D(6), stereoList.get(6));
+	}
+	
+	/**
+	 * Test case 8.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D8() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		structure.stereoList = stereoList;
+		assertEquals(structure.getStereo0D(7), stereoList.get(7));
+	}
+	
+	/**
+	 * Test case 9.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testGetStereo0D9() throws Exception {
+		JniInchiStructure structure = new JniInchiStructure();
+		List<JniInchiStereo0D> stereoList = new ArrayList<JniInchiStereo0D>();
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new JniInchiStereo0D());
+		stereoList.add(new J"
+cmpl-6wrMRoza3bxURUgElssKeRMO9VZzZ,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiWrapper0.java,65.92000007629395,length,"// JniInchiWrapper.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * <p>JNI Wrapper for International Chemical Identifier (InChI) C++ library.
+ *
+ * <p>This class is not intended to be used directly, but should be accessed
+ * through subclasses that read data formats and load them into the InChI
+ * data structures.
+ *
+ * <p>Subclasses should load data through the addAtom, addBond and addParity
+ * methods. Once the molecule is fully loaded then the generateInchi method
+ * should be called. Ideally this should all take place within the subclass's
+ * constructor. The public get methods will all return null until this has
+ * happened.
+ *
+ * <p>See <tt>inchi_api.h</tt>.
+ *
+ * @author Sam Adams
+ */
+public class JniInchiWrapper {
+
+    /**
+     * Calculates the InChIKey for an InChI string.
+     *
+     * @param inchi source InChI string
+     * @return InChIKey output
+     * @throws JniInchiException
+     */
+    public static JniInchiOutputKey getInchiKey(final String inchi) throws JniInchiException {
+        if (inchi == null) {
+            throw new IllegalArgumentException(""Null InChI"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHIKeyFromINCHI(inchi);
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+","// JniInchiWrapperTest.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiWrapper}.
+* It contains ten unit test cases for the {@link JniInchiWrapper#getInchiKey(String)} method.
+*/
+class JniInchiWrapperTest {","// JniInchiWrapperTest.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiWrapper}.
+* It contains ten unit test cases for the {@link JniInchiWrapper#getInchiKey(String)} method.
+*/
+class JniInchiWrapperTest {
+
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is null.
+	*/
+	@Test
+	void testGetInchiKey_1() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			JniInchiWrapper.getInchiKey(null);
+		});
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is empty.
+	*/
+	@Test
+	void testGetInchiKey_2() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			JniInchiWrapper.getInchiKey("""");
+		});
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is a space.
+	*/
+	@Test
+	void testGetInchiKey_3() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			JniInchiWrapper.getInchiKey("" "");
+		});
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is a tab.
+	*/
+	@Test
+	void testGetInchiKey_4() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			JniInchiWrapper.getInchiKey(""\t"");
+		});
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is a new line.
+	*/
+	@Test
+	void testGetInchiKey_5() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			JniInchiWrapper.getInchiKey(""\n"");
+		});
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is a carriage return.
+	*/
+	@Test
+	void testGetInchiKey_6() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			JniInchiWrapper.getInchiKey(""\r"");
+		});
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is a form feed.
+	*/
+	@Test
+	void testGetInchiKey_7() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			JniInchiWrapper.getInchiKey(""\f"");
+		});
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is a valid InChI string.
+	*/
+	@Test
+	void testGetInchiKey_8() {
+		assertEquals(""QQQQQQQQQQQQQQ-QQ"", JniInchiWrapper.getInchiKey(""InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2/t2-,3-,4+,5-,6-/m1/s1""));
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is a valid InChI string.
+	*/
+	@Test
+	void testGetInchiKey_9() {
+		assertEquals(""QQQQQQQQQQQQQQ-QQ"", JniInchiWrapper.getInchiKey(""InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2/t2-,3-,4+,5-,6-/m1/s1""));
+	}
+	
+	/**
+	* Test case for the {@link JniInchiWrapper#getInchiKey(String)} method.
+	* It tests the case when the input is a valid InChI string.
+	*/
+	@Test
+	void testGetInchiKey_10() {
+		assertEquals(""QQQQQQQQQQQQQQ-QQ"", JniInchiWrapper.getInchiKey(""InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2/t2-,3-,4+,5-,6-/m1/s1""));
+	}
+}
+
+// JniInchiOutput.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * <p>JNI Wrapper for International Chemical Identifier (InChI) C++ library.
+ *
+ * <p>This class is not intended to be used directly, but should be accessed
+ * through subclasses that read data formats and load them into the InChI
+ * data structures.
+ *
+ * <p>Subclasses should load data through the addAtom, addBond and addParity
+ * methods. Once the molecule is fully loaded then the generateInchi method
+ * should be called. Ideally this should all take place within the subclass's
+ * constructor. The public get methods will all return null until this has
+ * happened.
+ *
+ * <p>See <tt>inchi_api.h</tt>.
+ *
+ * @author Sam Adams
+ */
+public class JniInchiWrapper {
+
+    /**
+     * Calculates the InChIKey for an InChI string.
+     *
+     * @param inchi source InChI string
+     * @return InChIKey output
+     * @throws JniInchiException
+     */
+    public static JniInchiOutputKey getInchiKey(final String inchi) throws JniInchiException {
+        if (inchi == null) {
+            throw new IllegalArgumentException(""Null InChI"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHIKeyFromINCHI(inchi);
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+
+// JniInchiOutputKey.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * <p>JNI Wrapper for International Chemical Identifier (InChI) C++ library.
+ *
+ * <p>This class is not intended to be used directly, but should be accessed
+ * through subclasses that read data formats and load them into the InChI
+ * data structures.
+ *
+ * <p>Subclasses should load data through the addAtom, addBond and addParity
+ * methods. Once the molecule is fully"
+cmpl-6wrNVL7FDyba8czraFQ13vbmz15AC,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiWrapper1.java,84.64949202537537,length,"// JniInchiWrapper.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * <p>JNI Wrapper for International Chemical Identifier (InChI) C++ library.
+ *
+ * <p>This class is not intended to be used directly, but should be accessed
+ * through subclasses that read data formats and load them into the InChI
+ * data structures.
+ *
+ * <p>Subclasses should load data through the addAtom, addBond and addParity
+ * methods. Once the molecule is fully loaded then the generateInchi method
+ * should be called. Ideally this should all take place within the subclass's
+ * constructor. The public get methods will all return null until this has
+ * happened.
+ *
+ * <p>See <tt>inchi_api.h</tt>.
+ *
+ * @author Sam Adams
+ */
+public class JniInchiWrapper {
+
+    /**
+     * <p>Checks if the string represents valid InChI/standard InChI.</p>
+     *
+     * @param inchi source InChI
+     * @param strict if <code>false</code>, just briefly check for proper layout (prefix, version, etc.) The result
+     *               may not be strict.
+     *               If <code>true</code>, try to perform InChI2InChI conversion and returns success if a resulting
+     *               InChI string exactly match source. The result may be 'false alarm' due to imperfectness of
+     */
+    public static INCHI_STATUS checkInchi(final String inchi, final boolean strict) throws JniInchiException {
+        if (inchi == null) {
+            throw new IllegalArgumentException(""Null InChI"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            int ret = wrapper.CheckINCHI(inchi, strict);
+            INCHI_STATUS retStatus = INCHI_STATUS.getValue(ret);
+            if (retStatus == null) {
+                throw new JniInchiException(""Unknown return status: "" + ret);
+            }
+            return retStatus;
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+","// JniInchiWrapperTest.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiWrapper}.
+* It contains ten unit test cases for the {@link JniInchiWrapper#checkInchi(String, boolean)} method.
+*/
+class JniInchiWrapperTest {","// JniInchiWrapperTest.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiWrapper}.
+* It contains ten unit test cases for the {@link JniInchiWrapper#checkInchi(String, boolean)} method.
+*/
+class JniInchiWrapperTest {
+
+	/**
+	* Test case 1:
+	* <p>
+	* Input:
+	* <p>
+	* String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+	* <p>
+	* boolean strict = true;
+	* <p>
+	* Expected output:
+	* <p>
+	* INCHI_STATUS.OKAY
+	*/
+	@Test
+	void testCheckInchi1() throws JniInchiException {
+		String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+		boolean strict = true;
+		INCHI_STATUS expected = INCHI_STATUS.OKAY;
+		INCHI_STATUS actual = JniInchiWrapper.checkInchi(inchi, strict);
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case 2:
+	* <p>
+	* Input:
+	* <p>
+	* String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+	* <p>
+	* boolean strict = false;
+	* <p>
+	* Expected output:
+	* <p>
+	* INCHI_STATUS.OKAY
+	*/
+	@Test
+	void testCheckInchi2() throws JniInchiException {
+		String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+		boolean strict = false;
+		INCHI_STATUS expected = INCHI_STATUS.OKAY;
+		INCHI_STATUS actual = JniInchiWrapper.checkInchi(inchi, strict);
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case 3:
+	* <p>
+	* Input:
+	* <p>
+	* String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+	* <p>
+	* boolean strict = true;
+	* <p>
+	* Expected output:
+	* <p>
+	* INCHI_STATUS.OKAY
+	*/
+	@Test
+	void testCheckInchi3() throws JniInchiException {
+		String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+		boolean strict = true;
+		INCHI_STATUS expected = INCHI_STATUS.OKAY;
+		INCHI_STATUS actual = JniInchiWrapper.checkInchi(inchi, strict);
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case 4:
+	* <p>
+	* Input:
+	* <p>
+	* String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+	* <p>
+	* boolean strict = false;
+	* <p>
+	* Expected output:
+	* <p>
+	* INCHI_STATUS.OKAY
+	*/
+	@Test
+	void testCheckInchi4() throws JniInchiException {
+		String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+		boolean strict = false;
+		INCHI_STATUS expected = INCHI_STATUS.OKAY;
+		INCHI_STATUS actual = JniInchiWrapper.checkInchi(inchi, strict);
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case 5:
+	* <p>
+	* Input:
+	* <p>
+	* String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+	* <p>
+	* boolean strict = true;
+	* <p>
+	* Expected output:
+	* <p>
+	* INCHI_STATUS.OKAY
+	*/
+	@Test
+	void testCheckInchi5() throws JniInchiException {
+		String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+		boolean strict = true;
+		INCHI_STATUS expected = INCHI_STATUS.OKAY;
+		INCHI_STATUS actual = JniInchiWrapper.checkInchi(inchi, strict);
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case 6:
+	* <p>
+	* Input:
+	* <p>
+	* String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+	* <p>
+	* boolean strict = false;
+	* <p>
+	* Expected output:
+	* <p>
+	* INCHI_STATUS.OKAY
+	*/
+	@Test
+	void testCheckInchi6() throws JniInchiException {
+		String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+		boolean strict = false;
+		INCHI_STATUS expected = INCHI_STATUS.OKAY;
+		INCHI_STATUS actual = JniInchiWrapper.checkInchi(inchi, strict);
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case 7:
+	* <p>
+	* Input:
+	* <p>
+	* String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+	* <p>
+	* boolean strict = true;
+	* <p>
+	* Expected output:
+	* <p>
+	* INCHI_STATUS.OKAY
+	*/
+	@Test
+	void testCheckInchi7() throws JniInchiException {
+		String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+		boolean strict = true;
+		INCHI_STATUS expected = INCHI_STATUS.OKAY;
+		INCHI_STATUS actual = JniInchiWrapper.checkInchi(inchi, strict);
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case 8:
+	* <p>
+	* Input:
+	* <p>
+	* String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+	* <p>
+	* boolean strict = false;
+	* <p>
+	* Expected output:
+	* <p>
+	* INCHI_STATUS.OKAY
+	*/
+	@Test
+	void testCheckInchi8() throws JniInchiException {
+		String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+		boolean strict = false;
+		INCHI_STATUS expected = INCHI_STATUS.OKAY;
+		INCHI_STATUS actual = JniInchiWrapper.checkInchi(inchi, strict);
+		assertEquals(expected, actual);
+	}
+	"
+cmpl-6wrOrDs0QGpbyHywbU5sF1fOUFCBo,/EvoSuiteBenchmark/scenario2/25_jni-inchi/src/main/java/net/sf/jniinchi/Main.java,62.755523681640625,length,"// Main.java
+package net.sf.jniinchi;
+
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+
+/**
+ * Simple test class, for debugging purposes.
+ *
+ * @author sea36
+ */
+public class Main {
+
+    /**
+     * Provide test structure.
+     *
+     * @return
+     */
+    public static JniInchiStructure getTestMolecule() {
+        JniInchiStructure struct = new JniInchiStructure();
+        JniInchiAtom a1 = struct.addAtom(new JniInchiAtom(264.0, 968.0, 0.0, ""C""));
+        JniInchiAtom a2 = struct.addAtom(new JniInchiAtom(295.0, 985.0, 0.0, ""C""));
+        JniInchiAtom a3 = struct.addAtom(new JniInchiAtom(233.0, 986.0, 0.0, ""N""));
+        JniInchiAtom a4 = struct.addAtom(new JniInchiAtom(264.0, 932.0, 0.0, ""C""));
+        JniInchiAtom a5 = struct.addAtom(new JniInchiAtom(326.0, 967.0, 0.0, ""O""));
+        JniInchiAtom a6 = struct.addAtom(new JniInchiAtom(295.0, 1021.0, 0.0, ""O""));
+        a1.setImplicitH(1);
+        a3.setImplicitH(2);
+        a4.setImplicitH(3);
+        a5.setImplicitH(1);
+        struct.addBond(new JniInchiBond(a1, a2, INCHI_BOND_TYPE.SINGLE));
+        struct.addBond(new JniInchiBond(a1, a3, INCHI_BOND_TYPE.SINGLE)).setStereoDefinition(INCHI_BOND_STEREO.SINGLE_1DOWN);
+        struct.addBond(new JniInchiBond(a1, a4, INCHI_BOND_TYPE.SINGLE));
+        struct.addBond(new JniInchiBond(a2, a5, INCHI_BOND_TYPE.SINGLE));
+        struct.addBond(new JniInchiBond(a2, a6, INCHI_BOND_TYPE.DOUBLE));
+        return struct;
+    }
+}
+","// MainTest.java
+package net.sf.jniinchi;
+
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getTestMolecule()} method.
+*/
+class MainTest {","// MainTest.java
+package net.sf.jniinchi;
+
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getTestMolecule()} method.
+*/
+class MainTest {
+
+		/**
+		* Test case 1.
+		*
+		* @throws Exception
+		*/
+		@Test
+		void testGetTestMolecule1() throws Exception {
+				JniInchiStructure struct = Main.getTestMolecule();
+				assertEquals(6, struct.getNumAtoms());
+				assertEquals(5, struct.getNumBonds());
+				assertEquals(1, struct.getAtom(0).getImplicitH());
+				assertEquals(2, struct.getAtom(2).getImplicitH());
+				assertEquals(3, struct.getAtom(3).getImplicitH());
+				assertEquals(1, struct.getAtom(4).getImplicitH());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(0).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(1).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(2).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(3).getBondType());
+				assertEquals(INCHI_BOND_TYPE.DOUBLE, struct.getBond(4).getBondType());
+				assertEquals(INCHI_BOND_STEREO.SINGLE_1DOWN, struct.getBond(1).getStereoDefinition());
+		}
+		
+		/**
+		* Test case 2.
+		*
+		* @throws Exception
+		*/
+		@Test
+		void testGetTestMolecule2() throws Exception {
+				JniInchiStructure struct = Main.getTestMolecule();
+				assertEquals(6, struct.getNumAtoms());
+				assertEquals(5, struct.getNumBonds());
+				assertEquals(1, struct.getAtom(0).getImplicitH());
+				assertEquals(2, struct.getAtom(2).getImplicitH());
+				assertEquals(3, struct.getAtom(3).getImplicitH());
+				assertEquals(1, struct.getAtom(4).getImplicitH());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(0).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(1).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(2).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(3).getBondType());
+				assertEquals(INCHI_BOND_TYPE.DOUBLE, struct.getBond(4).getBondType());
+				assertEquals(INCHI_BOND_STEREO.SINGLE_1DOWN, struct.getBond(1).getStereoDefinition());
+		}
+		
+		/**
+		* Test case 3.
+		*
+		* @throws Exception
+		*/
+		@Test
+		void testGetTestMolecule3() throws Exception {
+				JniInchiStructure struct = Main.getTestMolecule();
+				assertEquals(6, struct.getNumAtoms());
+				assertEquals(5, struct.getNumBonds());
+				assertEquals(1, struct.getAtom(0).getImplicitH());
+				assertEquals(2, struct.getAtom(2).getImplicitH());
+				assertEquals(3, struct.getAtom(3).getImplicitH());
+				assertEquals(1, struct.getAtom(4).getImplicitH());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(0).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(1).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(2).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(3).getBondType());
+				assertEquals(INCHI_BOND_TYPE.DOUBLE, struct.getBond(4).getBondType());
+				assertEquals(INCHI_BOND_STEREO.SINGLE_1DOWN, struct.getBond(1).getStereoDefinition());
+		}
+		
+		/**
+		* Test case 4.
+		*
+		* @throws Exception
+		*/
+		@Test
+		void testGetTestMolecule4() throws Exception {
+				JniInchiStructure struct = Main.getTestMolecule();
+				assertEquals(6, struct.getNumAtoms());
+				assertEquals(5, struct.getNumBonds());
+				assertEquals(1, struct.getAtom(0).getImplicitH());
+				assertEquals(2, struct.getAtom(2).getImplicitH());
+				assertEquals(3, struct.getAtom(3).getImplicitH());
+				assertEquals(1, struct.getAtom(4).getImplicitH());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(0).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(1).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(2).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(3).getBondType());
+				assertEquals(INCHI_BOND_TYPE.DOUBLE, struct.getBond(4).getBondType());
+				assertEquals(INCHI_BOND_STEREO.SINGLE_1DOWN, struct.getBond(1).getStereoDefinition());
+		}
+		
+		/**
+		* Test case 5.
+		*
+		* @throws Exception
+		*/
+		@Test
+		void testGetTestMolecule5() throws Exception {
+				JniInchiStructure struct = Main.getTestMolecule();
+				assertEquals(6, struct.getNumAtoms());
+				assertEquals(5, struct.getNumBonds());
+				assertEquals(1, struct.getAtom(0).getImplicitH());
+				assertEquals(2, struct.getAtom(2).getImplicitH());
+				assertEquals(3, struct.getAtom(3).getImplicitH());
+				assertEquals(1, struct.getAtom(4).getImplicitH());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(0).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(1).getBondType());
+				assertEquals(INCHI_BOND_TYPE.SINGLE, struct.getBond(2).getBondType());
+				assert"

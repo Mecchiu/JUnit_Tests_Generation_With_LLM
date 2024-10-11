@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `ClientHttpRequest` has more methods that are not included in the code snippet. Can you please provide the complete code for `ClientHttpRequest` and `ClientHttpRequest_5Test`?

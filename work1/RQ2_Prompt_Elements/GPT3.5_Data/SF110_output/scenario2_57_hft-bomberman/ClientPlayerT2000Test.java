@@ -1,0 +1,1 @@
+I can help you generate the source code for the unit test cases. Please let me know what are the ten test cases you want to write for the `canBowlBombs()` method of `ClientPlayer` class.

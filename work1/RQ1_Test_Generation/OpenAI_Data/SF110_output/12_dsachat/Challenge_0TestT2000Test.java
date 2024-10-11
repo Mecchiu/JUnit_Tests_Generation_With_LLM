@@ -1,0 +1,163 @@
+// Challenge_0Test.java
+package dsachat.share;
+
+import java.io.Serializable;
+import java.util.Vector;
+import dsachat.share.hero.Hero;
+import dsachat.share.hero.Talent;
+import dsachat.share.hero.Weapon;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Challenge}.
+* It contains ten unit test cases for the {@link Challenge#roll()} method.
+*/
+class Challenge_0Test {
+
+	/**
+	 * Test method for {@link Challenge#roll()}.
+	 */
+	@Test
+	void testRoll() {
+		Hero h = new Hero();
+		h.setAttrValue("MU", 15);
+		h.setAttrValue("KL", 15);
+		h.setAttrValue("IN", 15);
+		h.setAttrValue("CH", 15);
+		h.setAttrValue("FF", 15);
+		h.setAttrValue("GE", 15);
+		h.setAttrValue("KO", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("SO", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15);
+		h.setAttrValue("KK", 15

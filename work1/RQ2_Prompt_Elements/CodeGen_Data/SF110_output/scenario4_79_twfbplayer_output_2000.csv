@@ -1,0 +1,1442 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+29dda7a5-c51d-44c0-b3c8-b03e3218c334,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/model/impl/SimpleCombatant_0Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// SimpleCombatant.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+
+/**
+ * A Combatant with basic attributes (position, health)
+ *
+ * @author daniel
+ */
+public class SimpleCombatant implements Combatant {
+
+    private static final transient Logger LOG = Logger.getLogger(SimpleCombatant.class.getName());
+
+    private final int maxHealth;
+
+    private final CombatantSide side;
+
+    private final String name;
+
+    private final String city;
+
+    private final Set<CombatantObserver> observers = new HashSet<CombatantObserver>();
+
+    private final Object stateChangeLock = new Object();
+
+    private final CharacterClass charClass;
+
+    private final Weapon weapon;
+
+    private CombatantState state;
+
+    private Combatant aimingAt = null;
+
+    /**
+     * Create a new {@link Combatant} at the given position and the given amount
+     * of health.
+     *
+     * @param side
+     *            not null
+     * @param initialState
+     *            not null
+     * @param maxHealth
+     *            > 0
+     * @param name
+     *            the name of the player of this Combatant
+     * @param characterClass
+     *            maybe null for old logs
+     * @param weapon
+     *            not null
+     * @param city
+     *            not null
+     */
+    public SimpleCombatant(final CombatantSide side, final CombatantState initialState, final int maxHealth, final String name, final CharacterClass characterClass, final Weapon weapon, final String city) {
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getName()
+     */
+    public String getName();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getWeapon()
+     */
+    public Weapon getWeapon();
+
+    /**
+     * internal method for graphical display
+     *
+     * @return the maximal health
+     */
+    public int _getMaxLP();
+
+    /**
+     * internal method for graphical display
+     *
+     * @return the current health
+     */
+    public int _getCurrentLP();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#move(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void move(final Area target);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#shoot(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void shoot(final int power);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#hit(int)
+     */
+    public boolean hit(final int damageAmount);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#aimAt(de.outstare.fortbattleplayer.model.Combatant)
+     */
+    public void aimAt(final Combatant target);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#setDestination(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void setDestination(final Area destination);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#addObserver(de.outstare.fortbattleplayer.model.CombatantObserver)
+     */
+    public void addObserver(final CombatantObserver observer);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#removeObserver(de.outstare.fortbattleplayer.model.CombatantObserver)
+     */
+    public void removeObserver(final CombatantObserver observer);
+
+    /**
+     * notify all observers about the current position
+     */
+    protected void fireHasMoved();
+
+    /**
+     * notify all observers about the current position
+     *
+     * @param swappedWith
+     */
+    protected void fireHasSwapped(final Combatant swappedWith);
+
+    /**
+     * notify all observers about the current position
+     */
+    protected void fireNewTarget();
+
+    /**
+     * notify all observers that I shot at somebody.
+     */
+    protected void fireAimingAt();
+
+    /**
+     * notify all observers about a loss of health
+     *
+     * @param damage
+     *            amount of healthpoints lost
+     * @param healthBefore
+     *            original health amount before it was decreased by
+     *            <code>damage</code>
+     */
+    protected void fireWasHit(final int damage, final int healthBefore);
+
+    /**
+     * notify all observers about our dead
+     */
+    protected void fireIsDead();
+
+    /**
+     * notify all observers about our resurrection
+     */
+    protected void fireIsAlive();
+
+    /**
+     * notify all observers about changed online state
+     *
+     * @param changed
+     *            if the value was changed or only set
+     */
+    protected void fireOnlineChange(final boolean changed);
+
+    /**
+     * notify all observers that i have done a critical shot
+     *
+     * @param damage
+     *            the actual caused damage
+     */
+    protected void fireCriticalShot(final int damage);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_getLocation()
+     */
+    public Area _getLocation();
+
+    /**
+     * @return the side
+     */
+    public CombatantSide getSide();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_health()
+     */
+    public int _health();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_maxHealth()
+     */
+    public int _maxHealth();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_setState(de.outstare.fortbattleplayer.model.CombatantState)
+     */
+    public void _setState(final CombatantState newState);
+
+    /**
+     * @param position
+     */
+    private void moveAway(final Area position);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_state()
+     */
+    public CombatantState _state();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#isOnline()
+     */
+    public boolean isOnline();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#setOnline()
+     */
+    public void setOnline(final boolean isOnline);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getCharacterClass()
+     */
+    public CharacterClass getCharacterClass();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getSectorBonus()
+     */
+    public SectorBonus getSectorBonus();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getCity()
+     */
+    public String getCity();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#usesBayonet()
+     */
+    public boolean usesBayonet();
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode();
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object obj);
+}
+","// SimpleCombatant_0Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getMaxLP()} method.
+*/
+class SimpleCombatant_0Test {","// SimpleCombatant_0Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getMaxLP()} method.
+*/
+class SimpleCombatant_0Test {
+"
+07827ae1-f697-45bc-ab29-45387821ea10,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/model/impl/SimpleCombatant_1Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// SimpleCombatant.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+
+/**
+ * A Combatant with basic attributes (position, health)
+ *
+ * @author daniel
+ */
+public class SimpleCombatant implements Combatant {
+
+    private static final transient Logger LOG = Logger.getLogger(SimpleCombatant.class.getName());
+
+    private final int maxHealth;
+
+    private final CombatantSide side;
+
+    private final String name;
+
+    private final String city;
+
+    private final Set<CombatantObserver> observers = new HashSet<CombatantObserver>();
+
+    private final Object stateChangeLock = new Object();
+
+    private final CharacterClass charClass;
+
+    private final Weapon weapon;
+
+    private CombatantState state;
+
+    private Combatant aimingAt = null;
+
+    /**
+     * Create a new {@link Combatant} at the given position and the given amount
+     * of health.
+     *
+     * @param side
+     *            not null
+     * @param initialState
+     *            not null
+     * @param maxHealth
+     *            > 0
+     * @param name
+     *            the name of the player of this Combatant
+     * @param characterClass
+     *            maybe null for old logs
+     * @param weapon
+     *            not null
+     * @param city
+     *            not null
+     */
+    public SimpleCombatant(final CombatantSide side, final CombatantState initialState, final int maxHealth, final String name, final CharacterClass characterClass, final Weapon weapon, final String city) {
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getName()
+     */
+    public String getName();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getWeapon()
+     */
+    public Weapon getWeapon();
+
+    /**
+     * internal method for graphical display
+     *
+     * @return the maximal health
+     */
+    public int _getMaxLP();
+
+    /**
+     * internal method for graphical display
+     *
+     * @return the current health
+     */
+    public int _getCurrentLP();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#move(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void move(final Area target);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#shoot(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void shoot(final int power);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#hit(int)
+     */
+    public boolean hit(final int damageAmount);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#aimAt(de.outstare.fortbattleplayer.model.Combatant)
+     */
+    public void aimAt(final Combatant target);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#setDestination(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void setDestination(final Area destination);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#addObserver(de.outstare.fortbattleplayer.model.CombatantObserver)
+     */
+    public void addObserver(final CombatantObserver observer);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#removeObserver(de.outstare.fortbattleplayer.model.CombatantObserver)
+     */
+    public void removeObserver(final CombatantObserver observer);
+
+    /**
+     * notify all observers about the current position
+     */
+    protected void fireHasMoved();
+
+    /**
+     * notify all observers about the current position
+     *
+     * @param swappedWith
+     */
+    protected void fireHasSwapped(final Combatant swappedWith);
+
+    /**
+     * notify all observers about the current position
+     */
+    protected void fireNewTarget();
+
+    /**
+     * notify all observers that I shot at somebody.
+     */
+    protected void fireAimingAt();
+
+    /**
+     * notify all observers about a loss of health
+     *
+     * @param damage
+     *            amount of healthpoints lost
+     * @param healthBefore
+     *            original health amount before it was decreased by
+     *            <code>damage</code>
+     */
+    protected void fireWasHit(final int damage, final int healthBefore);
+
+    /**
+     * notify all observers about our dead
+     */
+    protected void fireIsDead();
+
+    /**
+     * notify all observers about our resurrection
+     */
+    protected void fireIsAlive();
+
+    /**
+     * notify all observers about changed online state
+     *
+     * @param changed
+     *            if the value was changed or only set
+     */
+    protected void fireOnlineChange(final boolean changed);
+
+    /**
+     * notify all observers that i have done a critical shot
+     *
+     * @param damage
+     *            the actual caused damage
+     */
+    protected void fireCriticalShot(final int damage);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_getLocation()
+     */
+    public Area _getLocation();
+
+    /**
+     * @return the side
+     */
+    public CombatantSide getSide();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_health()
+     */
+    public int _health();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_maxHealth()
+     */
+    public int _maxHealth();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_setState(de.outstare.fortbattleplayer.model.CombatantState)
+     */
+    public void _setState(final CombatantState newState);
+
+    /**
+     * @param position
+     */
+    private void moveAway(final Area position);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_state()
+     */
+    public CombatantState _state();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#isOnline()
+     */
+    public boolean isOnline();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#setOnline()
+     */
+    public void setOnline(final boolean isOnline);
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getCharacterClass()
+     */
+    public CharacterClass getCharacterClass();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getSectorBonus()
+     */
+    public SectorBonus getSectorBonus();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getCity()
+     */
+    public String getCity();
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#usesBayonet()
+     */
+    public boolean usesBayonet();
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode();
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object obj);
+}
+","// SimpleCombatant_1Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getCurrentLP()} method.
+*/
+class SimpleCombatant_1Test {","// SimpleCombatant_1Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getCurrentLP()} method.
+*/
+class SimpleCombatant_1Test {
+"
+a4b29f62-6ba7-4e1a-9bcf-c2129231e7fb,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_0Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    /**
+     * a configuration which skips animation (used for purposes where the user
+     * should not see whats going on)
+     */
+    public static final PlayerConfiguration NO_DELAY = new PlayerConfiguration();
+
+    static {
+    }
+
+    /**
+     * this is used to control who currently does something with the player
+     */
+    private final Lock playLock = new ReentrantLock();
+
+    private final Set<PlayerConfigurationListener> listeners = new HashSet<PlayerConfigurationListener>();
+
+    /**
+     * current state of the player
+     */
+    private PlayerState state = PlayerState.STOP;
+
+    /**
+     * pause between two rounds in milliseconds
+     */
+    public volatile int ROUND_DELAY = Configuration.ROUND_DELAY;
+
+    /**
+     * pause between two players in a round in milliseconds
+     */
+    public volatile int PLAYER_DELAY = Configuration.PLAYER_DELAY;
+
+    /**
+     * pause between two actions in milliseconds
+     */
+    public volatile int ACTION_DELAY = Configuration.ACTION_DELAY;
+
+    /**
+     * draw a line to the point, where the player wants to go
+     */
+    private volatile boolean SHOW_MOVETARGETS = Configuration.SHOW_MOVETARGETS;
+
+    /**
+     * draw a line to the enemy ath wich the player shoots
+     */
+    private volatile boolean SHOW_SHOOTLINE = Configuration.SHOW_SHOOTLINE;
+
+    /**
+     * @param other
+     */
+    public void setTo(final PlayerConfiguration other);
+
+    /**
+     * @return a copy of this object
+     * @throws CloneNotSupportedException
+     */
+    public PlayerConfiguration copy() throws CloneNotSupportedException;
+
+    /**
+     * should only be called by {@link Battleplayer}!
+     *
+     * @param newState
+     */
+    synchronized void setState(final PlayerState newState);
+
+    /**
+     * @return true if the player should be playing
+     */
+    public synchronized boolean isPlaying();
+
+    /**
+     * @return true if the player is hold
+     */
+    public synchronized boolean isPaused();
+
+    /**
+     * @return true if the player is stopped
+     */
+    public synchronized boolean isStopped();
+
+    /**
+     * exclusive use of the player
+     */
+    void lock();
+
+    /**
+     * release the player
+     */
+    void unlock();
+
+    /**
+     * @return <code>true</code> if lines to movement targets should be
+     *         displayed
+     */
+    public boolean showMoveTargets();
+
+    /**
+     * @param showMovetargets
+     */
+    public void setShowMoveTargets(final boolean showMovetargets);
+
+    /**
+     * @return <code>true</code> if shooting lines should be displayed
+     */
+    public boolean showShootline();
+
+    /**
+     * @param showShootline
+     */
+    public void setShowShootline(final boolean showShootline);
+
+    /**
+     * Adds a listener which will be notified about changes.
+     *
+     * @param listener
+     */
+    public void addListener(final PlayerConfigurationListener listener);
+
+    /**
+     * Removes the listener from the registered ones.
+     *
+     * @param listener
+     */
+    public void removeListener(final PlayerConfigurationListener listener);
+}
+","// PlayerConfiguration_0Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#copy()} method.
+*/
+class PlayerConfiguration_0Test {","// PlayerConfiguration_0Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#copy()} method.
+*/
+class PlayerConfiguration_0Test {
+"
+49454c84-6079-4495-9e70-95d13114b320,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_1Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    /**
+     * a configuration which skips animation (used for purposes where the user
+     * should not see whats going on)
+     */
+    public static final PlayerConfiguration NO_DELAY = new PlayerConfiguration();
+
+    static {
+    }
+
+    /**
+     * this is used to control who currently does something with the player
+     */
+    private final Lock playLock = new ReentrantLock();
+
+    private final Set<PlayerConfigurationListener> listeners = new HashSet<PlayerConfigurationListener>();
+
+    /**
+     * current state of the player
+     */
+    private PlayerState state = PlayerState.STOP;
+
+    /**
+     * pause between two rounds in milliseconds
+     */
+    public volatile int ROUND_DELAY = Configuration.ROUND_DELAY;
+
+    /**
+     * pause between two players in a round in milliseconds
+     */
+    public volatile int PLAYER_DELAY = Configuration.PLAYER_DELAY;
+
+    /**
+     * pause between two actions in milliseconds
+     */
+    public volatile int ACTION_DELAY = Configuration.ACTION_DELAY;
+
+    /**
+     * draw a line to the point, where the player wants to go
+     */
+    private volatile boolean SHOW_MOVETARGETS = Configuration.SHOW_MOVETARGETS;
+
+    /**
+     * draw a line to the enemy ath wich the player shoots
+     */
+    private volatile boolean SHOW_SHOOTLINE = Configuration.SHOW_SHOOTLINE;
+
+    /**
+     * @param other
+     */
+    public void setTo(final PlayerConfiguration other);
+
+    /**
+     * @return a copy of this object
+     * @throws CloneNotSupportedException
+     */
+    public PlayerConfiguration copy() throws CloneNotSupportedException;
+
+    /**
+     * should only be called by {@link Battleplayer}!
+     *
+     * @param newState
+     */
+    synchronized void setState(final PlayerState newState);
+
+    /**
+     * @return true if the player should be playing
+     */
+    public synchronized boolean isPlaying();
+
+    /**
+     * @return true if the player is hold
+     */
+    public synchronized boolean isPaused();
+
+    /**
+     * @return true if the player is stopped
+     */
+    public synchronized boolean isStopped();
+
+    /**
+     * exclusive use of the player
+     */
+    void lock();
+
+    /**
+     * release the player
+     */
+    void unlock();
+
+    /**
+     * @return <code>true</code> if lines to movement targets should be
+     *         displayed
+     */
+    public boolean showMoveTargets();
+
+    /**
+     * @param showMovetargets
+     */
+    public void setShowMoveTargets(final boolean showMovetargets);
+
+    /**
+     * @return <code>true</code> if shooting lines should be displayed
+     */
+    public boolean showShootline();
+
+    /**
+     * @param showShootline
+     */
+    public void setShowShootline(final boolean showShootline);
+
+    /**
+     * Adds a listener which will be notified about changes.
+     *
+     * @param listener
+     */
+    public void addListener(final PlayerConfigurationListener listener);
+
+    /**
+     * Removes the listener from the registered ones.
+     *
+     * @param listener
+     */
+    public void removeListener(final PlayerConfigurationListener listener);
+}
+","// PlayerConfiguration_1Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showMoveTargets()} method.
+*/
+class PlayerConfiguration_1Test {","// PlayerConfiguration_1Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showMoveTargets()} method.
+*/
+class PlayerConfiguration_1Test {
+"
+7b6e03ab-0e0d-419a-91e2-6265a4f9878b,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_2Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    /**
+     * a configuration which skips animation (used for purposes where the user
+     * should not see whats going on)
+     */
+    public static final PlayerConfiguration NO_DELAY = new PlayerConfiguration();
+
+    static {
+    }
+
+    /**
+     * this is used to control who currently does something with the player
+     */
+    private final Lock playLock = new ReentrantLock();
+
+    private final Set<PlayerConfigurationListener> listeners = new HashSet<PlayerConfigurationListener>();
+
+    /**
+     * current state of the player
+     */
+    private PlayerState state = PlayerState.STOP;
+
+    /**
+     * pause between two rounds in milliseconds
+     */
+    public volatile int ROUND_DELAY = Configuration.ROUND_DELAY;
+
+    /**
+     * pause between two players in a round in milliseconds
+     */
+    public volatile int PLAYER_DELAY = Configuration.PLAYER_DELAY;
+
+    /**
+     * pause between two actions in milliseconds
+     */
+    public volatile int ACTION_DELAY = Configuration.ACTION_DELAY;
+
+    /**
+     * draw a line to the point, where the player wants to go
+     */
+    private volatile boolean SHOW_MOVETARGETS = Configuration.SHOW_MOVETARGETS;
+
+    /**
+     * draw a line to the enemy ath wich the player shoots
+     */
+    private volatile boolean SHOW_SHOOTLINE = Configuration.SHOW_SHOOTLINE;
+
+    /**
+     * @param other
+     */
+    public void setTo(final PlayerConfiguration other);
+
+    /**
+     * @return a copy of this object
+     * @throws CloneNotSupportedException
+     */
+    public PlayerConfiguration copy() throws CloneNotSupportedException;
+
+    /**
+     * should only be called by {@link Battleplayer}!
+     *
+     * @param newState
+     */
+    synchronized void setState(final PlayerState newState);
+
+    /**
+     * @return true if the player should be playing
+     */
+    public synchronized boolean isPlaying();
+
+    /**
+     * @return true if the player is hold
+     */
+    public synchronized boolean isPaused();
+
+    /**
+     * @return true if the player is stopped
+     */
+    public synchronized boolean isStopped();
+
+    /**
+     * exclusive use of the player
+     */
+    void lock();
+
+    /**
+     * release the player
+     */
+    void unlock();
+
+    /**
+     * @return <code>true</code> if lines to movement targets should be
+     *         displayed
+     */
+    public boolean showMoveTargets();
+
+    /**
+     * @param showMovetargets
+     */
+    public void setShowMoveTargets(final boolean showMovetargets);
+
+    /**
+     * @return <code>true</code> if shooting lines should be displayed
+     */
+    public boolean showShootline();
+
+    /**
+     * @param showShootline
+     */
+    public void setShowShootline(final boolean showShootline);
+
+    /**
+     * Adds a listener which will be notified about changes.
+     *
+     * @param listener
+     */
+    public void addListener(final PlayerConfigurationListener listener);
+
+    /**
+     * Removes the listener from the registered ones.
+     *
+     * @param listener
+     */
+    public void removeListener(final PlayerConfigurationListener listener);
+}
+","// PlayerConfiguration_2Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showShootline()} method.
+*/
+class PlayerConfiguration_2Test {","// PlayerConfiguration_2Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showShootline()} method.
+*/
+class PlayerConfiguration_2Test {
+"
+b2fa7f9a-f32c-4b9f-b99b-2375f2cc48bf,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/Battleplan.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// Battleplan.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+
+/**
+ * A plan which determines each step of the battle. A battle is divided into
+ * {@link Round}s.
+ *
+ * @author daniel
+ */
+public class Battleplan {
+
+    private static final transient Logger LOG = Logger.getLogger(Battleplan.class.getName());
+
+    private final SortedMap<Integer, Round> rounds = new TreeMap<Integer, Round>();
+
+    /**
+     * Create a new plan with the given rounds
+     *
+     * @param roundsOfPlan
+     */
+    public Battleplan(final Collection<Round> roundsOfPlan) {
+    }
+
+    /**
+     * @param roundsOfPlan
+     */
+    private void mapRoundsToNumbers(final Collection<Round> roundsOfPlan);
+
+    /**
+     * @return the number of rounds this plan has
+     */
+    public int numberOfRounds();
+
+    /**
+     * executes the given {@link Round} of this plan
+     *
+     * @param roundNo
+     *            0 <= roundNo <= numberOfRounds()
+     * @param config
+     */
+    public void executeRound(final int roundNo, final PlayerConfiguration config);
+
+    /**
+     * @param roundNo
+     * @return
+     * @throws IllegalArgumentException
+     */
+    private Round getRound(final int roundNo) throws IllegalArgumentException;
+
+    /**
+     * @param no
+     * @return <code>true</code> if this plan contains a round with the given
+     *         number
+     */
+    public boolean hasRoundNo(final int no);
+
+    /**
+     * @param roundNo
+     */
+    public void resetToRound(final int roundNo);
+
+    /**
+     * @param roundNo
+     * @return <code>true</code> if more rounds follow after the given round
+     *         number.
+     */
+    public boolean hasMoreRounds(final int roundNo);
+
+    /**
+     * @require hasMoreRounds(currentRoundNo)
+     * @param currentRoundNo
+     * @return the number of the following round
+     */
+    public int getNextRound(final int currentRoundNo);
+
+    /**
+     * @param currentRoundNo
+     * @return all rounds that follow after the given round number
+     */
+    private SortedMap<Integer, Round> getRemainingRounds(final int currentRoundNo);
+}
+","// BattleplanTest.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplan}.
+* It contains one unit test case for the {@link Battleplan#numberOfRounds()} method.
+*/
+class BattleplanTest {","// BattleplanTest.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplan}.
+* It contains one unit test case for the {@link Battleplan#numberOfRounds()} method.
+*/
+class BattleplanTest {
+"
+65894e3a-4530-463d-83c8-168f1da42e6d,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/Battleplayer.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// Battleplayer.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+
+/**
+ * A {@link Battleplayer} controls the battle. It is a puppet player controlling
+ * the behavior of the {@link Combatant}s.
+ *
+ * @author daniel
+ */
+public class Battleplayer implements Player {
+
+    private static final transient Logger LOG = Logger.getLogger(Battleplayer.class.getName());
+
+    private final Battleplan plan;
+
+    private final Set<RoundListener> listeners = new HashSet<RoundListener>();
+
+    private boolean isPaused = false;
+
+    /**
+     * round numbers may not be sequential (this variable is also used for
+     * locking during a round)
+     */
+    private int currentRoundNo;
+
+    private volatile boolean isPlaying = false;
+
+    private volatile boolean shouldStop = false;
+
+    /**
+     * controls some aspects of the behavior of the player
+     */
+    public final PlayerConfiguration config;
+
+    /**
+     * @param plan
+     * @param config
+     */
+    public Battleplayer(final Battleplan plan, final PlayerConfiguration config) {
+    }
+
+    /**
+     * @param plan
+     */
+    public Battleplayer(final Battleplan plan) {
+    }
+
+    /**
+     * let the battle begin! The whole battle is done by executing the
+     * {@link Battleplan}.
+     */
+    public void play();
+
+    /**
+     * blocks until current round has ended
+     *
+     * @see de.outstare.fortbattleplayer.player.Player#gotoRound(de.outstare.fortbattleplayer.player.Round)
+     */
+    public void gotoRound(final int i);
+
+    /**
+     * executes the round of the internal state
+     */
+    private void playCurrentRound(final int roundNo);
+
+    /**
+     * wait the time given in {@link PlayerConfiguration#ROUND_DELAY}
+     */
+    private void delayNextRound();
+
+    /**
+     * tell all listeners that a new round will start now
+     *
+     * @param roundNo
+     */
+    private void fireNewRoundEvent(final int roundNo);
+
+    /**
+     * @param listener
+     */
+    public void addRoundListener(final RoundListener listener);
+
+    /**
+     * @see de.outstare.fortbattleplayer.player.Player#stop()
+     */
+    public void stop();
+
+    /**
+     * A RoundListener waits for Round events.
+     *
+     * @author daniel
+     */
+    public static interface RoundListener {
+
+        /**
+         * a new round will begin immediatly
+         *
+         * @param roundNo
+         */
+        void nextRound(int roundNo);
+    }
+
+    /**
+     * @return the number of rounds this player shows
+     */
+    public int numberOfRounds();
+
+    /**
+     * toggles pause which holds playing rounds. if this player is currently
+     * paused can be checked with isPaused()
+     */
+    public void pause();
+
+    /**
+     * @return <code>true</code> if this player is playing and is currently hold
+     */
+    public boolean isPaused();
+
+    /**
+     * @see de.outstare.fortbattleplayer.player.Player#getRoundNumbers()
+     */
+    public List<Integer> getRoundNumbers();
+}
+","// BattleplayerTest.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplayer}.
+* It contains one unit test case for the {@link Battleplayer#numberOfRounds()} method.
+*/
+class BattleplayerTest {","// BattleplayerTest.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplayer}.
+* It contains one unit test case for the {@link Battleplayer#numberOfRounds()} method.
+*/
+class BattleplayerTest {
+"

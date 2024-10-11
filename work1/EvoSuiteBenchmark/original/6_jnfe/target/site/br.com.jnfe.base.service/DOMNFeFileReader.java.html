@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DOMNFeFileReader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">br.com.jnfe.base.service</a> &gt; <span class="el_source">DOMNFeFileReader.java</span></div><h1>DOMNFeFileReader.java</h1><pre class="source lang-java linenums">package br.com.jnfe.base.service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import javax.xml.crypto.dom.DOMStructure;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Result;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamSource;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+/**
+ * L� um arquivo do sistema e assina.
+ * 
+ * @author mauriciofernandesdecastro
+ */
+<span class="nc" id="L27">public class DOMNFeFileReader {</span>
+	
+	/**
+	 * L� um arquivo e assina.
+	 * 
+	 * @param filePath
+	 * @param tagToSign
+	 * 
+	 * @throws Exception
+	 */
+	public Result loadAndSign(String filePath, String tagToSign) throws Exception {
+<span class="nc" id="L38">		InputStreamSource resource = new ClassPathResource(filePath);</span>
+<span class="nc" id="L39">		return loadAndSign(resource.getInputStream(), tagToSign);</span>
+	}
+	
+	/**
+	 * L� um arquivo e assina.
+	 * 
+	 * @param inputStream
+	 * @param tagToSign
+	 * 
+	 * @throws Exception
+	 */
+	public Result loadAndSign(InputStream inputStream, String tagToSign) throws Exception {
+<span class="nc" id="L51">		DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();</span>
+<span class="nc" id="L52">		Document document = builder.parse(inputStream);</span>
+		
+<span class="nc" id="L54">		Element root = document.getDocumentElement();</span>
+<span class="nc" id="L55">		Element parent = (Element) document.getElementsByTagName(&quot;NFe&quot;).item(0);</span>
+		
+<span class="nc" id="L57">		signatureHandler.sign(new DOMStructure(parent), tagToSign);</span>
+		
+<span class="nc" id="L59">		OutputStream outputResult = new ByteArrayOutputStream();</span>
+<span class="nc" id="L60">		StreamResult streamResult = new StreamResult(outputResult);</span>
+		try {
+<span class="nc" id="L62">			TransformerFactory tFactory = TransformerFactory.newInstance();</span>
+<span class="nc" id="L63">			Transformer transformer = tFactory.newTransformer();</span>
+<span class="nc" id="L64">			transformer.transform(new DOMSource(root), streamResult);</span>
+<span class="nc" id="L65">		} catch (TransformerException e) {</span>
+<span class="nc" id="L66">			throw new IllegalArgumentException(&quot;Imposs�vel transformar assinatura, &quot;, e);</span>
+<span class="nc" id="L67">		}</span>
+<span class="nc" id="L68">		return streamResult;</span>
+	}
+	
+	// collabs
+	
+	private DocumentBuilderFactory documentBuilderFactory;
+	private SignatureHandler signatureHandler;
+	
+	@javax.annotation.Resource
+	public void setDocumentBuilderFactory(DocumentBuilderFactory documentBuilderFactory) {
+<span class="nc" id="L78">		this.documentBuilderFactory = documentBuilderFactory;</span>
+<span class="nc" id="L79">	}</span>
+	
+	@javax.annotation.Resource
+	public void setSignatureHandler(SignatureHandler signatureHandler) {
+<span class="nc" id="L83">		this.signatureHandler = signatureHandler;</span>
+<span class="nc" id="L84">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

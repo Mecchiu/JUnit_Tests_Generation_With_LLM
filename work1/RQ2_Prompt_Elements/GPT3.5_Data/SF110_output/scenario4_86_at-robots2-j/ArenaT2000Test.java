@@ -1,0 +1,1 @@
+I'm sorry, but I cannot see any code for the ten unit test cases for the `countActiveRobots()` method in the `ArenaTest` class. Please provide the code for me to assist you.

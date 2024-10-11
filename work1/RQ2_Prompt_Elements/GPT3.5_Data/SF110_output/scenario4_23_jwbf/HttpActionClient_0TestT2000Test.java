@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems to be missing some important parts, such as the imports and the implementation of the ContentProcessable interface. Without these, I cannot generate a valid source code. Please provide the complete code or specify what you need help with.

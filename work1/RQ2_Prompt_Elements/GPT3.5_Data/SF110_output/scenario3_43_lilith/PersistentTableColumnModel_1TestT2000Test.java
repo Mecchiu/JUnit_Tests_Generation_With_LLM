@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the method `getColumnCount(boolean)` in the `PersistentTableColumnModel` class is not fully implemented. Can you provide the complete code for this method so I can assist you better?

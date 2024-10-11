@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NFeCalculatorImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">br.com.jnfe.base.service</a> &gt; <span class="el_source">NFeCalculatorImpl.java</span></div><h1>NFeCalculatorImpl.java</h1><pre class="source lang-java linenums">package br.com.jnfe.base.service;
+
+import java.math.BigDecimal;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import br.com.jnfe.base.COFINS;
+import br.com.jnfe.base.ICMS;
+import br.com.jnfe.base.ICMSExt;
+import br.com.jnfe.base.ICMSST;
+import br.com.jnfe.base.IPI;
+import br.com.jnfe.base.ModBC;
+import br.com.jnfe.base.PIS;
+
+/**
+ * Implementa��o padr�o para c�lculo de impostos.
+ * 
+ * @author mauriciofernandesdecastro
+ */
+<span class="nc" id="L21">public class NFeCalculatorImpl implements NFeCalculator {</span>
+
+	public BigDecimal calculate(ICMS icms) {
+<span class="nc" id="L24">		BigDecimal taxValue = icms.getVICMS();</span>
+<span class="nc" id="L25">		validate(icms.getPICMS(), icms.getVBc());</span>
+
+<span class="nc bnc" id="L27" title="All 2 branches missed.">		if (taxValue==null) {</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">			if (icms.getModBC()==ModBC.MARGEM.getValue()) {</span>
+<span class="nc" id="L29">				taxValue = internalCalculate(icms.getVBc(), icms.getPICMS());</span>
+<span class="nc" id="L30">				logger.debug(&quot;Valor calculado do ICMS: {}.&quot;, taxValue);</span>
+<span class="nc" id="L31">				return taxValue;</span>
+			}
+<span class="nc" id="L33">			throw new UnsupportedOperationException(&quot;Modo de determina��o da base de c�lculo ainda n�o suportada.&quot;);</span>
+		}
+<span class="nc" id="L35">		logger.warn(&quot;Valor n�o recalculado do ICMS: {}.&quot;, taxValue);</span>
+		
+<span class="nc" id="L37">		return taxValue;</span>
+	}
+
+	public BigDecimal calculate(ICMSST icms) {
+<span class="nc" id="L41">		BigDecimal taxValue = calculate((ICMS) icms);</span>
+		// TODO implantar calculo ICMS ST.
+<span class="nc" id="L43">		return taxValue;</span>
+	}
+
+	public BigDecimal calculate(ICMSExt icms) {
+<span class="nc" id="L47">		BigDecimal taxValue = calculate((ICMS) icms);</span>
+		// TODO implantar calculo ICMS ext.
+<span class="nc" id="L49">		return taxValue;</span>
+	}
+
+	public BigDecimal calculate(IPI ipi) {
+<span class="nc" id="L53">		BigDecimal taxValue = ipi.getVIPI();</span>
+<span class="nc" id="L54">		validate(ipi.getPIPI(), ipi.getIPIVBC());</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">		if (taxValue==null) {</span>
+<span class="nc" id="L57">			taxValue = internalCalculate(ipi.getIPIVBC(), ipi.getPIPI());</span>
+<span class="nc" id="L58">			logger.debug(&quot;Valor calculado do IPI: {}.&quot;, taxValue);</span>
+<span class="nc" id="L59">			return taxValue;</span>
+		}
+<span class="nc" id="L61">		logger.warn(&quot;Valor n�o recalculado do IPI: {}.&quot;, taxValue);</span>
+		
+<span class="nc" id="L63">		return taxValue;</span>
+	}
+
+	public BigDecimal calculate(PIS pis) {
+<span class="nc" id="L67">		BigDecimal taxValue = pis.getVPIS();</span>
+<span class="nc" id="L68">		validate(pis.getPPIS(), pis.getPISVBC());</span>
+
+<span class="nc bnc" id="L70" title="All 2 branches missed.">		if (taxValue==null) {</span>
+<span class="nc" id="L71">			taxValue = internalCalculate(pis.getPISVBC(), pis.getPPIS());</span>
+<span class="nc" id="L72">			logger.debug(&quot;Valor calculado do PIS: {}.&quot;, taxValue);</span>
+<span class="nc" id="L73">			return taxValue;</span>
+		}
+<span class="nc" id="L75">		logger.warn(&quot;Valor n�o recalculado do PIS: {}.&quot;, taxValue);</span>
+		
+<span class="nc" id="L77">		return taxValue;</span>
+	}
+
+	public BigDecimal calculate(COFINS cofins) {
+<span class="nc" id="L81">		BigDecimal taxValue = cofins.getVCOFINS();</span>
+<span class="nc" id="L82">		validate(cofins.getPCOFINS(), cofins.getCOFINSVBC());</span>
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">		if (taxValue==null) {</span>
+<span class="nc" id="L85">			taxValue = internalCalculate(cofins.getCOFINSVBC(), cofins.getPCOFINS());</span>
+<span class="nc" id="L86">			logger.debug(&quot;Valor calculado do CONFINS: {}.&quot;, taxValue);</span>
+<span class="nc" id="L87">			return taxValue;</span>
+		}
+<span class="nc" id="L89">		logger.warn(&quot;Valor n�o recalculado do CONFINS: {}.&quot;, taxValue);</span>
+		
+<span class="nc" id="L91">		return taxValue;</span>
+	}
+	
+	/**
+	 * Lan�a exce��o sempre que algum dos par�metros for nulo.
+	 * 
+	 * @param aliquota
+	 * @param vBC
+	 */
+	protected void validate(BigDecimal aliquota, BigDecimal vBC) {
+<span class="nc bnc" id="L101" title="All 2 branches missed.">		if (aliquota==null) {</span>
+<span class="nc" id="L102">			throw new IllegalArgumentException(&quot;Valor da al�quota n�o pode ser nulo&quot;);</span>
+		}
+<span class="nc bnc" id="L104" title="All 2 branches missed.">		if (vBC==null) {</span>
+<span class="nc" id="L105">			throw new IllegalArgumentException(&quot;Valor da base de c�lculo n�o pode ser nulo&quot;);</span>
+		}
+<span class="nc" id="L107">	}</span>
+	
+	/**
+	 * Calcula o imposto como um percentual da base.
+	 * 
+	 * @param vBC valor da base de c�lculo
+	 * @param p al�quota
+	 */
+	protected BigDecimal internalCalculate(BigDecimal vBC, BigDecimal p) {
+<span class="nc" id="L116">		return vBC.multiply(p).divide(new BigDecimal(100));</span>
+	}
+	
+<span class="nc" id="L119">	private static final Logger logger = LoggerFactory.getLogger(NFeCalculatorImpl.class);</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,4637 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+b0ba4663-b041-4247-a95b-ffdab23208a3,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/approver/ModifyApprovalQueueEntryAction.java,58.625476598739624,stop,"// ModifyApprovalQueueEntryAction.java
+package org.heal.servlet.approver;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.module.catalog.QueuedRecordBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+/**
+ * Modifies an approval queue entry.
+ *
+ * @author Brad Schaefer (<A HREF=""mailto:schaefer@lib.med.utah.edu"">schaefer@lib.med.utah.edu</A>)
+ */
+public class ModifyApprovalQueueEntryAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// ModifyApprovalQueueEntryActionTest.java
+package org.heal.servlet.approver;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.module.catalog.QueuedRecordBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ModifyApprovalQueueEntryAction}.
+* It contains one unit test case for the {@link ModifyApprovalQueueEntryAction#actionRequiresLogin()} method.
+*/
+class ModifyApprovalQueueEntryActionTest {","// ModifyApprovalQueueEntryActionTest.java
+package org.heal.servlet.approver;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.module.catalog.QueuedRecordBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ModifyApprovalQueueEntryAction}.
+* It contains one unit test case for the {@link ModifyApprovalQueueEntryAction#actionRequiresLogin()} method.
+*/
+class ModifyApprovalQueueEntryActionTest {
+/**
+	
+		* Tests the functionality of this action by verifying that a logged in user can create a queue entry with the required action.
+	
+		*/
+	@Test
+	void successExpectedInCreateNewQueueEntry() {
+		HttpServletRequest request = AuthenticationTools.loginAndRedirectToNext();
+		request.getRequestDispatcher(""/ajax.jsp"").forward(request, request.getContextPath());
+		assertNotNull(request.getAttribute(""msg-header""));
+		assertEquals(""msg-success"", request.getAttribute(""msg-header""));
+	}
+	
+	/**
+	
+		* Tests the functionality of this action by verifying that a un-pending queue entry can be read.
+	
+		*/
+	@Test
+	void successNoExpectedInReadQueueEntry() {
+		HttpServletRequest request = AuthenticationTools.loginAndRedirectToNext();
+		request.getRequestDispatcher(""/ajax.jsp"").forward(request, request.getContextPath());
+		assertNull(request.getAttribute(""msg-header""));
+		assertTrue(!request.getAttribute(""pending""));
+	}
+	
+	/**
+	
+		* Tests the functionality of this action by verifying that a no-pending queue entry can be read.
+	
+		*/
+	@Test
+	void successfulNotExpectedInReadQueueEntry() {
+		HttpServletRequest request = AuthenticationTools.loginAndRedirectToNext();
+		request.getRequestDispatcher(""/ajax.jsp"").forward(request, request.getContextPath());
+		assertEquals(""msg-success"", request.getAttribute(""msg-header""));
+		assertTrue(!request.getAttribute(""pending""));
+		assertTrue(!request.getAttribute(""queue-entry-id""));
+	}
+	
+	/**
+	
+		* Tests the functionality of this action by verifying that a no-pending queue entry can be approved.
+	
+		*/
+	@Test
+	void actionRequiresLoggedInUserToReadQueueEntry() {
+		HttpServletRequest request = AuthenticationTools.loginAndRedirectToNext();
+		request.getRequestDispatcher(""/ajax.jsp"").forward(request, request.getContextPath());
+		assertEquals(""msg-success"", request.getAttribute(""msg-header""));
+		assertTrue(!request.getAttribute(""queue-entry-id""));
+		assertEquals(""queued"", request.getAttribute(""pending-desc""));
+		assertTrue(request.getAttribute(""approval-comment-desc""));
+		assertTrue(request.getAttribute(""approval-comment-desc-formatted""));
+	}
+	
+	/**
+	
+		* Test that reads a queue entry with the Pending
+	
+		*/
+	@Test
+	void actionRequiresLoggedInUserToReadNonPendingQueueEntry() {
+		HttpServletRequest request = AuthenticationTools.loginAndRedirectToNext();
+		request.getRequestDispatcher(""/ajax.jsp"").forward(request, request.getContextPath());
+		assertEquals(""msg-success"", request.getAttribute(""msg-header""));
+		assertTrue(!request.getAttribute(""queue-entry-id""));
+		assertEquals(""queued"", request.getAttribute(""pending-desc""));
+		assertEquals("""", request.getAttribute(""approval-comment-desc""));
+		assertEquals(""pending"", request.getAttribute(""approval-comment-desc-formatted""));
+	}
+}
+"
+1351dce2-79d2-42e4-8103-2a5e736f05b3,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/approver/ShowApprovalQueueAction.java,42.46405076980591,stop,"// ShowApprovalQueueAction.java
+package org.heal.servlet.approver;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * An {@link org.heal.servlet.Action} which fetches the information needed to
+ * display the approval queue.
+ *
+ * @author Brad Schaefer (<A HREF=""mailto:schaefer@lib.med.utah.edu"">schaefer@lib.med.utah.edu</A>)
+ */
+public class ShowApprovalQueueAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// ShowApprovalQueueActionTest.java
+package org.heal.servlet.approver;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ShowApprovalQueueAction}.
+* It contains one unit test case for the {@link ShowApprovalQueueAction#actionRequiresLogin()} method.
+*/
+class ShowApprovalQueueActionTest {","// ShowApprovalQueueActionTest.java
+package org.heal.servlet.approver;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ShowApprovalQueueAction}.
+* It contains one unit test case for the {@link ShowApprovalQueueAction#actionRequiresLogin()} method.
+*/
+class ShowApprovalQueueActionTest {
+
+	/**
+	* Test method with no parameter tests {@link ShowApprovalQueueAction#actionRequiresLogin()}.
+	*
+	* @throws IOException
+	*
+	*/
+	@Test
+	public void actionsWithoutParameterTest()
+	throws ServletException, IOException {
+		requestRequiresLogin(true);
+	}
+	
+	/**
+	* Test method with null parameter test {@link ShowApprovalQueueAction#actionRequiresLogin()}.
+	*
+	* @throws IOException
+	*
+	*/
+	@Test (expected = ServletException.class)
+	public void errorsInParameterTest() throws ServletException, IOException {
+		requestRequiresLogin(true);
+	}
+	
+	/**
+	* Test method with valid parameter tests {@link ShowApprovalQueueAction#actionRequiresLogin()}.
+	*
+	* @throws ServletException
+	*
+	*/
+	@Test
+    public void actionParameterValidTest() throws ServletException {
+		HttpServletRequest request = HttpServletRequest.getRequest(
+			getClass().getCanonicalName(), ""123"", ""junitApprovalQueue"");
+		// Check parameters
+		assertEquals(""123"", request.getParameter(""param1""));
+		assertEquals(""junitApprovalQueue"", request.getParameter(""param2""));
+		String param3 = request.getParameter(""param3"");
+		String param4 = request.getParameter(""param4"");
+		assertNotNull(param4);
+		requestRequiresLogin(true);
+	}
+	
+	/**
+	* Test method with an invalid parameter test {@link ShowApprovalQueueAction#actionRequiresLogin()}.
+	*
+	* @throws ServletException
+	*
+	*/
+	@Test (expected = ServletException.class)
+	public void errorsInInvalidParameterTest() throws ServletException {
+		requestRequiresLogin(true);
+	}
+	
+	/**
+	* Test method that fetching the approval queue and checking permissions
+	*
+	* @throws ServletException
+	*
+	*/
+	@Test
+	public void testApprovalQueuePermission() throws ServletException {
+		// Fetch the approval queue and check permissions
+		List<QueueItem> approvalList = QueueDAO.getAllQueue();
+		assertEquals(""123"", ApproverDAO.getA(approvalList, ""param0"")); // 0
+		assertEquals((int) QueueDAO.GET_PUBLIC_QUEUE.value(), ApproverDAO.getA(approvalList, ""param1"")); // 1
+		List<QueueItem> approvalList1 = QueueDAO.getA(""p0"", ""param2""); // 2
+		assertFalse(approvalList1.isEmpty());
+		assertEquals(""junitApprovalQueue"", ApproverDAO.getA(approvalList1, ""param1"")); // 3
+		List<QueueItem> approvalList2 = ApproverDAO.getA(""p0"", ""param3""); // 4
+		assertEquals(3, approvalList2.size());
+		assertEquals(""junitApprovalQueue"", ApproverDAO.getA(approvalList2, ""param1"")); // 5
+		List<QueueItem> approvalList3 = ApproverDAO.getP();
+		assertTrue(approvalList3.isEmpty());
+	}
+	
+	/**
+	* Test method that fetching the approval queue and checking permissions and
+	* checking permissions on a request parameter.
+	*
+	* @throws ServletException
+	*
+	*/
+	@Test
+    public void testApprovalQueuePermission1() throws ServletException {
+		// Fetch the approval queue and check permissions
+		List<QueueItem> approvalList = QueueDAO.getAllQueue();
+		assertEquals(""123"", ApproverDAO.getA(approvalList, ""param0"")); // 0
+		assertEquals((int) QueueDAO.GET_PUBLIC_QUEUE.value(), ApproverDAO.getA(approvalList, ""param1"")); // 1
+		List<QueueItem> approvalList1 = ApproverDAO.getA(""p0"", ""param2""); // 2
+		assertFalse(approvalList1.isEmpty());
+		assertEquals(""junitApprovalQueue"", ApproverDAO.getA(approvalList1, ""param1"")); // 3
+		List<QueueItem> approvalList2 = ApproverDAO.getA(""p0"", ""param3""); // 4
+		assertEquals(1, approvalList2.size());
+		assertEquals(""junitApprovalQueue"", ApproverDAO.getA(approvalList2, ""param2"")); // 5
+		List<QueueItem> approvalList3 = ApproverDAO.getPA();
+		assertFalse(approvalList3.isEmpty());
+	}
+	
+}
+"
+2e57eb64-971b-47d0-99a6-a7f559af867e,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/EditContextURLAction.java,57.10412669181824,stop,"// EditContextURLAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContextURLBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+
+/**
+ * An {@link Action} which is called to edit a Context URL.  If
+ * there isn't an existing Context URL which can be found to edit,
+ * we assume that a new Context URL should be edited.
+ */
+public class EditContextURLAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// EditContextURLActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContextURLBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditContextURLAction}.
+* It contains one unit test case for the {@link EditContextURLAction#actionRequiresLogin()} method.
+*/
+class EditContextURLActionTest {","// EditContextURLActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContextURLBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditContextURLAction}.
+* It contains one unit test case for the {@link EditContextURLAction#actionRequiresLogin()} method.
+*/
+class EditContextURLActionTest {
+
+	/**
+	 * Unit test if action's {@link EditContextURLAction#actionRequiresLogin()}
+	 * returns true.
+	*/
+	@Test
+	public void test() throws IOException {
+
+		HttpServletRequest request = new FakeRequest();
+		HttpServletResponse response = new FakeResponse();
+		
+		Iterator it = new ContextURLBean().getContextURL().iterator();
+		ContextURLBean newContext = (ContextURLBean) it.next();
+
+		// This operation should return true, but it always throws an exception 
+		request.setAttribute(""ContextUrlBean"", newContext);
+		test(request, response);
+		
+		assertTrue(newContext instanceof CompleteMetadataBean);
+	}
+		
+	// Fake request
+	static class FakeRequest implements HttpServletRequest {
+	
+		private static final String USER_NAME = ""admin"";
+		
+		public Object findValue(String variable) {
+		   return USER_NAME;
+		}
+		
+	}
+	
+	private static class FakeResponse implements HttpServletResponse {
+		
+        public void addHeader(String name, String value) { }
+		
+		public void setStatus(int status) { }
+		
+	}
+}"
+c26813c6-b9eb-41c7-86ab-5a35a5eae950,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/ModifyMetadataAction.java,51.52448344230652,length,"// ModifyMetadataAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * <p>An {@link Action} that saves the metadata from a form into
+ * the session's {@link CompleteMetadataBean} by mapping {@link MetadataModifier}s
+ * to forms.  The {@link MetadataModifier} which matches the form determines
+ * the next {@link Action} to execute.</p>
+ *
+ * <p>The mapping is currently defined as:</p>
+ *
+ * <ul><li>'metadata' : {@link MetadataRecordModifier}
+ * <li>'contextURL' : {@link ContextURLRecordModifier}
+ * <li>'contributor' : {@link ContributorRecordModifier}
+ * <li>'copyrightHolder' : {@link CopyrightHolderRecordModifier}
+ * <li>'controlledVocabulary' : {@link ControlledVocabularyRecordModifier}
+ * <li>'requirement' : {@link RequirementRecordModifier}
+ * </ul>
+ */
+public class ModifyMetadataAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// ModifyMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ModifyMetadataAction}.
+* It contains one unit test case for the {@link ModifyMetadataAction#actionRequiresLogin()} method.
+*/
+class ModifyMetadataActionTest {","// ModifyMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ModifyMetadataAction}.
+* It contains one unit test case for the {@link ModifyMetadataAction#actionRequiresLogin()} method.
+*/
+class ModifyMetadataActionTest {
+/**
+		* Tests that login is required and the {@link Action} is executed.
+		*/
+	@Test
+	void testLoginRequired() {
+        CompleteMetadataBean completeMetadata = new CompleteMetadataBean();
+		Map<String, Object> map = new HashMap<>();
+		map.put(""metadatainfo"", completeMetadata);
+	    Map<String, Object> map2 = new HashMap<>();
+	    map2.put(""metadataForm"", map);
+		
+		map2.put(""metaURL"", ""http://example.com"");
+		map2.put(""metaContrller"", ""admin"");
+		map2.put(""metaCourier"", ""admin"");
+		map2.put(""metaVoc"", ""admin"");
+		map2.put(""metaContr"", ""admin"");
+		map2.put(""metaVocURL"", ""http://example.com"");
+		map2.put(""contextUR"", ""https://myServer"");
+		map2.put(""controlledVoc"", ""admin"");
+		map2.put(""copyrightholder"", ""copyrightholder"");
+		map2.put(""copyrightHolderURL"", ""http://example.com"");
+		map2.put(""copyrightMiner"", ""copyrightMiner"");
+		map2.put(""copyrightMinerURL"", ""http://example.com"");
+		map2.put(""contr"", ""contr"");
+		map2.put(""contrURL"", ""https://myServer"");
+		
+		
+        TestSessionMetadataExtractor.setup();
+        TestSessionMetadataExtractor.load(map2);
+        
+		map2.put(""contrURL"", ""https://myServer"");
+        CompleteMetadataBean completeMetadataFromForm = TestSessionMetadataExtractor.getMetadata();
+        CompleteMetadataBean completeMetadataFromRedirect = 
+        		TestSessionMetadataExtractor.getCompleteMetadata();
+		
+		testRequest(map, completeMetadataFromForm);
+		testRequest(map2, completeMetadataFromRedirect);
+		assertEquals(""Incorrect URL"", 
+				""http://example.com"", CompleteMetadataBean.getCorrectURL(map2));
+		assertEquals(""Incorrect URL"", 
+				""https://myServer"", CompleteMetadataBean.getCorrectURL(map2));
+		assertEquals(""Incorrect URL"", 
+				""https://myServer"", CompleteMetadataBean.getCorrectURL(map2, true));
+		assertEquals(""Incorrect URL"", 
+				""https://myServer"", CompleteMetadataBean.getCorrectURL(map2, false));
+	}
+
+    private void testRequest(Map<String, Object> map, CompleteMetadataBean completeMetadataFromForm) {
+        String url = (String)map.get(CompleteMetadataBean.getCorrectURL());
+        String contextURL = (String)map.get(ContextURLRecordModifier.getCorrectUrl());
+        String controlledVoc = (String)map.get(ControlledVocabularyRecordModifier.getCorrectUrl());
+        String contributor = (String)map.get(ContributorRecordModifier.getCorrectUrl());
+        String copyrightHolderURL = (String)map.get(CopyrightHolderRecordModifier.getCorrectUrl());
+        String copyrintHolderURL = (String)map.get(CopyrightHolderRecordModifier.getCorrectUrl(), String.class);
+        String requirement = (String)map.get(RequirementRecordModifier.getCorrectUrl());
+        assertEquals(""Incorrect URL"", url, ((String)map.get(ContextURLRecordModifier.getCorrectUrl())));
+        assertEquals(""Incorrect URL"", contextURL, (String)map.get(ContextURLRecordModifier.getCorrectUrl()));
+        assertEquals(""Incorrect URL"", controlledVoc, (String)map.get(ControlledVocabularyRecordModifier.getCorrectUrl()));
+        assertEquals(""Incorrect URL"", contributor, (String)map.get(ContributorRecordModifier.getCorrectUrl()));
+        assertEquals(""Incorrect URL"", copyrightHolderURL, ((String)map.get(CopyrightHolderRecordModifier.getCorrectUrl())));
+        assertEquals(""Incorrect URL"", copyrightHolderURL, (String)map.get(CopyrightHolderRecordModifier.getCorrectUrl(), String.class));
+        assertEquals(""Incorrect URL"", copiedVocab, (String)map.get(CopyrightVocularRecordModifier.getCorrectUrl()));
+        assertEquals(""Incorrect URL"", copyrightMinerURL, ((String)map.get(CopyrightMinerRecordModifier.getCorrectUrl())));
+        assertEquals(""Incorrect URL"", copyrightMinerURL, (String)map.get(CopyrightMinerRecordModifier.getCorrectUrl(), String.class));
+        assertEquals(""Incorrect URL"", copyrightMinerURL, (String)map.get(CopyrightMinerRecordModifier.getCorrectUrl(), String.class));
+        assertEquals(""Incorrect URL"", copyrightMinerURL.toLowerCase(), (String)map.get(CopyrightMinerRecordModifier.getCorrectUrl().toLowerCase()));
+        assertEquals(""Incorrect URL"", url.toLowerCase(), ((String)map.get(CompleteMetadataBean.getCorrectURL()))) ;
+        assertEquals(""Incorrect URL"", url, 
+                ((String)((HashMap<String, Object>)map.get(CompleteMetadataBean.getCorrectURL())).get(""url"")));
+        assertEquals(""Incorrect URL"", contextURL, 
+                ((String)((HashMap<String, Object>)map.get(CompleteMetadataBean.getCorrectURL())).get(""contextURL"")));
+        assertEquals(""Incorrect URL"", controlledVoc, 
+                ((String)((HashMap<String, Object>)map"
+242b3dd1-fb34-445a-917a-f5af0ea093bb,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/SaveMetadataAction.java,46.9560980796814,length,"// SaveMetadataAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.ContextURLBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.RequirementBean;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.MetametadataIdentifierBean;
+import org.heal.module.metadata.MetametadataContributorBean;
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Iterator;
+
+/**
+ * An {@link org.heal.servlet.Action Action} used to save metadata
+ * records.
+ */
+public class SaveMetadataAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// SaveMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.ContextURLBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.RequirementBean;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.MetametadataIdentifierBean;
+import org.heal.module.metadata.MetametadataContributorBean;
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SaveMetadataAction}.
+* It contains one unit test case for the {@link SaveMetadataAction#actionRequiresLogin()} method.
+*/
+class SaveMetadataActionTest {","// SaveMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.ContextURLBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.RequirementBean;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.MetametadataIdentifierBean;
+import org.heal.module.metadata.MetametadataContributorBean;
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SaveMetadataAction}.
+* It contains one unit test case for the {@link SaveMetadataAction#actionRequiresLogin()} method.
+*/
+class SaveMetadataActionTest {
+
+	/**
+	 * This operation runs to the ""Save Metadata"" page.
+	 * @exception ServletException if something goes wrong.
+	 */
+	@Test
+	void run() throws ServletException {
+
+		// Run operation with given arguments
+		RequestDispatcher rd = getServletContext().getRequestDispatcher(""/test/SaveMetadataAction.do"");
+		HttpServletRequest request = getRequest();
+		HttpServletResponse response = getResponse();
+			
+		// Call save operation using given parameters
+		Iterator<SaveMetadataAction.Parameter> parameters = new SaveMetadataAction.ParamIterator(parameters());
+		while(parameters.hasNext()) {
+			request.setAttribute(parameters.next().attribute, parameters.next().value);
+		}
+
+		rd.forward(request, response);
+
+	}
+	
+	private HttpServletRequest getRequest() throws ServletException {
+		ContextURLBean contextURLBean = new ContextURLBean();
+		contextURLBean.contextURL = ""http://catalog.catheories.seaweed.org"";
+		
+		
+		HeraldMetaData metadata = new HeraldMetaData();
+		metadata.metadataContributor.metadataContributorId = ""haldem1"";
+		metadata.metadataContributor.metadataContributors = new String[] { ""aljh""};
+		metadata.metadataContributor.authorId = ""aljh"";
+		metadata.metadataContributor.authorName = ""aljh"";
+		metadata.metadataContributor.contributors = new String[] { ""aljh""};
+		metadata.metadataContributor.taxons = new String[] { ""aljh""};
+		metadata.metadataContributor.taxPaths = new String[] {""aljh""};
+		
+		QueueDAO queueDAO = new QueueDAO();
+		queueDAO.insertQueue(QueueDAO.QueueType.CONQUESTION);
+
+		
+		ContributorBean contributorBean = new ContributorBean();
+		contributorBean.title = ""contr1"";
+		contributorBean.author = ""aljh"";
+		contributorBean.description = """";
+		
+		ContributorBean contributorBean1 = new ContributorBean();
+		contributorBean1.title = ""contr2"";
+		contributorBean1.author = ""aljh"";
+		contributorBean1.description = """";
+		
+		ContributorBean contributorBean2 = new ContributorBean();
+		contributorBean2.title =""contr3"";
+		contributorBean2.author =""aljh"";
+		contributorBean2.description = """";
+
+		ContributorBean contributorBean3 = new ContributorBean();
+		contributorBean3.title =""contr4"";
+		contributorBean3.author =""aljh"";
+		contributorBean3.description = """";
+		
+		ContributorBean contributorBean4 = new ContributorBean();
+		contributorBean4.title = ""contr5"";
+		contributorBean4.author =""aljh"";
+		contributorBean4.description = """";
+		
+		
+		
+		TaxonBean taxon = new TaxonBean();
+		taxon.taxId = ""TaxId0"";
+		taxon.taxName = ""Tax Name0"";
+		
+		
+		
+		taxonPathBean = new TaxonPathBean();
+		taxPathBean.taxonPath = new String[] { ""TaxonPath1"" };
+		
+		TaxonBean taxonBean = new TaxonBean();
+		taxonBean.taxonName = ""taxName2"";
+		
+		RequirementBean requirement = new RequirementBean();
+		requirement.name = ""RequirementName2"";
+		requirement.content = """";
+		
+		
+		TaxonPathBean taxonPathBean1 = new TaxonPathBean();
+		taxonPathBean1.taxonPath = new String[] { ""TaxonPath1"" };
+		
+		
+		TaxonBean taxBean1 = new TaxonBean();
+		taxBean1.taxonName = ""taxName2"";
+		
+	
+				
+		TaxonPathBean taxPathBean2 = new TaxonPathBean();
+		taxPathBean2.taxonPath = new String[] { ""TaxonPath2"" };
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+
+		
+
+		CompleteMetadataBean metadataBean = new CompleteMetadataBean();
+		metadataBean.taxopath = new String[] { ""Taxopath3"" };
+		
+		contributorBean.taxBean = new TaxBean();
+		contributorBean1.taxBean = new TaxBean();
+		contributorBean2.taxBean = new TaxBean();
+		
+		
+"
+89bfbd9b-7cc9-4477-8bf8-ecedaafd8bb5,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/CreateMetadataAction.java,50.549067735672,stop,"// CreateMetadataAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * An {@link Action} which creates a new metadata record to edit,
+ * puts it into the session, and then directs the user to the editing
+ * page.
+ */
+public class CreateMetadataAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// CreateMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link CreateMetadataAction}.
+* It contains one unit test case for the {@link CreateMetadataAction#actionRequiresLogin()} method.
+*/
+class CreateMetadataActionTest {","// CreateMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link CreateMetadataAction}.
+* It contains one unit test case for the {@link CreateMetadataAction#actionRequiresLogin()} method.
+*/
+class CreateMetadataActionTest {
+
+/** 
+ * @return class to test
+ */
+    public static class CreateMetadataActionTest {
+        
+        /** Test method for {@link CreateMetadataAction#actionRequiresLogin()}. */
+        @Test
+        public void testActionRequiresLogin() {
+            // Set up some useful things.
+            // Save a couple of items in the session.
+            HttpServletRequest request =
+                                   new TestAction.SessionAuthenticationServletRequest();
+            HttpServletRequest requestOriginal;
+            Map<String, String> parameters = new HashMap<String, String>();
+            parameters.put(AuthenticationTools.USER_LOOKUP_PARAM, ""fred""); // Make sure we get the right user
+            // This test will fail if a different database is used.
+            parameters.put(""dbname"", ""testing"");
+            
+            // Ensure we are making the action in the wrong database.
+            try {
+                requestOriginal = request.getRequest();
+                Class<?> clazz = request.getClass();
+                Method method = clazz.getDeclaredMethod(""getClassName2"", String.class);
+
+                String returnedClassName = (String)
+                                            method.invoke(requestOriginal, ""getUserDbName"");
+                assertEquals(""Wrong Class returned."",
+                             new String[]{""test-meta-1""},
+                             new String[]{returnedClassName});
+
+                // Set session as null so we won't fail out our test.
+                RequestDispatcher ncd = request.getRequestDispatcher(null);
+                ncd = request.getRequestDispatcher(""/home"");
+
+            } catch (Exception e) {}
+            assertFalse(""Missing URL!"", request.getCharacterEncoding().equals(""UTF-8""));
+
+            String testRequestParameter = System.getProperty(""javax.servlet.REQUEST_PATH_INFO"");
+            String testParameter  = System.getProperty(""javax.servlet.request.pathInfo"");
+            // This test will fail if we are passing a different database.
+            assertFalse(""Missing request parameter"", testRequestParameter == null);
+            assertFalse(""Missing request parameter"", testRequestParameter.equals(""/""));
+            assertFalse(""Missing request parameter"", testParameter!= null);
+            assertFalse(""Missing request parameter"", testParameter.startsWith(""/""));
+        }
+
+        private HttpServletRequest newMockRequest() {
+            HttpServletRequest request = new HttpServletRequest() {
+                @Override
+                public String getCharacterEncoding() { return ""UTF-8""; }
+                @Override
+                public String getParameter(String name) {return null; }
+                @Override
+                public Object getValue(String name) {
+                    if (name.equals(""dbname"")) {
+                        return ""testing"";
+                    }
+                    return null;
+                }
+                @Override
+                public Map<String, String> getParameterMap() {
+                    return null;
+                }
+                @Override
+                public Enumeration<String> getParameterNames() {
+                    return null;
+                }
+                @Override
+                public String getRequestURL() {
+                    return null;
+                }
+                @Override
+                public void setCharacterEncoding(String charset) { }
+                @Override
+                public boolean isUserInRole(String role) { return true; }
+                @Override
+                public boolean isSecure() { return false; }
+                @Override
+                public AuthenticationTools.LoginInfo getUser() {
+                    return null;
+                }
+                @Override
+                public HttpSession getSession(){return null};
+            };
+            return request;
+        }
+        
+		
+		final TestAction.SessionAuthenticationServletRequest servletRequestOriginal = new TestAction.SessionAuthenticationServletRequest();
+
+		private final TestAction.SessionAuthenticationServletRequest servletRequest = servletRequestOriginal;
+		
+        public class TestAction {
+            public static String ACTION = ""test-action"";
+            public static String DEFAULT_USER = ""fred"";
+            
+            public static RequestDispatcher reqdispatcher(String name){
+                return null;
+            }
+            
+            public static RequestDispatcher getRequestDispatch(String name){
+                return null;
+            }
+            
+            public static String getUserDbName(){
+                return ""testsubsession"";
+            }
+            
+            public static void setUser(String user){
+                TestAction.DEFAULT_USER = user;
+            }
+            
+            public static void setSession(HttpSession session){}
+            
+            public static Boolean isAuthenticated(){
+                return null;
+            }
+        }
+        
+        public static String actionRequired() {
+            return Action.getAction(ACTION).requiresLogin();
+        }
+        
+        private static class TestAction {
+            public static Class<?> getActionClass(){
+                return new Class<TestAction>() {};
+            }
+        }
+        
+        private static class SessionAuthenticationServletRequest extends HttpServletRequest {
+            /** A singleton map of the user, by name. */
+            private Map<String, Object> user;
+            
+            @Override
+            public void login() {
+                setUser(AuthenticationTools.getUserFromSession(servletRequest.getSession()));
+            }
+
+            @Override
+            public void setUser(Object user) {
+                this.user = new HashMap<String, Object>();
+                this.user.put(""username"", (String) user);
+            }
+
+            @Override
+            public Map<String, Object> getUser(){
+                return user;
+            }
+            
+            @Override
+            public boolean isUserInRole(String role){
+                return false;
+            }
+        }
+    }
+}
+"
+753fea58-8fee-4c2c-80f4-419bd1d42b0e,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/ModifyCatalogQueueEntryAction.java,50.49956226348877,length,"// ModifyCatalogQueueEntryAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.module.catalog.QueuedRecordBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import org.heal.util.FileLocator;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.sql.SQLException;
+
+/**
+ * An {@link org.heal.servlet.Action Action} which is called in order to edit a metadata item which is in
+ * the catalog queue.
+ *
+ * @author Brad Schaefer (<A HREF=""mailto:schaefer@lib.med.utah.edu"">schaefer@lib.med.utah.edu</A>)
+ * @version 1.0
+ */
+public class ModifyCatalogQueueEntryAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// ModifyCatalogQueueEntryActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.module.catalog.QueuedRecordBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import org.heal.util.FileLocator;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.sql.SQLException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ModifyCatalogQueueEntryAction}.
+* It contains one unit test case for the {@link ModifyCatalogQueueEntryAction#actionRequiresLogin()} method.
+*/
+class ModifyCatalogQueueEntryActionTest {","// ModifyCatalogQueueEntryActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.module.catalog.QueuedRecordBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import org.heal.util.FileLocator;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.sql.SQLException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ModifyCatalogQueueEntryAction}.
+* It contains one unit test case for the {@link ModifyCatalogQueueEntryAction#actionRequiresLogin()} method.
+*/
+class ModifyCatalogQueueEntryActionTest {
+@Test
+		public void testActionSuccess() throws Exception {
+				doTest(this.getClass().getClassLoader(),
+						this.getClass().getClassLoader(),
+						""deleteMetadata.jsp"",
+						new File[]{null},
+						true);
+				
+				doTest(FileLocator.class.getClassLoader(),
+						FileLocator.class.getClassLoader(),
+						""deleteMetadata.jsp"",
+						new File[]{null},
+						false);
+				
+		}
+					
+		@Test
+		public void testActionDisallowLogin() throws Exception {
+			doTryTests();
+		}
+		
+		@Test
+		public void testCsrfExempted() throws Exception {
+			doTryCsrfExemptedTests();
+			
+			doTryCsrfExemptedTests();
+		}
+	
+		private void doTryExemptedTests() throws ServletException, IOException {
+			doTryTests(this.getClass().getClassLoader(),
+						this.getClass().getClassLoader(),
+						null,
+						""createQueueEntry.jsp"",
+						new File[]{null});
+		}
+	
+		private void doTryTests(
+				ClassLoader ccl,
+				ClassLoader crl,
+				File baseDir,
+				String jspFile,
+				File[] expected)
+					throws ServletException, IOException {
+
+			FileInputStream fis = null;
+			FileOutputStream fos = null;
+			FileInputStream cis = null;
+			FileOutputStream cos = null;
+			
+			try {
+				fis = FileLocator.findFileStream("""", ccl, null);
+				fos = FileLocator.findOutputStream("""", fis);
+				cis = FileLocator.findInputStream("""", crl, fis);
+				cs = FileLocator.findInputStream("""", crl, fos);
+					
+				fis.close();
+				fos.close();
+				cis.close();
+				cs.close();
+					
+				File f = new File(baseDir, expected.length + 4);
+				
+				File loc = FileLocator.findLocator(f, jspFile);
+				loc = (f.equals(loc))? loc : null;
+				if (loc!= null) {
+					loc.delete();
+				}
+				
+				// this is not strictly strictly necessary but works.
+				fis = FileLocator.findFileStream("""", ccl, ""createMetadata.jsp"");
+				fos = FileLocator.findOutputStream("""", fis);
+				cis = FileLocator.findInputStream("""", crl, fis);
+				cs = FileLocator.findInputStream("""", crl, fos);
+					
+				fis.close();
+				fos.close();
+				cis.close();
+				cs.close();
+					
+				MetadataDAO mdDAO = null;
+					
+				try {
+					mdDAO = (MetadataDAO) crl.loadClass(MetadataDAO.class.getName()).newInstance();
+				} catch (Throwable t) {
+					fail(""Load of MetadataDAO failed."");
+				}
+				
+				try {
+					fis = FileLocator.findFileStream("""", ccl, null);
+					fos = FileLocator.findOutputStream("""", fis);
+					cis = FileLocator.findInputStream("""", crl, fis);
+					cs = FileLocator.findInputStream("""", crl, fos);
+					
+				} catch (Throwable t) {
+					if (t instanceof SQLException) {
+						fail(""Failed to create metadata.jsp with SQLException."");
+					} else if (!(t instanceof ClassNotFoundException)) {
+						fail(""Failed to create metadata.jsp with other exceptions."");
+					}
+				}
+				
+				assertTrue(f.exists());
+				
+				long size = f.length();
+				assertTrue(size == expected.length);
+					
+				QueueDAO q = new QueueDAO();
+					
+				QueueDAO.clear();
+					
+				try {
+					fis.close();
+					fos.close();
+					cis.close();
+					cs.close();
+					File f2 = FileLocator.findLocator(loc, expected[0]);
+					
+					assertTrue(f2.exists());
+					fis = FileLocator.findInputStream("""", f2);
+					fos = FileLocator.findOutputStream("""", fis);
+					cis = FileLocator.findInputStream("""", crl, fis);
+				} catch (Throwable t) {
+					if (t instanceof SQLException) {
+						fail(""Failed to read "" + expected[0] + "".jsp with SQLException."");
+					} else if (!(t instanceof ClassNotFoundException)) {
+						fail(""Failed to read "" + expected[0] + "".jsp with other exceptions."");
+					}
+				}
+				
+				assertTrue(loc!= null);
+				
+				String metadata = MetadataDAO.get().readMetadata(f);
+				short metadataserialized = ShortMetadataBean.deserialize(metadata);
+				assertTrue(metadataserialized!= null);
+					
+					// Now test that the item was serialized and not tampered with
+					assertEquals(""Incorrect shortSerialized"", ShortMetadataBean.serialize(metadataserialized), metadataserialized);
+"
+8e4375ef-ce58-4108-88ee-fa55101eafb0,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/RelationRecordModifier.java,54.612826347351074,stop,"// RelationRecordModifier.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.CompleteMetadataBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * Saves changes to a {@link RelationBean} and acts as
+ * an {@link Action} which is called to edit a Relation.  If
+ * there isn't an existing Relation which can be found to edit,
+ * we assume that a new Relation should be edited.
+ */
+public class RelationRecordModifier implements Action, MetadataModifier {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// RelationRecordModifierTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.CompleteMetadataBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RelationRecordModifier}.
+* It contains one unit test case for the {@link RelationRecordModifier#actionRequiresLogin()} method.
+*/
+class RelationRecordModifierTest {","// RelationRecordModifierTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.CompleteMetadataBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RelationRecordModifier}.
+* It contains one unit test case for the {@link RelationRecordModifier#actionRequiresLogin()} method.
+*/
+class RelationRecordModifierTest {
+
+	/**
+	 * Constructor.
+	*/
+	public RelationRecordModifierTest(){}
+	
+	/**
+	 * @see RelationRecordModifier#actionRequiresLogin()
+	 */
+	@Robots(value=""robot.who"")
+	@Test
+	public void test_actionRequiresLogin() throws IOException, ServletException, InterruptedException{
+		
+		// get session by invoking HttpSession.getCurrent()
+		
+		final HttpServletRequest req = mock(HttpServletRequest.class);
+		
+		final HttpServletResponse res = mock(HttpServletResponse.class);
+		
+		
+		assertNotNull(res);
+    
+		final RequestDispatcher rd = mock(RequestDispatcher.class);
+		
+		final List<String> methods = mockList();
+		
+		doReturn(methods).when(res).getMethods();
+			
+		doReturn(rd).when(req).getAttribute(anyString());
+				
+		this.action(req,res);
+	}
+	
+	/**
+	 * The return mocked List to mock the list of methods allowed to GET.
+	 */
+	private List<String> mockList() {
+		List<String> list = null;
+		if (actionRequiresLogin()) {
+			list = mock(List.class);
+			when(list.isEmpty()).thenReturn(true);
+			doReturn(list).when(req).getAttribute(RelationBean.SESSION_ACTION);
+		}
+		return list;
+	}
+}
+"
+85eae01d-e7af-41dc-9958-957b6dc70ee0,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/CancelEditMetadataAction.java,57.85152268409729,stop,"// CancelEditMetadataAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+
+/**
+ * A simple {@link Action} which clears the session variable used
+ * for editing metadata.
+ */
+public class CancelEditMetadataAction implements Action {
+
+    /**
+     * @return <code>false</code>
+     */
+    public boolean actionRequiresLogin() {
+        return false;
+    }
+}
+","// CancelEditMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link CancelEditMetadataAction}.
+* It contains one unit test case for the {@link CancelEditMetadataAction#actionRequiresLogin()} method.
+*/
+class CancelEditMetadataActionTest {","// CancelEditMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link CancelEditMetadataAction}.
+* It contains one unit test case for the {@link CancelEditMetadataAction#actionRequiresLogin()} method.
+*/
+class CancelEditMetadataActionTest {
+
+	/** Test the action */
+	@Test
+	void action() {
+		// Prepare
+		CancelEditMetadataAction.cancelAndUpdate = new CancelEditMetadataAction.CancelEditMetadataAction();
+		CancelEditMetadataAction.cancelAndUpdate.setSession(new HttpSession());
+		CancelEditMetadataAction.cancelAndUpdate.setRequestReceived(true);
+
+		// Run
+		CancelEditMetadataAction.action();
+
+		// Verify test
+		assertCanceledOrStill();
+			
+	}
+	
+	/**
+	 * Make sure it's still not canceled
+	 */
+	public void assertCanceledOrStill() {
+		final String msg = """" //
+			+ ""The original request is marked as canceled or still being processed in the tests""
+				+ "", which are called only by this unit test class.\n""
+			+ ""It is expected this test class will be called only if the flag can be set."";
+				
+			assertFalse(""It should not be canceled!"", CancelEditMetadataAction.cancelAndUpdate.isCanceled(""request""));
+			
+			assertFalse(""The original request must not be canceled nor still being processed in the tests"", CancelEditMetadataAction.cancelAndUpdate.isCanceled(null));
+			assertTrue(""The original request should be canceled!"", CancelEditMetadataAction.cancelAndUpdate.isCanceled(new HttpServletRequest()));
+			assertFalse(""The original request should not be canceled anymore!"", CancelEditMetadataAction.cancelAndUpdate.isCanceled(new HttpServletRequest()));
+			
+			assertFalse(""The action should not be canceled anymore!"", CancelEditMetadataAction.cancelAndUpdate.isCanceled(new HttpServletRequest()));
+			
+			assertTrue(""The action must be canceled or still being processed in the tests"", CancelEditMetadataAction.cancelAndUpdate.isCanceled(new HttpServletRequest()));
+			assertFalse(""The action must not be canceled nor still being processed in the tests"", CancelEditMetadataAction.cancelAndUpdate.isCanceled(new HttpServletRequest()));
+			
+			assertFalse(""It must not be canceled because the action requires the login"", CancelEditMetadataAction.actionRequiresLogin());
+			
+			assertTrue(""It must be canceled because the action is not requiring the login"", CancelEditMetadataAction.actionRequiresLogin());
+
+	}
+
+	/**
+	 * CancelEditMetadataAction.CancelAndUpdate tests.
+	 * It checks the original request which was canceled or still being processed in the unit tests.
+	 * It ensures that the flag as set is canceled or still being processed
+		 * under the normal conditions.
+		 * But does not assert it is canceled and still being processed or canceled.
+	*/
+		@Test
+	void cancelAndUpdate() {
+			final HttpServletRequest request = new HttpServletRequest();
+
+			// Check the flag is not canceled or still be processed
+			assertTrue(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// No need to check the flag is canceled anymore or still being processed
+			assertFalse(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// Check the flag is canceled or still being processed
+			assertFalse(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// No need to check the flag is canceled anymore or still being processed
+			assertTrue(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// No need to check the flag is canceled even in the unit tests
+			assertTrue(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// No need to check the flag is canceled and still being processed or not canceled anymore
+			assertFalse(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// No need to check the flag is canceled also in unit tests
+			assertTrue(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// Flag has been cleared
+			assertFalse(request.isRequestedSessionIdValid());
+
+			final HttpSession ses = request.getSession(true);
+
+			// Unset the flag so the request should be discarded
+			CancelEditMetadataAction.request = null;
+
+			// Check the flag is canceled or still being processed
+			assertFalse(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// No need to check the flag is canceled anymore or still being processed or canceled
+			assertTrue(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// No need to check the flag is canceled and still being processed or not canceled anymore
+			assertFalse(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// No need to check the flag is canceled also in unit tests
+			assertTrue(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+			// Flag has been cleared
+			assertFalse(request.isRequestedSessionIdValid());
+
+			// Finally, the flag is set to just to check if this is the case
+			assertTrue(CancelEditMetadataAction.cancelAndUpdate.isCanceledOrStill());
+
+		}
+	
+}
+
+"
+bd0cd631-f52e-4e31-a513-0a4a362abb36,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/EditControlledVocabularyAction.java,54.99588418006897,length,"// EditControlledVocabularyAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+
+/**
+ * An {@link Action} which is called to edit a Controlled Vocabulary item.  If
+ * there isn't an existing Controlled Vocabulary item which can be found to edit,
+ * we assume that a new Controlled Vocabulary entry should be edited.
+ */
+public class EditControlledVocabularyAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// EditControlledVocabularyActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditControlledVocabularyAction}.
+* It contains one unit test case for the {@link EditControlledVocabularyAction#actionRequiresLogin()} method.
+*/
+class EditControlledVocabularyActionTest {","// EditControlledVocabularyActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditControlledVocabularyAction}.
+* It contains one unit test case for the {@link EditControlledVocabularyAction#actionRequiresLogin()} method.
+*/
+class EditControlledVocabularyActionTest {
+
+
+    /**
+     * Test method for {@link EditControlledVocabularyAction#actionRequiresLogin()}
+     * for case <code>1, 2</code> 
+     */
+    @Test
+    public void test1() {
+        final CompleteMetadataBean<TaxonBean> metadata =
+                newCompleteMetadataBean(new TaxonBean(""test1"", 1, 1, ""test1"", 0, 0));
+        EditControlledVocabularyAction
+               .actionRequiresLogin(
+                                metadata,
+                                ""http://www.heal.org/cataloger/taxon"", 
+                                HttpServletResponse.SC_OK);
+        assertTrue(""The action should be called to edit the correct taxon in the catalog"",
+                    EditControlledVocabularyAction.actionRequiresLogin(""test1"", metadata));
+    }
+
+    /**
+     * Test method for {@link EditControlledVocabularyAction#actionRequiresLogin()}
+     * for case <code>0, 1</code> 
+     */
+    @Test
+    public void test2() {
+		
+        final CompleteMetadataBean<TaxonBean> metadata =
+                newCompleteMetadataBean(new TaxonBean(""test2"", 1, 1, ""test2"", 0, 0));
+        EditControlledVocabularyAction
+               .actionRequiresLogin(
+                                metadata,
+                                ""http://www.heal.org/cataloger/taxon"", 
+                                HttpServletResponse.SC_OK);
+        assertTrue(""The action should be called to edit the correct taxon in the catalog"",
+                    EditControlledVocabularyAction.actionRequiresLogin(""test2"", metadata));
+    }
+    
+	/**
+	 * Test method for {@link EditControlledVocabularyAction#actionRequiresLogin()}
+	 * for case <code>2, 1</code>
+	 */
+	@Test
+	public void test3() {
+	
+		final CompleteMetadataBean<TaxonBean> metadata =
+				newCompleteMetadataBean(new TaxonBean(""test2"", 2, 1, ""test2"", 0, 0));
+		EditControlledVocabularyAction
+		               .actionRequiresLogin(
+		                                metadata,
+		                                ""http://www.heal.org/cataloger/taxon"", 
+		                                HttpServletResponse.SC_OK);
+		assertTrue(""The action should be called to edit the correct taxon in the catalog"",
+				EditControlledVocabularyAction.actionRequiresLogin(""test2"", metadata));
+	}
+
+	/**
+	 * Test method for {@link EditControlledVocabularyAction#actionRequiresLogin()}
+	 * for case <code>-2, 0</code>
+	 */
+	@Test
+	public void test4() {
+	
+		final CompleteMetadataBean<TaxonBean> metadata =
+				newCompleteMetadataBean(new TaxonBean(""test2"", -2, 0, ""test2"", 0, 0));
+		EditControlledVocabularyAction
+				.actionRequiresLogin(
+		                                metadata,
+		                                ""http://www.heal.org/cataloger/taxon"", 
+		                                HttpServletResponse.SC_OK);
+		assertTrue(""The action should be called to edit the correct taxon in the catalog"",
+				EditControlledVocabularyAction.actionRequiresLogin(""test2"", metadata));
+	}
+
+	@Test
+	public void test5() throws Exception {
+	
+		final HttpServletRequest req = new FakeHttpServletRequest(""get"", ""http://www.heal.org/cataloger"");
+		String csvFile = ""../../../../../../../http://www.heal.org/cataloger/taxon/1"";
+		RequestDispatcher dispatcher = new SimpleHttpServletRequestWrapper(req)
+		.addParameter(""csvFile"", csvFile).getDispatcher();
+		TestServlet.getInstance().runAll();
+		final Iterator<CompleteMetadataBean<TaxonBean>> expectedResult =
+				new Iterable<CompleteMetadataBean<TaxonBean>>() {
+						@Override
+						public Iterator<CompleteMetadataBean<TaxonBean>>iterator() {
+                            return new Iterator<CompleteMetadataBean<TaxonBean>>() {
+
+                                @Override
+                                public boolean hasNext() {
+                                    return true;
+                                }
+
+                                @Override
+                                public CompleteMetadataBean<TaxonBean> next() {
+                                    return new CompleteMetadataBean<TaxonBean>() {
+                                        @Override
+                                        public String getAttribute(String key) {
+                                            return null;
+                                        }
+                                    };
+                                }
+
+                                @Override
+                                public void remove() {
+                                    throw new UnsupportedOperationException();
+                                }
+                                
+                            };
+                        }
+                    };
+		assertTrue(""Only one taxon should exist, "" +
+				   ""but I got back a result of the following: "" + 
+				   expectedResult,
+				   expectedResult.hasNext());
+		
+		expectedResult.next();
+		expectedResult.close();
+		
+		final Iterator <CompleteMetadataBean<TaxonBean>> results = expectedResult.iterator();
+	    assertTrue(""The taxon data should NOT be deleted, but does not exist"", 
+	            results.hasNext());
+	    results.next();
+	    results.close();
+		
+		final CompleteMetadataBean<TaxonBean> taxonomy = results.next();
+		assertTrue(""The taxon data should be deleted, but does not exist"", 
+				taxonomy.getAttribute(CompleteMetadataBean.ATTRIBUTE_NAME_TAXON_PATH) == null);
+	    assertFalse(""The taxon data should NOT exist"", taxonomy.getAttribute(CompleteMetadataBean.ATTRIBUTE_NAME_TAXON_PATH) == null);
+		
+		final Iterator<TaxonBean> taxonomies = 
+		        new Iterator<TaxonBean>() {
+			@Override public boolean hasNext() { return true; }
+			@Override public TaxonBean next() { return new TaxonBean(""foo"", 1, 1, """", 0, 0); }
+			@Override public void remove() { 
+				throw new Un"
+41db3cf4-82d4-4bbc-a263-84d63fd9f9f2,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/MetadataRecordModifier.java,34.91344380378723,length,"// MetadataRecordModifier.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContextURLBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.CopyrightBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.module.metadata.CopyrightTextBean;
+import org.heal.module.metadata.DiseaseDiagnosisBean;
+import org.heal.module.metadata.FormatBean;
+import org.heal.module.metadata.KeywordBean;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.RequirementBean;
+import org.heal.module.metadata.TargetUserGroupBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.module.metadata.ThumbnailBean;
+import org.heal.module.metadata.MetametadataIdentifierBean;
+import org.heal.module.metadata.MetametadataContributorBean;
+import org.heal.servlet.Action;
+import org.heal.util.DateTools;
+import javax.servlet.ServletRequest;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+/**
+ * <p>A {@link MetadataModifier} which fills the basic metadata information
+ * from a <code>ServletRequest</code> into a {@link CompleteMetadataBean}.</p>
+ */
+public class MetadataRecordModifier implements MetadataModifier {
+
+    /**
+     * @param request Used to get the parameter <code>""nextAction""</code>, which
+     * 		determines what the next {@link Action} to take will be.  If no
+     * 		<code>""nextAction""</code> exists, a valid {@link Action} will still
+     * 		be returned.
+     * @return The next {@link Action} to take after saving the metadata from
+     * 		the form.
+     */
+    public Action getNextAction(ServletRequest request) {
+        Action ret;
+        String nextActionKey = request.getParameter(""nextAction"");
+        if (nextActionMap.containsKey(nextActionKey)) {
+            ret = (Action) nextActionMap.get(nextActionKey);
+        } else {
+            ret = NEXT_ACTION_DEFAULT;
+        }
+        return ret;
+    }
+}
+","// MetadataRecordModifierTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContextURLBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.CopyrightBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.module.metadata.CopyrightTextBean;
+import org.heal.module.metadata.DiseaseDiagnosisBean;
+import org.heal.module.metadata.FormatBean;
+import org.heal.module.metadata.KeywordBean;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.RequirementBean;
+import org.heal.module.metadata.TargetUserGroupBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.module.metadata.ThumbnailBean;
+import org.heal.module.metadata.MetametadataIdentifierBean;
+import org.heal.module.metadata.MetametadataContributorBean;
+import org.heal.servlet.Action;
+import org.heal.util.DateTools;
+import javax.servlet.ServletRequest;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MetadataRecordModifier}.
+* It contains one unit test case for the {@link MetadataRecordModifier#getNextAction(ServletRequest)} method.
+*/
+class MetadataRecordModifierTest {","// MetadataRecordModifierTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContextURLBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.CopyrightBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.module.metadata.CopyrightTextBean;
+import org.heal.module.metadata.DiseaseDiagnosisBean;
+import org.heal.module.metadata.FormatBean;
+import org.heal.module.metadata.KeywordBean;
+import org.heal.module.metadata.RelationBean;
+import org.heal.module.metadata.RequirementBean;
+import org.heal.module.metadata.TargetUserGroupBean;
+import org.heal.module.metadata.TaxonBean;
+import org.heal.module.metadata.TaxonPathBean;
+import org.heal.module.metadata.ThumbnailBean;
+import org.heal.module.metadata.MetametadataIdentifierBean;
+import org.heal.module.metadata.MetametadataContributorBean;
+import org.heal.servlet.Action;
+import org.heal.util.DateTools;
+import javax.servlet.ServletRequest;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MetadataRecordModifier}.
+* It contains one unit test case for the {@link MetadataRecordModifier#getNextAction(ServletRequest)} method.
+*/
+class MetadataRecordModifierTest {
+
+	@Test
+	void testGetNextActionNoAction() {
+		assertNull(MetadataRecordModifier.getNextAction(new ServletRequest()));
+	}
+	
+	@Test
+	void testGetNextActionValidAction() {
+		ServletRequest req = new ServletRequest();
+		Map<String, Object> ret = null;
+		String nextActionKey = ""nextAction"";
+		Action action = MetadataRecordModifier.getNextAction(req);
+		assertNotNull(action);
+		assertNotNull(String.valueOf(ret));
+		ret = (Map) action;
+		Map retMap = (Map) ret;
+		Iterator iter = retMap.entrySet().iterator();
+		assertEquals(MetadataRecordModifier.NEXT_ACTION_VALID_ACTION, nextActionKey);
+		iter.next();
+		assertEquals(MetadataRecordModifier.NEXT_ACTION_VALID_ACTION, iter.next() );
+		assertNotNull(iter.next());
+		assertEquals(MetadataRecordModifier.NEXT_ACTION_VALID_ACTION, iter.next());
+	}
+	
+	@Test
+	void testGetNextActionDefault() {
+		assertEquals(MetadataRecordModifier.NEXT_ACTION_DEFAULT, MetadataRecordModifier.getNextAction(new ServletRequest()).toString());
+	}
+	
+	@Test
+	void testGetNextActionDefaultNoAction() {
+		assertEquals("""", MetadataRecordModifier.getNextAction(new ServletRequest()).toString());
+	}
+	
+	@Test
+	void testGetNextActionNotFoundAction() {
+		ServletRequest req = null;
+		Map<String, Object> ret = null;
+		String nextActionKey = ""nextAction"";
+		Action action = MetadataRecordModifier.getNextAction(req);
+		assertNotNull(action);
+		assertNotNull(nextActionKey);
+		assertNotNull(ret);
+		ret = (Map) action;
+		Map retMap = (Map) ret;
+		assertNotNull(retMap);
+		assertFalse(retMap.containsKey(""notFoundAction""));
+	}
+	
+	@Test
+	void testGetNextActionInvalidAction() {
+		ServletRequest req = null;
+		Map<String, Object> ret = null;
+		String nextActionKey = ""nextAction"";
+		Action action = MetadataRecordModifier.getNextAction(req);
+		assertNull(action);
+		HashMap<String, String> params = new HashMap<String, String>();
+		ret = new HashMap<String, String>();
+		ret.put(MetadataRecordModifier.NEXT_ACTION_VALID_ACTION, nextActionKey);
+		params.put(MetadataRecordModifier.NEXT_ACTION_VALID_ACTION, ""notFound"");
+		Action actionParam = new Action(params);
+		errUnexpectedValue(actionParam);
+	}
+	
+	@Test
+	void testGetNextActionInvalidActionNoAction() {
+		ServletRequest req = new ServletRequest();
+		Map<String, Object> ret = null;
+		String nextActionKey = ""nextAction"";
+		Action action = MetadataRecordModifier.getNextAction(req);
+		assertNull(action);
+		HashMap<String, String> params = new HashMap<String, String>();
+		ret = new HashMap<String, String>();
+		params.put(MetadataRecordModifier.NEXT_ACTION_VALID_ACTION, ""notFound"");
+		Action actionParam ="
+ec31729c-4ba9-4a9e-8480-0fb2848c1e83,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/EditMetadataAction.java,49.32133960723877,stop,"// EditMetadataAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.TargetUserGroupBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import org.heal.util.VCardBean;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * An {@link org.heal.servlet.Action Action} used to edit metadata
+ * records.
+ *
+ * @author Brad Schaefer (<A HREF=""mailto:schaefer@lib.med.utah.edu"">schaefer@lib.med.utah.edu</A>)
+ * @version 1.0
+ */
+public class EditMetadataAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// EditMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.TargetUserGroupBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import org.heal.util.VCardBean;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditMetadataAction}.
+* It contains one unit test case for the {@link EditMetadataAction#actionRequiresLogin()} method.
+*/
+class EditMetadataActionTest {","// EditMetadataActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.module.metadata.TargetUserGroupBean;
+import org.heal.module.metadata.ContributorBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import org.heal.util.VCardBean;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditMetadataAction}.
+* It contains one unit test case for the {@link EditMetadataAction#actionRequiresLogin()} method.
+*/
+class EditMetadataActionTest {
+
+}"
+71560815-5580-431b-a3b0-dd158b4b5e1e,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/EditContributorAction.java,56.538971185684204,stop,"// EditContributorAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContributorBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+
+/**
+ * An {@link Action} which is called to edit a Contributor.  If
+ * there isn't an existing Contributor which can be found to edit,
+ * we assume that a new Contributor should be edited.
+ */
+public class EditContributorAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// EditContributorActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContributorBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditContributorAction}.
+* It contains one unit test case for the {@link EditContributorAction#actionRequiresLogin()} method.
+*/
+class EditContributorActionTest {","// EditContributorActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.ContributorBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditContributorAction}.
+* It contains one unit test case for the {@link EditContributorAction#actionRequiresLogin()} method.
+*/
+class EditContributorActionTest {
+
+    @Test
+    public void testActionRequiresLogin() throws ServletException, IOException {
+        ContributorBean bean = new ContributorBean();
+        bean.setName(""test"");
+        boolean isEdit = EditContributorAction.actionRequiresLogin();
+        assertTrue(isEdit);
+    }
+	
+	@Test
+	public void testActionInvokedWithoutLogin() throws ServletException, IOException {
+		ContributorBean bean = new ContributorBean();
+		bean.setName(""test"");
+		
+		HttpServletRequest req = null;
+		HttpServletResponse resp = null;
+        RequestDispatcher dispatcher = null;
+        Iterator iter = null;
+        
+        try {
+            req = new HttpServletRequest(""/edit"");
+            req.getSession().setAttribute(""contributorBean"", bean);
+            resp = new HttpServletResponse("""");
+            dispatcher = RequestDispatcher.getRequestDispatcher(""/edit"");
+            iter = req.getParameterOrder();
+            assertTrue(!iter.hasNext());
+        }
+        
+        finally {
+            if (resp!= null) {
+                resp.getWriter().close();
+            }
+            if (dispatcher!= null) {
+                dispatcher.forward(req, resp);
+            }
+        }
+	}
+}"
+009e5c5c-1bc6-459a-ac2f-50fd28408977,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/ShowCatalogQueueAction.java,56.04505276679993,stop,"// ShowCatalogQueueAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * An {@link org.heal.servlet.Action} which fetches the information needed to
+ * display the catalog queue.
+ *
+ * @author Brad Schaefer (<A HREF=""mailto:schaefer@lib.med.utah.edu"">schaefer@lib.med.utah.edu</A>)
+ */
+public class ShowCatalogQueueAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// ShowCatalogQueueActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ShowCatalogQueueAction}.
+* It contains one unit test case for the {@link ShowCatalogQueueAction#actionRequiresLogin()} method.
+*/
+class ShowCatalogQueueActionTest {","// ShowCatalogQueueActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.module.catalog.QueueDAO;
+import org.heal.servlet.Action;
+import org.heal.util.AuthenticationTools;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ShowCatalogQueueAction}.
+* It contains one unit test case for the {@link ShowCatalogQueueAction#actionRequiresLogin()} method.
+*/
+class ShowCatalogQueueActionTest {
+
+	/**
+	 * Tests when the catalog queue list is not present.
+	 */
+	@Test
+	void catalogsAreNotPresent() {
+		RequestDispatcher dispatcher = RequestDispatcher.getRequestDispatcher(""/catalogs.jsp?catalog_list="" + QueueDAO.MISSING_CATALOGQUEUE);
+		String[] expected = { };
+		List result = (List) dispatcher.handleRequest(new HttpServletRequest(""GET"", ""/""));
+		assertEquals(expected.length, result.size());
+	}
+	
+	/**
+	 * Tests when the catalog list is not present. This test case is used to verify that errors thrown by the dispatcher are correctly handled
+	 * by the servlet.
+	 */
+	@Test
+	void catalogsAreNotPresentWhenCatalogListIsNotPresent() {
+		RequestDispatcher dispatcher = RequestDispatcher.getRequestDispatcher(""/catalogs.jsp?catalog_list="" + QueueDAO.MISSING_CATALOGQUEUE);
+		String[] expected = { ""MISSING_CATALOGQUEUE"", ""catalog_list"", """" };
+		List result = (List) dispatcher.handleRequest(new HttpServletRequest(""GET"", ""/""));
+		assertEquals(expected.length, result.size());
+	}
+	
+	/**
+	 * Tests when the catalog list is present. This test case is used to verify that errors thrown by the dispatcher are correctly handled
+	 * by the servlet.
+	 */
+	@Test
+	void catalogsAreAvailable() {
+		RequestDispatcher dispatcher = RequestDispatcher.getRequestDispatcher(""/catalogs.jsp?catalog_list="" + QueueDAO.CATALOG_LIST_PRESENT);
+		String[] expected = { ""CATALOG_ID"", ""CATALOG_FIRST_NAME"", ""CATALOG_LAST_NAME"" };
+		List result = (List) dispatcher.handleRequest(new HttpServletRequest(""GET"", ""/""));
+		assertEquals(expected.length, result.size());
+	}
+	
+	/**
+	 * Tests when the catalog is not present. This test case is used to verify that errors thrown by the dispatcher are correctly handled
+	 * by the servlet.
+	 */
+	@Test
+	void catalogIsNotAvailable() {
+		RequestDispatcher dispatcher = RequestDispatcher.getRequestDispatcher(""/catalogs.jsp?catalog_list="" + QueueDAO.MISSING_CATALOGQUEUE);
+		String[] expected = { """" };
+		result = (List) dispatcher.handleRequest(new HttpServletRequest(""GET"", ""/""));
+		assertEquals(1, result.size());
+		assertEquals(expected.length, result.size());
+	}
+	
+	/**
+	 * Tests the rendering of a catalog detail page. This test case is used to verify that the detail page can be rendered in various ways when a catalog is present and
+	 * in which case validation of a catalog is expected.
+	 */
+	@Test
+	void catalogDetailPageIsLoadedSuccessfully() throws IOException {
+		QueueDAO catalogDAO = QueueDAO.getInstance();
+		int catalogId = catalogDAO.loadCatalog();
+		
+		catalogDAO.addOrUpdateCatalog(User.get(""Test User""));
+		List<QueueDAO.Catalog> catalogs = catalogDAO.loadCatalogs();
+		assertEquals(1, catalogs.size());
+		
+		RequestDispatcher dispatcher = RequestDispatcher.getRequestDispatcher(""/catalogs.jsp?catalog_list="" + catalogId);
+		List result = (List) dispatcher.handleRequest(new HttpServletRequest(""GET"", ""/""));
+		assertEquals(1, result.size());
+		assertEquals(CatalogDBTest.CATALOG + "" - "" + catalogId, result.get(0).getId());
+		
+		RequestDispatcher catalogDetail = RequestDispatcher.getRequestDispatcher(""/catalogs/"" + catalogId);
+		result = (List) catalogDetail.handleRequest(new HttpServletRequest(""GET"", ""/""));
+		
+		// verify that the detail page is loaded properly
+		assertEquals(CatalogDBTest.CATALOG + "" - "" + catalogId, result.get(0).getId());
+		assertEquals(CatalogDAO.CATALOG_FIRST_NAME + "" - "" + catalogDAO.loadCatalogName(catalogId), result.get(0).getFirstName());
+		assertEquals(CatalogDAO.CATALOG_LAST_NAME, result.get(0).getLastName());
+		
+		assertTrue(AuthenticationTools.isLoggedInByServletRequest(catalogDetail));
+	}
+}"
+4534bbed-0f59-49b6-b37e-6d47cb9d4405,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/cataloger/EditCopyrightHolderAction.java,56.33539390563965,length,"// EditCopyrightHolderAction.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+
+/**
+ * An {@link Action} which is called to edit a Copyright Holder.  If
+ * there isn't an existing Copyright Holder which can be found to edit,
+ * we assume that a new Copyright Holder should be edited.
+ */
+public class EditCopyrightHolderAction implements Action {
+
+    /**
+     * @return <code>true</code>
+     */
+    public boolean actionRequiresLogin() {
+        return true;
+    }
+}
+","// EditCopyrightHolderActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditCopyrightHolderAction}.
+* It contains one unit test case for the {@link EditCopyrightHolderAction#actionRequiresLogin()} method.
+*/
+class EditCopyrightHolderActionTest {","// EditCopyrightHolderActionTest.java
+package org.heal.servlet.cataloger;
+
+import org.heal.servlet.Action;
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.CopyrightHolderBean;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.util.Iterator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EditCopyrightHolderAction}.
+* It contains one unit test case for the {@link EditCopyrightHolderAction#actionRequiresLogin()} method.
+*/
+class EditCopyrightHolderActionTest {
+
+	static final String USERNAME = ""joe"";
+
+	static final String PUBLISHER = ""Molly"";
+
+	static final String BOB = ""bob"";
+
+	/**
+	* Executes the EditCopyrightHolderAction that is called by the user
+	*/
+	@Test
+    void executeTest() {
+        final CopyrightHolderBean copyrightHolderBean = new CompleteMetadataBean();
+        final BasicCopyrightHolder basicCopyrightHolder = new BasicCopyrightHolder(username, PUBLISHER);
+        final boolean basicCopyrightHolderFound =  basicCopyrightHolder.isFound();
+        assertTrue(""basicCopyrightHolder not found by "" + USERNAME, basicCopyrightHolderFound);
+
+        final String basicCopyrightHolderText = basicCopyrightHolder.getFullName();
+        final String expectedCopyrightHolderText = ""Molly "" + PUBLISHER + ""\n"";
+
+        assertEquals(""expected copyright holder text"", expectedCopyrightHolderText, basicCopyrightHolderText);
+	}
+
+    /**
+* Executes the EditCopyrightHolderAction that is called by the user
+*/
+	@Test
+    void executeTest_withRequestDispatcher() throws Exception {
+        requestDispatcherRequestTest(USERNAME, PUBLISHER, BOB, true);
+    }
+
+    /**
+* Executes the EditCopyrightHolderAction that is called by the user
+*/
+    @Test
+    void executeTest_withoutRequestDispatcher() throws Exception {
+        requestDispatcherRequestTest(USERNAME, PUBLISHER, BOB, false);
+    }
+
+    /**
+* Makes and Executes an action that relies on an existing copyright holder.
+*/
+    private void requestDispatcherRequestTest(String username, 
+                                              String publisher, String bob, boolean isFound) 
+        throws Exception{
+        
+        final CopyrightHolderBean copyrightHolderBean = new CompleteMetadataBean();
+        final BasicCopyrightHolder basicCopyrightHolder = new BasicCopyrightHolder(username, publisher);
+        final boolean basicCopyrightHolderFound =  basicCopyrightHolder.isFound();
+        assertTrue(""basicCopyrightHolder not found by "" + username, basicCopyrightHolderFound);
+
+        final CopyrightHolderBean baseAuthorizationHolderBean = new CompleteMetadataBean();
+        baseAuthorizationHolderBean.load(com.dotmarketing.beans.INode.class,username);
+        
+        final CopyrightHolderBean copyHolderBean = basicCopyrightHolder.copy(baseAuthorizationHolderBean);
+        assertEquals(""copied"",username,bob);
+        bob = copyHolderBean.getFullName();
+        assertEquals(""copied"",username,bob);
+
+        final Object[] metadataActions = new Object[2];
+        metadataActions[0] = new EditCopyrightHolderAction();
+        metadataActions[1] = new EditCopyrightHolderAction();
+        final String[] pathData = new String[] {
+            ""/WEB-INF/catalog-data"",
+            ""/WEB-INF/jsp"",
+            ""/WEB-INF/catalog/edits/copyrightHolder[2]/[0]"",
+            ""/WEB-INF/catalog/copyrightHolder[7]"",
+            ""/WEB-INF/catalog/copyrightHolder[7]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]"",
+            ""/WEB-INF/catalog/copyrightHolder[2]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]/[0]"",
+            ""/WEB-INF/catalog/copyrightHolder[2]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]/[0]"",
+            ""/WEB-INF/catalog/copyrightHolder[2]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]/[0]"",
+            ""/WEB-INF/catalog/copyrightHolder[2]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]"", 
+            ""/WEB-INF/catalog/copyrightHolder[2]/[0]"", 
+            ""/WEB-INF/catalog/copyrightHolder[7]/[0]"",
+            ""/WEB-INF/catalog/copyrightHolder[2]/[0]"", 
+            ""/WEB-INF/catalog"
+23b2a81a-4a86-4ee3-920e-f2447654500e,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/servlet/upload/AlphanumericFileRenamePolicy.java,38.7520432472229,stop,"// AlphanumericFileRenamePolicy.java
+package org.heal.servlet.upload;
+
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+import java.io.File;
+
+/**
+ * A FileRenamePolicy that strips non-alphanumeric characters.
+ */
+public class AlphanumericFileRenamePolicy extends DefaultFileRenamePolicy {
+
+    /**
+     * Eliminates non-alphanumeric characters from filenames.  Exceptions
+     * include <code>' '</code>, <code>'.'</code> and <code>'_'</code>
+     *
+     * @param original Original file reference.
+     * @return File reference stripped of non-alphanumeric characters.
+     */
+    public File rename(File original) {
+        File ret = new File(stripSpecialCharacters(original.getPath()));
+        return super.rename(ret);
+    }
+}
+","// AlphanumericFileRenamePolicyTest.java
+package org.heal.servlet.upload;
+
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+import java.io.File;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AlphanumericFileRenamePolicy}.
+* It contains one unit test case for the {@link AlphanumericFileRenamePolicy#rename(File)} method.
+*/
+class AlphanumericFileRenamePolicyTest {","// AlphanumericFileRenamePolicyTest.java
+package org.heal.servlet.upload;
+
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+import java.io.File;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AlphanumericFileRenamePolicy}.
+* It contains one unit test case for the {@link AlphanumericFileRenamePolicy#rename(File)} method.
+*/
+class AlphanumericFileRenamePolicyTest {
+@Test
+		public void testRename() {
+			String original = ""file"";
+			String dest = ""dest"";
+	    
+	    AlphanumericFileRenamePolicy a = new AlphanumericFileRenamePolicy();
+	    AlphanumericFileRenamePolicy b = new AlphanumericFileRenamePolicy();
+	    
+	    // Test file renaming
+	    assertEquals(a.rename(new File(original)), new File(dest));
+	    
+	    // Test exception (for no file)
+	    try {
+	        assertEquals(b.rename(new File(original)), null);
+	    } catch (Exception e) {
+	        assertEquals(e.getMessage(), ""File does not exist '"" + original + ""'"");
+	        return;
+	    }
+	    
+	    // Test exception (file not existed)
+	    try {
+	        b.rename(new File(""invalid_file""));
+	    } catch( Exception e) {
+	        assertTrue(e.getMessage().startsWith(""File does not exist 'invalid_file'""));
+		}
+	}
+}
+"
+d563950e-e54b-4670-b3c7-beca9732290a,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/util/DateTools_0Test.java,61.54688787460327,stop,"// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param date A {@link Date} to format.
+     * @return A String representation of the date parameter in
+     * 		the {@link #DEFAULT_DATE_FORMAT default format}.
+     */
+    public static String format(Date date) {
+        if (null == date) {
+            return null;
+        }
+        SimpleDateFormat formatter = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
+        return formatter.format(date);
+    }
+}
+","// DateTools_0Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#format(Date)} method.
+*/
+class DateTools_0Test {","// DateTools_0Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#format(Date)} method.
+*/
+class DateTools_0Test {
+
+    /**
+     * Constructor.
+     */
+    DateTools_0Test() {
+    }
+
+    /**
+     * Tests the {@link DateTools#format(Date)} method.
+     */
+    @Test
+    void testFormat() {
+
+        assertEquals(DEFAULT_DATE_FORMAT + "" 'yyyy-mm-dd'"",
+                format(new Date(0)),
+                DateTools.CURRENT_DATE_START_FORMAT.format(new Date()));
+
+        assertEquals(DEFAULT_DATE_FORMAT + "" 'yyyy-mm-dd'"",
+                format(DateTools.CURRENT_DATE_START_ATTRIBUTE),
+                DateTools.CURRENT_DATE_START_ATTRIBUTE.format(new Date()));
+    }
+
+    /**
+     * Checks the parsing of the {@link String} in the format specified by
+     * {@link #DEFAULT_DATE_FORMAT}.
+     */
+    @Test
+    void parse_Test() {
+        SimpleDateFormat oldFormatter = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
+
+        assertNotNull(oldFormatter);
+        assertEquals(DEFAULT_DATE_FORMAT + ""[dd] yyyy-mm-dd"",
+                oldFormatter.parse(
+                    ""yyyy-mm-dd"")
+                       .toString());
+        assertEquals(DEFAULT_DATE_FORMAT + ""[yyyy-mm-dd]"",
+                oldFormatter.parse(
+                    ""yyyy-mm-dd"")
+                       .toString());
+    }
+
+    /**
+     * Tests the {@link SimpleDateFormat#parse(String)} method.
+     */
+    @Test
+    void parseTest() {
+        SimpleDateFormat oldFormatter = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
+
+        assertNotNull(oldFormatter);
+        assertEquals(oldFormatter.parse(""'yyyy-mm-dd'"").toString(),
+                oldFormatter.parse(""yyyy-mm-dd"")
+                       .toString());
+        assertEquals(oldFormatter.parse(""'yyyy-mm-dd'"").toString(),
+                oldFormatter.parse(
+                    ""yyyy-mm-dd"")
+                       .toString());
+    }
+
+    /**
+     * Tests the {@link SimpleDateFormat#dateInstance() method}.
+     */
+    @Test
+    void dateInstanceTest() {
+        SimpleDateFormat oldFormatter = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
+
+        SimpleDate date = oldFormatter.dateInstance();
+        System.out.println(""date instance = "" + date);
+
+        assertNotNull(date);
+        SimpleDate date2 = date.getTime();
+        SimpleDate date4 = (SimpleDate)date;
+        System.out.println(""date instance = "" + (date2.getTime()));
+        assertNotNull(date);
+
+        assertTrue(date instanceof java.util.Date);
+        assertTrue(date2 instanceof java.util.Date);
+        assertTrue(date4 instanceof java.util.Date);
+    }
+
+    /**
+     * Asserts that a {@link ParseException} occurs when {@link #DEFAULT_DATE_FORMAT} is not
+     * provided as a parameter.
+     * @throws UnsupportedOperationException 
+     */
+    @Test(expected = UnsupportedOperationException.class)
+    void testParsing_NullTest() throws UnsupportedOperationException {
+        DateTools.CURRENT_DATE_START_ATTRIBUTE.parse(null);
+    }
+    
+    @Test
+    void testParsingTest() {
+        int value = 10000;
+        Date date = new Date(value);
+        
+        assertNotNull((""Date must not be null!""));
+        assertNotNull((""Date must be a date instance!""));
+
+        String dateString = """";
+        String currentDate = DateTools.CURRENT_DATE_START_ATTRIBUTE.format(date);
+        
+        DateTools.CURRENT_DATE_START_ATTRIBUTE.parse(currentDate);
+
+        SimpleDate oldFormatter = date instanceof SimpleDate?(SimpleDate)date:null;
+        assertEquals(currentDate,oldFormatter.toString());
+        assertNull(oldFormatter);
+    }
+
+}"
+5436eca8-919f-4d64-a5eb-24fa5964a89d,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/util/DateTools_1Test.java,21.667223930358887,stop,"// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param date A {@link Date} to format.
+     * @param format A format (corresponding to {@link SimpleDateFormat}'s syntax)
+     * 		to convert the date to.
+     * @return A String representation of the date parameter in the
+     * 		specified format, or null if the given date is null.
+     */
+    public static String format(Date date, String format) {
+        if (null == date) {
+            return null;
+        }
+        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        return formatter.format(date);
+    }
+}
+","// DateTools_1Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#format(Date, String)} method.
+*/
+class DateTools_1Test {","// DateTools_1Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#format(Date, String)} method.
+*/
+class DateTools_1Test {
+/**
+		 * Test {@link DateTools#format(Date, String)} method
+		 * Assert that that output is the same as formatting the date with the specified format.
+		*/
+    @Test
+	public void testFormat() {
+        assertEquals(""1970-01-06 12:15:00"", DateTools.format(new Date(1970, 1, 6, 12, 15, 0), ""yy-MM-dd hh:mm:ss""));
+        assertEquals(""2007-07-07 12:15:00"", DateTools.format(new Date(2007, 7, 7, 12, 15, 0), ""yyyy-MM-dd HH:mm""));
+        assertEquals(""2007-07-07 12:15:00"", DateTools.format(new Date(2007, 7, 7, 12, 15, 0), ""yyyy-MM-dd""));
+        assertEquals(""2007-07-07 12:15:01"", DateTools.format(new Date(2007, 7, 7, 12, 15, 1), ""yyyy-MM-dd hh:mm""));
+        assertEquals(""2007-07-07 12:15:01"", DateTools.format(new Date(2007, 7, 7, 12, 15, 1), ""yyyy-MM-dd H:mm""));
+        assertEquals(""2007-07-07 12:15:01"", DateTools.format(new Date(2007, 7, 7, 12, 15, 0), ""yyyy-MM-dd H""));
+        assertEquals(""07-07-07 12:15:01"", DateTools.format(new Date(2007, 7, 1, 12, 15, 1), ""yyyy-MM-dd""));
+        assertEquals(""07-07-07 12:15:01"", DateTools.format(new Date(2007, 7, 1, 1, 15, 1), ""yyyy-MM-dd""));
+        assertEquals(""2007-07-07 12:15:01.00"", DateTools.format(new Date(2007, 7, 7, 12, 15, 1), ""yyyy-MM-dd.%""));
+        assertEquals(""2007-07-07 12:15:01.000"", DateTools.format(new Date(2007, 7, 7, 12, 15, 1), ""yyyy-MM-dd.0""));
+        assertEquals(""2007-07-07 12:15:01.000"", DateTools.format(new Date(2007, 7, 7, 12, 15, 1), ""yyyy-MM-dd""));
+        assertEquals(""2007-07-07 12:15:01"", DateTools.format(new Date(2007, 7, 7, 1, 15, 1), ""yyyy-MM-dd""));
+        assertEquals(""07-07-07 12:15:01.000"", DateTools.format(new Date(2007, 7, 7, 1, 15, 1), ""yyyy-MM-dd.0""));
+		}
+}
+/* 
+DateToolstest.java
+*/
+
+// DateToolstest_1Test.java
+"
+4918736e-1f64-4785-be2e-bfd8458666ae,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/util/DateTools_2Test.java,58.65408492088318,stop,"// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param dateString A String to parse into a {@link Date} object.
+     * @return A {@link Date} representation of the String when possible,
+     * 		or <code>null</code> if the date cannot be parsed.
+     */
+    public static Date parse(String dateString) {
+        Date ret = null;
+        if (null != dateString) {
+            boolean match = false;
+            SimpleDateFormat formatter = new SimpleDateFormat();
+            formatter.setLenient(false);
+            for (int i = 0; i < POSSIBLE_DATE_FORMATS.length && !match; ++i) {
+                formatter.applyPattern(POSSIBLE_DATE_FORMATS[i]);
+                try {
+                    ret = formatter.parse(dateString);
+                    match = true;
+                } catch (ParseException e) {
+                    // do nothing
+                }
+            }
+        }
+        return ret;
+    }
+}
+","// DateTools_2Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#parse(String)} method.
+*/
+class DateTools_2Test {","// DateTools_2Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#parse(String)} method.
+*/
+class DateTools_2Test {
+// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param dateString A String to parse into a {@link Date} object.
+     * @return A {@link Date} representation of the String when possible,
+     * 		or <code>null</code> if the date cannot be parsed.
+     */
+    public static Date parse(String dateString) {
+        Date ret = null;
+        if (null!= dateString) {
+            boolean match = false;
+            SimpleDateFormat formatter = new SimpleDateFormat();
+            formatter.setLenient(false);
+            for (int i = 0; i < POSSIBLE_DATE_FORMATS.length &&!match; ++i) {
+                formatter.applyPattern(POSSIBLE_DATE_FORMATS[i]);
+                try {
+                    ret = formatter.parse(dateString);
+                    match = true;
+                } catch (ParseException e) {
+                    // do nothing
+                }
+            }
+        }
+        return ret;
+    }
+}
+
+// DateTools_2Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#parse(String)} method.
+*/
+class DateTools_2Test {
+		   
+    /**
+     * Test method for {@link DateTools#parse(String)}.
+     */
+    @Test
+    public void testParse() {
+        assertNotNull(""parsing did not work"", new DateTools().parse(""12/12/2001""));
+        assertEquals(""Invalid date"", new Date(123456789), new DateTools().parse(""1/13/2001""));
+        assertNull(""Invalid date"", new DateTools().parse(""12/13/2001""));
+        assertIllegalArgument(""Malformatted date not parsed"", new DateTools().parse(""4/10/2001""));
+        assertIllegalArgument(""Invalid date"", new DateTools().parse(""1/16/2001""));
+        assertIllegalArgument(""Invalid date"", new DateTools().parse(""01/31/2001""));
+        assertIllegalArgument(""Invalid date"", new DateTools().parse(""01/31/2001""));
+        assertIllegalArgument(""Invalid date"", new DateTools().parse(""01/31/2001""));
+        assertIllegalArgument(""Invalid date"", new DateTools().parse(""01/31/2009""));
+        assertIllegalArgument(""Bad date"", new DateTools().parse(""01/31-2/2009""));
+    }
+
+
+		   
+    /**
+     * Test method for {@link DateTools#parse(String)} using the same format as <code>Date</code>.
+     */
+    @Test
+    public void testParsesForSameFormatAsDate() {
+        assertNull(""First format"", new DateTools().parse(""Mon Apr 01 12:12:12""));
+        assertEquals(""Second date format"", new Date(2012, 10, 10, 12, 12, 12), new DateTools().parse(""10/10/12""));
+        assertNull(""First format"", new DateTools().parse(""Mon Apr 30 12:12:12""));
+        assertEquals(""Second date format"", new Date(2012, 10, 12, 12, 12, 12), new DateTools().parse(""10/10/12""));
+        assertNull(""First format"", new DateTools().parse(""Mon Apr 33 12:12:12""));
+        assertEquals(""Second date format"", new Date(2012, 11, 30, 12, 12, 12), new DateTools().parse(""10/11/30""));
+        assertNull(""First format"", new DateTools().parse(""Mon Apr 41 12:30:12""));
+        assertNull(""Second date format"", new Date(2012, 11, 30, 12 + 12, 30, 12));
+        assertNull(""Second date format"", new DateTools().parse(""Mon 04/10/14""));
+        assertNull(""First format"", new DateTools().parse(""Mon 16/13/13""));
+        assertNull(""Second date format"", new DateTools().parse(""Mon 17/13/13""));
+        assertNull(""Second date format"", new DateTools().parse(""Mon 22_2/13/13""));
+        assertNull(""First format"", new DateTools().parse(""Mon 13/10/11""));
+    }
+     
+
+
+    @Test
+    public void testHasTheRightLengthAndFormat() throws ParseException {
+        assertFalse(""This test failed, because the given date was invalid: Tue May 10 10:12:00 2017"", new DateTools().hasTheRightLengthAndFormat(""Mon May 10 10:12:00 2017""));
+        assertTrue(""This test failed, because the given date was invalid: Tue May 10 10:12:00"", new DateTools().hasTheRightLengthAndFormat(""Mon May 10 10:12:00""));
+        assertFalse(""This test failed, because the given date was invalid: Tue May 10 10:12:00"", new DateTools().hasTheRightLengthAndFormat(""Mon Jan 01""));
+        assertTrue(""This test failed, because the given date was invalid: Tue Feb 12 08:12:00 2017"", new DateTools().hasTheRightLengthAndFormat(""Tue Feb 12 08:12:00 2017""));
+        assertFalse(""This test failed, because the given date was invalid: Tue Feb 15 08:12:00 2015"", new DateTools().hasTheRightLengthAndFormat(""Tue Feb 15 08:12:00 2015""));
+        assertTrue(""This test failed, because the given date was invalid: Tue Feb 15 08:12:00"", new DateTools().hasTheRightLengthAndFormat(""01/01""));
+        assertFalse(""This test failed because the given date was invalid: Tue 03/15/00"", new DateTools().hasTheRightLengthAndFormat(""Tue 03/15/00""));
+        assertFalse(""This test failed, because the given date was invalid: Tue 03/01"", new DateTools().hasTheRightLengthAndFormat(""Tue 03/01""));
+        assertTrue(""This test failed, because the given date was invalid: Tue 2/15/00"", new DateTools().hasTheRightLengthAndFormat(""Tue 2/15/00""));
+    }
+
+
+		   
+
+}
+"
+e2761bca-6659-4892-82a5-f253ae41a314,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/util/DateTools_3Test.java,59.52476143836975,stop,"// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param dateString A String to parse into a {@link Date} object.
+     * @param format A format to use to parse the date parameter with.
+     * @return A {@link Date} representation of the String when possible,
+     * 		or <code>null</code> if the date cannot be parsed with the
+     * 		given format.
+     */
+    public static Date parse(String dateString, String format) {
+        Date ret = null;
+        if (null != dateString) {
+            SimpleDateFormat formatter = new SimpleDateFormat(format);
+            formatter.setLenient(false);
+            try {
+                ret = formatter.parse(dateString);
+            } catch (ParseException e) {
+                // do nothing
+            }
+        }
+        return ret;
+    }
+}
+","// DateTools_3Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#parse(String, String)} method.
+*/
+class DateTools_3Test {","// DateTools_3Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#parse(String, String)} method.
+*/
+class DateTools_3Test {
+// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param dateString A String to parse into a {@link Date} object.
+     * @param format A format to use to parse the date parameter with.
+     * @return A {@link Date} representation of the String when possible,
+     * 		or <code>null</code> if the date cannot be parsed with the
+     * 		given format.
+     */
+    public static Date parse(String dateString, String format) {
+        Date ret = null;
+        if (null!= dateString) {
+            SimpleDateFormat formatter = new SimpleDateFormat(format);
+            formatter.setLenient(false);
+            try {
+                ret = formatter.parse(dateString);
+            } catch (ParseException e) {
+                // do nothing
+            }
+        }
+        return ret;
+    }
+}
+
+// DateTools_3Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#parse(String, String)} method.
+*/
+class DateTools_3Test {
+		
+    @Test
+    public void testParse_validDate_failWithNull() {
+        String d2 = null;
+
+        DateTools.parse(d2, null);
+        assertTrue(false);
+    }
+    
+    @Test
+    public void testParse_validDate_failWithInvalid() {
+        String d2 = ""0000-00-00 00:00:00"";
+        Date d3 = null;
+
+        d3 = DateTools.parse(d2, ""yyyy-MM-dd HH:mm:ss"");
+        assertTrue(false);
+    }
+
+		
+    @Test
+    public void testParse_nullTimeAndDate_withZero_returnsDefaultDate() {
+        String d2 = null;
+
+        DateTools.parse(d2, null);
+        assertTrue(DateTools.validDate(d2));
+    }
+
+ 		
+    @Test
+    public void testParse_nullTimeAndDate_withInvalidData_returnsDefaultDate() {
+        String d2 = null;
+        String d3 = null;
+
+        d3 = DateTools.parse(d2, ""yyyy-MM-dd HH:mm:ss"");
+        assertTrue(true);
+        assertEquals(d3, DateTools.parse(d2, ""yyyy-MM-dd""));
+    }
+        
+	
+        
+}
+// DateTools_4Test.java
+"
+ffd26a87-e363-45bd-9aae-2ec683ebfc84,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/util/DateTools_4Test.java,21.84854006767273,stop,"// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param dateString A String that may or may not represent a
+     * 		{@link Date} that can be parsed.
+     * @return <code>true</code> if a {@link Date} can be parsed from
+     * 		the String, or <code>false</code> otherwise.
+     * @see #parse(String dateString)
+     */
+    public static boolean isValidDate(String dateString) {
+        boolean match = false;
+        if (null != dateString) {
+            SimpleDateFormat formatter = new SimpleDateFormat();
+            formatter.setLenient(false);
+            for (int i = 0; i < POSSIBLE_DATE_FORMATS.length && !match; ++i) {
+                formatter.applyPattern(POSSIBLE_DATE_FORMATS[i]);
+                try {
+                    formatter.parse(dateString);
+                    match = true;
+                } catch (ParseException e) {
+                    // do nothing
+                }
+            }
+        }
+        return match;
+    }
+}
+","// DateTools_4Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#isValidDate(String)} method.
+*/
+class DateTools_4Test {","// DateTools_4Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#isValidDate(String)} method.
+*/
+class DateTools_4Test {
+// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param dateString A String that may or may not represent a
+     * 		{@link Date} that can be parsed.
+     * @return <code>true</code> if a {@link Date} can be parsed from
+     * 		the String, or <code>false</code> otherwise.
+     * @see #parse(String dateString)
+     */
+    public static boolean isValidDate(String dateString) {
+        boolean match = false;
+        if (null!= dateString) {
+            SimpleDateFormat formatter = new SimpleDateFormat();
+            formatter.setLenient(false);
+            for (int i = 0; i < POSSIBLE_DATE_FORMATS.length &&!match; ++i) {
+                formatter.applyPattern(POSSIBLE_DATE_FORMATS[i]);
+                try {
+                    formatter.parse(dateString);
+                    match = true;
+                } catch (ParseException e) {
+                    // do nothing
+                }
+            }
+        }
+        return match;
+    }
+}
+
+// DateTools_4Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#isValidDate(String)} method.
+*/
+class DateTools_4Test {
+		boolean isValidDate(String dateString, String errorMessage) {
+			ParseException e = null;
+
+			try {
+				ParseUtil.parse(dateString, ""yyyy-MM-dd HH:mm:ss Z"");
+			} catch (ParseException e2) {
+				e = e2;
+			}
+			if (e!= null) {
+				throw new IllegalArgumentException(
+                               ""Date error: ("" + dateString + "", ["" + errorMessage + ""])"");
+			}
+			return true;
+		}
+}
+
+// DateTools_4_Test.java
+"
+b992b3d1-6db1-428c-96de-17261b6e698c,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/util/DateTools_5Test.java,38.23176336288452,stop,"// DateTools.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * A general utility class for dealing with dates.
+ */
+public class DateTools {
+
+    /**
+     * @param dateString A String that may or may not represent a
+     * 		{@link Date} that can be parsed with the given format.
+     * @param format A format to use to check if the String can
+     * 		be parsed into a {@link Date}.
+     * @return <code>true</code> if a {@link Date} can be parsed from
+     * 		the String in the given format, or <code>false</code>
+     * 		otherwise.
+     * @see #parse(String dateString, String format)
+     */
+    public static boolean isValidDate(String dateString, String format) {
+        boolean match = false;
+        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        formatter.setLenient(false);
+        try {
+            formatter.parse(dateString);
+            match = true;
+        } catch (ParseException e) {
+            // do nothing
+        }
+        return match;
+    }
+}
+","// DateTools_5Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#isValidDate(String, String)} method.
+*/
+class DateTools_5Test {","// DateTools_5Test.java
+package org.heal.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DateTools}.
+* It contains one unit test case for the {@link DateTools#isValidDate(String, String)} method.
+*/
+class DateTools_5Test {
+
+    @Test
+    public void testParse() throws ParseException {
+        String dateString = ""(1-11-2001)"";
+        boolean result = DateTools.isValidDate(dateString, (String)null).equals(true);
+        assertEquals(result, true);
+        assertEquals((""1-11-2001"").equals(DateTools.parse(dateString, (String)null), result), result);
+        
+        dateString = ""Mon 11 Feb 2003"";
+        result = DateTools.isValidDate(dateString, (String)null).equals(true);
+        assertEquals(result, true);
+        
+        dateString = ""Mon Jan 14 00:00:00"";
+        result = DateTools.isValidDate(dateString, (String)null).equals(true);
+        assertEquals(result, true);
+        
+        dateString = ""(2002-04-12)"";
+        result = DateTools.isValidDate(dateString, (String)null).equals(true);
+        assertEquals(result, true);
+        
+        dateString = ""Mon Jan  y  d      F    h:mm:ss"";
+        result = DateTools.isValidDate(dateString, (String)null).equals(true);
+        assertEquals(result, true);
+    }
+	
+	@Test
+	public void testParseUTC() throws ParseException {
+		String dateString = ""Jan 11 2005 04:00:00 GMT"";
+		boolean result = DateTools.isValidDate(dateString, ""GMT"").equals(true);
+		assertEquals(result, true);
+		
+		dateString = ""Mon Nov 26 2005 04:00:00 GMT"";
+		result = DateTools.isValidDate(dateString, ""GMT"").equals(true);
+		assertEquals(result, true);
+	}
+
+}
+"
+4db11907-2e24-422d-a413-d7d51ca24724,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/module/catalog/QueueDAO_0Test.java,53.05325675010681,stop,"// QueueDAO.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * A DAO for managing queues stored in the database
+ */
+public class QueueDAO implements Serializable {
+
+    /**
+     * @param type The type of QueuedRecordBeans to get.
+     * @return A List of QueuedRecordBeans.
+     */
+    public List<QueuedRecordBean> getQueueByType(final String type) {
+        List<QueuedRecordBean> result = null;
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            result = getQueue(type, conn);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != conn) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result;
+    }
+}
+","// QueueDAO_0Test.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QueueDAO}.
+* It contains one unit test case for the {@link QueueDAO#getQueueByType(String)} method.
+*/
+class QueueDAO_0Test {","// QueueDAO_0Test.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QueueDAO}.
+* It contains one unit test case for the {@link QueueDAO#getQueueByType(String)} method.
+*/
+class QueueDAO_0Test {
+// QueueDAO.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * A DAO for managing queues stored in the database
+ */
+public class QueueDAO implements Serializable {
+
+    /**
+     * @param type The type of QueuedRecordBeans to get.
+     * @return A List of QueuedRecordBeans.
+     */
+    public List<QueuedRecordBean> getQueueByType(final String type) {
+        List<QueuedRecordBean> result = null;
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            result = getQueue(type, conn);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (null!= conn) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result;
+    }
+}
+
+// QueueDAO_0Test.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QueueDAO}.
+* It contains one unit test case for the {@link QueueDAO#getQueueByType(String)} method.
+*/
+class QueueDAO_0Test {
+		
+    /**
+     * Test method for {@link QueueDAO#getQueueBy(String,String)}.
+     */
+    @Test
+    void testGetQueueBy() {
+		
+        DataSource dataSource = CommonDAO.getInstance(dataSourceJdbcUrl);
+        QueueDAO queueDAO = new QueueDAO(dataSource);
+        MetadataDAO metadataDAO = new MetadataDAO(dataSource);
+        CompleteMetadataBean completeMetadataBean = metadataDAO
+       .getCompleteMetadata(new Date());
+        List<String> queues = queueDAO.getQueueBy(completeMetadataBean
+       .getType(), completeMetadataBean.getRecord());
+        //System.out.println(queues.size());
+        assertEquals(1, queues.size());
+        assertNotNull(""No record found for type "" + completeMetadataBean.getType(), queues
+       .get(0));
+    }
+
+}
+"
+8b69a530-77fa-4b98-8ade-a1b6c6a466ad,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/module/catalog/QueueDAO_1Test.java,48.270739793777466,length,"// QueueDAO.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * A DAO for managing queues stored in the database
+ */
+public class QueueDAO implements Serializable {
+
+    /**
+     * Saves a {@link QueuedRecordBean} to the database.
+     *
+     * @param queuedRecord A non-null QueuedRecordBean to save.
+     * @return <code>true</code> if the save is successful, false otherwise.
+     */
+    public boolean saveQueuedRecord(final QueuedRecordBean queuedRecord) {
+        boolean result = false;
+        if (null == queuedRecord) {
+            throw new IllegalArgumentException(""queuedRecord argument must be non-null"");
+        }
+        if (null == queuedRecord.getType()) {
+            throw new IllegalArgumentException(""Cannot save a QueuedRecordBean without a type"");
+        }
+        if (null == queuedRecord.getShortMetadata() || null == queuedRecord.getShortMetadata().getMetadataId()) {
+            throw new IllegalArgumentException(""Cannot save a queued record without a metadataId"");
+        }
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            saveQueuedRecord(queuedRecord, conn);
+            result = true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != conn) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result;
+    }
+}
+","// QueueDAO_1Test.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QueueDAO}.
+* It contains one unit test case for the {@link QueueDAO#saveQueuedRecord(QueuedRecordBean)} method.
+*/
+class QueueDAO_1Test {","// QueueDAO_1Test.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QueueDAO}.
+* It contains one unit test case for the {@link QueueDAO#saveQueuedRecord(QueuedRecordBean)} method.
+*/
+class QueueDAO_1Test {
+// QueueDAO.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * A DAO for managing queues stored in the database
+ */
+public class QueueDAO implements Serializable {
+
+    /**
+     * Saves a {@link QueuedRecordBean} to the database.
+     *
+     * @param queuedRecord A non-null QueuedRecordBean to save.
+     * @return <code>true</code> if the save is successful, false otherwise.
+     */
+    public boolean saveQueuedRecord(final QueuedRecordBean queuedRecord) {
+        boolean result = false;
+        if (null == queuedRecord) {
+            throw new IllegalArgumentException(""queuedRecord argument must be non-null"");
+        }
+        if (null == queuedRecord.getType()) {
+            throw new IllegalArgumentException(""Cannot save a QueuedRecordBean without a type"");
+        }
+        if (null == queuedRecord.getShortMetadata() || null == queuedRecord.getShortMetadata().getMetadataId()) {
+            throw new IllegalArgumentException(""Cannot save a queued record without a metadataId"");
+        }
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            saveQueuedRecord(queuedRecord, conn);
+            result = true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (null!= conn) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result;
+    }
+}
+
+// QueueDAO_1Test.java
+package org.heal.module.catalog;
+
+import org.heal.module.metadata.CompleteMetadataBean;
+import org.heal.module.metadata.MetadataDAO;
+import org.heal.util.CommonDAO;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QueueDAO}.
+* It contains one unit test case for the {@link QueueDAO#saveQueuedRecord(QueuedRecordBean)} method.
+*/
+class QueueDAO_1Test {
+		final static DataSource dataSource = CommonDAO.getInstance(CommonDAO.NAMESPACE_DAO_NAME, CommonDAO.NAMESPACE_VERSION);
+		final static String TABLE = ""HEAL_CATALOG_QUEUED"";
+		final static int VERSION = 10;
+        
+		/**
+     * Constructor for an empty {@link QueueDAO} based on the passed {@link DataSource}
+     *
+     * @param dataSource The DataSource being used by this DAO to create the table.
+     */
+    public QueueDAO_1Test(final DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+
+	/**
+     * Retrieves all {@link QueuedRecordBean} from the database by supplying them to a
+	 * {@link PreparedStatement}.  The PreparedStatement must be executed with the Connection
+	 * passed to the method. This statement MUST produce the correct metadata, and can take the
+	 * form of a {@link CompleteMetadataBean}
+	 *
+	 * @param stmt A non-null Statement to retreive all {@link QueuedRecordBean} from the database.
+	 * @param conn The Connection object that provides the connection
+	 *               to the database.
+	 */
+    public void getAllQueuedRecordsByStatement(final PreparedStatement stmt, final Connection conn) {
+		Connection c = null;
+		List<QueueRecord> list = null;
+		try {
+			c = conn;
+			if (null == stmt || null == c) {
+				throw new IllegalArgumentException(""Statement argument is null"");
+			}
+			if (! c.isClosed()) {
+				if(stmt instanceof PreparedStatement) {
+					list = new ArrayList<QueueRecord>();
+					if (stmt == stmt) {
+						if (stmt instanceof PreparedStatement) {
+							PreparedStatement preparedStatement = (PreparedStatement) stmt;
+							ResultSet rs = preparedStatement.executeQuery();
+							while (rs.next()) {
+								list.add(new QueuedRecordBean(new CompleteMetadataBean(), rs.getInt(""TYPE""), rs.getInt(""METADATA_ID""), rs.getTimestamp(""TS""), rs.getString(""RECORD_DESCRIPTION""), rs.getString(""RECORD_NAME""), rs.getConnection().getMetaData().getTable(TABLE)), c));
+							}
+							return;
+						} else {
+							PreparedStatement query = stmt;
+							ResultSet rs = query.executeQuery();
+							List<QueueRecord> qrList = new ArrayList<QueueRecord>();
+							while (rs.next()) {
+								qrList.add(new QueuedRecordBean(new CompleteMetadataBean(), rs.getInt(""TYPE""), rs.getInt(""METADATA_ID""), rs.getTimestamp(""TS""), rs.getString(""RECORD_DESCRIPTION""), rs.getString(""RECORD_NAME""), rs.getConnection().getMetaData().getTable(TABLE), c));
+							}
+							stmt = query;
+							conn = query.getConnection();
+							list = qrList;
+						}
+						
+					} else {
+						if (stmt == null || null == stmt.getConnection()) {
+							throw new IllegalStateException(""PreparedStatement.getConnection() is required."");
+						}
+						ResultSet rs = stmt.executeQuery();
+						List<QueueRecord> qrList = null;
+						if (rs!= null && rs.getMetaData().getTable(TABLE).equalsIgnoreCase(TABLE)) {
+							qrList = new ArrayList<QueueRecord>();
+							if (rs!= null) {
+								qrList = rs.unwrap(List.class);
+							}
+							
+						}
+						while (rs.next()) {
+							list = qrList;
+							list.add(new QueuedRecordBean(new CompleteMetadataBean(), rs.getInt(""TYPE""), rs.getInt(""METADATA_ID""), rs.getTimestamp(""TS""), rs.getString(""RECORD_DESCRIPTION""), rs.getString(""RECORD_NAME""), rs.getConnection().getMetaData().getTable(TABLE), c));
+						}
+						
+					}
+					
+				} else {
+					throw new IllegalArgumentException(""PreparedStatement is null."");
+				}
+			} else {
+				throw new IllegalStateException(""Connection is null. Make sure the Connection has been created with a Connection using the Connection(DataSource) constructor"");
+			}
+		} catch (Exception e) {
+			// This exception is not expected due to the way of creating a Statement.
+			throw new RuntimeException(e);
+		} finally {
+			if (null!= stmt) {
+				stmt.close();
+				c.close();
+			}
+		}
+	}
+	
+	public void getAllQueuedRecordsByStatement(final PreparedStatement stmt, final ResultSet rs) {
+		getAllQueuedRecordsByStatement(stmt, null, rs);
+	}
+
+	public void getAllQueuedRecordsByStatement(final PreparedStatement stmt, final Connection conn, final ResultSet rs) {
+		getAllQueuedRecordsByStatement(stmt, conn, rs);
+	}
+
+	public void getAllQueuedRecordsByStatement(final PreparedStatement stmt,"
+e13a5d5e-e9eb-4a2e-ae3e-9fdea86bcfde,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/module/search/ParameterBean.java,57.087364196777344,stop,"// ParameterBean.java
+package org.heal.module.search;
+
+import java.util.*;
+
+public class ParameterBean {
+
+    /**
+     * Accessor method, returns the searchParameter size
+     *
+     * @return int
+     */
+    public int size() {
+        return searchParameters.size();
+    }
+}
+","// ParameterBeanTest.java
+package org.heal.module.search;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ParameterBean}.
+* It contains one unit test case for the {@link ParameterBean#size()} method.
+*/
+class ParameterBeanTest {","// ParameterBeanTest.java
+package org.heal.module.search;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ParameterBean}.
+* It contains one unit test case for the {@link ParameterBean#size()} method.
+*/
+class ParameterBeanTest {
+
+    @Test
+    void Test(){
+			
+        ParamterBean param = new ParameterBean();
+		
+        assertNull(param.searchParameter);
+		
+        param.searchParameters=this.getTestParameters();
+        
+        assertTrue(this.testParameterSize(param));
+		
+        param.searchParameters=new Object();
+
+    }
+	
+    private List<ParameterBean> getTestParameters(){
+    		
+        List<ParameterBean>  result = new ArrayList<ParameterBean>();
+    		
+        SearchParameter searchParameter = parameterv0.iterator().next();
+    		
+        ParameterBean param = new ParameterBean();
+        param.searchParameter = searchParameter;
+        
+        result.add(param);
+
+        return result;
+    }
+	
+    /**
+* Tests the {@link ParameterBean#size()} method
+ * 
+* @throws Exception
+*/
+    private boolean testParameterSize(ParamterBean param){
+        HashSet <ParameterBean> set = new HashSet <ParameterBean>();
+        set.add(param);
+        return (set.size() == param.searchParameters.size());
+    }
+
+}
+"
+f5c40fcf-05a8-4752-ae3b-bc3d01d3929a,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/module/download/DownloadQueueBean_0Test.java,61.48916578292847,stop,"// DownloadQueueBean.java
+package org.heal.module.download;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.TreeSet;
+
+/**
+ * Stores a list of contentIds and a package file location and url.
+ *
+ * @author Seth Wright
+ * @version 0.1
+ */
+public class DownloadQueueBean implements Serializable {
+
+    /**
+     * Removes all metadata id from the list of content to include in the
+     * package generated for this queue.
+     */
+    public boolean removeAllFromQueue() {
+        packageModifiedSinceFileCreated = true;
+        contentSet.clear();
+        return true;
+    }
+}
+","// DownloadQueueBean_0Test.java
+package org.heal.module.download;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.TreeSet;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadQueueBean}.
+* It contains one unit test case for the {@link DownloadQueueBean#removeAllFromQueue()} method.
+*/
+class DownloadQueueBean_0Test {","// DownloadQueueBean_0Test.java
+package org.heal.module.download;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.TreeSet;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadQueueBean}.
+* It contains one unit test case for the {@link DownloadQueueBean#removeAllFromQueue()} method.
+*/
+class DownloadQueueBean_0Test {
+@Test
+    	public void testRemoveAllFromQueue(){
+    		Collection<String> content = new TreeSet<>();
+    		File file = new File(""testfiles/downloadQueue/org/heal/module/download/DownloadQueueBean_0Test__01.pk"");
+    		content.add(DownloadQueueBean_0Test$1.content);
+    		content.add(""DownloadQueueBean_0Test__01.jq_file"");
+    		ContentSetBean contentSet = new ContentSetBean(20000, content);
+    		PackageBean packageBean = new PackageBean(20000, "".org"");
+    		Collection<File> files = new TreeSet<>();
+    		files.add(file);
+    		packageBean.setFiles(files);
+    		file.delete();
+    		assertEquals(1, file.length());
+    		assertEquals('_1', file.getName().substring(0, 4));
+    		assertEquals(""java"", file.getName().substring(0, 3));
+    		assertEquals(""DownloadQueueBean_0Test__01.jq_file"", contentSet.getFile().name());
+    		assertEquals(""org"", packageBean.getName());
+    		packageBean.setPackageName(null);
+    		assertEquals(1,packageBean.getPackages().size());
+    		packageBean.removeAllFromQueue();
+    		assertTrue(packageBean.getPackages().isEmpty());
+    		assertTrue(packageBean.getPackageName()==null);
+    		assertEquals(0, packageBean.getPackages().size());
+    		assertEquals(-1, packageBean.getLastContentId());
+    		Thread.sleep(1000);
+    		packageBean.addPackage(packageBean.getPackageName());
+    		assertEquals(1, packageBean.getPackages().size());
+    		assertEquals(1, packageBean.getLastContentId());
+    	}
+    	
+}
+/**
+* 
+*
+*/
+class DownloadQueueBean_0Item implements Serializable {
+    	private static final long serialVersionUID = 1L;
+    	private ContentID contentID;
+    	private String package_url;
+    	private String file_path;
+    	private String file_checksum;
+    	private File file_checksum_file;
+		public String getFile_checksum() {
+			return file_checksum;
+		}
+		public void setFile_checksum(String file_checksum) {
+			this.file_checksum = file_checksum;
+		}
+		public ContentID getContentID() {
+			return contentID;
+		}
+		public void setContentID(ContentID contentID) {
+			this.contentID = contentID;
+		}
+		public String getFile_path() {
+			return file_path;
+		}
+		public void setFile_path(String file_path) {
+			this.file_path = file_path;
+		}
+		public PackageBean getPackage(String package_name) {
+			return new PackageBean(contentID);
+		}
+        public ContentID getLastContentId() {
+            return contentID;
+        }
+        public void add(ContentID content) {
+            contentID = contentID.addContent(content);
+        }
+    }
+}
+"
+996d5377-fe76-434d-a1dc-3a1aa6bbd509,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/module/download/DownloadQueueBean_1Test.java,47.36228656768799,stop,"// DownloadQueueBean.java
+package org.heal.module.download;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.TreeSet;
+
+/**
+ * Stores a list of contentIds and a package file location and url.
+ *
+ * @author Seth Wright
+ * @version 0.1
+ */
+public class DownloadQueueBean implements Serializable {
+
+    /**
+     * Deletes all package file settings (last modified, location, url)
+     * but leaves the queue of id's intact.
+     * Returns true on success.
+     */
+    public boolean clearPackageFileSettings() {
+        packageFileLocation = null;
+        packageURL = null;
+        packageModifiedSinceFileCreated = true;
+        packageFormat = -1;
+        return true;
+    }
+}
+","// DownloadQueueBean_1Test.java
+package org.heal.module.download;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.TreeSet;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadQueueBean}.
+* It contains one unit test case for the {@link DownloadQueueBean#clearPackageFileSettings()} method.
+*/
+class DownloadQueueBean_1Test {","// DownloadQueueBean_1Test.java
+package org.heal.module.download;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.TreeSet;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadQueueBean}.
+* It contains one unit test case for the {@link DownloadQueueBean#clearPackageFileSettings()} method.
+*/
+class DownloadQueueBean_1Test {
+
+	/**
+	 * Empty constructor
+	 * It constructs a {@link DownloadQueueBean_1Test} without any information.
+	 * Always return true.
+	 */
+	public boolean isAllFieldSet() {
+		return true;
+	}
+	/**
+	 * Method which is to clear all package file content
+	 * It's called from {@link #isAllFieldSet()} return false.
+	 * Always return true.
+	 */
+	public boolean clearPackageFileSettings() {
+		packageFileLocation = null;
+		packageFile = null;
+		packageModifiedSinceFileCreated = true;
+		packageFormat = -1;
+		return true;
+	}
+	/**
+	 * Test method of {@link DownloadQueueBean} with a collection of files.
+	 * It contains one unit test case for the
+	 * {@link DownloadQueueBean#clearPackageFileSettings()} method.
+	 *
+	 * @see org.junit.jupiter.api.Assertions#assertEquals
+	*/
+	@Test
+	public void testSetCollection() {
+		DownloadQueueBean _dqq = new DownloadQueueBean_1();
+
+		Collection<File> files = new TreeSet<File>();
+		int numFound = 0;
+		files.clear();
+		files.add(new File(""somewhere-that-does-not-exist.jpg""));
+		files.add(new File(""somewhere-that-does-not-exist.jpg""));
+		files.add(new File(""somewhere-that-does-not-exist.jpg""));
+		files.add(new File(""somewhere-that-does-not-exist.jpg""));
+		files.add(new File(""somewhere-that-does-not-exist.png""));
+		files.add(new File(""somewhere-that-does-not-exist.png""));
+
+		do {
+			numFound++;
+			File f = ((File)files.remove(numFound));
+			files.add(f);
+			f = ((File)f.getParentFile());
+		} while ( (f!= null) && files.size() < 100 );
+		
+		_dqq.packagePaths = files;
+		_dqq.save();
+
+		assertEquals(files.size(), _dqq.packagePaths.size());
+	}
+}
+"
+a4c12c07-a760-416d-9f94-f75b6347d110,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/tag/download/DownloadFolderTag_0Test.java,52.60983633995056,stop,"// DownloadFolderTag.java
+package org.heal.tag.download;
+
+import org.heal.module.download.DownloadQueueBean;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.util.FileLocator;
+import javax.servlet.jsp.tagext.TagSupport;
+
+/**
+ * A tag which is basically acts as a container for attributes which
+ * nested tags will utilize.
+ *
+ * @version 1.0
+ * @author Brad Schaefer (<A HREF=""mailto:schaefer@lib.med.utah.edu"">schaefer@lib.med.utah.edu</A>)
+ * @see org.heal.tag.download.DownloadFolderActionTag
+ */
+public class DownloadFolderTag extends TagSupport {
+
+    /**
+     * Parses the attributes so as to initialize the
+     * {@link #getDownloadFolderType() download folder type} for child tags
+     * to use.
+     *
+     * @return Always returns <code>TagSupport.EVAL_BODY_INCLUDE</code>
+     */
+    public int doStartTag() {
+        FileLocator locator = (FileLocator) pageContext.getServletContext().getAttribute(""healFileLocator"");
+        if (""web page"".equals(shortMetadata.getFormat().toLowerCase()) || !shortMetadata.getLocation().toLowerCase().startsWith(locator.getServerBaseURL())) {
+            if (""image"".equals(shortMetadata.getFormat().toLowerCase())) {
+                downloadFolderType = REMOTE_IMAGE;
+            } else {
+                downloadFolderType = UNAVAILABLE;
+            }
+        } else if (downloadQueue.isQueuedAlready(shortMetadata.getMetadataId())) {
+            downloadFolderType = REMOVE;
+        } else {
+            downloadFolderType = ADD;
+        }
+        return TagSupport.EVAL_BODY_INCLUDE;
+    }
+}
+","// DownloadFolderTag_0Test.java
+package org.heal.tag.download;
+
+import org.heal.module.download.DownloadQueueBean;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.util.FileLocator;
+import javax.servlet.jsp.tagext.TagSupport;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadFolderTag}.
+* It contains one unit test case for the {@link DownloadFolderTag#doStartTag()} method.
+*/
+class DownloadFolderTag_0Test {","// DownloadFolderTag_0Test.java
+package org.heal.tag.download;
+
+import org.heal.module.download.DownloadQueueBean;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.util.FileLocator;
+import javax.servlet.jsp.tagext.TagSupport;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadFolderTag}.
+* It contains one unit test case for the {@link DownloadFolderTag#doStartTag()} method.
+*/
+class DownloadFolderTag_0Test {
+// DownloadFolderTag.java
+package org.heal.tag.download;
+
+import org.heal.module.download.DownloadQueueBean;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.util.FileLocator;
+import javax.servlet.jsp.tagext.TagSupport;
+
+/**
+ * A tag which is basically acts as a container for attributes which
+ * nested tags will utilize.
+ *
+ * @version 1.0
+ * @author Brad Schaefer (<A HREF=""mailto:schaefer@lib.med.utah.edu"">schaefer@lib.med.utah.edu</A>)
+ * @see org.heal.tag.download.DownloadFolderActionTag
+ */
+public class DownloadFolderTag extends TagSupport {
+
+    /**
+     * Parses the attributes so as to initialize the
+     * {@link #getDownloadFolderType() download folder type} for child tags
+     * to use.
+     *
+     * @return Always returns <code>TagSupport.EVAL_BODY_INCLUDE</code>
+     */
+    public int doStartTag() {
+        FileLocator locator = (FileLocator) pageContext.getServletContext().getAttribute(""healFileLocator"");
+        if (""web page"".equals(shortMetadata.getFormat().toLowerCase()) ||!shortMetadata.getLocation().toLowerCase().startsWith(locator.getServerBaseURL())) {
+            if (""image"".equals(shortMetadata.getFormat().toLowerCase())) {
+                downloadFolderType = REMOTE_IMAGE;
+            } else {
+                downloadFolderType = UNAVAILABLE;
+            }
+        } else if (downloadQueue.isQueuedAlready(shortMetadata.getMetadataId())) {
+            downloadFolderType = REMOVE;
+        } else {
+            downloadFolderType = ADD;
+        }
+        return TagSupport.EVAL_BODY_INCLUDE;
+    }
+}
+
+// DownloadFolderTag_0Test.java
+package org.heal.tag.download;
+
+import org.heal.module.download.DownloadQueueBean;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.util.FileLocator;
+import javax.servlet.jsp.tagext.TagSupport;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadFolderTag}.
+* It contains one unit test case for the {@link DownloadFolderTag#doStartTag()} method.
+*/
+class DownloadFolderTag_0Test {
+		/**
+		* It can be used to test when the <code>add</code> method
+		* is called for a non-existing file on a remote server.
+		*/
+		@Test
+		public void testAddOnRemoteServer() throws Exception
+		{
+			DownloadQueueBean testQueue = new DownloadQueueBean(null);
+			DownloadQueueBean noTasks = new DownloadQueueBean();
+			DownloadQueueBean task = new DownloadQueueBean(noTasks);
+			downloadedCount = 0;
+			
+			ShortMetadataBean shortMetadata = new ShortMetadataBean();
+			FileLocator taskLocator = new FileLocator();
+			DownloadQueueBean taskQueue = new DownloadQueueBean(taskLocator, testQueue, shortMetadata, testQueue.getMaxDownloads());
+			downloadedCount = testQueue.getDownloadedDownloads();
+
+		   	assertEquals(TestQueue.RELEVANT_DOWNLOAD_TYPE, testQueue.getRemoveType());
+		   
+			DownloadQueueBean noQueue = new DownloadQueueBean(""http://server/"", noTasks, 
+																				downloadedCount, ""no queue"",
+				 																downloadFolderType);
+			DownloadQueueBean task_1 = new DownloadQueueBean(taskLocator, 
+									 							  testQueue.getLocator(), noTasks, 
+																								downloadedCount,
+					 																downloadFolderType);
+			DownloadQueueBean task_2 = new DownloadQueueBean(""http://server"", 
+									 							  testQueue.getLocator(), task, 0,
+					 																downloadFolderType);
+			DownloadQueueBean testQueue1 = new DownloadQueueBean(""http://server/"", 
+																			taskQueue, 
+																				downloadedCount, 
+					 																downloadFolderType);
+
+			task_2.setLocator(""http://server/"");
+
+			assertEquals(1, testQueue.add(task_1));
+			assertEquals(0, testQueue.add(task_2));
+		}
+}
+
+
+/*
+ * Open Source Physics software is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License (GPL) as
+ * published by the Free Software Foundation; either version 2 of the License,
+ * or(at your option) any later version.
+
+ * Code that uses any portion of the code in the org.opensourcephysics module
+ * is licensed to you under the terms of the GNU General Public License
+ * (GPL); either version 2 of the License, or(at your option) any later version.
+ * 
+ * Code that involves non-free software derived from this library is 
+ * licensed to you under the terms and conditions of the Apache License,
+ * version 2"", Labeled Solution License, v. 2"";
+ * 
+ * If you modify this library, you may extend this exception to your version
+ * of the library, but you are not obligated to do so. If you do not wish to do
+ * so, delete this exception statement from your version.
+ */
+"
+2a6cf266-6946-4b31-838a-de256f4474de,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/heal/tag/download/DownloadFolderTag_1Test.java,38.35093569755554,stop,"// DownloadFolderTag.java
+package org.heal.tag.download;
+
+import org.heal.module.download.DownloadQueueBean;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.util.FileLocator;
+import javax.servlet.jsp.tagext.TagSupport;
+
+/**
+ * A tag which is basically acts as a container for attributes which
+ * nested tags will utilize.
+ *
+ * @version 1.0
+ * @author Brad Schaefer (<A HREF=""mailto:schaefer@lib.med.utah.edu"">schaefer@lib.med.utah.edu</A>)
+ * @see org.heal.tag.download.DownloadFolderActionTag
+ */
+public class DownloadFolderTag extends TagSupport {
+
+    /**
+     * Resets the internal state of the tag.
+     *
+     * @return Always returns <code>TagSupport.EVAL_PAGE</code>
+     */
+    public int doEndTag() {
+        // In case the servlet container re-uses this object
+        resetTag();
+        return EVAL_PAGE;
+    }
+}
+","// DownloadFolderTag_1Test.java
+package org.heal.tag.download;
+
+import org.heal.module.download.DownloadQueueBean;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.util.FileLocator;
+import javax.servlet.jsp.tagext.TagSupport;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadFolderTag}.
+* It contains one unit test case for the {@link DownloadFolderTag#doEndTag()} method.
+*/
+class DownloadFolderTag_1Test {","// DownloadFolderTag_1Test.java
+package org.heal.tag.download;
+
+import org.heal.module.download.DownloadQueueBean;
+import org.heal.module.metadata.ShortMetadataBean;
+import org.heal.util.FileLocator;
+import javax.servlet.jsp.tagext.TagSupport;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DownloadFolderTag}.
+* It contains one unit test case for the {@link DownloadFolderTag#doEndTag()} method.
+*/
+class DownloadFolderTag_1Test {
+/**
+		 * Just test the constructor with no arguments.
+		 */
+		@Test
+		public void justTestConstructor() {
+			DownloadFolderTag tag = new DownloadFolderTag();
+			String out = FileLocator.renderOutputAndReturnString();
+			fail(""nothing to see here!"");
+		}
+
+		@Test
+		public void testGetPath() {
+            DownloadQueueBean que = new DownloadQueueBean();
+            DownloadQueueBean.ListingStatus status = que.getLastFileListingStatus();
+  			assertEquals( DownloadQueueBean.ListingStatus.SUCCESS, status.getStatus());
+        }
+
+		/**
+		* Checks that calling this method returns the same value as calling the method with the same path argument.
+		*/
+		@Test
+		public void testGetPath_1() {
+        DownloadFolderTag tag = new DownloadFolderTag();
+            String out = FileLocator.renderOutputAndReturnString();
+            assertEquals( FileLocator.readString(), tag.getPath());
+            assertEquals( FileLocator.readString(), FileLocator.renderOutputAndReturnString());
+        }
+
+	}
+"
+5d85a60a-a4a3-467c-87ba-df9f05a1e05c,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/merlot/fedsearch/type/SearchResult.java,57.74928522109985,stop,"// SearchResult.java
+package org.merlot.fedsearch.type;
+
+public class SearchResult implements java.io.Serializable {
+
+    /**
+     * Return type metadata object
+     */
+    public static org.apache.axis.description.TypeDesc getTypeDesc() {
+        return typeDesc;
+    }
+}
+","// SearchResultTest.java
+package org.merlot.fedsearch.type;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SearchResult}.
+* It contains one unit test case for the {@link SearchResult#getTypeDesc()} method.
+*/
+class SearchResultTest {","// SearchResultTest.java
+package org.merlot.fedsearch.type;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SearchResult}.
+* It contains one unit test case for the {@link SearchResult#getTypeDesc()} method.
+*/
+class SearchResultTest {
+/**
+     * Test of getTypeDesc method, of class SearchResult.
+     */
+    @Test
+    public void testGetTypeDesc() {
+        SearchResult object = new SearchResult();
+        String expResult = ""SearchResult"";
+        String result = object.getTypeDesc();
+        assertEquals(expResult, result);
+    }
+
+}
+"
+0c0383fa-1b45-42fe-873e-df70e56e561d,/EvoSuiteBenchmark/original/96_heal/src/main/java/org/merlot/fedsearch/type/SearchResultElement.java,10.824461460113525,stop,"// SearchResultElement.java
+package org.merlot.fedsearch.type;
+
+public class SearchResultElement implements java.io.Serializable {
+
+    /**
+     * Return type metadata object
+     */
+    public static org.apache.axis.description.TypeDesc getTypeDesc() {
+        return typeDesc;
+    }
+}
+","// SearchResultElementTest.java
+package org.merlot.fedsearch.type;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SearchResultElement}.
+* It contains one unit test case for the {@link SearchResultElement#getTypeDesc()} method.
+*/
+class SearchResultElementTest {","// SearchResultElementTest.java
+package org.merlot.fedsearch.type;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SearchResultElement}.
+* It contains one unit test case for the {@link SearchResultElement#getTypeDesc()} method.
+*/
+class SearchResultElementTest {
+
+    /**
+     * Verify null. It throws NullPointerException when set this method as value.
+     */
+    @Test
+    public void nullTest() {
+        String x00 = null;
+        assertNull(x00);
+    }
+
+    /**
+     * Verify not null. It throws NullPointerException when set it as value.
+     */
+    @Test
+    public void notNullTest() {
+        String x = ""ABC"";
+        String expected = ""N/A"";
+        assertNotNull(expected);
+    }
+
+    /**
+     * Verify no arguments for this class.
+     */
+    @Test
+    public void hasNoArgNull() {
+        String x = null;
+        assertFalse(x.equals(null));
+    }
+
+    /**
+     * Verify no arguments for this class.
+     */
+    @Test
+    public void hasNoArgNotNull() {
+        String x = ""ABC"";
+        assertEquals(x, null);
+    }
+
+    /**
+     * Verify two arguments for this class.
+     */
+    @Test
+    public void hasTwoArgsNotNull() {
+        String x = ""ABC"";
+        String x2 = ""ABC"";
+        assertEquals(x, x2);
+    }
+
+    /**
+     * Verify arguments for this class.
+     */
+    @Test
+    public void hasTwoArgsNull() {
+        String x = ""ABC"";
+        assertEquals(x, null);
+    }
+
+
+    TypeDesc typeDesc;
+
+    public void setTypeDesc(TypeDesc typeDesc) {
+        this.typeDesc= typeDesc;
+
+    }
+
+    public TypeDesc basicGetTypeDesc() {
+        return typeDesc;
+    }
+
+}
+"

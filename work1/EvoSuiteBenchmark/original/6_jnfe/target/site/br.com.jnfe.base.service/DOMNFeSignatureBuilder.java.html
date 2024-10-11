@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DOMNFeSignatureBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">br.com.jnfe.base.service</a> &gt; <span class="el_source">DOMNFeSignatureBuilder.java</span></div><h1>DOMNFeSignatureBuilder.java</h1><pre class="source lang-java linenums">/* Copyright 2005 I Serv Consultoria Empresarial Ltda.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package br.com.jnfe.base.service;
+
+import java.io.InputStreamReader;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.crypto.dsig.DigestMethod;
+import javax.xml.crypto.dsig.Reference;
+import javax.xml.crypto.dsig.SignatureMethod;
+import javax.xml.crypto.dsig.SignedInfo;
+import javax.xml.crypto.dsig.Transform;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureFactory;
+import javax.xml.crypto.dsig.dom.DOMSignContext;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
+import javax.xml.crypto.dsig.spec.TransformParameterSpec;
+
+import org.jcp.xml.dsig.internal.dom.DOMReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.w3c.dom.Element;
+
+
+/**
+ * Implementa��o para &lt;code&gt;NFeSignatureBuilder&lt;/code&gt; com a tag a assinar
+ * representada por um elemento DOM.
+ * 
+ * &lt;p&gt;
+ * Esta implementa��o difere da especifica��o WS Security 1.1 para 
+ * implementar o subconjunto definido no manual de integra��o do contribuinte,
+ * vers�o 3.0 de Mar�o de 2009, conforme abaixo.
+ * &lt;/p&gt;
+ * 
+ * &lt;table border=&quot;1&quot;&gt;
+ * &lt;tr&gt;&lt;td&gt;#&lt;/td&gt;&lt;td&gt;Campo&lt;/td&gt;&lt;td&gt;Ele&lt;/td&gt;&lt;td&gt;Pai&lt;/td&gt;&lt;td&gt;Tipo&lt;/td&gt;&lt;td&gt;Ocor.&lt;/td&gt;
+ * &lt;td&gt;Descri��o/Observa��o&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS01&lt;/td&gt;&lt;td&gt;Signature&lt;/td&gt;&lt;td&gt;Raiz&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;-
+ * &lt;tr&gt;&lt;td&gt;XS02&lt;/td&gt;&lt;td&gt;SignedInfo&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS01&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo da Informa��o da assinatura&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS03&lt;/td&gt;&lt;td&gt;Canonicalization Method&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS02&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo do M�todo de Canonicaliza��o&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS04&lt;/td&gt;&lt;td&gt;Algorithm&lt;/td&gt;&lt;td&gt;A&lt;/td&gt;&lt;td&gt;XS03&lt;/td&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Atributo Algorithm de CanonicalizationMethod: http://www.w3.org/TR/2001/REC-xml-c14n-20010315&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS05&lt;/td&gt;&lt;td&gt;SignatureMethod&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS02&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo do M�todo de Assinatura&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS06&lt;/td&gt;&lt;td&gt;Algorithm&lt;/td&gt;&lt;td&gt;A&lt;/td&gt;&lt;td&gt;XS05&lt;/td&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Atributo Algorithm de SignedInfo: http://www.w3.org/2000/09/xmldsig#rsa-sha1&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS07&lt;/td&gt;&lt;td&gt;Reference&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS02&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo do M�todo de Reference&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS08&lt;/td&gt;&lt;td&gt;URI&lt;/td&gt;&lt;td&gt;A&lt;/td&gt;&lt;td&gt;XS07&lt;/td&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Atributo URI da tag Reference&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS10&lt;/td&gt;&lt;td&gt;Transforms&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS07&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo do algorithm de Transform&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS11&lt;/td&gt;&lt;td&gt;unique_Transf_Alg&lt;/td&gt;&lt;td&gt;RC&lt;/td&gt;&lt;td&gt;XS10&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Regra para o atributo Algorithm do Transform ser �nico.&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS12&lt;/td&gt;&lt;td&gt;Transform&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS10&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;2-2&lt;/td&gt;
+ * &lt;td&gt;Grupo de Transform&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS13&lt;/td&gt;&lt;td&gt;Algorithm&lt;/td&gt;&lt;td&gt;A&lt;/td&gt;&lt;td&gt;XS12&lt;/td&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Atributos v�lidos Algorithm do Transform: http://www.w3.org/TR/2001/REC-xml-c14n-20010315
+ *     http://www.w3.org/2000/09/xmldsig#envelopedsignature&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS14&lt;/td&gt;&lt;td&gt;XPath&lt;/td&gt;&lt;td&gt;E&lt;/td&gt;&lt;td&gt;XS12&lt;/td&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;0-N&lt;/td&gt;
+ * &lt;td&gt;XPath&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS15&lt;/td&gt;&lt;td&gt;DigestMethod&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS07&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo do M�todo de DigestMethod&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS16&lt;/td&gt;&lt;td&gt;Algorithm&lt;/td&gt;&lt;td&gt;A&lt;/td&gt;&lt;td&gt;XS15&lt;/td&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Atributo Algorithm de DigestMethod: http://www.w3.org/2000/09/xmldsig#sha1&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS17&lt;/td&gt;&lt;td&gt;DigestValue&lt;/td&gt;&lt;td&gt;E&lt;/td&gt;&lt;td&gt;XS07&lt;/td&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;1&lt;/td&gt;
+ * &lt;td&gt;Digest Value (Hash SHA-1 � Base64)&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS18&lt;/td&gt;&lt;td&gt;SignatureValue&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS01&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo do Signature Value&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS19&lt;/td&gt;&lt;td&gt;KeyInfo&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS01&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo do KeyInfo&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS20&lt;/td&gt;&lt;td&gt;X509Data&lt;/td&gt;&lt;td&gt;G&lt;/td&gt;&lt;td&gt;XS19&lt;/td&gt;&lt;td&gt;-&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Grupo X509&lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt;XS21&lt;/td&gt;&lt;td&gt;X509Certificate&lt;/td&gt;&lt;td&gt;E&lt;/td&gt;&lt;td&gt;XS20&lt;/td&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;1-1&lt;/td&gt;
+ * &lt;td&gt;Certificado Digital x509 em Base64&lt;/td&gt;&lt;/tr&gt;
+ * &lt;/table&gt;
+ * 
+ * @author Mauricio Fernandes de Castro
+ */
+public class DOMNFeSignatureBuilder implements SignatureBuilder&lt;Element&gt;, InitializingBean {
+
+	public static final String CANONICALIZATION_METHOD = &quot;http://www.w3.org/TR/2001/REC-xml-c14n-20010315&quot;;
+	public static final String C14N_TRANSFORMATION_METHOD = &quot;http://www.w3.org/TR/2001/REC-xml-c14n-20010315&quot;;
+	
+	private List&lt;Transform&gt; transformList;
+	private DigestMethod digestMethod;
+
+	/**
+	 * Construtor vazio.
+	 */
+<span class="nc" id="L115">	public DOMNFeSignatureBuilder() {</span>
+<span class="nc" id="L116">	}</span>
+	
+	/**
+	 * O m�todo &lt;i&gt;digest&lt;/i&gt;.
+	 */
+	public DigestMethod getDigestMethod() {
+<span class="nc" id="L122">		return digestMethod;</span>
+	}
+	public void setDigestMethod(DigestMethod digestMethod) {
+<span class="nc" id="L125">		this.digestMethod = digestMethod;</span>
+<span class="nc" id="L126">	}</span>
+	
+	/**
+	 * Implementa &lt;code&gt;InitializingBean&lt;/code&gt; para garantir que haja &lt;code&gt;signatureFactory&lt;/code&gt;, &lt;code&gt;transformList&lt;/code&gt;
+	 * e &lt;code&gt;digestMethod&lt;/code&gt; dispon�veis para assinatura. 
+	 */
+	public void afterPropertiesSet() throws Exception {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">		if (signatureFactory==null) {</span>
+//			signatureFactory = newSignatureFactory();
+		}
+<span class="nc bnc" id="L136" title="All 2 branches missed.">		if (transformList==null) {</span>
+<span class="nc" id="L137">			transformList = newTransformList();</span>
+		}
+<span class="nc bnc" id="L139" title="All 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L140">			StringBuilder debugMsg = new StringBuilder(&quot;Lista de transforma��es inclui algor�timos: &quot;);</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">			for (Transform transform: transformList) {</span>
+<span class="nc" id="L142">				debugMsg.append(transform.getAlgorithm()).append(&quot; &quot;);</span>
+<span class="nc" id="L143">			}</span>
+<span class="nc" id="L144">			logger.debug(debugMsg.toString());</span>
+		}
+<span class="nc bnc" id="L146" title="All 2 branches missed.">		if (digestMethod==null) {</span>
+<span class="nc" id="L147">			digestMethod = signatureFactory.newDigestMethod(DigestMethod.SHA1, null);</span>
+		}
+<span class="nc" id="L149">		logger.debug(&quot;Algor�timo do m�todo digest � {}&quot;, digestMethod.getAlgorithm());</span>
+<span class="nc" id="L150">	}</span>
+		
+//	/**
+//	 * Cria nova &lt;code&gt;XMLSignatureFactory&lt;/code&gt; usando os padr�es deste bean.
+//     *
+//	 * @throws InstantiationException
+//	 * @throws IllegalAccessException
+//	 * @throws ClassNotFoundException
+//	 */
+//	protected XMLSignatureFactory newSignatureFactory() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+//		String providerName = System.getProperty(PROVIDER_NAME, PROVIDER_CLASS_NAME);
+//		return XMLSignatureFactory
+//		.getInstance(&quot;DOM&quot;, (Provider) Class.forName(providerName)
+//				.newInstance());
+//	}
+//	
+	/**
+	 * Cria nova lista de &lt;code&gt;Transform&lt;/code&gt; usando os padr�es deste bean.
+	 * 
+	 * @throws InvalidAlgorithmParameterException 
+	 * @throws NoSuchAlgorithmException 
+	 */
+	protected List&lt;Transform&gt; newTransformList() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+<span class="nc" id="L173">		List&lt;Transform&gt; transformList = new ArrayList&lt;Transform&gt;();</span>
+<span class="nc" id="L174">		TransformParameterSpec tps = null;</span>
+<span class="nc" id="L175">		transformList.add(signatureFactory.newTransform(Transform.ENVELOPED, tps));</span>
+<span class="nc" id="L176">		transformList.add(signatureFactory.newTransform(C14N_TRANSFORMATION_METHOD, tps));</span>
+<span class="nc" id="L177">		return transformList;</span>
+	}
+	
+	/**
+	 * Prepara e assina um elemento.
+	 * 
+	 * @param elementToSign
+	 * @param parentElement
+	 * @param certificate
+	 * @param privateKey
+	 */
+	public void build(Element elementToSign, Element parentElement, Certificate certificate, PrivateKey privateKey) {
+		try {
+<span class="nc" id="L190">			List&lt;Reference&gt; refList = newReferenceList(elementToSign);</span>
+<span class="nc" id="L191">			SignedInfo signedInfo = newSignedInfo(refList);</span>
+<span class="nc" id="L192">			KeyInfo keyInfo = keyInfoBuilder.newKeyInfo(certificate);</span>
+<span class="nc" id="L193">			DOMSignContext dsc = new DOMSignContext(privateKey, parentElement);</span>
+<span class="nc" id="L194">			XMLSignature signature = signatureFactory.newXMLSignature(signedInfo, keyInfo);</span>
+<span class="nc" id="L195">			signature.sign(dsc);</span>
+<span class="nc" id="L196">			logger.debug(&quot; Primeiro digest value encontrado � {}.&quot;, ((DOMReference) signature.getSignedInfo().getReferences().get(0)).getDigestValue());</span>
+<span class="nc" id="L197">			logger.debug(&quot; Primeiro digest value encontrado � {}.&quot;, ((DOMReference) signature.getSignedInfo().getReferences().get(0)).getHere());</span>
+<span class="nc" id="L198">			InputStreamReader isr = </span>
+<span class="nc" id="L199">			    new InputStreamReader(signature.getSignedInfo().getCanonicalizedData());</span>
+<span class="nc" id="L200">			char[] cbuf = new char[1024];</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">			while (isr.read(cbuf, 0, 1024) != -1) {</span>
+<span class="nc" id="L202">			    System.out.print(cbuf);</span>
+			}
+<span class="nc" id="L204">			System.out.println();</span>
+<span class="nc" id="L205">			logger.debug(&quot;Elemento &lt;{}&gt; assinado e inserido em &lt;{}&gt;.&quot;, elementToSign.getTagName(), parentElement.getTagName());</span>
+<span class="nc" id="L206">		} catch (Exception e) {</span>
+<span class="nc" id="L207">			throw new IllegalArgumentException(&quot;Imposs�vel construir assinatura, &quot;, e);</span>
+<span class="nc" id="L208">		}</span>
+<span class="nc" id="L209">	}</span>
+		
+	/**
+	 * Cria a lista de refer�ncias.
+	 * 
+	 * @param elementToSign
+	 */
+	protected List&lt;Reference&gt; newReferenceList(Element elementToSign) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+<span class="nc" id="L217">		String URI = new StringBuilder(&quot;#&quot;).append(elementToSign.getAttribute(&quot;Id&quot;)).toString();</span>
+<span class="nc" id="L218">		Reference ref = newReference(URI);</span>
+<span class="nc" id="L219">		ArrayList&lt;Reference&gt; refList = new ArrayList&lt;Reference&gt;();</span>
+<span class="nc" id="L220">		refList.add(ref);</span>
+<span class="nc" id="L221">		return refList;</span>
+	}
+	
+	/**
+	 * Cria uma refer�ncia.
+	 * 
+	 * @param URI
+	 */
+	protected Reference newReference(String URI) {
+<span class="nc" id="L230">		Reference reference = signatureFactory.newReference(URI, digestMethod, transformList, null, null);</span>
+<span class="nc" id="L231">		logger.debug(&quot;Elemento &lt;Reference URI='{}'.../&gt;[{}] preparado para assinatura.&quot;, URI, reference.getDereferencedData());</span>
+//		logger.debug(&quot;Elemento &lt;Reference URI='{}'.../&gt;[{}] preparado para assinatura.&quot;, URI, reference.getCalculatedDigestValue());
+<span class="nc" id="L233">		return reference;</span>
+	}
+
+	/**
+	 * Cria elemento a assinar.
+	 * 
+	 * @param refList
+	 */
+	protected SignedInfo newSignedInfo(List&lt;Reference&gt; refList) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+<span class="nc" id="L242">		CanonicalizationMethod canonicalMethod = signatureFactory</span>
+<span class="nc" id="L243">		    .newCanonicalizationMethod(CanonicalizationMethod.INCLUSIVE, (C14NMethodParameterSpec) null);</span>
+<span class="nc" id="L244">		SignatureMethod sm = signatureFactory.newSignatureMethod(SignatureMethod.RSA_SHA1, null);</span>
+<span class="nc" id="L245">		SignedInfo signedInfo = signatureFactory.newSignedInfo(canonicalMethod, sm, refList);</span>
+<span class="nc" id="L246">		logger.debug(&quot;Elemento &lt;SignedInfo .../&gt; preparado para assinatura.&quot;);</span>
+<span class="nc" id="L247">		return signedInfo;</span>
+	}
+	
+	// collabs
+	
+	private XMLSignatureFactory signatureFactory;
+	private KeyInfoBuilder keyInfoBuilder;
+
+	@Resource
+	protected void setXMLSignatureFactory(XMLSignatureFactory signatureFactory) {
+<span class="nc" id="L257">		this.signatureFactory = signatureFactory;</span>
+<span class="nc" id="L258">	}</span>
+	
+	@Resource
+	public void setKeyInfoBuilder(KeyInfoBuilder keyInfoBuilder) {
+<span class="nc" id="L262">		this.keyInfoBuilder = keyInfoBuilder;</span>
+<span class="nc" id="L263">	}</span>
+	
+<span class="nc" id="L265">	private static final Logger logger = LoggerFactory.getLogger(DOMNFeSignatureBuilder.class);</span>
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

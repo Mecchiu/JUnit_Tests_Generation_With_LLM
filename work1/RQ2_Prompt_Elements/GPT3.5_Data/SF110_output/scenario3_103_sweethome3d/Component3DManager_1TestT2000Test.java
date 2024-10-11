@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems to be missing the implementation of the `getOnscreenCanvas3D` method and the actual test cases for the `Component3DManager` class. Please provide the complete code so I can assist you better.

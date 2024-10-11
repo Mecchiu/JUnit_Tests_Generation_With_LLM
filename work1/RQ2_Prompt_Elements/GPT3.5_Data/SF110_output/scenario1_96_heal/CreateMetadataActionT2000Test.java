@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class definition for `CreateMetadataActionTest` is missing its closing curly brace. Can you please provide the complete code so I can assist you better?

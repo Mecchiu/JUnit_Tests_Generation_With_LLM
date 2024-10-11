@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `PlayerConfiguration` class only has a single method `showShootline()` and there is no implementation for it. Additionally, the `PlayerConfiguration_2Test` class is incomplete and does not contain any test cases. Please provide the complete code so that I can assist you better.

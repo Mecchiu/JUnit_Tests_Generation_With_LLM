@@ -1,0 +1,402 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6x1vaMC1rpUGWWrYDWQWNYDwqwwhn,/EvoSuiteBenchmark/scenario2/67_gae-app-manager/src/main/java/net/sf/gaeappmanager/google/LogonHelper.java,31.94904851913452,stop,"// LogonHelper.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+
+/**
+ * Google login helper.
+ *
+ * Based on work of Cheers Geoff.
+ *
+ * http://groups.google.com/group/google-appengine
+ * -java/browse_thread/thread/c96d4fff73117e1d?pli=1
+ *
+ * @author Alois Belaska
+ */
+public class LogonHelper {
+
+    /**
+     * Returns the ACSID string to be set as the Cookie field in the request
+     * header.
+     *
+     * @param userid full gmail address for user
+     * @param password password
+     * @param source name of application requesting quota details
+     * @return the ACSID field value
+     * @throws Exception if any error occurs getting the ACSID
+     */
+    public static String loginToGoogleAppEngine(String userid, String password, String source) throws Exception {
+        DefaultHttpClient client = new DefaultHttpClient();
+        try {
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            nvps.add(new BasicNameValuePair(""accountType"", ""HOSTED_OR_GOOGLE""));
+            nvps.add(new BasicNameValuePair(""Email"", userid));
+            nvps.add(new BasicNameValuePair(""Passwd"", password));
+            nvps.add(new BasicNameValuePair(""service"", ""ah""));
+            nvps.add(new BasicNameValuePair(""source"", source));
+            HttpPost post = new HttpPost(""https://www.google.com/accounts/ClientLogin"");
+            post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+            HttpResponse response = client.execute(post);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new Exception(""Error obtaining ACSID"");
+            }
+            String authToken = getAuthToken(response.getEntity().getContent());
+            post.abort();
+            HttpGet get = new HttpGet(""https://appengine.google.com/_ah/login?auth="" + authToken);
+            response = client.execute(get);
+            for (Cookie cookie : client.getCookieStore().getCookies()) {
+                if (cookie.getName().startsWith(""ACSID"")) {
+                    return cookie.getValue();
+                }
+            }
+            get.abort();
+            throw new Exception(""Did not find ACSID cookie"");
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+}
+","// LogonHelperTest.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogonHelper}.
+* It contains ten unit test cases for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+*/
+class LogonHelperTest {","// LogonHelperTest.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogonHelper}.
+* It contains ten unit test cases for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+*/
+class LogonHelperTest {
+
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword2() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword3() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword4() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword5() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword6() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword7() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword8() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword9() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+	/**
+	* Test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+	* It tests the method with a valid userid and password.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_ValidUseridAndPassword10() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		assertNotNull(result);
+	}
+	
+}"
+cmpl-6x1wdTLVfE9N2Sbn4gruDsK99zHCn,/EvoSuiteBenchmark/scenario2/67_gae-app-manager/src/main/java/net/sf/gaeappmanager/google/appengine/Manager.java,161.08685064315796,length,"// Manager.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+/**
+ * Google App Engine application manager.
+ *
+ * @author Alois Belaska
+ */
+public class Manager {
+
+    /**
+     * Retrieve quota details of application deployed in Google App Engine.
+     *
+     * @param userid full gmail address for user
+     * @param password gmail account password
+     * @param source name of application requesting quota details
+     * @param application appspot application name
+     * @return quota details of application
+     * @throws Exception in case of failure
+     */
+    public static QuotaDetails retrieveAppQuotaDetails(String userid, String password, String source, String application) throws Exception {
+        String authCookie = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+        DefaultHttpClient client = new DefaultHttpClient();
+        try {
+            HttpGet get = new HttpGet(""https://appengine.google.com/dashboard/quotadetails?&app_id="" + application);
+            get.setHeader(""Cookie"", ""ACSID="" + authCookie);
+            HttpResponse response = client.execute(get);
+            return new QuotaDetailsParser().parse(response.getEntity().getContent());
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+}
+","// ManagerTest.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Manager}.
+* It contains ten unit test cases for the {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+*/
+class ManagerTest {","// ManagerTest.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Manager}.
+* It contains ten unit test cases for the {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+*/
+class ManagerTest {
+
+	/**
+	 * Test of retrieveAppQuotaDetails method, of class Manager.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails() throws Exception {
+		System.out.println(""retrieveAppQuotaDetails"");
+		String userid = """";
+		String password = """";
+		String source = """";
+		String application = """";
+		QuotaDetails expResult = null;
+		QuotaDetails result = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertEquals(expResult, result);
+		// TODO review the generated test code and remove the default call to fail.
+		fail(""The test case is a prototype."");
+	}
+	
+}
+
+// QuotaDetails.java
+package net.sf.gaeappmanager.google.appengine;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Quota details of application deployed in Google App Engine.
+ *
+ * @author Alois Belaska
+ */
+public class QuotaDetails {
+
+    private String application;
+    private List<Quota> quotas = new ArrayList<Quota>();
+
+    public String getApplication() {
+        return application;
+    }
+
+    public void setApplication(String application) {
+        this.application = application;
+    }
+
+    public List<Quota> getQuotas() {
+        return quotas;
+    }
+
+    public void setQuotas(List<Quota> quotas) {
+        this.quotas = quotas;
+    }
+
+    @Override
+    public String toString() {
+        return ""QuotaDetails{"" + ""application="" + application + "", quotas="" + quotas + '}';
+    }
+}
+
+// QuotaDetailsParser.java
+package net.sf.gaeappmanager.google.appengine;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.commons.io.IOUtils;
+
+/**
+ * Parser of quota details of application deployed in Google App Engine.
+ *
+ * @author Alois Belaska
+ */
+public class QuotaDetailsParser {
+
+    private static final Pattern PATTERN_APPLICATION = Pattern.compile(""<h1>Quota Details for (.*?)</h1>"");
+    private static final Pattern PATTERN_QUOTA = Pattern.compile(""<td class=\""quota-name\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">(.*?)</td>.*?<td class=\""quota-value\"">("

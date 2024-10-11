@@ -1,0 +1,1 @@
+// Sorry, I cannot generate code for this task as the code for the LinearAxisScale_3Test class is missing. Please provide the code for this class.

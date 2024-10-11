@@ -1,0 +1,3104 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-A5TublTb1HjB32kjwnw8wyyuZVMA2,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStereo0D_1Test.java,6.647700786590576,stop,"// JniInchiStereo0D.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+/**
+ * Encapsulates properites of InChI Stereo Parity.  See <tt>inchi_api.h</tt>.
+ * @author Sam Adams
+ */
+public class JniInchiStereo0D {
+
+    /**
+     * Indicates non-existent (central) atom. Value from inchi_api.h.
+     */
+    public static final int NO_ATOM = -1;
+
+    /**
+     * Neighbouring atoms.
+     */
+    private JniInchiAtom[] neighbors = new JniInchiAtom[4];
+
+    /**
+     * Central atom.
+     */
+    private JniInchiAtom centralAtom;
+
+    /**
+     * Stereo parity type.
+     */
+    private INCHI_STEREOTYPE type;
+
+    /**
+     * Parity.
+     */
+    private INCHI_PARITY parity;
+
+    /**
+     * Second parity (for disconnected systems).
+     */
+    private INCHI_PARITY disconParity = INCHI_PARITY.NONE;
+
+    /**
+     * Constructor.  See <tt>inchi_api.h</tt> for details of usage.
+     *
+     * @see createNewTetrahedralStereo0D()
+     * @see createNewDoublebondStereo0D()
+     *
+     * @param atC    Central atom
+     * @param at0    Neighbour atom 0
+     * @param at1    Neighbour atom 1
+     * @param at2    Neighbour atom 2
+     * @param at3    Neighbour atom 3
+     * @param type          Stereo parity type
+     * @param parity    Parity
+     */
+    public JniInchiStereo0D(final JniInchiAtom atC, final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, final INCHI_STEREOTYPE type, final INCHI_PARITY parity) {
+        centralAtom = atC;
+        neighbors[0] = at0;
+        neighbors[1] = at1;
+        neighbors[2] = at2;
+        neighbors[3] = at3;
+        this.type = type;
+        this.parity = parity;
+    }
+
+    JniInchiStereo0D(final JniInchiAtom atC, final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, final int type, final int parity) {
+        this(atC, at0, at1, at2, at3, INCHI_STEREOTYPE.getValue(type), INCHI_PARITY.getValue(parity));
+    }
+
+    /**
+     * Set second parity (for disconnected systems)
+     * @param parity
+     */
+    public void setDisconnectedParity(final INCHI_PARITY parity) {
+        this.disconParity = parity;
+    }
+
+    /**
+     * Returns central atom of stereo parity.
+     * @return
+     */
+    public JniInchiAtom getCentralAtom() {
+        return centralAtom;
+    }
+
+    /**
+     * Returns neighboring atoms of stereo parity.
+     * @return
+     */
+    public JniInchiAtom[] getNeighbors() {
+        return neighbors;
+    }
+
+    public JniInchiAtom getNeighbor(int i) {
+        return neighbors[i];
+    }
+
+    /**
+     * Returns parity.
+     * @return
+     */
+    public INCHI_PARITY getParity() {
+        return parity;
+    }
+
+    /**
+     * Returns disconnected parity.
+     * @return
+     */
+    public INCHI_PARITY getDisconnectedParity() {
+        return disconParity;
+    }
+
+    /**
+     * Returns type of stereochemistry.
+     * @return
+     */
+    public INCHI_STEREOTYPE getStereoType() {
+        return type;
+    }
+
+    /**
+     * Generates string representation of information on stereo parity,
+     * for debugging purposes.
+     */
+    public String getDebugString() {
+        return (""InChI Stereo0D: "" + (centralAtom == null ? ""-"" : centralAtom.getElementType()) + "" ["" + neighbors[0].getElementType() + "","" + neighbors[1].getElementType() + "","" + neighbors[2].getElementType() + "","" + neighbors[3].getElementType() + ""] "" + ""Type::"" + type + "" // "" + ""Parity:"" + parity);
+    }
+
+    /**
+     * Outputs information on stereo parity, for debugging purposes.
+     */
+    public void debug() {
+        System.out.println(getDebugString());
+    }
+
+    /**
+     * <p>Convenience method for generating 0D stereo parities at tetrahedral
+     * atom centres.
+     *
+     * <p><b>Usage notes from <i>inchi_api.h</i>:</b>
+     * <pre>
+     *  4 neighbors
+     *
+     *           X                    neighbor[4] : {#W, #X, #Y, #Z}
+     *           |                    central_atom: #A
+     *        W--A--Y                 type        : INCHI_StereoType_Tetrahedral
+     *           |
+     *           Z
+     *  parity: if (X,Y,Z) are clockwize when seen from W then parity is 'e' otherwise 'o'
+     *  Example (see AXYZW above): if W is above the plane XYZ then parity = 'e'
+     *
+     *  3 neighbors
+     *
+     *             Y          Y       neighbor[4] : {#A, #X, #Y, #Z}
+     *            /          /        central_atom: #A
+     *        X--A  (e.g. O=S   )     type        : INCHI_StereoType_Tetrahedral
+     *            \          \
+     *             Z          Z
+     *
+     *  parity: if (X,Y,Z) are clockwize when seen from A then parity is 'e',
+     *                                                         otherwise 'o'
+     *  unknown parity = 'u'
+     *  Example (see AXYZ above): if A is above the plane XYZ then parity = 'e'
+     *  This approach may be used also in case of an implicit H attached to A.
+     *
+     *  ==============================================
+     *  Note. Correspondence to CML 0D stereo parities
+     *  ==============================================
+     *  a list of 4 atoms corresponds to CML atomRefs4
+     *
+     *  tetrahedral atom
+     *  ================
+     *  CML atomParity > 0 <=> INCHI_PARITY_EVEN
+     *  CML atomParity < 0 <=> INCHI_PARITY_ODD
+     *
+     *                               | 1   1   1   1  |  where xW is x-coordinate of
+     *                               | xW  xX  xY  xZ |  atom W, etc. (xyz is a
+     *  CML atomParity = determinant | yW  yX  yY  yZ |  'right-handed' Cartesian
+     *                               | zW  zX  xY  zZ |  coordinate system)
+     * </pre>
+     *
+     * @param atC    Central atom
+     * @param at0    Neighbour atom 0
+     * @param at1    Neighbour atom 1
+     * @param at2    Neighbour atom 2
+     * @param at3    Neighbour atom 3
+     * @param parity Parity
+     */
+    public static JniInchiStereo0D createNewTetrahedralStereo0D(final JniInchiAtom atC, final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, INCHI_PARITY parity) {
+        JniInchiStereo0D stereo = new JniInchiStereo0D(atC, at0, at1, at2, at3, INCHI_STEREOTYPE.TETRAHEDRAL, parity);
+        return stereo;
+    }
+
+    /**
+     * <p>Convenience method for generating 0D stereo parities at stereogenic
+     * double bonds.
+     *
+     * <p><b>Usage notes from <i>inchi_api.h</i>:</b>
+     * <pre>
+     *  =============================================
+     *  stereogenic bond >A=B< or cumulene >A=C=C=B<
+     *  =============================================
+     *
+     *                              neighbor[4]  : {#X,#A,#B,#Y} in this order
+     *  X                           central_atom : NO_ATOM
+     *   \            X      Y      type         : INCHI_StereoType_DoubleBond
+     *    A==B         \    /
+     *        \         A==B
+     *         Y
+     *
+     *  parity= 'e'    parity= 'o'   unknown parity = 'u'
+     *
+     *  ==============================================
+     *  Note. Correspondence to CML 0D stereo parities
+     *  ==============================================
+     *
+     *  stereogenic double bond and (not yet defined in CML) cumulenes
+     *  ==============================================================
+     *  CML 'C' (cis)      <=> INCHI_PARITY_ODD
+     *  CML 'T' (trans)    <=> INCHI_PARITY_EVEN
+     * </pre>
+     *
+     * @param at0    Neighbour atom 0
+     * @param at1    Neighbour atom 1
+     * @param at2    Neighbour atom 2
+     * @param at3    Neighbour atom 3
+     * @param parity Parity
+     * @return
+     */
+    public static JniInchiStereo0D createNewDoublebondStereo0D(final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, final INCHI_PARITY parity) {
+        JniInchiStereo0D stereo = new JniInchiStereo0D(null, at0, at1, at2, at3, INCHI_STEREOTYPE.DOUBLEBOND, parity);
+        return stereo;
+    }
+
+    int getInchiStereoType() {
+        return type.getIndx();
+    }
+
+    int getInchiParity() {
+        return parity.getIndx();
+    }
+}
+","// JniInchiStereo0D_1Test.java
+package net.sf.jniinchi;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStereo0D}.
+* It contains ten unit test cases for the {@link JniInchiStereo0D#createNewTetrahedralStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)} method.
+*/
+class JniInchiStereo0D_1Test {","```java
+    @Test
+    void testCreateNewTetrahedralStereo0D() {
+        JniInchiAtom atC = new JniInchiAtom(""C"");
+        JniInchiAtom at0 = new JniInchiAtom(""H"");
+        JniInchiAtom at1 = new JniInchiAtom(""H"");
+        JniInchiAtom at2 = new JniInchiAtom(""H"");
+        JniInchiAtom at3 = new JniInchiAtom(""H"");
+        JniInchiStereo0D stereo = JniInchiStereo0D.createNewTetrahedralStereo0D(atC, at0, at1, at2, at3, INCHI_PARITY.EVEN);
+        
+        assertEquals(atC, stereo.getCentralAtom());
+        assertEquals(at0, stereo.getNeighbor(0));
+        assertEquals(at1, stereo.getNeighbor(1));
+        assertEquals(at2, stereo.getNeighbor(2));
+        assertEquals(at3, stereo.getNeighbor(3));
+        assertEquals(INCHI_STEREOTYPE.TETRAHEDRAL, stereo.getStereoType());
+        assertEquals(INCHI_PARITY.EVEN, stereo.getParity());
+    }
+    
+    @Test
+    void testCreateNewTetrahedralStereo0D_NullCentralAtom() {
+        JniInchiAtom at0 = new JniInchiAtom(""H"");
+        JniInchiAtom at1 = new JniInchiAtom(""H"");
+        JniInchiAtom at2 = new JniInchiAtom(""H"");
+        JniInchiAtom at3 = new JniInchiAtom(""H"");
+        JniInchiStereo0D stereo = JniInchiStereo0D.createNewTetrahedralStereo0D(null, at0, at1, at2, at3, INCHI_PARITY.ODD);
+        
+        assertNull(stereo.getCentralAtom());
+        assertEquals(at0, stereo.getNeighbor(0));
+        assertEquals(at1, stereo.getNeighbor(1));
+        assertEquals(at2, stereo.getNeighbor(2));
+        assertEquals(at3, stereo.getNeighbor(3));
+        assertEquals(INCHI_STEREOTYPE.TETRAHEDRAL, stereo.getStereoType());
+        assertEquals(INCHI_PARITY.ODD, stereo.getParity());
+    }
+    
+    // Add more test cases as needed
+}
+```"
+chatcmpl-A5TveRpO4fgDKiVShTzkSZE38amI5,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStereo0D_2Test.java,3.64088773727417,stop,"// JniInchiStereo0D.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+/**
+ * Encapsulates properites of InChI Stereo Parity.  See <tt>inchi_api.h</tt>.
+ * @author Sam Adams
+ */
+public class JniInchiStereo0D {
+
+    /**
+     * Indicates non-existent (central) atom. Value from inchi_api.h.
+     */
+    public static final int NO_ATOM = -1;
+
+    /**
+     * Neighbouring atoms.
+     */
+    private JniInchiAtom[] neighbors = new JniInchiAtom[4];
+
+    /**
+     * Central atom.
+     */
+    private JniInchiAtom centralAtom;
+
+    /**
+     * Stereo parity type.
+     */
+    private INCHI_STEREOTYPE type;
+
+    /**
+     * Parity.
+     */
+    private INCHI_PARITY parity;
+
+    /**
+     * Second parity (for disconnected systems).
+     */
+    private INCHI_PARITY disconParity = INCHI_PARITY.NONE;
+
+    /**
+     * Constructor.  See <tt>inchi_api.h</tt> for details of usage.
+     *
+     * @see createNewTetrahedralStereo0D()
+     * @see createNewDoublebondStereo0D()
+     *
+     * @param atC    Central atom
+     * @param at0    Neighbour atom 0
+     * @param at1    Neighbour atom 1
+     * @param at2    Neighbour atom 2
+     * @param at3    Neighbour atom 3
+     * @param type          Stereo parity type
+     * @param parity    Parity
+     */
+    public JniInchiStereo0D(final JniInchiAtom atC, final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, final INCHI_STEREOTYPE type, final INCHI_PARITY parity) {
+        centralAtom = atC;
+        neighbors[0] = at0;
+        neighbors[1] = at1;
+        neighbors[2] = at2;
+        neighbors[3] = at3;
+        this.type = type;
+        this.parity = parity;
+    }
+
+    JniInchiStereo0D(final JniInchiAtom atC, final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, final int type, final int parity) {
+        this(atC, at0, at1, at2, at3, INCHI_STEREOTYPE.getValue(type), INCHI_PARITY.getValue(parity));
+    }
+
+    /**
+     * Set second parity (for disconnected systems)
+     * @param parity
+     */
+    public void setDisconnectedParity(final INCHI_PARITY parity) {
+        this.disconParity = parity;
+    }
+
+    /**
+     * Returns central atom of stereo parity.
+     * @return
+     */
+    public JniInchiAtom getCentralAtom() {
+        return centralAtom;
+    }
+
+    /**
+     * Returns neighboring atoms of stereo parity.
+     * @return
+     */
+    public JniInchiAtom[] getNeighbors() {
+        return neighbors;
+    }
+
+    public JniInchiAtom getNeighbor(int i) {
+        return neighbors[i];
+    }
+
+    /**
+     * Returns parity.
+     * @return
+     */
+    public INCHI_PARITY getParity() {
+        return parity;
+    }
+
+    /**
+     * Returns disconnected parity.
+     * @return
+     */
+    public INCHI_PARITY getDisconnectedParity() {
+        return disconParity;
+    }
+
+    /**
+     * Returns type of stereochemistry.
+     * @return
+     */
+    public INCHI_STEREOTYPE getStereoType() {
+        return type;
+    }
+
+    /**
+     * Generates string representation of information on stereo parity,
+     * for debugging purposes.
+     */
+    public String getDebugString() {
+        return (""InChI Stereo0D: "" + (centralAtom == null ? ""-"" : centralAtom.getElementType()) + "" ["" + neighbors[0].getElementType() + "","" + neighbors[1].getElementType() + "","" + neighbors[2].getElementType() + "","" + neighbors[3].getElementType() + ""] "" + ""Type::"" + type + "" // "" + ""Parity:"" + parity);
+    }
+
+    /**
+     * Outputs information on stereo parity, for debugging purposes.
+     */
+    public void debug() {
+        System.out.println(getDebugString());
+    }
+
+    /**
+     * <p>Convenience method for generating 0D stereo parities at tetrahedral
+     * atom centres.
+     *
+     * <p><b>Usage notes from <i>inchi_api.h</i>:</b>
+     * <pre>
+     *  4 neighbors
+     *
+     *           X                    neighbor[4] : {#W, #X, #Y, #Z}
+     *           |                    central_atom: #A
+     *        W--A--Y                 type        : INCHI_StereoType_Tetrahedral
+     *           |
+     *           Z
+     *  parity: if (X,Y,Z) are clockwize when seen from W then parity is 'e' otherwise 'o'
+     *  Example (see AXYZW above): if W is above the plane XYZ then parity = 'e'
+     *
+     *  3 neighbors
+     *
+     *             Y          Y       neighbor[4] : {#A, #X, #Y, #Z}
+     *            /          /        central_atom: #A
+     *        X--A  (e.g. O=S   )     type        : INCHI_StereoType_Tetrahedral
+     *            \          \
+     *             Z          Z
+     *
+     *  parity: if (X,Y,Z) are clockwize when seen from A then parity is 'e',
+     *                                                         otherwise 'o'
+     *  unknown parity = 'u'
+     *  Example (see AXYZ above): if A is above the plane XYZ then parity = 'e'
+     *  This approach may be used also in case of an implicit H attached to A.
+     *
+     *  ==============================================
+     *  Note. Correspondence to CML 0D stereo parities
+     *  ==============================================
+     *  a list of 4 atoms corresponds to CML atomRefs4
+     *
+     *  tetrahedral atom
+     *  ================
+     *  CML atomParity > 0 <=> INCHI_PARITY_EVEN
+     *  CML atomParity < 0 <=> INCHI_PARITY_ODD
+     *
+     *                               | 1   1   1   1  |  where xW is x-coordinate of
+     *                               | xW  xX  xY  xZ |  atom W, etc. (xyz is a
+     *  CML atomParity = determinant | yW  yX  yY  yZ |  'right-handed' Cartesian
+     *                               | zW  zX  xY  zZ |  coordinate system)
+     * </pre>
+     *
+     * @param atC    Central atom
+     * @param at0    Neighbour atom 0
+     * @param at1    Neighbour atom 1
+     * @param at2    Neighbour atom 2
+     * @param at3    Neighbour atom 3
+     * @param parity Parity
+     */
+    public static JniInchiStereo0D createNewTetrahedralStereo0D(final JniInchiAtom atC, final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, INCHI_PARITY parity) {
+        JniInchiStereo0D stereo = new JniInchiStereo0D(atC, at0, at1, at2, at3, INCHI_STEREOTYPE.TETRAHEDRAL, parity);
+        return stereo;
+    }
+
+    /**
+     * <p>Convenience method for generating 0D stereo parities at stereogenic
+     * double bonds.
+     *
+     * <p><b>Usage notes from <i>inchi_api.h</i>:</b>
+     * <pre>
+     *  =============================================
+     *  stereogenic bond >A=B< or cumulene >A=C=C=B<
+     *  =============================================
+     *
+     *                              neighbor[4]  : {#X,#A,#B,#Y} in this order
+     *  X                           central_atom : NO_ATOM
+     *   \            X      Y      type         : INCHI_StereoType_DoubleBond
+     *    A==B         \    /
+     *        \         A==B
+     *         Y
+     *
+     *  parity= 'e'    parity= 'o'   unknown parity = 'u'
+     *
+     *  ==============================================
+     *  Note. Correspondence to CML 0D stereo parities
+     *  ==============================================
+     *
+     *  stereogenic double bond and (not yet defined in CML) cumulenes
+     *  ==============================================================
+     *  CML 'C' (cis)      <=> INCHI_PARITY_ODD
+     *  CML 'T' (trans)    <=> INCHI_PARITY_EVEN
+     * </pre>
+     *
+     * @param at0    Neighbour atom 0
+     * @param at1    Neighbour atom 1
+     * @param at2    Neighbour atom 2
+     * @param at3    Neighbour atom 3
+     * @param parity Parity
+     * @return
+     */
+    public static JniInchiStereo0D createNewDoublebondStereo0D(final JniInchiAtom at0, final JniInchiAtom at1, final JniInchiAtom at2, final JniInchiAtom at3, final INCHI_PARITY parity) {
+        JniInchiStereo0D stereo = new JniInchiStereo0D(null, at0, at1, at2, at3, INCHI_STEREOTYPE.DOUBLEBOND, parity);
+        return stereo;
+    }
+
+    int getInchiStereoType() {
+        return type.getIndx();
+    }
+
+    int getInchiParity() {
+        return parity.getIndx();
+    }
+}
+","// JniInchiStereo0D_2Test.java
+package net.sf.jniinchi;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStereo0D}.
+* It contains ten unit test cases for the {@link JniInchiStereo0D#createNewDoublebondStereo0D(JniInchiAtom, JniInchiAtom, JniInchiAtom, JniInchiAtom, INCHI_PARITY)} method.
+*/
+class JniInchiStereo0D_2Test {","```java
+class JniInchiStereo0D_2Test {
+
+    @Test
+    void testCreateNewDoublebondStereo0D() {
+        JniInchiAtom at0 = new JniInchiAtom(""C"");
+        JniInchiAtom at1 = new JniInchiAtom(""H"");
+        JniInchiAtom at2 = new JniInchiAtom(""H"");
+        JniInchiAtom at3 = new JniInchiAtom(""O"");
+
+        JniInchiStereo0D stereo = JniInchiStereo0D.createNewDoublebondStereo0D(at0, at1, at2, at3, INCHI_PARITY.EVEN);
+
+        assertEquals(null, stereo.getCentralAtom());
+        assertEquals(at0, stereo.getNeighbor(0));
+        assertEquals(at1, stereo.getNeighbor(1));
+        assertEquals(at2, stereo.getNeighbor(2));
+        assertEquals(at3, stereo.getNeighbor(3));
+        assertEquals(INCHI_STEREOTYPE.DOUBLEBOND, stereo.getStereoType());
+        assertEquals(INCHI_PARITY.EVEN, stereo.getParity());
+    }
+}
+```
+```"
+chatcmpl-A5TwhPwRbrIH9mnoGi5UyOzoXqlp3,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure_0Test.java,4.439432382583618,stop,"// JniInchiStructure.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * List of atoms.
+     */
+    private List atomList = new ArrayList();
+
+    /**
+     * List of bonds.
+     */
+    private List bondList = new ArrayList();
+
+    /**
+     * List of stero parities.
+     */
+    private List stereoList = new ArrayList();
+
+    /**
+     * Returns number of atoms in structure.
+     */
+    public int getNumAtoms() {
+        return atomList.size();
+    }
+
+    /**
+     * Returns number of bonds in structure.
+     */
+    public int getNumBonds() {
+        return bondList.size();
+    }
+
+    /**
+     * Returns number of stereo parities in strucuture.
+     */
+    public int getNumStereo0D() {
+        return stereoList.size();
+    }
+
+    /**
+     * Adds atom to inchi molecule.
+     *
+     * @param atom  Atom to add
+     * @return      Added atom
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiAtom addAtom(JniInchiAtom atom) {
+        atomList.add(atom);
+        return atom;
+    }
+
+    /**
+     * Convenience method to add multiple atoms to molecule.
+     * @param atoms
+     */
+    public void addAtoms(JniInchiAtom... atoms) {
+        for (JniInchiAtom atom : atoms) {
+            addAtom(atom);
+        }
+    }
+
+    /**
+     * Adds bond to inchi molecule.
+     *
+     * @param bond  Bond to add
+     * @return      Added bond
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiBond addBond(JniInchiBond bond) {
+        bondList.add(bond);
+        return bond;
+    }
+
+    /**
+     * Convenience method to add multiple bonds to molecule.
+     * @param bonds
+     */
+    public void addBonds(JniInchiBond... bonds) {
+        for (JniInchiBond bond : bonds) {
+            addBond(bond);
+        }
+    }
+
+    /**
+     * Adds 0D stereo parity to inchi molecule.
+     *
+     * @param parity  Parity to add
+     * @return        Added parity
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiStereo0D addStereo0D(JniInchiStereo0D parity) {
+        stereoList.add(parity);
+        return parity;
+    }
+
+    /**
+     * Returns atom from structure.
+     * @param i    Index of atom to return.
+     * @return
+     */
+    public JniInchiAtom getAtom(final int i) {
+        return (JniInchiAtom) atomList.get(i);
+    }
+
+    /**
+     * Returns bond from structure.
+     * @param i    Index of bond to return.
+     * @return
+     */
+    public JniInchiBond getBond(final int i) {
+        return (JniInchiBond) bondList.get(i);
+    }
+
+    /**
+     * Returns stereo parity from structure.
+     * @param i    Index of stereo parity to return.
+     * @return
+     */
+    public JniInchiStereo0D getStereo0D(final int i) {
+        return (JniInchiStereo0D) stereoList.get(i);
+    }
+
+    public void setStructure(JniInchiStructure structure) {
+        this.atomList = structure.atomList;
+        this.bondList = structure.bondList;
+        this.stereoList = structure.stereoList;
+    }
+
+    int getAtomIndex(JniInchiAtom atom) {
+        return atomList.indexOf(atom);
+    }
+
+    int getStereo0DIndex(JniInchiStereo0D stereo) {
+        return stereoList.indexOf(stereo);
+    }
+}
+","// JniInchiStructure_0Test.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addAtom(JniInchiAtom)} method.
+*/
+class JniInchiStructure_0Test {","```java
+package net.sf.jniinchi;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class JniInchiStructure_0Test {
+
+    @Test
+    void testAddAtom() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        JniInchiAtom atom2 = new JniInchiAtom();
+        
+        assertEquals(0, structure.getNumAtoms());
+        
+        structure.addAtom(atom1);
+        assertEquals(1, structure.getNumAtoms());
+        assertEquals(atom1, structure.getAtom(0));
+        
+        structure.addAtom(atom2);
+        assertEquals(2, structure.getNumAtoms());
+        assertEquals(atom2, structure.getAtom(1));
+    }
+
+    @Test
+    void testAddAtoms() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        JniInchiAtom atom2 = new JniInchiAtom();
+        
+        assertEquals(0, structure.getNumAtoms());
+        
+        structure.addAtoms(atom1, atom2);
+        assertEquals(2, structure.getNumAtoms());
+        assertEquals(atom1, structure.getAtom(0));
+        assertEquals(atom2, structure.getAtom(1));
+    }
+
+}
+```
+"
+chatcmpl-A5TxksBIGXUolbAivpTshW0oeXCzR,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure_1Test.java,4.443421125411987,stop,"// JniInchiStructure.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * List of atoms.
+     */
+    private List atomList = new ArrayList();
+
+    /**
+     * List of bonds.
+     */
+    private List bondList = new ArrayList();
+
+    /**
+     * List of stero parities.
+     */
+    private List stereoList = new ArrayList();
+
+    /**
+     * Returns number of atoms in structure.
+     */
+    public int getNumAtoms() {
+        return atomList.size();
+    }
+
+    /**
+     * Returns number of bonds in structure.
+     */
+    public int getNumBonds() {
+        return bondList.size();
+    }
+
+    /**
+     * Returns number of stereo parities in strucuture.
+     */
+    public int getNumStereo0D() {
+        return stereoList.size();
+    }
+
+    /**
+     * Adds atom to inchi molecule.
+     *
+     * @param atom  Atom to add
+     * @return      Added atom
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiAtom addAtom(JniInchiAtom atom) {
+        atomList.add(atom);
+        return atom;
+    }
+
+    /**
+     * Convenience method to add multiple atoms to molecule.
+     * @param atoms
+     */
+    public void addAtoms(JniInchiAtom... atoms) {
+        for (JniInchiAtom atom : atoms) {
+            addAtom(atom);
+        }
+    }
+
+    /**
+     * Adds bond to inchi molecule.
+     *
+     * @param bond  Bond to add
+     * @return      Added bond
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiBond addBond(JniInchiBond bond) {
+        bondList.add(bond);
+        return bond;
+    }
+
+    /**
+     * Convenience method to add multiple bonds to molecule.
+     * @param bonds
+     */
+    public void addBonds(JniInchiBond... bonds) {
+        for (JniInchiBond bond : bonds) {
+            addBond(bond);
+        }
+    }
+
+    /**
+     * Adds 0D stereo parity to inchi molecule.
+     *
+     * @param parity  Parity to add
+     * @return        Added parity
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiStereo0D addStereo0D(JniInchiStereo0D parity) {
+        stereoList.add(parity);
+        return parity;
+    }
+
+    /**
+     * Returns atom from structure.
+     * @param i    Index of atom to return.
+     * @return
+     */
+    public JniInchiAtom getAtom(final int i) {
+        return (JniInchiAtom) atomList.get(i);
+    }
+
+    /**
+     * Returns bond from structure.
+     * @param i    Index of bond to return.
+     * @return
+     */
+    public JniInchiBond getBond(final int i) {
+        return (JniInchiBond) bondList.get(i);
+    }
+
+    /**
+     * Returns stereo parity from structure.
+     * @param i    Index of stereo parity to return.
+     * @return
+     */
+    public JniInchiStereo0D getStereo0D(final int i) {
+        return (JniInchiStereo0D) stereoList.get(i);
+    }
+
+    public void setStructure(JniInchiStructure structure) {
+        this.atomList = structure.atomList;
+        this.bondList = structure.bondList;
+        this.stereoList = structure.stereoList;
+    }
+
+    int getAtomIndex(JniInchiAtom atom) {
+        return atomList.indexOf(atom);
+    }
+
+    int getStereo0DIndex(JniInchiStereo0D stereo) {
+        return stereoList.indexOf(stereo);
+    }
+}
+","// JniInchiStructure_1Test.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addBond(JniInchiBond)} method.
+*/
+class JniInchiStructure_1Test {","```java
+class JniInchiStructure_1Test {
+
+    @Test
+    void testAddBond() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        JniInchiAtom atom2 = new JniInchiAtom();
+        JniInchiBond bond = new JniInchiBond(atom1, atom2, 1);
+        
+        assertEquals(0, structure.getNumBonds());
+        
+        structure.addBond(bond);
+        
+        assertEquals(1, structure.getNumBonds());
+        assertEquals(bond, structure.getBond(0));
+    }
+
+    @Test
+    void testAddMultipleBonds() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        JniInchiAtom atom2 = new JniInchiAtom();
+        JniInchiAtom atom3 = new JniInchiAtom();
+        JniInchiBond bond1 = new JniInchiBond(atom1, atom2, 1);
+        JniInchiBond bond2 = new JniInchiBond(atom2, atom3, 2);
+        
+        assertEquals(0, structure.getNumBonds());
+        
+        structure.addBonds(bond1, bond2);
+        
+        assertEquals(2, structure.getNumBonds());
+        assertEquals(bond1, structure.getBond(0));
+        assertEquals(bond2, structure.getBond(1));
+    }
+
+}
+```
+"
+chatcmpl-A5TynKPWbvpHf8LMG3FNDXwV3BBqj,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure_2Test.java,3.3868637084960938,stop,"// JniInchiStructure.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * List of atoms.
+     */
+    private List atomList = new ArrayList();
+
+    /**
+     * List of bonds.
+     */
+    private List bondList = new ArrayList();
+
+    /**
+     * List of stero parities.
+     */
+    private List stereoList = new ArrayList();
+
+    /**
+     * Returns number of atoms in structure.
+     */
+    public int getNumAtoms() {
+        return atomList.size();
+    }
+
+    /**
+     * Returns number of bonds in structure.
+     */
+    public int getNumBonds() {
+        return bondList.size();
+    }
+
+    /**
+     * Returns number of stereo parities in strucuture.
+     */
+    public int getNumStereo0D() {
+        return stereoList.size();
+    }
+
+    /**
+     * Adds atom to inchi molecule.
+     *
+     * @param atom  Atom to add
+     * @return      Added atom
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiAtom addAtom(JniInchiAtom atom) {
+        atomList.add(atom);
+        return atom;
+    }
+
+    /**
+     * Convenience method to add multiple atoms to molecule.
+     * @param atoms
+     */
+    public void addAtoms(JniInchiAtom... atoms) {
+        for (JniInchiAtom atom : atoms) {
+            addAtom(atom);
+        }
+    }
+
+    /**
+     * Adds bond to inchi molecule.
+     *
+     * @param bond  Bond to add
+     * @return      Added bond
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiBond addBond(JniInchiBond bond) {
+        bondList.add(bond);
+        return bond;
+    }
+
+    /**
+     * Convenience method to add multiple bonds to molecule.
+     * @param bonds
+     */
+    public void addBonds(JniInchiBond... bonds) {
+        for (JniInchiBond bond : bonds) {
+            addBond(bond);
+        }
+    }
+
+    /**
+     * Adds 0D stereo parity to inchi molecule.
+     *
+     * @param parity  Parity to add
+     * @return        Added parity
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiStereo0D addStereo0D(JniInchiStereo0D parity) {
+        stereoList.add(parity);
+        return parity;
+    }
+
+    /**
+     * Returns atom from structure.
+     * @param i    Index of atom to return.
+     * @return
+     */
+    public JniInchiAtom getAtom(final int i) {
+        return (JniInchiAtom) atomList.get(i);
+    }
+
+    /**
+     * Returns bond from structure.
+     * @param i    Index of bond to return.
+     * @return
+     */
+    public JniInchiBond getBond(final int i) {
+        return (JniInchiBond) bondList.get(i);
+    }
+
+    /**
+     * Returns stereo parity from structure.
+     * @param i    Index of stereo parity to return.
+     * @return
+     */
+    public JniInchiStereo0D getStereo0D(final int i) {
+        return (JniInchiStereo0D) stereoList.get(i);
+    }
+
+    public void setStructure(JniInchiStructure structure) {
+        this.atomList = structure.atomList;
+        this.bondList = structure.bondList;
+        this.stereoList = structure.stereoList;
+    }
+
+    int getAtomIndex(JniInchiAtom atom) {
+        return atomList.indexOf(atom);
+    }
+
+    int getStereo0DIndex(JniInchiStereo0D stereo) {
+        return stereoList.indexOf(stereo);
+    }
+}
+","// JniInchiStructure_2Test.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#addStereo0D(JniInchiStereo0D)} method.
+*/
+class JniInchiStructure_2Test {","```java
+package net.sf.jniinchi;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class JniInchiStructure_2Test {
+
+    @Test
+    void testAddStereo0D() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiStereo0D stereo1 = new JniInchiStereo0D();
+        JniInchiStereo0D stereo2 = new JniInchiStereo0D();
+
+        assertEquals(0, structure.getNumStereo0D());
+
+        structure.addStereo0D(stereo1);
+        assertEquals(1, structure.getNumStereo0D());
+        assertEquals(stereo1, structure.getStereo0D(0));
+
+        structure.addStereo0D(stereo2);
+        assertEquals(2, structure.getNumStereo0D());
+        assertEquals(stereo2, structure.getStereo0D(1));
+    }
+
+    // Add more test cases here
+
+}
+```
+```"
+chatcmpl-A5TzqYOKEtIRFGzeix3SdEiSZl5uc,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure_3Test.java,10.696135520935059,stop,"// JniInchiStructure.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * List of atoms.
+     */
+    private List atomList = new ArrayList();
+
+    /**
+     * List of bonds.
+     */
+    private List bondList = new ArrayList();
+
+    /**
+     * List of stero parities.
+     */
+    private List stereoList = new ArrayList();
+
+    /**
+     * Returns number of atoms in structure.
+     */
+    public int getNumAtoms() {
+        return atomList.size();
+    }
+
+    /**
+     * Returns number of bonds in structure.
+     */
+    public int getNumBonds() {
+        return bondList.size();
+    }
+
+    /**
+     * Returns number of stereo parities in strucuture.
+     */
+    public int getNumStereo0D() {
+        return stereoList.size();
+    }
+
+    /**
+     * Adds atom to inchi molecule.
+     *
+     * @param atom  Atom to add
+     * @return      Added atom
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiAtom addAtom(JniInchiAtom atom) {
+        atomList.add(atom);
+        return atom;
+    }
+
+    /**
+     * Convenience method to add multiple atoms to molecule.
+     * @param atoms
+     */
+    public void addAtoms(JniInchiAtom... atoms) {
+        for (JniInchiAtom atom : atoms) {
+            addAtom(atom);
+        }
+    }
+
+    /**
+     * Adds bond to inchi molecule.
+     *
+     * @param bond  Bond to add
+     * @return      Added bond
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiBond addBond(JniInchiBond bond) {
+        bondList.add(bond);
+        return bond;
+    }
+
+    /**
+     * Convenience method to add multiple bonds to molecule.
+     * @param bonds
+     */
+    public void addBonds(JniInchiBond... bonds) {
+        for (JniInchiBond bond : bonds) {
+            addBond(bond);
+        }
+    }
+
+    /**
+     * Adds 0D stereo parity to inchi molecule.
+     *
+     * @param parity  Parity to add
+     * @return        Added parity
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiStereo0D addStereo0D(JniInchiStereo0D parity) {
+        stereoList.add(parity);
+        return parity;
+    }
+
+    /**
+     * Returns atom from structure.
+     * @param i    Index of atom to return.
+     * @return
+     */
+    public JniInchiAtom getAtom(final int i) {
+        return (JniInchiAtom) atomList.get(i);
+    }
+
+    /**
+     * Returns bond from structure.
+     * @param i    Index of bond to return.
+     * @return
+     */
+    public JniInchiBond getBond(final int i) {
+        return (JniInchiBond) bondList.get(i);
+    }
+
+    /**
+     * Returns stereo parity from structure.
+     * @param i    Index of stereo parity to return.
+     * @return
+     */
+    public JniInchiStereo0D getStereo0D(final int i) {
+        return (JniInchiStereo0D) stereoList.get(i);
+    }
+
+    public void setStructure(JniInchiStructure structure) {
+        this.atomList = structure.atomList;
+        this.bondList = structure.bondList;
+        this.stereoList = structure.stereoList;
+    }
+
+    int getAtomIndex(JniInchiAtom atom) {
+        return atomList.indexOf(atom);
+    }
+
+    int getStereo0DIndex(JniInchiStereo0D stereo) {
+        return stereoList.indexOf(stereo);
+    }
+}
+","// JniInchiStructure_3Test.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getAtom(int)} method.
+*/
+class JniInchiStructure_3Test {","```java
+package net.sf.jniinchi;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class JniInchiStructure_3Test {
+
+    @Test
+    void testGetAtom() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        JniInchiAtom atom2 = new JniInchiAtom();
+        structure.addAtom(atom1);
+        structure.addAtom(atom2);
+
+        assertEquals(atom1, structure.getAtom(0));
+        assertEquals(atom2, structure.getAtom(1));
+    }
+
+    @Test
+    void testGetAtom_IndexOutOfBounds() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        structure.addAtom(atom1);
+
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            structure.getAtom(1);
+        });
+    }
+
+    @Test
+    void testGetAtom_NullAtom() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        structure.addAtom(atom1);
+
+        assertNull(structure.getAtom(1));
+    }
+
+    @Test
+    void testGetAtom_EmptyStructure() {
+        JniInchiStructure structure = new JniInchiStructure();
+
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            structure.getAtom(0);
+        });
+    }
+
+    @Test
+    void testGetAtom_NegativeIndex() {
+        JniInchiStructure structure = new JniInchiStructure();
+
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            structure.getAtom(-1);
+        });
+    }
+
+    @Test
+    void testGetAtom_MultipleAtoms() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        JniInchiAtom atom2 = new JniInchiAtom();
+        JniInchiAtom atom3 = new JniInchiAtom();
+        structure.addAtom(atom1);
+        structure.addAtom(atom2);
+        structure.addAtom(atom3);
+
+        assertEquals(atom2, structure.getAtom(1));
+    }
+
+    @Test
+    void testGetAtom_SameAtom() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        structure.addAtom(atom1);
+
+        assertEquals(atom1, structure.getAtom(0));
+    }
+
+    @Test
+    void testGetAtom_NullStructure() {
+        JniInchiStructure structure = null;
+
+        assertThrows(NullPointerException.class, () -> {
+            structure.getAtom(0);
+        });
+    }
+
+    @Test
+    void testGetAtom_IndexGreaterThanSize() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        structure.addAtom(atom1);
+
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            structure.getAtom(2);
+        });
+    }
+
+    @Test
+    void testGetAtom_IndexEqualToSize() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        structure.addAtom(atom1);
+
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            structure.getAtom(1);
+        });
+    }
+}
+```
+```"
+chatcmpl-A5U0tppg8Ai6TD9D1iQ9Nz8PWFMEM,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure_4Test.java,3.415109395980835,stop,"// JniInchiStructure.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * List of atoms.
+     */
+    private List atomList = new ArrayList();
+
+    /**
+     * List of bonds.
+     */
+    private List bondList = new ArrayList();
+
+    /**
+     * List of stero parities.
+     */
+    private List stereoList = new ArrayList();
+
+    /**
+     * Returns number of atoms in structure.
+     */
+    public int getNumAtoms() {
+        return atomList.size();
+    }
+
+    /**
+     * Returns number of bonds in structure.
+     */
+    public int getNumBonds() {
+        return bondList.size();
+    }
+
+    /**
+     * Returns number of stereo parities in strucuture.
+     */
+    public int getNumStereo0D() {
+        return stereoList.size();
+    }
+
+    /**
+     * Adds atom to inchi molecule.
+     *
+     * @param atom  Atom to add
+     * @return      Added atom
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiAtom addAtom(JniInchiAtom atom) {
+        atomList.add(atom);
+        return atom;
+    }
+
+    /**
+     * Convenience method to add multiple atoms to molecule.
+     * @param atoms
+     */
+    public void addAtoms(JniInchiAtom... atoms) {
+        for (JniInchiAtom atom : atoms) {
+            addAtom(atom);
+        }
+    }
+
+    /**
+     * Adds bond to inchi molecule.
+     *
+     * @param bond  Bond to add
+     * @return      Added bond
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiBond addBond(JniInchiBond bond) {
+        bondList.add(bond);
+        return bond;
+    }
+
+    /**
+     * Convenience method to add multiple bonds to molecule.
+     * @param bonds
+     */
+    public void addBonds(JniInchiBond... bonds) {
+        for (JniInchiBond bond : bonds) {
+            addBond(bond);
+        }
+    }
+
+    /**
+     * Adds 0D stereo parity to inchi molecule.
+     *
+     * @param parity  Parity to add
+     * @return        Added parity
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiStereo0D addStereo0D(JniInchiStereo0D parity) {
+        stereoList.add(parity);
+        return parity;
+    }
+
+    /**
+     * Returns atom from structure.
+     * @param i    Index of atom to return.
+     * @return
+     */
+    public JniInchiAtom getAtom(final int i) {
+        return (JniInchiAtom) atomList.get(i);
+    }
+
+    /**
+     * Returns bond from structure.
+     * @param i    Index of bond to return.
+     * @return
+     */
+    public JniInchiBond getBond(final int i) {
+        return (JniInchiBond) bondList.get(i);
+    }
+
+    /**
+     * Returns stereo parity from structure.
+     * @param i    Index of stereo parity to return.
+     * @return
+     */
+    public JniInchiStereo0D getStereo0D(final int i) {
+        return (JniInchiStereo0D) stereoList.get(i);
+    }
+
+    public void setStructure(JniInchiStructure structure) {
+        this.atomList = structure.atomList;
+        this.bondList = structure.bondList;
+        this.stereoList = structure.stereoList;
+    }
+
+    int getAtomIndex(JniInchiAtom atom) {
+        return atomList.indexOf(atom);
+    }
+
+    int getStereo0DIndex(JniInchiStereo0D stereo) {
+        return stereoList.indexOf(stereo);
+    }
+}
+","// JniInchiStructure_4Test.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getBond(int)} method.
+*/
+class JniInchiStructure_4Test {","```java
+class JniInchiStructure_4Test {
+
+    @Test
+    void testGetBond() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiAtom atom1 = new JniInchiAtom();
+        JniInchiAtom atom2 = new JniInchiAtom();
+        JniInchiBond bond1 = new JniInchiBond(atom1, atom2, 1);
+        JniInchiBond bond2 = new JniInchiBond(atom2, atom1, 2);
+        structure.addBond(bond1);
+        structure.addBond(bond2);
+
+        assertEquals(bond1, structure.getBond(0));
+        assertEquals(bond2, structure.getBond(1));
+    }
+
+    // Add more test cases for the getBond method if needed
+
+}
+```
+"
+chatcmpl-A5U1wsa4Y6oHtdT8SuraGRdlpUzmM,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiStructure_5Test.java,14.025073766708374,stop,"// JniInchiStructure.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Sam Adams
+ */
+public class JniInchiStructure {
+
+    /**
+     * List of atoms.
+     */
+    private List atomList = new ArrayList();
+
+    /**
+     * List of bonds.
+     */
+    private List bondList = new ArrayList();
+
+    /**
+     * List of stero parities.
+     */
+    private List stereoList = new ArrayList();
+
+    /**
+     * Returns number of atoms in structure.
+     */
+    public int getNumAtoms() {
+        return atomList.size();
+    }
+
+    /**
+     * Returns number of bonds in structure.
+     */
+    public int getNumBonds() {
+        return bondList.size();
+    }
+
+    /**
+     * Returns number of stereo parities in strucuture.
+     */
+    public int getNumStereo0D() {
+        return stereoList.size();
+    }
+
+    /**
+     * Adds atom to inchi molecule.
+     *
+     * @param atom  Atom to add
+     * @return      Added atom
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiAtom addAtom(JniInchiAtom atom) {
+        atomList.add(atom);
+        return atom;
+    }
+
+    /**
+     * Convenience method to add multiple atoms to molecule.
+     * @param atoms
+     */
+    public void addAtoms(JniInchiAtom... atoms) {
+        for (JniInchiAtom atom : atoms) {
+            addAtom(atom);
+        }
+    }
+
+    /**
+     * Adds bond to inchi molecule.
+     *
+     * @param bond  Bond to add
+     * @return      Added bond
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiBond addBond(JniInchiBond bond) {
+        bondList.add(bond);
+        return bond;
+    }
+
+    /**
+     * Convenience method to add multiple bonds to molecule.
+     * @param bonds
+     */
+    public void addBonds(JniInchiBond... bonds) {
+        for (JniInchiBond bond : bonds) {
+            addBond(bond);
+        }
+    }
+
+    /**
+     * Adds 0D stereo parity to inchi molecule.
+     *
+     * @param parity  Parity to add
+     * @return        Added parity
+     */
+    @SuppressWarnings(""unchecked"")
+    public JniInchiStereo0D addStereo0D(JniInchiStereo0D parity) {
+        stereoList.add(parity);
+        return parity;
+    }
+
+    /**
+     * Returns atom from structure.
+     * @param i    Index of atom to return.
+     * @return
+     */
+    public JniInchiAtom getAtom(final int i) {
+        return (JniInchiAtom) atomList.get(i);
+    }
+
+    /**
+     * Returns bond from structure.
+     * @param i    Index of bond to return.
+     * @return
+     */
+    public JniInchiBond getBond(final int i) {
+        return (JniInchiBond) bondList.get(i);
+    }
+
+    /**
+     * Returns stereo parity from structure.
+     * @param i    Index of stereo parity to return.
+     * @return
+     */
+    public JniInchiStereo0D getStereo0D(final int i) {
+        return (JniInchiStereo0D) stereoList.get(i);
+    }
+
+    public void setStructure(JniInchiStructure structure) {
+        this.atomList = structure.atomList;
+        this.bondList = structure.bondList;
+        this.stereoList = structure.stereoList;
+    }
+
+    int getAtomIndex(JniInchiAtom atom) {
+        return atomList.indexOf(atom);
+    }
+
+    int getStereo0DIndex(JniInchiStereo0D stereo) {
+        return stereoList.indexOf(stereo);
+    }
+}
+","// JniInchiStructure_5Test.java
+package net.sf.jniinchi;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiStructure}.
+* It contains ten unit test cases for the {@link JniInchiStructure#getStereo0D(int)} method.
+*/
+class JniInchiStructure_5Test {","```java
+package net.sf.jniinchi;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class JniInchiStructure_5Test {
+
+    @Test
+    void testGetStereo0D_WhenIndexIsNegative_ThenThrowIndexOutOfBoundsException() {
+        JniInchiStructure structure = new JniInchiStructure();
+        assertThrows(IndexOutOfBoundsException.class, () -> structure.getStereo0D(-1));
+    }
+
+    @Test
+    void testGetStereo0D_WhenIndexIsZero_ThenReturnFirstStereo0D() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiStereo0D stereo0D = new JniInchiStereo0D();
+        structure.addStereo0D(stereo0D);
+        assertEquals(stereo0D, structure.getStereo0D(0));
+    }
+
+    @Test
+    void testGetStereo0D_WhenIndexIsWithinBounds_ThenReturnCorrectStereo0D() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiStereo0D stereo0D1 = new JniInchiStereo0D();
+        JniInchiStereo0D stereo0D2 = new JniInchiStereo0D();
+        structure.addStereo0D(stereo0D1);
+        structure.addStereo0D(stereo0D2);
+        assertEquals(stereo0D2, structure.getStereo0D(1));
+    }
+
+    @Test
+    void testGetStereo0D_WhenIndexIsOutOfBounds_ThenThrowIndexOutOfBoundsException() {
+        JniInchiStructure structure = new JniInchiStructure();
+        assertThrows(IndexOutOfBoundsException.class, () -> structure.getStereo0D(1));
+    }
+
+    @Test
+    void testGetStereo0D_WhenNoStereo0DAdded_ThenThrowIndexOutOfBoundsException() {
+        JniInchiStructure structure = new JniInchiStructure();
+        assertThrows(IndexOutOfBoundsException.class, () -> structure.getStereo0D(0));
+    }
+
+    @Test
+    void testGetStereo0D_WhenMultipleStereo0DAdded_ThenReturnCorrectStereo0D() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiStereo0D stereo0D1 = new JniInchiStereo0D();
+        JniInchiStereo0D stereo0D2 = new JniInchiStereo0D();
+        structure.addStereo0D(stereo0D1);
+        structure.addStereo0D(stereo0D2);
+        assertEquals(stereo0D1, structure.getStereo0D(0));
+    }
+
+    @Test
+    void testGetStereo0D_WhenMultipleStereo0DAddedAndIndexIsLast_ThenReturnLastStereo0D() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiStereo0D stereo0D1 = new JniInchiStereo0D();
+        JniInchiStereo0D stereo0D2 = new JniInchiStereo0D();
+        structure.addStereo0D(stereo0D1);
+        structure.addStereo0D(stereo0D2);
+        assertEquals(stereo0D2, structure.getStereo0D(1));
+    }
+
+    @Test
+    void testGetStereo0D_WhenMultipleStereo0DAddedAndIndexIsNegative_ThenThrowIndexOutOfBoundsException() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiStereo0D stereo0D1 = new JniInchiStereo0D();
+        JniInchiStereo0D stereo0D2 = new JniInchiStereo0D();
+        structure.addStereo0D(stereo0D1);
+        structure.addStereo0D(stereo0D2);
+        assertThrows(IndexOutOfBoundsException.class, () -> structure.getStereo0D(-1));
+    }
+
+    @Test
+    void testGetStereo0D_WhenMultipleStereo0DAddedAndIndexIsOutOfBounds_ThenThrowIndexOutOfBoundsException() {
+        JniInchiStructure structure = new JniInchiStructure();
+        JniInchiStereo0D stereo0D1 = new JniInchiStereo0D();
+        JniInchiStereo0D stereo0D2 = new JniInchiStereo0D();
+        structure.addStereo0D(stereo0D1);
+        structure.addStereo0D(stereo0D2);
+        assertThrows(IndexOutOfBoundsException.class, () -> structure.getStereo0D(2));
+    }
+
+}
+```
+```"
+chatcmpl-A5U2ziJDTbiOmKD2gqmt0SVafIV9g,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiWrapper_4Test.java,6.946642160415649,stop,"// JniInchiWrapper.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * <p>JNI Wrapper for International Chemical Identifier (InChI) C++ library.
+ *
+ * <p>This class is not intended to be used directly, but should be accessed
+ * through subclasses that read data formats and load them into the InChI
+ * data structures.
+ *
+ * <p>Subclasses should load data through the addAtom, addBond and addParity
+ * methods. Once the molecule is fully loaded then the generateInchi method
+ * should be called. Ideally this should all take place within the subclass's
+ * constructor. The public get methods will all return null until this has
+ * happened.
+ *
+ * <p>See <tt>inchi_api.h</tt>.
+ *
+ * @author Sam Adams
+ */
+public class JniInchiWrapper {
+
+    private static final String ID = ""jniinchi"";
+
+    private static final String VERSION = ""1.03_1"";
+
+    /**
+     * Maximum time to wait for a lock (in seconds).
+     */
+    private static final int MAX_LOCK_TIMEOUT = 15;
+
+    /**
+     * Flag indicating windows or linux.
+     */
+    private static final boolean IS_WINDOWS = System.getProperty(""os.name"", """").toLowerCase().startsWith(""windows"");
+
+    /**
+     * Switch character for passing options. / in windows, - on other systems.
+     */
+    static final String flagChar = IS_WINDOWS ? ""/"" : ""-"";
+
+    /**
+     * Records whether native library has been loaded by system.
+     */
+    private static boolean libraryLoaded = false;
+
+    private static JniInchiWrapper inchiWrapper;
+
+    private static final Lock lock = new ReentrantLock(true);
+
+    /**
+     * Loads native library.
+     * @throws JniInchiException Library failed to load
+     */
+    public static synchronized void loadLibrary() throws LoadNativeLibraryException {
+        if (!libraryLoaded) {
+            try {
+                NativeLibraryLoader.loadLibrary(ID, VERSION);
+                // Check expected version of native code loaded
+                // Throws NativeCodeException if unable to make call / wrong version
+                checkNativeCodeVersion();
+                // Everything is set up!
+                libraryLoaded = true;
+            } catch (NativeCodeException ex) {
+                System.err.println();
+                System.err.println(""Error loading JNI InChI native code."");
+                System.err.println(""You may need to compile the native code for your platform."");
+                System.err.println(""See http://jni-inchi.sourceforge.net for instructions."");
+                System.err.println();
+                throw new LoadNativeLibraryException(ex);
+            }
+        }
+    }
+
+    /**
+     * Checks the expected native code version has been loaded.
+     * @throws NativeCodeException
+     */
+    private static void checkNativeCodeVersion() throws NativeCodeException {
+        // Get native code version string
+        String nativeVersion;
+        try {
+            nativeVersion = JniInchiWrapper.LibInchiGetVersion();
+        } catch (UnsatisfiedLinkError e) {
+            throw new NativeCodeException(""Unable get native code version"", e);
+        }
+        // Compare to expected version
+        if (!VERSION.equals(nativeVersion)) {
+            throw new NativeCodeException(""JNI InChI native code version mismatch: expected "" + VERSION + "", found "" + nativeVersion);
+        }
+    }
+
+    private static synchronized JniInchiWrapper getWrapper() throws LoadNativeLibraryException {
+        if (inchiWrapper == null) {
+            loadLibrary();
+            init();
+            inchiWrapper = new JniInchiWrapper();
+        }
+        return inchiWrapper;
+    }
+
+    /**
+     * Constructor
+     */
+    private JniInchiWrapper() throws LoadNativeLibraryException {
+    }
+
+    /**
+     * Checks and canonicalises options.
+     *
+     * @param ops  List of INCHI_OPTION
+     */
+    protected static String checkOptions(List<INCHI_OPTION> ops) throws JniInchiException {
+        if (ops == null) {
+            throw new IllegalArgumentException(""Null options"");
+        }
+        StringBuffer sbOptions = new StringBuffer();
+        for (int i = 0; i < ops.size(); i++) {
+            Object op = ops.get(i);
+            if (op instanceof INCHI_OPTION) {
+                sbOptions.append(flagChar + ((INCHI_OPTION) op).name() + "" "");
+            } else {
+                throw new JniInchiException(""Unrecognised InChI option"");
+            }
+        }
+        return sbOptions.toString();
+    }
+
+    /**
+     * Checks and canonicalises options.
+     *
+     * @param ops          Space delimited string of options to pass to InChI library.
+     *                     Each option may optionally be preceded by a command line
+     *                     switch (/ or -).
+     */
+    protected static String checkOptions(final String ops) throws JniInchiException {
+        if (ops == null) {
+            throw new IllegalArgumentException(""Null options"");
+        }
+        StringBuilder sbOptions = new StringBuilder();
+        StringTokenizer tok = new StringTokenizer(ops);
+        while (tok.hasMoreTokens()) {
+            String op = tok.nextToken();
+            if (op.startsWith(""-"") || op.startsWith(""/"")) {
+                op = op.substring(1);
+            }
+            INCHI_OPTION option = INCHI_OPTION.valueOfIgnoreCase(op);
+            if (option != null) {
+                sbOptions.append(flagChar + option.name());
+                if (tok.hasMoreTokens()) {
+                    sbOptions.append("" "");
+                }
+            } else {
+                throw new JniInchiException(""Unrecognised InChI option"");
+            }
+        }
+        return sbOptions.toString();
+    }
+
+    /**
+     * <p>Generates the InChI for a chemical structure.</p>
+     *
+     * <p>If no InChI creation/stereo modification options are specified then a standard
+     * InChI is produced, otherwise the generated InChI will be a non-standard one.</p>
+     *
+     * <p><b>Valid options:</b></p>
+     * <pre>
+     *  Structure perception (compatible with stdInChI):
+     *    /NEWPSOFF   /DoNotAddH   /SNon
+     *  Stereo interpretation (lead to generation of non-standard InChI)
+     *    /SRel /SRac /SUCF /ChiralFlagON /ChiralFlagOFF
+     *  InChI creation options (lead to generation of non-standard InChI)
+     *    /SUU /SLUUD   /FixedH  /RecMet  /KET /15T
+     * </pre>
+     *
+     * <p><b>Other options:</b></p>
+     * <pre>
+     *  /AuxNone    Omit auxiliary information (default: Include)
+     *  /Wnumber    Set time-out per structure in seconds; W0 means unlimited
+     *              In InChI library the default value is unlimited
+     *  /OutputSDF  Output SDfile instead of InChI
+     *  /WarnOnEmptyStructure
+     *              Warn and produce empty InChI for empty structure
+     *  /SaveOpt    Save custom InChI creation options (non-standard InChI)
+     * </pre>
+     *
+     * @param input
+     * @return
+     * @throws JniInchiException
+     */
+    @SuppressWarnings(""unchecked"")
+    public static JniInchiOutput getInchi(JniInchiInput input) throws JniInchiException {
+        if (input == null) {
+            throw new IllegalArgumentException(""Null input"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHI(input);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * <p>Calculates the Standard InChI string for a chemical structure.</p>
+     * <p>The only valid structure perception options are NEWPSOFF/DoNotAddH/SNon. In any other structural
+     * perception options are specified then the calculation will fail.</p>
+     * @param input
+     * @return
+     * @throws JniInchiException
+     */
+    @SuppressWarnings(""unchecked"")
+    public static JniInchiOutput getStdInchi(JniInchiInput input) throws JniInchiException {
+        if (input == null) {
+            throw new IllegalArgumentException(""Null input"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetStdINCHI(input);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * <p>Converts an InChI into an InChI for validation purposes (the same as the -InChI2InChI option).</p>
+     * <p>This method may also be used to filter out specific layers. For instance, /Snon would remove the
+     * stereochemical layer; Omitting /FixedH and/or /RecMet would remove Fixed-H or Reconnected layers.
+     * In order to keep all InChI layers use options string ""/FixedH /RecMet""; option /InChI2InChI is not needed.</p>
+     * @param input
+     * @return
+     * @throws JniInchiException
+     */
+    public static JniInchiOutput getInchiFromInchi(JniInchiInputInchi input) throws JniInchiException {
+        if (input == null) {
+            throw new IllegalArgumentException(""Null input"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHIfromINCHI(input.getInchi(), input.getOptions());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Generated 0D structure from an InChI string.
+     * @param input
+     * @return
+     * @throws JniInchiException
+     */
+    public static JniInchiOutputStructure getStructureFromInchi(JniInchiInputInchi input) throws JniInchiException {
+        if (input == null) {
+            throw new IllegalArgumentException(""Null input"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetStructFromINCHI(input.getInchi(), input.getOptions());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Calculates the InChIKey for an InChI string.
+     * @param inchi     source InChI string
+     * @return  InChIKey output
+     * @throws  JniInchiException
+     */
+    public static JniInchiOutputKey getInchiKey(final String inchi) throws JniInchiException {
+        if (inchi == null) {
+            throw new IllegalArgumentException(""Null InChI"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHIKeyFromINCHI(inchi);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Checks whether a string represents valid InChIKey.
+     * @param key
+     * @return
+     * @throws JniInchiException
+     */
+    public static INCHI_KEY_STATUS checkInchiKey(final String key) throws JniInchiException {
+        if (key == null) {
+            throw new IllegalArgumentException(""Null InChI key"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            int ret = wrapper.CheckINCHIKey(key);
+            INCHI_KEY_STATUS retStatus = INCHI_KEY_STATUS.getValue(ret);
+            if (retStatus == null) {
+                throw new JniInchiException(""Unknown return status: "" + ret);
+            }
+            return retStatus;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * <p>Checks if the string represents valid InChI/standard InChI.</p>
+     *
+     * @param inchi  source InChI
+     * @param strict if <code>false</code>, just briefly check for proper layout (prefix, version, etc.) The result
+     *               may not be strict.
+     *               If <code>true</code>, try to perform InChI2InChI conversion and returns success if a resulting
+     *               InChI string exactly match source. The result may be 'false alarm' due to imperfectness of
+     */
+    public static INCHI_STATUS checkInchi(final String inchi, final boolean strict) throws JniInchiException {
+        if (inchi == null) {
+            throw new IllegalArgumentException(""Null InChI"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            int ret = wrapper.CheckINCHI(inchi, strict);
+            INCHI_STATUS retStatus = INCHI_STATUS.getValue(ret);
+            if (retStatus == null) {
+                throw new JniInchiException(""Unknown return status: "" + ret);
+            }
+            return retStatus;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public static JniInchiInputData getInputFromAuxInfo(String auxInfo) throws JniInchiException {
+        if (auxInfo == null) {
+            throw new IllegalArgumentException(""Null AuxInfo"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHIInputFromAuxInfo(auxInfo, false, false);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static synchronized void getLock() throws JniInchiException {
+        try {
+            if (!lock.tryLock(MAX_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
+                throw new TimeoutException(""Unable to get lock"");
+            }
+        } catch (TimeoutException ex) {
+            throw new JniInchiException(ex);
+        } catch (InterruptedException ex) {
+            throw new JniInchiException(ex);
+        }
+    }
+
+    protected native static String LibInchiGetVersion();
+
+    private native static void init();
+
+    private native JniInchiOutput GetINCHI(JniInchiInput input);
+
+    private native JniInchiOutput GetStdINCHI(JniInchiInput input);
+
+    private native JniInchiOutput GetINCHIfromINCHI(String inchi, String options);
+
+    private native JniInchiOutputStructure GetStructFromINCHI(String inchi, String options);
+
+    private native JniInchiOutputKey GetINCHIKeyFromINCHI(String inchi);
+
+    private native JniInchiOutputKey GetStdINCHIKeyFromStdINCHI(String inchi);
+
+    private native int CheckINCHIKey(String key);
+
+    private native int CheckINCHI(String inchi, boolean strict);
+
+    private native JniInchiInputData GetINCHIInputFromAuxInfo(String auxInfo, boolean bDoNotAddH, boolean bDiffUnkUndfStereo);
+}
+","// JniInchiWrapper_4Test.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiWrapper}.
+* It contains ten unit test cases for the {@link JniInchiWrapper#getInchiKey(String)} method.
+*/
+class JniInchiWrapper_4Test {","```java
+    @Test
+    void testGetInchiKey_NullInput() {
+        assertThrows(IllegalArgumentException.class, () -> JniInchiWrapper.getInchiKey(null));
+    }
+
+    @Test
+    void testGetInchiKey_ValidInput() {
+        String inchi = ""InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H"";
+        assertDoesNotThrow(() -> JniInchiWrapper.getInchiKey(inchi));
+    }
+
+    @Test
+    void testGetInchiKey_EmptyInput() {
+        String inchi = """";
+        assertThrows(IllegalArgumentException.class, () -> JniInchiWrapper.getInchiKey(inchi));
+    }
+
+    @Test
+    void testGetInchiKey_InvalidInchi() {
+        String inchi = ""InvalidInChI"";
+        assertThrows(JniInchiException.class, () -> JniInchiWrapper.getInchiKey(inchi));
+    }
+
+    @Test
+    void testGetInchiKey_ValidInchiKey() {
+        String inchiKey = ""UHOVQNZJYSORNB-UHFFFAOYSA-N"";
+        assertDoesNotThrow(() -> JniInchiWrapper.getInchiKey(inchiKey));
+    }
+
+    @Test
+    void testGetInchiKey_NullInchiKey() {
+        String inchiKey = null;
+        assertThrows(IllegalArgumentException.class, () -> JniInchiWrapper.getInchiKey(inchiKey));
+    }
+
+    @Test
+    void testGetInchiKey_InvalidInchiKey() {
+        String inchiKey = ""InvalidInChIKey"";
+        assertThrows(JniInchiException.class, () -> JniInchiWrapper.getInchiKey(inchiKey));
+    }
+
+    @Test
+    void testGetInchiKey_LongInchiKey() {
+        String inchiKey = ""UHOVQNZJYSORNB-UHFFFAOYSA-N-LongKey"";
+        assertDoesNotThrow(() -> JniInchiWrapper.getInchiKey(inchiKey));
+    }
+
+    @Test
+    void testGetInchiKey_SpecialCharactersInKey() {
+        String inchiKey = ""UHOVQNZJYSORNB-UHFFFAOYSA-N@Special"";
+        assertDoesNotThrow(() -> JniInchiWrapper.getInchiKey(inchiKey));
+    }
+}
+```"
+chatcmpl-A5U42au4beuRzf2xjYr24bNQmDJ5X,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/JniInchiWrapper_6Test.java,6.8397300243377686,stop,"// JniInchiWrapper.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * <p>JNI Wrapper for International Chemical Identifier (InChI) C++ library.
+ *
+ * <p>This class is not intended to be used directly, but should be accessed
+ * through subclasses that read data formats and load them into the InChI
+ * data structures.
+ *
+ * <p>Subclasses should load data through the addAtom, addBond and addParity
+ * methods. Once the molecule is fully loaded then the generateInchi method
+ * should be called. Ideally this should all take place within the subclass's
+ * constructor. The public get methods will all return null until this has
+ * happened.
+ *
+ * <p>See <tt>inchi_api.h</tt>.
+ *
+ * @author Sam Adams
+ */
+public class JniInchiWrapper {
+
+    private static final String ID = ""jniinchi"";
+
+    private static final String VERSION = ""1.03_1"";
+
+    /**
+     * Maximum time to wait for a lock (in seconds).
+     */
+    private static final int MAX_LOCK_TIMEOUT = 15;
+
+    /**
+     * Flag indicating windows or linux.
+     */
+    private static final boolean IS_WINDOWS = System.getProperty(""os.name"", """").toLowerCase().startsWith(""windows"");
+
+    /**
+     * Switch character for passing options. / in windows, - on other systems.
+     */
+    static final String flagChar = IS_WINDOWS ? ""/"" : ""-"";
+
+    /**
+     * Records whether native library has been loaded by system.
+     */
+    private static boolean libraryLoaded = false;
+
+    private static JniInchiWrapper inchiWrapper;
+
+    private static final Lock lock = new ReentrantLock(true);
+
+    /**
+     * Loads native library.
+     * @throws JniInchiException Library failed to load
+     */
+    public static synchronized void loadLibrary() throws LoadNativeLibraryException {
+        if (!libraryLoaded) {
+            try {
+                NativeLibraryLoader.loadLibrary(ID, VERSION);
+                // Check expected version of native code loaded
+                // Throws NativeCodeException if unable to make call / wrong version
+                checkNativeCodeVersion();
+                // Everything is set up!
+                libraryLoaded = true;
+            } catch (NativeCodeException ex) {
+                System.err.println();
+                System.err.println(""Error loading JNI InChI native code."");
+                System.err.println(""You may need to compile the native code for your platform."");
+                System.err.println(""See http://jni-inchi.sourceforge.net for instructions."");
+                System.err.println();
+                throw new LoadNativeLibraryException(ex);
+            }
+        }
+    }
+
+    /**
+     * Checks the expected native code version has been loaded.
+     * @throws NativeCodeException
+     */
+    private static void checkNativeCodeVersion() throws NativeCodeException {
+        // Get native code version string
+        String nativeVersion;
+        try {
+            nativeVersion = JniInchiWrapper.LibInchiGetVersion();
+        } catch (UnsatisfiedLinkError e) {
+            throw new NativeCodeException(""Unable get native code version"", e);
+        }
+        // Compare to expected version
+        if (!VERSION.equals(nativeVersion)) {
+            throw new NativeCodeException(""JNI InChI native code version mismatch: expected "" + VERSION + "", found "" + nativeVersion);
+        }
+    }
+
+    private static synchronized JniInchiWrapper getWrapper() throws LoadNativeLibraryException {
+        if (inchiWrapper == null) {
+            loadLibrary();
+            init();
+            inchiWrapper = new JniInchiWrapper();
+        }
+        return inchiWrapper;
+    }
+
+    /**
+     * Constructor
+     */
+    private JniInchiWrapper() throws LoadNativeLibraryException {
+    }
+
+    /**
+     * Checks and canonicalises options.
+     *
+     * @param ops  List of INCHI_OPTION
+     */
+    protected static String checkOptions(List<INCHI_OPTION> ops) throws JniInchiException {
+        if (ops == null) {
+            throw new IllegalArgumentException(""Null options"");
+        }
+        StringBuffer sbOptions = new StringBuffer();
+        for (int i = 0; i < ops.size(); i++) {
+            Object op = ops.get(i);
+            if (op instanceof INCHI_OPTION) {
+                sbOptions.append(flagChar + ((INCHI_OPTION) op).name() + "" "");
+            } else {
+                throw new JniInchiException(""Unrecognised InChI option"");
+            }
+        }
+        return sbOptions.toString();
+    }
+
+    /**
+     * Checks and canonicalises options.
+     *
+     * @param ops          Space delimited string of options to pass to InChI library.
+     *                     Each option may optionally be preceded by a command line
+     *                     switch (/ or -).
+     */
+    protected static String checkOptions(final String ops) throws JniInchiException {
+        if (ops == null) {
+            throw new IllegalArgumentException(""Null options"");
+        }
+        StringBuilder sbOptions = new StringBuilder();
+        StringTokenizer tok = new StringTokenizer(ops);
+        while (tok.hasMoreTokens()) {
+            String op = tok.nextToken();
+            if (op.startsWith(""-"") || op.startsWith(""/"")) {
+                op = op.substring(1);
+            }
+            INCHI_OPTION option = INCHI_OPTION.valueOfIgnoreCase(op);
+            if (option != null) {
+                sbOptions.append(flagChar + option.name());
+                if (tok.hasMoreTokens()) {
+                    sbOptions.append("" "");
+                }
+            } else {
+                throw new JniInchiException(""Unrecognised InChI option"");
+            }
+        }
+        return sbOptions.toString();
+    }
+
+    /**
+     * <p>Generates the InChI for a chemical structure.</p>
+     *
+     * <p>If no InChI creation/stereo modification options are specified then a standard
+     * InChI is produced, otherwise the generated InChI will be a non-standard one.</p>
+     *
+     * <p><b>Valid options:</b></p>
+     * <pre>
+     *  Structure perception (compatible with stdInChI):
+     *    /NEWPSOFF   /DoNotAddH   /SNon
+     *  Stereo interpretation (lead to generation of non-standard InChI)
+     *    /SRel /SRac /SUCF /ChiralFlagON /ChiralFlagOFF
+     *  InChI creation options (lead to generation of non-standard InChI)
+     *    /SUU /SLUUD   /FixedH  /RecMet  /KET /15T
+     * </pre>
+     *
+     * <p><b>Other options:</b></p>
+     * <pre>
+     *  /AuxNone    Omit auxiliary information (default: Include)
+     *  /Wnumber    Set time-out per structure in seconds; W0 means unlimited
+     *              In InChI library the default value is unlimited
+     *  /OutputSDF  Output SDfile instead of InChI
+     *  /WarnOnEmptyStructure
+     *              Warn and produce empty InChI for empty structure
+     *  /SaveOpt    Save custom InChI creation options (non-standard InChI)
+     * </pre>
+     *
+     * @param input
+     * @return
+     * @throws JniInchiException
+     */
+    @SuppressWarnings(""unchecked"")
+    public static JniInchiOutput getInchi(JniInchiInput input) throws JniInchiException {
+        if (input == null) {
+            throw new IllegalArgumentException(""Null input"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHI(input);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * <p>Calculates the Standard InChI string for a chemical structure.</p>
+     * <p>The only valid structure perception options are NEWPSOFF/DoNotAddH/SNon. In any other structural
+     * perception options are specified then the calculation will fail.</p>
+     * @param input
+     * @return
+     * @throws JniInchiException
+     */
+    @SuppressWarnings(""unchecked"")
+    public static JniInchiOutput getStdInchi(JniInchiInput input) throws JniInchiException {
+        if (input == null) {
+            throw new IllegalArgumentException(""Null input"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetStdINCHI(input);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * <p>Converts an InChI into an InChI for validation purposes (the same as the -InChI2InChI option).</p>
+     * <p>This method may also be used to filter out specific layers. For instance, /Snon would remove the
+     * stereochemical layer; Omitting /FixedH and/or /RecMet would remove Fixed-H or Reconnected layers.
+     * In order to keep all InChI layers use options string ""/FixedH /RecMet""; option /InChI2InChI is not needed.</p>
+     * @param input
+     * @return
+     * @throws JniInchiException
+     */
+    public static JniInchiOutput getInchiFromInchi(JniInchiInputInchi input) throws JniInchiException {
+        if (input == null) {
+            throw new IllegalArgumentException(""Null input"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHIfromINCHI(input.getInchi(), input.getOptions());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Generated 0D structure from an InChI string.
+     * @param input
+     * @return
+     * @throws JniInchiException
+     */
+    public static JniInchiOutputStructure getStructureFromInchi(JniInchiInputInchi input) throws JniInchiException {
+        if (input == null) {
+            throw new IllegalArgumentException(""Null input"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetStructFromINCHI(input.getInchi(), input.getOptions());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Calculates the InChIKey for an InChI string.
+     * @param inchi     source InChI string
+     * @return  InChIKey output
+     * @throws  JniInchiException
+     */
+    public static JniInchiOutputKey getInchiKey(final String inchi) throws JniInchiException {
+        if (inchi == null) {
+            throw new IllegalArgumentException(""Null InChI"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHIKeyFromINCHI(inchi);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Checks whether a string represents valid InChIKey.
+     * @param key
+     * @return
+     * @throws JniInchiException
+     */
+    public static INCHI_KEY_STATUS checkInchiKey(final String key) throws JniInchiException {
+        if (key == null) {
+            throw new IllegalArgumentException(""Null InChI key"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            int ret = wrapper.CheckINCHIKey(key);
+            INCHI_KEY_STATUS retStatus = INCHI_KEY_STATUS.getValue(ret);
+            if (retStatus == null) {
+                throw new JniInchiException(""Unknown return status: "" + ret);
+            }
+            return retStatus;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * <p>Checks if the string represents valid InChI/standard InChI.</p>
+     *
+     * @param inchi  source InChI
+     * @param strict if <code>false</code>, just briefly check for proper layout (prefix, version, etc.) The result
+     *               may not be strict.
+     *               If <code>true</code>, try to perform InChI2InChI conversion and returns success if a resulting
+     *               InChI string exactly match source. The result may be 'false alarm' due to imperfectness of
+     */
+    public static INCHI_STATUS checkInchi(final String inchi, final boolean strict) throws JniInchiException {
+        if (inchi == null) {
+            throw new IllegalArgumentException(""Null InChI"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            int ret = wrapper.CheckINCHI(inchi, strict);
+            INCHI_STATUS retStatus = INCHI_STATUS.getValue(ret);
+            if (retStatus == null) {
+                throw new JniInchiException(""Unknown return status: "" + ret);
+            }
+            return retStatus;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public static JniInchiInputData getInputFromAuxInfo(String auxInfo) throws JniInchiException {
+        if (auxInfo == null) {
+            throw new IllegalArgumentException(""Null AuxInfo"");
+        }
+        JniInchiWrapper wrapper = getWrapper();
+        wrapper.getLock();
+        try {
+            return wrapper.GetINCHIInputFromAuxInfo(auxInfo, false, false);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static synchronized void getLock() throws JniInchiException {
+        try {
+            if (!lock.tryLock(MAX_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
+                throw new TimeoutException(""Unable to get lock"");
+            }
+        } catch (TimeoutException ex) {
+            throw new JniInchiException(ex);
+        } catch (InterruptedException ex) {
+            throw new JniInchiException(ex);
+        }
+    }
+
+    protected native static String LibInchiGetVersion();
+
+    private native static void init();
+
+    private native JniInchiOutput GetINCHI(JniInchiInput input);
+
+    private native JniInchiOutput GetStdINCHI(JniInchiInput input);
+
+    private native JniInchiOutput GetINCHIfromINCHI(String inchi, String options);
+
+    private native JniInchiOutputStructure GetStructFromINCHI(String inchi, String options);
+
+    private native JniInchiOutputKey GetINCHIKeyFromINCHI(String inchi);
+
+    private native JniInchiOutputKey GetStdINCHIKeyFromStdINCHI(String inchi);
+
+    private native int CheckINCHIKey(String key);
+
+    private native int CheckINCHI(String inchi, boolean strict);
+
+    private native JniInchiInputData GetINCHIInputFromAuxInfo(String auxInfo, boolean bDoNotAddH, boolean bDiffUnkUndfStereo);
+}
+","// JniInchiWrapper_6Test.java
+package net.sf.jniinchi;
+
+import net.sf.jnati.NativeCodeException;
+import net.sf.jnati.deploy.NativeLibraryLoader;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JniInchiWrapper}.
+* It contains ten unit test cases for the {@link JniInchiWrapper#checkInchi(String, boolean)} method.
+*/
+class JniInchiWrapper_6Test {","@Test
+void testCheckInchi_NullInchi() {
+    assertThrows(IllegalArgumentException.class, () -> JniInchiWrapper.checkInchi(null, true));
+}
+
+@Test
+void testCheckInchi_EmptyInchi() {
+    assertThrows(JniInchiException.class, () -> JniInchiWrapper.checkInchi("""", true));
+}
+
+@Test
+void testCheckInchi_ValidInchi_StrictTrue() {
+    assertEquals(INCHI_STATUS.VALID, JniInchiWrapper.checkInchi(""InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12/h3-5,7-10H,1-2H2,(H,11,12)"", true));
+}
+
+@Test
+void testCheckInchi_ValidInchi_StrictFalse() {
+    assertEquals(INCHI_STATUS.VALID, JniInchiWrapper.checkInchi(""InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12/h3-5,7-10H,1-2H2,(H,11,12)"", false));
+}
+
+@Test
+void testCheckInchi_InvalidInchi_StrictTrue() {
+    assertEquals(INCHI_STATUS.INVALID, JniInchiWrapper.checkInchi(""InvalidInChI"", true));
+}
+
+@Test
+void testCheckInchi_InvalidInchi_StrictFalse() {
+    assertEquals(INCHI_STATUS.INVALID, JniInchiWrapper.checkInchi(""InvalidInChI"", false));
+}
+
+@Test
+void testCheckInchi_UnknownInchi_StrictTrue() {
+    assertEquals(INCHI_STATUS.UNKNOWN, JniInchiWrapper.checkInchi(""UnknownInChI"", true));
+}
+
+@Test
+void testCheckInchi_UnknownInchi_StrictFalse() {
+    assertEquals(INCHI_STATUS.UNKNOWN, JniInchiWrapper.checkInchi(""UnknownInChI"", false));
+}
+
+@Test
+void testCheckInchi_NullInchi_StrictTrue() {
+    assertThrows(IllegalArgumentException.class, () -> JniInchiWrapper.checkInchi(null, true));
+}
+
+@Test
+void testCheckInchi_NullInchi_StrictFalse() {
+    assertThrows(IllegalArgumentException.class, () -> JniInchiWrapper.checkInchi(null, false));
+}"
+chatcmpl-A5U55Ftc2BXccVb9hCHodSaEjjLRc,/EvoSuiteBenchmark/original/25_jni-inchi/src/main/java/net/sf/jniinchi/Main.java,1.9286434650421143,stop,"// Main.java
+/*
+ * Copyright 2006-2011 Sam Adams <sea36 at users.sourceforge.net>
+ *
+ * This file is part of JNI-InChI.
+ *
+ * JNI-InChI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JNI-InChI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JNI-InChI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.sf.jniinchi;
+
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+
+/**
+ * Simple test class, for debugging purposes.
+ * @author sea36
+ */
+public class Main {
+
+    /**
+     * Provide test structure.
+     * @return
+     */
+    public static JniInchiStructure getTestMolecule() {
+        JniInchiStructure struct = new JniInchiStructure();
+        JniInchiAtom a1 = struct.addAtom(new JniInchiAtom(264.0, 968.0, 0.0, ""C""));
+        JniInchiAtom a2 = struct.addAtom(new JniInchiAtom(295.0, 985.0, 0.0, ""C""));
+        JniInchiAtom a3 = struct.addAtom(new JniInchiAtom(233.0, 986.0, 0.0, ""N""));
+        JniInchiAtom a4 = struct.addAtom(new JniInchiAtom(264.0, 932.0, 0.0, ""C""));
+        JniInchiAtom a5 = struct.addAtom(new JniInchiAtom(326.0, 967.0, 0.0, ""O""));
+        JniInchiAtom a6 = struct.addAtom(new JniInchiAtom(295.0, 1021.0, 0.0, ""O""));
+        a1.setImplicitH(1);
+        a3.setImplicitH(2);
+        a4.setImplicitH(3);
+        a5.setImplicitH(1);
+        struct.addBond(new JniInchiBond(a1, a2, INCHI_BOND_TYPE.SINGLE));
+        struct.addBond(new JniInchiBond(a1, a3, INCHI_BOND_TYPE.SINGLE)).setStereoDefinition(INCHI_BOND_STEREO.SINGLE_1DOWN);
+        struct.addBond(new JniInchiBond(a1, a4, INCHI_BOND_TYPE.SINGLE));
+        struct.addBond(new JniInchiBond(a2, a5, INCHI_BOND_TYPE.SINGLE));
+        struct.addBond(new JniInchiBond(a2, a6, INCHI_BOND_TYPE.DOUBLE));
+        return struct;
+    }
+
+    public static void runChecks() throws JniInchiException {
+        System.err.println(""Loading native code"");
+        System.err.println();
+        try {
+            JniInchiWrapper.loadLibrary();
+            System.err.println();
+            System.err.println(""Native code version: "" + JniInchiWrapper.LibInchiGetVersion());
+            System.err.println();
+            System.err.println(""Running checks"");
+            System.err.println();
+            System.err.println(""Generating InChI from structure"");
+            JniInchiStructure mol = getTestMolecule();
+            JniInchiOutput out1 = JniInchiWrapper.getInchi(new JniInchiInput(mol));
+            if (""InChI=1S/C3H7NO2/c1-2(4)3(5)6/h2H,4H2,1H3,(H,5,6)/t2-/m0/s1"".equals(out1.getInchi())) {
+                System.err.println("" - OKAY"");
+            } else {
+                System.err.println("" - ERROR"");
+                System.err.println(out1.getInchi());
+            }
+            System.err.println(""Generating structure from InChI"");
+            JniInchiOutputStructure out2 = JniInchiWrapper.getStructureFromInchi(new JniInchiInputInchi(""InChI=1/C3H7NO2/c1-2(4)3(5)6/h2H,4H2,1H3,(H,5,6)""));
+            if (out2.getNumAtoms() == 6 && out2.getNumBonds() == 5) {
+                System.err.println("" - OKAY"");
+            } else {
+                System.err.println("" - ERROR"");
+            }
+            System.err.println(""Converting structure back to InChI"");
+            JniInchiOutput out3 = JniInchiWrapper.getInchi(new JniInchiInput(out2));
+            if (""InChI=1S/C3H7NO2/c1-2(4)3(5)6/h2H,4H2,1H3,(H,5,6)"".equals(out3.getInchi())) {
+                System.err.println("" - OKAY"");
+            } else {
+                System.err.println("" - ERROR"");
+                System.err.println(out3.getInchi());
+            }
+        } catch (Exception e) {
+            System.err.println("" - ERROR"");
+            e.printStackTrace();
+        }
+        //        System.err.println(""Running memtest"");
+        //        for (int i = 0; i < 1000000; i++) {
+        //            if (i % 1000 == 0) {
+        //                System.err.println(i+""\t""+((int)(Runtime.getRuntime().totalMemory()/1024)));
+        //            }
+        //            JniInchiStructure mol = getTestMolecule();
+        //            JniInchiWrapper.getInchi(new JniInchiInput(mol));
+        //        }
+        System.err.println();
+        System.err.println(""Checks done."");
+        System.err.println();
+    }
+
+    public static void main(final String[] args) throws Exception {
+        // Output header message
+        System.err.println();
+        System.err.println(""** JniInchi debugger **"");
+        System.err.println();
+        // Set up logging
+        Logger root = Logger.getRootLogger();
+        if (args.length == 1 && ""-debug"".equals(args[0])) {
+            root.setLevel(Level.ALL);
+        } else {
+            root.setLevel(Level.INFO);
+        }
+        root.removeAllAppenders();
+        PatternLayout layout = new PatternLayout(""%-5p %c - %m%n"");
+        // Create console appender
+        ConsoleAppender aconn = new ConsoleAppender(layout, ConsoleAppender.SYSTEM_ERR);
+        aconn.setThreshold(Level.ALL);
+        root.addAppender(aconn);
+        runChecks();
+    }
+}
+","// MainTest.java
+package net.sf.jniinchi;
+
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getTestMolecule()} method.
+*/
+class MainTest {","```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class MainTest {
+
+    @Test
+    void testGetTestMolecule() {
+        JniInchiStructure structure = Main.getTestMolecule();
+        assertNotNull(structure);
+        assertEquals(6, structure.getNumAtoms());
+        assertEquals(5, structure.getNumBonds());
+        // Add more assertions as needed
+    }
+
+    // Add more test cases for other methods if needed
+
+}
+```
+```"

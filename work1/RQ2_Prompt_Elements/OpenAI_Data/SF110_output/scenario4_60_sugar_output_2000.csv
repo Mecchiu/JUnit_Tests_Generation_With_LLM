@@ -1,0 +1,1196 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6xB9ANzJXpX1flxkt38m5of4Cqb7I,/EvoSuiteBenchmark/original/60_sugar/src/main/java/net/sf/sugar/fspath/DefaultFSPath.java,70.61191082000732,length,"// DefaultFSPath.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import net.sf.sugar.fspath.xpath.RegexFunctionResolver;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+/**
+ *  The default implementation of the FSPath interface.
+ *  This class uses the JDK's XPath implementation as the basis for
+ *  FSPath queries.
+ *  On instantiation, a DOM is created of the filesystem metadata starting form the <code>rootDirectory</code>.
+ *  This DOM can then be queried using standard XML tools.
+ *  <br/>
+ *  Whilst this approach has been relatively quick to implement, it is still tied to the limitations of XPath.
+ *  Future implementations of this class are likely to implement the FSPath language fully themselves wthout relying on XPath.
+ *  <br/>
+ *  todo: develop some front end substitution to enable the short queries i.e. /var/www etc
+ *
+ * @author keith
+ *  $Id$
+ */
+public class DefaultFSPath implements FSPath {
+
+    /**
+     *  Escape characters, we must escape any characters that are
+     *  illegal in XML attribute text.
+     *
+     *  i.e. &amp; "" < >
+     */
+    private Map escapeChars;
+
+    private DocumentBuilder documentBuilder;
+
+    private XPath xpath;
+
+    private Document dom;
+
+    /**
+     *  The date format used to correspond to the xs:date format i.e. yyyy-MM-dd'T'HH:mm:ss.SSS
+     */
+    private DateFormat format;
+
+    private File rootDirectory;
+
+    public DefaultFSPath() {
+    }
+
+    /**
+     * Creates a new instance of DefaultFSPath, based on the directory supplied
+     */
+    public DefaultFSPath(File currentDir) {
+    }
+
+    protected Map createEscapeCharsMap();
+
+    protected void createDocumentBuilder() throws ParserConfigurationException;
+
+    protected Document buildDOM(File currentDir) throws IOException;
+
+    private Element createChildElement(Document dom, File currentFile) throws IOException;
+
+    /**
+     *  Calls this.query(expression, XPathConstants.NODESET)
+     *
+     *  Note : This method MUST be passed an expression which returns a nodeset.
+     *
+     *  @param expression the FSPath expression to execute.
+     *  @returns <code>FSPathResultList</code> the FSPathResult objects contained
+     *  in this list will be of type <code>java.io.File</code>,
+     *  <code>java.lang.Double</code>, <code>java.lang.Boolean</code>,
+     *  <code>java.lang.String</code>
+     */
+    public FSPathResultList query(String expression);
+
+    /**
+     */
+    public FSPathResultList query(String expression, QName returnType);
+
+    private void processNode(Node node, FSPathResultList results) throws XPathExpressionException, IllegalArgumentException, ParseException;
+
+    public File getRootDirectory();
+}
+","// DefaultFSPathTest.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import net.sf.sugar.fspath.xpath.RegexFunctionResolver;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DefaultFSPath}.
+* It contains ten unit test cases for the {@link DefaultFSPath#query(String)} method.
+*/
+class DefaultFSPathTest {","// DefaultFSPathTest.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import net.sf.sugar.fspath.xpath.RegexFunctionResolver;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DefaultFSPath}.
+* It contains ten unit test cases for the {@link DefaultFSPath#query(String)} method.
+*/
+class DefaultFSPathTest {
+
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/"" and expects a result list with one element.
+	*/
+	@Test
+	void testQueryRoot() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/"");
+		assertEquals(1, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*"" and expects a result list with one element.
+	*/
+	@Test
+	void testQueryAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*"");
+		assertEquals(1, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*"" and expects a result list with two elements.
+	*/
+	@Test
+	void testQueryAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*"");
+		assertEquals(2, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*/*"" and expects a result list with three elements.
+	*/
+	@Test
+	void testQueryAllAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*/*"");
+		assertEquals(3, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*/*/*"" and expects a result list with four elements.
+	*/
+	@Test
+	void testQueryAllAllAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*/*/*"");
+		assertEquals(4, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*/*/*/*"" and expects a result list with five elements.
+	*/
+	@Test
+	void testQueryAllAllAllAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*/*/*/*"");
+		assertEquals(5, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*/*/*/*/*"" and expects a result list with six elements.
+	*/
+	@Test
+	void testQueryAllAllAllAllAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*/*/*/*/*"");
+		assertEquals(6, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*/*/*/*/*/*"" and expects a result list with seven elements.
+	*/
+	@Test
+	void testQueryAllAllAllAllAllAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*/*/*/*/*/*"");
+		assertEquals(7, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*/*/*/*/*/*/*"" and expects a result list with eight elements.
+	*/
+	@Test
+	void testQueryAllAllAllAllAllAllAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*/*/*/*/*/*/*"");
+		assertEquals(8, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*/*/*/*/*/*/*/*"" and expects a result list with nine elements.
+	*/
+	@Test
+	void testQueryAllAllAllAllAllAllAllAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*/*/*/*/*/*/*/*"");
+		assertEquals(9, result.size());
+	}
+	
+	/**
+	* Test case for the {@link DefaultFSPath#query(String)} method.
+	* It tests the query ""/*/*/*/*/*/*/*/*/*/*"" and expects a result list with ten elements.
+	*/
+	@Test
+	void testQueryAllAllAllAllAllAllAllAllAllAll() {
+		DefaultFSPath fspath = new DefaultFSPath();
+		FSPathResultList result = fspath.query(""/*/*/*/*/*/*/*/*/*/*"");
+		assertEquals(10, result.size());
+	}
+	
+}
+
+// FSPath.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import net.sf.sugar.fspath.xpath.RegexFunctionResolver;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+/**
+ *  The FSPath interface defines the methods required to query the filesystem
+ *  using the FSPath language.
+ *
+ * @author keith
+ *  $Id$
+ */
+public interface FSPath {
+
+    /**
+     *  Calls this.query(expression, XPathConstants.NODESET)
+     *
+     *  Note : This method MUST be passed an expression which returns a nodeset.
+     *
+     *  @param expression the FSPath expression to execute.
+     *  @returns <code>FSPathResultList</code> the FSPathResult objects contained
+     *  in this list will be of type <code>java.io.File</code>,
+     *  <code>java.lang.Double</code>, <code>java.lang.Boolean</code>,
+     *  <code>java.lang.String</code>
+     */
+    public FSPathResultList query(String expression);
+
+    /**
+     */
+    public FSPathResultList query(String expression, QName returnType);
+
+    public File getRootDirectory();
+}
+
+// FSPathResult.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import"
+cmpl-6xBAIZV9AxbBszHmxbhIjJ77JVGjy,/EvoSuiteBenchmark/original/60_sugar/src/main/java/net/sf/sugar/fspath/FSPathFactory.java,63.12146544456482,length,"// FSPathFactory.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+
+/**
+ * @author kbishop
+ */
+public class FSPathFactory {
+
+    /**
+     * Creates a new instance of FSPathFactory
+     */
+    public FSPathFactory() {
+    }
+
+    /**
+     *  @returns FSPath a new DefaultFSPath instance which uses the current user directory (System.getProperty(""user.dir"")) to search from.
+     */
+    public static FSPath newFSPath();
+
+    /**
+     *  @returns FSPath a new DefaultFSPath instance which uses the directory provided to search from.
+     */
+    public static FSPath newFSPath(File file);
+
+    /**
+     *  @returns FSPath a new DefaultFSPath instance which uses the directory path String provided to search from.
+     */
+    public static FSPath newFSPath(String path);
+}
+","// FSPathFactoryTest.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FSPathFactory}.
+* It contains ten unit test cases for the {@link FSPathFactory#newFSPath()} method.
+*/
+class FSPathFactoryTest {","// FSPathFactoryTest.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FSPathFactory}.
+* It contains ten unit test cases for the {@link FSPathFactory#newFSPath()} method.
+*/
+class FSPathFactoryTest {
+
+	/**
+	 * Test of newFSPath method, of class FSPathFactory.
+	 */
+	@Test
+	public void testNewFSPath() {
+		System.out.println(""newFSPath"");
+		FSPath result = FSPathFactory.newFSPath();
+		assertNotNull(result);
+	}
+
+	/**
+	 * Test of newFSPath method, of class FSPathFactory.
+	 */
+	@Test
+	public void testNewFSPath_File() {
+		System.out.println(""newFSPath"");
+		File file = new File(""."");
+		FSPath result = FSPathFactory.newFSPath(file);
+		assertNotNull(result);
+	}
+
+	/**
+	 * Test of newFSPath method, of class FSPathFactory.
+	 */
+	@Test
+	public void testNewFSPath_String() {
+		System.out.println(""newFSPath"");
+		String path = ""."";
+		FSPath result = FSPathFactory.newFSPath(path);
+		assertNotNull(result);
+	}
+}
+
+// FSPathTest.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FSPath}.
+* It contains ten unit test cases for the {@link FSPath#getFile()} method.
+*/
+class FSPathTest {
+		
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile() {
+		System.out.println(""getFile"");
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile();
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile(path);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		String name = ""."";
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile(path, name);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String_String_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		String name = ""."";
+		String ext = ""."";
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile(path, name, ext);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String_String_String_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		String name = ""."";
+		String ext = ""."";
+		String ext2 = ""."";
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile(path, name, ext, ext2);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String_String_String_String_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		String name = ""."";
+		String ext = ""."";
+		String ext2 = ""."";
+		String ext3 = ""."";
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile(path, name, ext, ext2, ext3);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String_String_String_String_String_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		String name = ""."";
+		String ext = ""."";
+		String ext2 = ""."";
+		String ext3 = ""."";
+		String ext4 = ""."";
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile(path, name, ext, ext2, ext3, ext4);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String_String_String_String_String_String_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		String name = ""."";
+		String ext = ""."";
+		String ext2 = ""."";
+		String ext3 = ""."";
+		String ext4 = ""."";
+		String ext5 = ""."";
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile(path, name, ext, ext2, ext3, ext4, ext5);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String_String_String_String_String_String_String_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		String name = ""."";
+		String ext = ""."";
+		String ext2 = ""."";
+		String ext3 = ""."";
+		String ext4 = ""."";
+		String ext5 = ""."";
+		String ext6 = ""."";
+		FSPath instance = FSPathFactory.newFSPath();
+		File expResult = new File(""."");
+		File result = instance.getFile(path, name, ext, ext2, ext3, ext4, ext5, ext6);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of getFile method, of class FSPath.
+	 */
+	@Test
+	public void testGetFile_String_String_String_String_String_String_String_String_String() {
+		System.out.println(""getFile"");
+		String path = ""."";
+		String name = ""."";
+		String ext = ""."";
+		String ext2 = ""."";
+		String ext3 = ""."";
+		String ext4 = ""."";
+		String ext5 = ""."";
+		String ext6 = ""."";
+		String ext7 = ""."";
+		FSPath instance = FSPathFactory.newF"
+cmpl-6xBBJdk1zPAHSwY0KjnN4xUTO9Pco,/EvoSuiteBenchmark/original/60_sugar/src/main/java/net/sf/sugar/fspath/FSPathResultListImpl_0Test.java,56.372336864471436,length,"// FSPathResultListImpl.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * @author kbishop
+ * @version $Id$
+ */
+public class FSPathResultListImpl extends ArrayList<FSPathResult> implements FSPathResultList {
+
+    /**
+     * Creates a new instance of FSPathResultListImpl
+     */
+    public FSPathResultListImpl() {
+    }
+
+    /**
+     *  A convenience method for defining custom filesystem interaction
+     *  across the whole list of results.
+     *
+     *  This method loops through the results and calls the call(Result result)
+     *  method of the Callback class passed to it for each individual result.
+     *
+     *  @param Callback - a custom implementation of the Callback interface.
+     *  @throws IOException
+     */
+    public FSPathResultList each(Callback callback) throws IOException;
+
+    /**
+     *  Deletes each file contained in this FSPathResultList.
+     *  <br/>
+     *  <pre>
+     *  ************************************************************************
+     *  *               IMPORTANT !!!!!    Use with caution                    *
+     *  *   This method makes it extremely easy to trash your filesystem       *
+     *  *   Its advised that FSPath queries are tested thouroughly before use  *
+     *  *   in order to verify which files would be deleted                    *
+     *  *                                                                      *
+     *  ************************************************************************
+     *  </pre>
+     *  @returns FSPathResultModificationListImpl - all successfully deleted files<br/>
+     *  will be added as a success, and the failures will be added as failures.
+     *
+     *  @throws IOException - NOTE this method does not currently thrown an IOException
+     *  @throws OperationNotPermittedException - this exception will be thrown if<br/>
+     *  The FSPathResult objects contained in this FSPathResultList don't contain<br/>
+     *  java.io.File objects<br/>
+     *  (i.e the FSPath query was written to return Boolean, String nor numerical results).
+     */
+    public FSPathResultModificationList delete() throws IOException, OperationNotPermittedException;
+
+    /**
+     *  This method will copy each file contained in this FSPathResultList to the
+     *  destination path supplied.
+     *
+     *  @param String - the destination path which you would like to copy files to.
+     *
+     *  @returns FSPathResultModificationListImpl - all successfully copied files
+     *  will be added as a success, and the failures will be added as failures.
+     *
+     *  @param String the absolute or realtive path of the destination Directory
+     *  @throws IOException - NOTE this is currently not thrown by this method.
+     *  @throws OperationNotPermittedException - this exception is thrown upon
+     *  the following conditions :<br/>
+     *  <br/>
+     *  1)  The FSPathResult objects contained in this FSPathResultList don't contain<br/>
+     *      java.io.File objects<br/>
+     *      (i.e the FSPath query was written to return Boolean, String nor numerical results).<br/>
+     *  2)  The directory denoted by the destination path doesn't exist.<br/>
+     *  3)  The destination path doesn't resolve to a directory.<br/>
+     *  4)  The destination path isn't writeable.<br/>
+     *  5)  The current java process doesn't have sufficient priveledges to<br/>
+     *      access the destination path.<br/>
+     */
+    public FSPathResultModificationList copy(String destinationDirPath) throws IOException, OperationNotPermittedException;
+
+    public boolean isListOfFiles();
+
+    /**
+     *  Renames each file in the FSPathResultList based on a regex match
+     *  expression and a replace expression.
+     *  <br/>
+     *  This method is designed to enable simple renaming i.e. renaming from<br/>
+     *  ""a.txt"" to ""b.txt"" but also complex renaming using regular expressions.<br/>
+     *  <br/>
+     *  Example simple renaming : <br/>
+     *  <pre>fspath.query(""/dir[@name='logs']/file[@name='error.log']"").rename(""error.log"", ""error.log.1"");</pre> <br/>
+     *  This would work fine for a single file but not much use for multiple files.<br/>
+     *  <br/>
+     *  Example complex renaming : <br/>
+     *  <br/>
+     *  Imagine a directory full of files with a format such as : <br/>
+     *  <pre>
+     *  appLog-01_01_2008.log.1
+     *  appLog-01_01_2008.log.2
+     *  ...
+     *  </pre>
+     *  Now imagine that we wanted to rename the files so that they end in .log but they also keep their<br/>
+     *  uniqueness (i.e. the number at the end of the file needs to move to a new position in the filename)<br/>
+     *  <br/>
+     *  The following code expression would work :<br/>
+     *  <pre>fspath.query(""dir[@name = 'logs']/file"").rename(""(.*)\.log\.([0-9]+)"", ""$1_$2.log"");</pre> <br/>
+     *  Here the matchExpression has two capturing groups, one being everything up to the '.log' in the filename, <br/>
+     *  and the other being the number after the "".log."" .<br/>
+     *  The replace expression simply specifies that the new file name will have the text in the first capturing group,<br/>
+     *  followed by a ""_"" then the text in the second capturing group and then "".log"".
+     */
+    public FSPathResultModificationList rename(String matchExpression, String replaceExpresion) throws IOException, OperationNotPermittedException;
+
+    /**
+     *  Moves each file in the list to the specified desination path.
+     *
+     *  This method effecively calls copy() and then delete() on itself.
+     *  If any file fails to sucessfully copy, then this method 'fails fast'
+     *  and returns the results of the copy. This should prevent the situation arising
+     *  where the copied files are completely deleted.
+     *  If the copy suceeds, then it will attempt to delete the original files.
+     *
+     *  @param String - the directory path to move the files to.
+     *  @throws OperationNotPermittedException - see the comments for <code>copy</code>
+     */
+    public FSPathResultModificationList move(String destinationPath) throws IOException, OperationNotPermittedException;
+}
+","// FSPathResultListImpl_0Test.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FSPathResultListImpl}.
+* It contains ten unit test cases for the {@link FSPathResultListImpl#each(Callback)} method.
+*/
+class FSPathResultListImpl_0Test {","// FSPathResultListImpl_0Test.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FSPathResultListImpl}.
+* It contains ten unit test cases for the {@link FSPathResultListImpl#each(Callback)} method.
+*/
+class FSPathResultListImpl_0Test {
+
+	/**
+	* Test case for the {@link FSPathResultListImpl#each(Callback)} method.
+	* <br/>
+	* This test case is designed to test the {@link FSPathResultListImpl#each(Callback)} method
+	* when the {@link FSPathResultListImpl} contains a single {@link FSPathResult} object.
+	* <br/>
+	* The {@link FSPathResultListImpl#each(Callback)} method is expected to call the
+	* {@link Callback#call(FSPathResult)} method of the {@link Callback} object passed to it.
+	* <br/>
+	* The {@link Callback#call(FSPathResult)} method is expected to return a {@link FSPathResult}
+	* object which is then added to the {@link FSPathResultListImpl} object.
+	* <br/>
+	* The {@link FSPathResultListImpl#each(Callback)} method is expected to return the
+	* {@link FSPathResultListImpl} object.
+	* <br/>
+	* The {@link FSPathResultListImpl#size()} method is expected to return 1.
+	* <br/>
+	* The {@link FSPathResultListImpl#get(int)} method is expected to return a {@link FSPathResult}
+	* object which is equal to the {@link FSPathResult} object returned by the
+	* {@link Callback#call(FSPathResult)} method.
+	* <br/>
+	* The {@link FSPathResult#getFile()} method is expected to return a {@link File} object
+	* which is equal to the {@link File} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getValue()} method is expected to return a {@link String} object
+	* which is equal to the {@link String} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getType()} method is expected to return a {@link Class} object
+	* which is equal to the {@link Class} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPath()} method is expected to return a {@link String} object
+	* which is equal to the {@link String} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method.
+	* <br/>
+	* The {@link FSPathResult#getPathType()} method is expected to return a {@link FSPathType} object
+	* which is equal to the {@link FSPathType} object passed to the {@link Callback#call(FSPathResult)}
+	* method"
+cmpl-6xBCMJIueGA3b4r2QNcZUqj361m6T,/EvoSuiteBenchmark/original/60_sugar/src/main/java/net/sf/sugar/fspath/FSPathResultListImpl_1Test.java,65.02312850952148,length,"// FSPathResultListImpl.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * @author kbishop
+ * @version $Id$
+ */
+public class FSPathResultListImpl extends ArrayList<FSPathResult> implements FSPathResultList {
+
+    /**
+     * Creates a new instance of FSPathResultListImpl
+     */
+    public FSPathResultListImpl() {
+    }
+
+    /**
+     *  A convenience method for defining custom filesystem interaction
+     *  across the whole list of results.
+     *
+     *  This method loops through the results and calls the call(Result result)
+     *  method of the Callback class passed to it for each individual result.
+     *
+     *  @param Callback - a custom implementation of the Callback interface.
+     *  @throws IOException
+     */
+    public FSPathResultList each(Callback callback) throws IOException;
+
+    /**
+     *  Deletes each file contained in this FSPathResultList.
+     *  <br/>
+     *  <pre>
+     *  ************************************************************************
+     *  *               IMPORTANT !!!!!    Use with caution                    *
+     *  *   This method makes it extremely easy to trash your filesystem       *
+     *  *   Its advised that FSPath queries are tested thouroughly before use  *
+     *  *   in order to verify which files would be deleted                    *
+     *  *                                                                      *
+     *  ************************************************************************
+     *  </pre>
+     *  @returns FSPathResultModificationListImpl - all successfully deleted files<br/>
+     *  will be added as a success, and the failures will be added as failures.
+     *
+     *  @throws IOException - NOTE this method does not currently thrown an IOException
+     *  @throws OperationNotPermittedException - this exception will be thrown if<br/>
+     *  The FSPathResult objects contained in this FSPathResultList don't contain<br/>
+     *  java.io.File objects<br/>
+     *  (i.e the FSPath query was written to return Boolean, String nor numerical results).
+     */
+    public FSPathResultModificationList delete() throws IOException, OperationNotPermittedException;
+
+    /**
+     *  This method will copy each file contained in this FSPathResultList to the
+     *  destination path supplied.
+     *
+     *  @param String - the destination path which you would like to copy files to.
+     *
+     *  @returns FSPathResultModificationListImpl - all successfully copied files
+     *  will be added as a success, and the failures will be added as failures.
+     *
+     *  @param String the absolute or realtive path of the destination Directory
+     *  @throws IOException - NOTE this is currently not thrown by this method.
+     *  @throws OperationNotPermittedException - this exception is thrown upon
+     *  the following conditions :<br/>
+     *  <br/>
+     *  1)  The FSPathResult objects contained in this FSPathResultList don't contain<br/>
+     *      java.io.File objects<br/>
+     *      (i.e the FSPath query was written to return Boolean, String nor numerical results).<br/>
+     *  2)  The directory denoted by the destination path doesn't exist.<br/>
+     *  3)  The destination path doesn't resolve to a directory.<br/>
+     *  4)  The destination path isn't writeable.<br/>
+     *  5)  The current java process doesn't have sufficient priveledges to<br/>
+     *      access the destination path.<br/>
+     */
+    public FSPathResultModificationList copy(String destinationDirPath) throws IOException, OperationNotPermittedException;
+
+    public boolean isListOfFiles();
+
+    /**
+     *  Renames each file in the FSPathResultList based on a regex match
+     *  expression and a replace expression.
+     *  <br/>
+     *  This method is designed to enable simple renaming i.e. renaming from<br/>
+     *  ""a.txt"" to ""b.txt"" but also complex renaming using regular expressions.<br/>
+     *  <br/>
+     *  Example simple renaming : <br/>
+     *  <pre>fspath.query(""/dir[@name='logs']/file[@name='error.log']"").rename(""error.log"", ""error.log.1"");</pre> <br/>
+     *  This would work fine for a single file but not much use for multiple files.<br/>
+     *  <br/>
+     *  Example complex renaming : <br/>
+     *  <br/>
+     *  Imagine a directory full of files with a format such as : <br/>
+     *  <pre>
+     *  appLog-01_01_2008.log.1
+     *  appLog-01_01_2008.log.2
+     *  ...
+     *  </pre>
+     *  Now imagine that we wanted to rename the files so that they end in .log but they also keep their<br/>
+     *  uniqueness (i.e. the number at the end of the file needs to move to a new position in the filename)<br/>
+     *  <br/>
+     *  The following code expression would work :<br/>
+     *  <pre>fspath.query(""dir[@name = 'logs']/file"").rename(""(.*)\.log\.([0-9]+)"", ""$1_$2.log"");</pre> <br/>
+     *  Here the matchExpression has two capturing groups, one being everything up to the '.log' in the filename, <br/>
+     *  and the other being the number after the "".log."" .<br/>
+     *  The replace expression simply specifies that the new file name will have the text in the first capturing group,<br/>
+     *  followed by a ""_"" then the text in the second capturing group and then "".log"".
+     */
+    public FSPathResultModificationList rename(String matchExpression, String replaceExpresion) throws IOException, OperationNotPermittedException;
+
+    /**
+     *  Moves each file in the list to the specified desination path.
+     *
+     *  This method effecively calls copy() and then delete() on itself.
+     *  If any file fails to sucessfully copy, then this method 'fails fast'
+     *  and returns the results of the copy. This should prevent the situation arising
+     *  where the copied files are completely deleted.
+     *  If the copy suceeds, then it will attempt to delete the original files.
+     *
+     *  @param String - the directory path to move the files to.
+     *  @throws OperationNotPermittedException - see the comments for <code>copy</code>
+     */
+    public FSPathResultModificationList move(String destinationPath) throws IOException, OperationNotPermittedException;
+}
+","// FSPathResultListImpl_1Test.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FSPathResultListImpl}.
+* It contains ten unit test cases for the {@link FSPathResultListImpl#delete()} method.
+*/
+class FSPathResultListImpl_1Test {","// FSPathResultListImpl_1Test.java
+package net.sf.sugar.fspath;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FSPathResultListImpl}.
+* It contains ten unit test cases for the {@link FSPathResultListImpl#delete()} method.
+*/
+class FSPathResultListImpl_1Test {
+
+	/**
+	* Test case for the {@link FSPathResultListImpl#delete()} method.
+	* It tests the case when the {@link FSPathResultListImpl} contains a {@link FSPathResult} object
+	* that contains a {@link File} object that represents a file that exists.
+	* It expects that the file is deleted.
+	*/
+	@Test
+	void testDelete_1() throws IOException, OperationNotPermittedException {
+		File file = new File(""testDelete_1.txt"");
+		file.createNewFile();
+		FSPathResultListImpl fspathResultListImpl = new FSPathResultListImpl();
+		fspathResultListImpl.add(new FSPathResultImpl(file));
+		FSPathResultModificationList fspathResultModificationList = fspathResultListImpl.delete();
+		assertEquals(1, fspathResultModificationList.getSuccesses().size());
+		assertEquals(0, fspathResultModificationList.getFailures().size());
+		assertFalse(file.exists());
+	}
+	
+	/**
+	* Test case for the {@link FSPathResultListImpl#delete()} method.
+	* It tests the case when the {@link FSPathResultListImpl} contains a {@link FSPathResult} object
+	* that contains a {@link File} object that represents a file that does not exist.
+	* It expects that the file is not deleted.
+	*/
+	@Test
+	void testDelete_2() throws IOException, OperationNotPermittedException {
+		File file = new File(""testDelete_2.txt"");
+		FSPathResultListImpl fspathResultListImpl = new FSPathResultListImpl();
+		fspathResultListImpl.add(new FSPathResultImpl(file));
+		FSPathResultModificationList fspathResultModificationList = fspathResultListImpl.delete();
+		assertEquals(0, fspathResultModificationList.getSuccesses().size());
+		assertEquals(1, fspathResultModificationList.getFailures().size());
+		assertFalse(file.exists());
+	}
+	
+	/**
+	* Test case for the {@link FSPathResultListImpl#delete()} method.
+	* It tests the case when the {@link FSPathResultListImpl} contains a {@link FSPathResult} object
+	* that contains a {@link File} object that represents a directory that exists.
+	* It expects that the directory is not deleted.
+	*/
+	@Test
+	void testDelete_3() throws IOException, OperationNotPermittedException {
+		File file = new File(""testDelete_3"");
+		file.mkdir();
+		FSPathResultListImpl fspathResultListImpl = new FSPathResultListImpl();
+		fspathResultListImpl.add(new FSPathResultImpl(file));
+		FSPathResultModificationList fspathResultModificationList = fspathResultListImpl.delete();
+		assertEquals(0, fspathResultModificationList.getSuccesses().size());
+		assertEquals(1, fspathResultModificationList.getFailures().size());
+		assertTrue(file.exists());
+	}
+	
+	/**
+	* Test case for the {@link FSPathResultListImpl#delete()} method.
+	* It tests the case when the {@link FSPathResultListImpl} contains a {@link FSPathResult} object
+	* that contains a {@link File} object that represents a directory that does not exist.
+	* It expects that the directory is not deleted.
+	*/
+	@Test
+	void testDelete_4() throws IOException, OperationNotPermittedException {
+		File file = new File(""testDelete_4"");
+		FSPathResultListImpl fspathResultListImpl = new FSPathResultListImpl();
+		fspathResultListImpl.add(new FSPathResultImpl(file));
+		FSPathResultModificationList fspathResultModificationList = fspathResultListImpl.delete();
+		assertEquals(0, fspathResultModificationList.getSuccesses().size());
+		assertEquals(1, fspathResultModificationList.getFailures().size());
+		assertFalse(file.exists());
+	}
+	
+	/**
+	* Test case for the {@link FSPathResultListImpl#delete()} method.
+	* It tests the case when the {@link FSPathResultListImpl} contains a {@link FSPathResult} object
+	* that contains a {@link File} object that represents a file that exists and is read-only.
+	* It expects that the file is not deleted.
+	*/
+	@Test
+	void testDelete_5() throws IOException, OperationNotPermittedException {
+		File file = new File(""testDelete_5.txt"");
+		file.createNewFile();
+		file.setReadOnly();
+		FSPathResultListImpl fspathResultListImpl = new FSPathResultListImpl();
+		fspathResultListImpl.add(new FSPathResultImpl(file));
+		FSPathResultModificationList fspathResultModificationList = fspathResultListImpl.delete();
+		assertEquals(0, fspathResultModificationList.getSuccesses().size());
+		assertEquals(1, fspathResultModificationList.getFailures().size());
+		assertTrue(file.exists());
+	}
+	
+	/**
+	* Test case for the {@link FSPathResultListImpl#delete()} method.
+	* It tests the case when the {@link FSPathResultListImpl} contains a {@link FSPathResult} object
+	* that contains a {@link File} object that represents a file that exists and is hidden.
+	* It expects that the file is deleted.
+	*/
+	@Test
+	void testDelete_6() throws IOException, OperationNotPermittedException {
+		File file = new File(""testDelete_6.txt"");
+		file.createNewFile();
+		file.setHidden(true);
+		FSPathResultListImpl fspathResultListImpl = new FSPathResultListImpl();
+		fspathResultListImpl.add(new FSPathResultImpl(file));
+		FSPathResultModificationList fspathResultModificationList = fspathResultListImpl.delete();
+		assertEquals(1, fspathResultModificationList.getSuccesses().size());
+		assertEquals(0, fspathResultModificationList.getFailures().size());
+		assertFalse(file.exists());
+	}
+	
+	/**
+	* Test case for the {@link FSPathResultListImpl#delete()} method.
+	* It tests the case when the {@link FSPathResultListImpl} contains a {@link FSPathResult} object
+	* that contains a {@link File} object that represents a file that exists and is a symbolic link.
+	* It expects that the file is deleted.
+	*/
+	@Test
+	void testDelete_7() throws IOException, OperationNotPermittedException {
+		File file = new File(""testDelete_7.txt"");
+		file.createNewFile();
+		File link = new File(""testDelete_7_link.txt"");
+		link.createNewFile();
+		link.delete();
+		link.createSymbolicLink(file);
+		FSPathResultListImpl fspathResultListImpl = new FSPathResultListImpl();
+		fspathResultListImpl.add(new FSPathResultImpl(link));
+		FSPathResultModificationList fspathResultModificationList = fspathResultListImpl.delete();
+		assertEquals(1, fspathResultModificationList.getSuccesses().size());
+		assertEquals(0, fspathResultModificationList.getFailures().size());
+		assertFalse(link.exists());
+		assertTrue(file.exists());
+	}
+	
+	/**
+	* Test case for the {@link FSPathResultListImpl#delete()} method.
+	* It tests the case when the {@link FSPathResultList"

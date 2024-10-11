@@ -1,0 +1,4440 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wWoZPxkumjXn7VNVtbWr4QnpdjPB,/EvoSuiteBenchmark/original/74_fixsuite/src/main/java/org/fixsuite/message/info/DictionaryInfo_0Test.java,59.76268529891968,length,"// DictionaryInfo.java
+/**
+ * DictionaryInfo.java 11:33:45 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </PRE>
+ */
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+/**
+ * Represents a FIX version specification. DictionaryInfo acts as a central
+ * storage for all items defined in a version.
+ *
+ * @author jramoyo
+ */
+public class DictionaryInfo {
+
+    private String version;
+
+    private int loadCount;
+
+    // Default collection
+    private TreeMap<String, MessageInfo> messagesByName;
+
+    private TreeMap<Integer, MessageInfo> messagesById;
+
+    // Default collection
+    private TreeMap<Integer, FieldInfo> fieldsByTagNumber;
+
+    private TreeMap<String, FieldInfo> fieldsByName;
+
+    // Default collection
+    private TreeMap<String, ComponentInfo> componentsByName;
+
+    private TreeMap<Integer, ComponentInfo> componentsById;
+
+    /**
+     * Creates a new DictionaryInfo
+     *
+     * @param version - a version
+     */
+    public DictionaryInfo(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Returns the fields
+     *
+     * @return the fields
+     */
+    public List<FieldInfo> getFields() {
+        if (fieldsByTagNumber != null) {
+            return new ArrayList<FieldInfo>(fieldsByTagNumber.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a tagNumber
+     *
+     * @param tagNumber - a tagNumber
+     * @return a field given a tagNumber
+     */
+    public FieldInfo getField(int tagNumber) {
+        if (fieldsByTagNumber != null) {
+            return fieldsByTagNumber.get(tagNumber);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a name
+     *
+     * @param name - a name
+     * @return a field given a name
+     */
+    public FieldInfo getField(String name) {
+        if (fieldsByName != null) {
+            return fieldsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a field
+     *
+     * @param field - a field
+     */
+    public void addField(FieldInfo field) {
+        if (fieldsByTagNumber == null) {
+            fieldsByTagNumber = new TreeMap<Integer, FieldInfo>();
+            fieldsByName = new TreeMap<String, FieldInfo>();
+        }
+        fieldsByTagNumber.put(field.getTagNumber(), field);
+        fieldsByName.put(field.getName(), field);
+    }
+
+    /**
+     * Returns the components
+     *
+     * @return the components
+     */
+    public List<ComponentInfo> getComponents() {
+        if (componentsByName != null) {
+            return new ArrayList<ComponentInfo>(componentsByName.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given an id
+     *
+     * @param id - an id
+     * @return a component given an id
+     */
+    public ComponentInfo getComponent(int id) {
+        if (componentsById != null) {
+            return componentsById.get(id);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given a name
+     *
+     * @param name - a name
+     * @return a component given a name
+     */
+    public ComponentInfo getComponent(String name) {
+        if (componentsByName != null) {
+            return componentsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a component
+     *
+     * @param component
+     */
+    public void addComponent(ComponentInfo component) {
+        if (componentsByName == null) {
+            componentsByName = new TreeMap<String, ComponentInfo>();
+            componentsById = new TreeMap<Integer, ComponentInfo>();
+        }
+        componentsByName.put(component.getName(), component);
+        componentsById.put(component.getId(), component);
+    }
+
+    /**
+     * Replace the field by a group. This is used by FPL parsers which cannot
+     * tell if a field is a group just from Fields.xml
+     *
+     * @param field - a field
+     * @param group - a group
+     */
+    public void replaceAsGroup(FieldInfo field, GroupInfo group) {
+        fieldsByTagNumber.put(field.getTagNumber(), group);
+        fieldsByName.put(field.getName(), group);
+    }
+
+    /**
+     * Returns a message given an id
+     *
+     * @param id - an id
+     * @return a message given an id
+     */
+    public MessageInfo getMessage(int id) {
+        if (messagesById != null) {
+            return messagesById.get(id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a message given a name
+     *
+     * @param name - a name
+     * @return a message given a name
+     */
+    public MessageInfo getMessage(String name) {
+        if (messagesByName != null) {
+            return messagesByName.get(name);
+        } else {
+            return null;
+        }
+    }
+
+    public List<MessageInfo> getMessages() {
+        return new ArrayList<MessageInfo>(messagesById.values());
+    }
+
+    /**
+     * Adds a message
+     *
+     * @param message - a message
+     */
+    public void addMessage(MessageInfo message) {
+        if (messagesByName == null) {
+            messagesByName = new TreeMap<String, MessageInfo>();
+            messagesById = new TreeMap<Integer, MessageInfo>();
+        }
+        messagesById.put(message.getId(), message);
+        messagesByName.put(message.getName(), message);
+    }
+
+    /**
+     * Returns the version
+     *
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Modifies the version
+     *
+     * @param version - the version to set
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Increments the loadCount
+     */
+    public void incrementLoadCount() {
+        loadCount++;
+    }
+
+    /**
+     * Returns whether the dictionary is loaded
+     *
+     * @return whether the dictionary is loaded
+     */
+    public boolean isLoaded() {
+        return loadCount == 5;
+    }
+}
+","// DictionaryInfo_0Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getField(int)} method.
+*/
+class DictionaryInfo_0Test {","// DictionaryInfo_0Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getField(int)} method.
+*/
+class DictionaryInfo_0Test {
+
+		private DictionaryInfo dictionaryInfo;
+		
+		private FieldInfo fieldInfo;
+		
+		private TreeMap<Integer, FieldInfo> fieldsByTagNumber;
+		
+		private TreeMap<String, FieldInfo> fieldsByName;
+		
+		private List<FieldInfo> fields;
+		
+		private int tagNumber;
+		
+		private String name;
+		
+		private String type;
+		
+		private String description;
+		
+		private String value;
+		
+		private String enumType;
+		
+		private String[] enums;
+		
+		private String[] enumsDescriptions;
+		
+		private String[] enumsValues;
+		
+		private String[] enumsValuesDescriptions;
+		
+		private String[] enumsValuesDescriptions2;
+		
+		private String[] enumsValuesDescriptions3;
+		
+		private String[] enumsValuesDescriptions4;
+		
+		private String[] enumsValuesDescriptions5;
+		
+		private String[] enumsValuesDescriptions6;
+		
+		private String[] enumsValuesDescriptions7;
+		
+		private String[] enumsValuesDescriptions8;
+		
+		private String[] enumsValuesDescriptions9;
+		
+		private String[] enumsValuesDescriptions10;
+		
+		private String[] enumsValuesDescriptions11;
+		
+		private String[] enumsValuesDescriptions12;
+		
+		private String[] enumsValuesDescriptions13;
+		
+		private String[] enumsValuesDescriptions14;
+		
+		private String[] enumsValuesDescriptions15;
+		
+		private String[] enumsValuesDescriptions16;
+		
+		private String[] enumsValuesDescriptions17;
+		
+		private String[] enumsValuesDescriptions18;
+		
+		private String[] enumsValuesDescriptions19;
+		
+		private String[] enumsValuesDescriptions20;
+		
+		private String[] enumsValuesDescriptions21;
+		
+		private String[] enumsValuesDescriptions22;
+		
+		private String[] enumsValuesDescriptions23;
+		
+		private String[] enumsValuesDescriptions24;
+		
+		private String[] enumsValuesDescriptions25;
+		
+		private String[] enumsValuesDescriptions26;
+		
+		private String[] enumsValuesDescriptions27;
+		
+		private String[] enumsValuesDescriptions28;
+		
+		private String[] enumsValuesDescriptions29;
+		
+		private String[] enumsValuesDescriptions30;
+		
+		private String[] enumsValuesDescriptions31;
+		
+		private String[] enumsValuesDescriptions32;
+		
+		private String[] enumsValuesDescriptions33;
+		
+		private String[] enumsValuesDescriptions34;
+		
+		private String[] enumsValuesDescriptions35;
+		
+		private String[] enumsValuesDescriptions36;
+		
+		private String[] enumsValuesDescriptions37;
+		
+		private String[] enumsValuesDescriptions38;
+		
+		private String[] enumsValuesDescriptions39;
+		
+		private String[] enumsValuesDescriptions40;
+		
+		private String[] enumsValuesDescriptions41;
+		
+		private String[] enumsValuesDescriptions42;
+		
+		private String[] enumsValuesDescriptions43;
+		
+		private String[] enumsValuesDescriptions44;
+		
+		private String[] enumsValuesDescriptions45;
+		
+		private String[] enumsValuesDescriptions46;
+		
+		private String[] enumsValuesDescriptions47;
+		
+		private String[] enumsValuesDescriptions48;
+		
+		private String[] enumsValuesDescriptions49;
+		
+		private String[] enumsValuesDescriptions50;
+		
+		private String[] enumsValuesDescriptions51;
+		
+		private String[] enumsValuesDescriptions52;
+		
+		private String[] enumsValuesDescriptions53;
+		
+		private String[] enumsValuesDescriptions54;
+		
+		private String[] enumsValuesDescriptions55;
+		
+		private String[] enumsValuesDescriptions56;
+		
+		private String[] enumsValuesDescriptions57;
+		
+		private String[] enumsValuesDescriptions58;
+		
+		private String[] enumsValuesDescriptions59;
+		
+		private String[] enumsValuesDescriptions60;
+		
+		private String[] enumsValuesDescriptions61;
+		
+		private String[] enumsValuesDescriptions62;
+		
+		private String[] enumsValuesDescriptions63;
+		
+		private String[] enumsValuesDescriptions64;
+		
+		private String[] enumsValuesDescriptions65;
+		
+		private String[] enumsValuesDescriptions66;
+		
+		private String[] enumsValuesDescriptions67;
+		
+		private String[] enumsValuesDescriptions68;
+		
+		private String[] enumsValuesDescriptions69;
+		
+		private String[] enumsValuesDescriptions70;
+		
+		private String[] enumsValuesDescriptions71;
+		
+		private String[] enumsValuesDescriptions72;
+		
+		private String[] enumsValuesDescriptions73;
+		
+		private String[] enumsValuesDescriptions74;
+		
+		private String[] enumsValuesDescriptions75;
+		
+		private String[] enumsValuesDescriptions76;
+		
+		private String[] enumsValuesDescriptions77;
+		
+		private String[] enumsValuesDescriptions78;
+		
+		private String[] enumsValuesDescriptions79;
+		
+		private String[] enumsValuesDescriptions80;
+		
+		private String[] enumsValuesDescriptions81;
+		
+		private String[] enumsValuesDescriptions82;
+		
+		private String[] enumsValuesDescriptions83;
+		
+		private String[] enumsValuesDescriptions84;
+		
+		private String[] enumsValuesDescriptions85;
+		
+		private String[] enumsValuesDescriptions86;
+		
+		private String[] enumsValuesDescriptions87;
+		
+		private String[] enumsValuesDescriptions88;
+		
+		private String[] enumsValuesDescriptions89;
+		
+		private String[] enumsValuesDescriptions90;
+		
+		private String[] enumsValuesDescriptions91;
+		
+		private String[] enumsValuesDescriptions92;
+		
+		private String[] enumsValuesDescriptions93;
+		
+		private String[] enumsValuesDescriptions94;
+		
+		private String[] enumsValuesDescriptions95;
+		
+		private String[] enumsValuesDescriptions96;
+		
+		private String[] enumsValuesDescriptions97;
+		
+		private String[] enumsValuesDescriptions98;
+		
+		private String[] enumsValuesDescriptions99;
+		
+		private String[] enumsValuesDescriptions100;
+		
+		private String[] enumsValuesDescriptions101;
+		
+		private String[] enumsValuesDescriptions102;
+		
+		private String[] enumsValuesDescriptions103;
+		
+		private String[] enumsValuesDescriptions104;
+		
+		private String[] enumsValuesDescriptions105;
+		
+		private String[] enumsValuesDescriptions106;
+		
+		private String[] enumsValuesDescriptions107;
+		
+		"
+cmpl-6wWpcQ0N1xf1mQarVMrhAzyPaMpuE,/EvoSuiteBenchmark/original/74_fixsuite/src/main/java/org/fixsuite/message/info/DictionaryInfo_1Test.java,61.31121563911438,length,"// DictionaryInfo.java
+/**
+ * DictionaryInfo.java 11:33:45 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </PRE>
+ */
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+/**
+ * Represents a FIX version specification. DictionaryInfo acts as a central
+ * storage for all items defined in a version.
+ *
+ * @author jramoyo
+ */
+public class DictionaryInfo {
+
+    private String version;
+
+    private int loadCount;
+
+    // Default collection
+    private TreeMap<String, MessageInfo> messagesByName;
+
+    private TreeMap<Integer, MessageInfo> messagesById;
+
+    // Default collection
+    private TreeMap<Integer, FieldInfo> fieldsByTagNumber;
+
+    private TreeMap<String, FieldInfo> fieldsByName;
+
+    // Default collection
+    private TreeMap<String, ComponentInfo> componentsByName;
+
+    private TreeMap<Integer, ComponentInfo> componentsById;
+
+    /**
+     * Creates a new DictionaryInfo
+     *
+     * @param version - a version
+     */
+    public DictionaryInfo(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Returns the fields
+     *
+     * @return the fields
+     */
+    public List<FieldInfo> getFields() {
+        if (fieldsByTagNumber != null) {
+            return new ArrayList<FieldInfo>(fieldsByTagNumber.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a tagNumber
+     *
+     * @param tagNumber - a tagNumber
+     * @return a field given a tagNumber
+     */
+    public FieldInfo getField(int tagNumber) {
+        if (fieldsByTagNumber != null) {
+            return fieldsByTagNumber.get(tagNumber);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a name
+     *
+     * @param name - a name
+     * @return a field given a name
+     */
+    public FieldInfo getField(String name) {
+        if (fieldsByName != null) {
+            return fieldsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a field
+     *
+     * @param field - a field
+     */
+    public void addField(FieldInfo field) {
+        if (fieldsByTagNumber == null) {
+            fieldsByTagNumber = new TreeMap<Integer, FieldInfo>();
+            fieldsByName = new TreeMap<String, FieldInfo>();
+        }
+        fieldsByTagNumber.put(field.getTagNumber(), field);
+        fieldsByName.put(field.getName(), field);
+    }
+
+    /**
+     * Returns the components
+     *
+     * @return the components
+     */
+    public List<ComponentInfo> getComponents() {
+        if (componentsByName != null) {
+            return new ArrayList<ComponentInfo>(componentsByName.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given an id
+     *
+     * @param id - an id
+     * @return a component given an id
+     */
+    public ComponentInfo getComponent(int id) {
+        if (componentsById != null) {
+            return componentsById.get(id);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given a name
+     *
+     * @param name - a name
+     * @return a component given a name
+     */
+    public ComponentInfo getComponent(String name) {
+        if (componentsByName != null) {
+            return componentsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a component
+     *
+     * @param component
+     */
+    public void addComponent(ComponentInfo component) {
+        if (componentsByName == null) {
+            componentsByName = new TreeMap<String, ComponentInfo>();
+            componentsById = new TreeMap<Integer, ComponentInfo>();
+        }
+        componentsByName.put(component.getName(), component);
+        componentsById.put(component.getId(), component);
+    }
+
+    /**
+     * Replace the field by a group. This is used by FPL parsers which cannot
+     * tell if a field is a group just from Fields.xml
+     *
+     * @param field - a field
+     * @param group - a group
+     */
+    public void replaceAsGroup(FieldInfo field, GroupInfo group) {
+        fieldsByTagNumber.put(field.getTagNumber(), group);
+        fieldsByName.put(field.getName(), group);
+    }
+
+    /**
+     * Returns a message given an id
+     *
+     * @param id - an id
+     * @return a message given an id
+     */
+    public MessageInfo getMessage(int id) {
+        if (messagesById != null) {
+            return messagesById.get(id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a message given a name
+     *
+     * @param name - a name
+     * @return a message given a name
+     */
+    public MessageInfo getMessage(String name) {
+        if (messagesByName != null) {
+            return messagesByName.get(name);
+        } else {
+            return null;
+        }
+    }
+
+    public List<MessageInfo> getMessages() {
+        return new ArrayList<MessageInfo>(messagesById.values());
+    }
+
+    /**
+     * Adds a message
+     *
+     * @param message - a message
+     */
+    public void addMessage(MessageInfo message) {
+        if (messagesByName == null) {
+            messagesByName = new TreeMap<String, MessageInfo>();
+            messagesById = new TreeMap<Integer, MessageInfo>();
+        }
+        messagesById.put(message.getId(), message);
+        messagesByName.put(message.getName(), message);
+    }
+
+    /**
+     * Returns the version
+     *
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Modifies the version
+     *
+     * @param version - the version to set
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Increments the loadCount
+     */
+    public void incrementLoadCount() {
+        loadCount++;
+    }
+
+    /**
+     * Returns whether the dictionary is loaded
+     *
+     * @return whether the dictionary is loaded
+     */
+    public boolean isLoaded() {
+        return loadCount == 5;
+    }
+}
+","// DictionaryInfo_1Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getField(String)} method.
+*/
+class DictionaryInfo_1Test {","// DictionaryInfo_1Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getField(String)} method.
+*/
+class DictionaryInfo_1Test {
+
+		private DictionaryInfo dictionaryInfo;
+		
+		private FieldInfo fieldInfo;
+		
+		private TreeMap<String, FieldInfo> fieldsByName;
+		
+		private String name;
+		
+		private FieldInfo result;
+		
+		private List<FieldInfo> fields;
+		
+		private TreeMap<Integer, FieldInfo> fieldsByTagNumber;
+		
+		private int tagNumber;
+		
+		private TreeMap<String, ComponentInfo> componentsByName;
+		
+		private TreeMap<Integer, ComponentInfo> componentsById;
+		
+		private TreeMap<String, MessageInfo> messagesByName;
+		
+		private TreeMap<Integer, MessageInfo> messagesById;
+		
+		private String version;
+		
+		private int loadCount;
+		
+		private boolean result2;
+		
+		private List<ComponentInfo> components;
+		
+		private List<MessageInfo> messages;
+		
+		private ComponentInfo componentInfo;
+		
+		private MessageInfo messageInfo;
+		
+		private int id;
+		
+		private String name2;
+		
+		private int id2;
+		
+		private String name3;
+		
+		private int id3;
+		
+		private String name4;
+		
+		private int id4;
+		
+		private String name5;
+		
+		private int id5;
+		
+		private String name6;
+		
+		private int id6;
+		
+		private String name7;
+		
+		private int id7;
+		
+		private String name8;
+		
+		private int id8;
+		
+		private String name9;
+		
+		private int id9;
+		
+		private String name10;
+		
+		private int id10;
+		
+		private String name11;
+		
+		private int id11;
+		
+		private String name12;
+		
+		private int id12;
+		
+		private String name13;
+		
+		private int id13;
+		
+		private String name14;
+		
+		private int id14;
+		
+		private String name15;
+		
+		private int id15;
+		
+		private String name16;
+		
+		private int id16;
+		
+		private String name17;
+		
+		private int id17;
+		
+		private String name18;
+		
+		private int id18;
+		
+		private String name19;
+		
+		private int id19;
+		
+		private String name20;
+		
+		private int id20;
+		
+		private String name21;
+		
+		private int id21;
+		
+		private String name22;
+		
+		private int id22;
+		
+		private String name23;
+		
+		private int id23;
+		
+		private String name24;
+		
+		private int id24;
+		
+		private String name25;
+		
+		private int id25;
+		
+		private String name26;
+		
+		private int id26;
+		
+		private String name27;
+		
+		private int id27;
+		
+		private String name28;
+		
+		private int id28;
+		
+		private String name29;
+		
+		private int id29;
+		
+		private String name30;
+		
+		private int id30;
+		
+		private String name31;
+		
+		private int id31;
+		
+		private String name32;
+		
+		private int id32;
+		
+		private String name33;
+		
+		private int id33;
+		
+		private String name34;
+		
+		private int id34;
+		
+		private String name35;
+		
+		private int id35;
+		
+		private String name36;
+		
+		private int id36;
+		
+		private String name37;
+		
+		private int id37;
+		
+		private String name38;
+		
+		private int id38;
+		
+		private String name39;
+		
+		private int id39;
+		
+		private String name40;
+		
+		private int id40;
+		
+		private String name41;
+		
+		private int id41;
+		
+		private String name42;
+		
+		private int id42;
+		
+		private String name43;
+		
+		private int id43;
+		
+		private String name44;
+		
+		private int id44;
+		
+		private String name45;
+		
+		private int id45;
+		
+		private String name46;
+		
+		private int id46;
+		
+		private String name47;
+		
+		private int id47;
+		
+		private String name48;
+		
+		private int id48;
+		
+		private String name49;
+		
+		private int id49;
+		
+		private String name50;
+		
+		private int id50;
+		
+		private String name51;
+		
+		private int id51;
+		
+		private String name52;
+		
+		private int id52;
+		
+		private String name53;
+		
+		private int id53;
+		
+		private String name54;
+		
+		private int id54;
+		
+		private String name55;
+		
+		private int id55;
+		
+		private String name56;
+		
+		private int id56;
+		
+		private String name57;
+		
+		private int id57;
+		
+		private String name58;
+		
+		private int id58;
+		
+		private String name59;
+		
+		private int id59;
+		
+		private String name60;
+		
+		private int id60;
+		
+		private String name61;
+		
+		private int id61;
+		
+		private String name62;
+		
+		private int id62;
+		
+		private String name63;
+		
+		private int id63;
+		
+		private String name64;
+		
+		private int id64;
+		
+		private String name65;
+		
+		private int id65;
+		
+		private String name66;
+		
+		private int id66;
+		
+		private String name67;
+		
+		private int id67;
+		
+		private String name68;
+		
+		private int id68;
+		
+		private String name69;
+		
+		private int id69;
+		
+		private String name70;
+		
+		private int id70;
+		
+		private String name71;
+		
+		private int id71;
+		
+		private String name72;
+		
+		private int id72;
+		
+		private String name73;
+		
+		private int id73;
+		
+		private String name74;
+		
+		private int id74;
+		
+		private String name75;
+		
+		private int id75;
+		
+		private String name76;
+		
+		private int id76;
+		
+		private String name77;
+		
+		private int id77;
+		
+		private String name78;
+		
+		private int id78;
+		
+		private String name79;
+		
+		private int id79;
+		
+		private String name80"
+cmpl-6wWqbr6Wr0aJcMBfinOsOgaSi035q,/EvoSuiteBenchmark/original/74_fixsuite/src/main/java/org/fixsuite/message/info/DictionaryInfo_2Test.java,59.44041299819946,length,"// DictionaryInfo.java
+/**
+ * DictionaryInfo.java 11:33:45 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </PRE>
+ */
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+/**
+ * Represents a FIX version specification. DictionaryInfo acts as a central
+ * storage for all items defined in a version.
+ *
+ * @author jramoyo
+ */
+public class DictionaryInfo {
+
+    private String version;
+
+    private int loadCount;
+
+    // Default collection
+    private TreeMap<String, MessageInfo> messagesByName;
+
+    private TreeMap<Integer, MessageInfo> messagesById;
+
+    // Default collection
+    private TreeMap<Integer, FieldInfo> fieldsByTagNumber;
+
+    private TreeMap<String, FieldInfo> fieldsByName;
+
+    // Default collection
+    private TreeMap<String, ComponentInfo> componentsByName;
+
+    private TreeMap<Integer, ComponentInfo> componentsById;
+
+    /**
+     * Creates a new DictionaryInfo
+     *
+     * @param version - a version
+     */
+    public DictionaryInfo(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Returns the fields
+     *
+     * @return the fields
+     */
+    public List<FieldInfo> getFields() {
+        if (fieldsByTagNumber != null) {
+            return new ArrayList<FieldInfo>(fieldsByTagNumber.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a tagNumber
+     *
+     * @param tagNumber - a tagNumber
+     * @return a field given a tagNumber
+     */
+    public FieldInfo getField(int tagNumber) {
+        if (fieldsByTagNumber != null) {
+            return fieldsByTagNumber.get(tagNumber);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a name
+     *
+     * @param name - a name
+     * @return a field given a name
+     */
+    public FieldInfo getField(String name) {
+        if (fieldsByName != null) {
+            return fieldsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a field
+     *
+     * @param field - a field
+     */
+    public void addField(FieldInfo field) {
+        if (fieldsByTagNumber == null) {
+            fieldsByTagNumber = new TreeMap<Integer, FieldInfo>();
+            fieldsByName = new TreeMap<String, FieldInfo>();
+        }
+        fieldsByTagNumber.put(field.getTagNumber(), field);
+        fieldsByName.put(field.getName(), field);
+    }
+
+    /**
+     * Returns the components
+     *
+     * @return the components
+     */
+    public List<ComponentInfo> getComponents() {
+        if (componentsByName != null) {
+            return new ArrayList<ComponentInfo>(componentsByName.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given an id
+     *
+     * @param id - an id
+     * @return a component given an id
+     */
+    public ComponentInfo getComponent(int id) {
+        if (componentsById != null) {
+            return componentsById.get(id);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given a name
+     *
+     * @param name - a name
+     * @return a component given a name
+     */
+    public ComponentInfo getComponent(String name) {
+        if (componentsByName != null) {
+            return componentsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a component
+     *
+     * @param component
+     */
+    public void addComponent(ComponentInfo component) {
+        if (componentsByName == null) {
+            componentsByName = new TreeMap<String, ComponentInfo>();
+            componentsById = new TreeMap<Integer, ComponentInfo>();
+        }
+        componentsByName.put(component.getName(), component);
+        componentsById.put(component.getId(), component);
+    }
+
+    /**
+     * Replace the field by a group. This is used by FPL parsers which cannot
+     * tell if a field is a group just from Fields.xml
+     *
+     * @param field - a field
+     * @param group - a group
+     */
+    public void replaceAsGroup(FieldInfo field, GroupInfo group) {
+        fieldsByTagNumber.put(field.getTagNumber(), group);
+        fieldsByName.put(field.getName(), group);
+    }
+
+    /**
+     * Returns a message given an id
+     *
+     * @param id - an id
+     * @return a message given an id
+     */
+    public MessageInfo getMessage(int id) {
+        if (messagesById != null) {
+            return messagesById.get(id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a message given a name
+     *
+     * @param name - a name
+     * @return a message given a name
+     */
+    public MessageInfo getMessage(String name) {
+        if (messagesByName != null) {
+            return messagesByName.get(name);
+        } else {
+            return null;
+        }
+    }
+
+    public List<MessageInfo> getMessages() {
+        return new ArrayList<MessageInfo>(messagesById.values());
+    }
+
+    /**
+     * Adds a message
+     *
+     * @param message - a message
+     */
+    public void addMessage(MessageInfo message) {
+        if (messagesByName == null) {
+            messagesByName = new TreeMap<String, MessageInfo>();
+            messagesById = new TreeMap<Integer, MessageInfo>();
+        }
+        messagesById.put(message.getId(), message);
+        messagesByName.put(message.getName(), message);
+    }
+
+    /**
+     * Returns the version
+     *
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Modifies the version
+     *
+     * @param version - the version to set
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Increments the loadCount
+     */
+    public void incrementLoadCount() {
+        loadCount++;
+    }
+
+    /**
+     * Returns whether the dictionary is loaded
+     *
+     * @return whether the dictionary is loaded
+     */
+    public boolean isLoaded() {
+        return loadCount == 5;
+    }
+}
+","// DictionaryInfo_2Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getComponent(int)} method.
+*/
+class DictionaryInfo_2Test {","// DictionaryInfo_2Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getComponent(int)} method.
+*/
+class DictionaryInfo_2Test {
+
+		/**
+		 * Test case 1 for method getComponent(int).
+		 * 
+		 * Test case 1 is a positive test case.
+		 * 
+		 * Test case 1 tests the normal case.
+		 * 
+		 * Test case 1 expects the method to return the component with the given id.
+		 */
+		@Test
+		void testGetComponent_1() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				ComponentInfo componentInfo = new ComponentInfo(1, ""TestComponent"");
+				dictionaryInfo.addComponent(componentInfo);
+				assertEquals(componentInfo, dictionaryInfo.getComponent(1));
+		}
+		
+		/**
+		 * Test case 2 for method getComponent(int).
+		 * 
+		 * Test case 2 is a negative test case.
+		 * 
+		 * Test case 2 tests the case where the component with the given id does not exist.
+		 * 
+		 * Test case 2 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_2() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				ComponentInfo componentInfo = new ComponentInfo(1, ""TestComponent"");
+				dictionaryInfo.addComponent(componentInfo);
+				assertNull(dictionaryInfo.getComponent(2));
+		}
+		
+		/**
+		 * Test case 3 for method getComponent(int).
+		 * 
+		 * Test case 3 is a negative test case.
+		 * 
+		 * Test case 3 tests the case where the components map is null.
+		 * 
+		 * Test case 3 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_3() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				dictionaryInfo.componentsById = null;
+				assertNull(dictionaryInfo.getComponent(1));
+		}
+		
+		/**
+		 * Test case 4 for method getComponent(int).
+		 * 
+		 * Test case 4 is a negative test case.
+		 * 
+		 * Test case 4 tests the case where the components map is empty.
+		 * 
+		 * Test case 4 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_4() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				dictionaryInfo.componentsById = new TreeMap<Integer, ComponentInfo>();
+				assertNull(dictionaryInfo.getComponent(1));
+		}
+		
+		/**
+		 * Test case 5 for method getComponent(int).
+		 * 
+		 * Test case 5 is a negative test case.
+		 * 
+		 * Test case 5 tests the case where the components map is null.
+		 * 
+		 * Test case 5 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_5() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				dictionaryInfo.componentsById = null;
+				assertNull(dictionaryInfo.getComponent(1));
+		}
+		
+		/**
+		 * Test case 6 for method getComponent(int).
+		 * 
+		 * Test case 6 is a negative test case.
+		 * 
+		 * Test case 6 tests the case where the components map is empty.
+		 * 
+		 * Test case 6 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_6() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				dictionaryInfo.componentsById = new TreeMap<Integer, ComponentInfo>();
+				assertNull(dictionaryInfo.getComponent(1));
+		}
+		
+		/**
+		 * Test case 7 for method getComponent(int).
+		 * 
+		 * Test case 7 is a negative test case.
+		 * 
+		 * Test case 7 tests the case where the components map is null.
+		 * 
+		 * Test case 7 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_7() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				dictionaryInfo.componentsById = null;
+				assertNull(dictionaryInfo.getComponent(1));
+		}
+		
+		/**
+		 * Test case 8 for method getComponent(int).
+		 * 
+		 * Test case 8 is a negative test case.
+		 * 
+		 * Test case 8 tests the case where the components map is empty.
+		 * 
+		 * Test case 8 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_8() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				dictionaryInfo.componentsById = new TreeMap<Integer, ComponentInfo>();
+				assertNull(dictionaryInfo.getComponent(1));
+		}
+		
+		/**
+		 * Test case 9 for method getComponent(int).
+		 * 
+		 * Test case 9 is a negative test case.
+		 * 
+		 * Test case 9 tests the case where the components map is null.
+		 * 
+		 * Test case 9 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_9() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				dictionaryInfo.componentsById = null;
+				assertNull(dictionaryInfo.getComponent(1));
+		}
+		
+		/**
+		 * Test case 10 for method getComponent(int).
+		 * 
+		 * Test case 10 is a negative test case.
+		 * 
+		 * Test case 10 tests the case where the components map is empty.
+		 * 
+		 * Test case 10 expects the method to return null.
+		 */
+		@Test
+		void testGetComponent_10() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				dictionaryInfo.componentsById = new TreeMap<Integer, ComponentInfo>();
+				assertNull(dictionaryInfo.getComponent(1));
+		}
+}
+
+// DictionaryInfo_3Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getComponent(String)} method.
+*/
+class DictionaryInfo_3Test {
+		
+		/**
+		 * Test case 1 for method getComponent(String).
+		 * 
+		 * Test case 1 is a positive test case.
+		 * 
+		 * Test case 1 tests the normal case.
+		 * 
+		 * Test case 1 expects the method to return the component with the given name.
+		 */
+		@Test
+		void testGetComponent_1() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				ComponentInfo componentInfo = new ComponentInfo(1, ""TestComponent"");
+				dictionaryInfo.addComponent(componentInfo);
+				assertEquals(componentInfo, dictionaryInfo.getComponent(""TestComponent""));
+		}
+		
+		/**
+		 * Test case 2 for method getComponent(String).
+		 * 
+		 * Test case 2 is a negative test case.
+		"
+cmpl-6wWre8KXNygyhHi0hvquYWPoOtzW0,/EvoSuiteBenchmark/original/74_fixsuite/src/main/java/org/fixsuite/message/info/DictionaryInfo_3Test.java,56.179665088653564,length,"// DictionaryInfo.java
+/**
+ * DictionaryInfo.java 11:33:45 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </PRE>
+ */
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+/**
+ * Represents a FIX version specification. DictionaryInfo acts as a central
+ * storage for all items defined in a version.
+ *
+ * @author jramoyo
+ */
+public class DictionaryInfo {
+
+    private String version;
+
+    private int loadCount;
+
+    // Default collection
+    private TreeMap<String, MessageInfo> messagesByName;
+
+    private TreeMap<Integer, MessageInfo> messagesById;
+
+    // Default collection
+    private TreeMap<Integer, FieldInfo> fieldsByTagNumber;
+
+    private TreeMap<String, FieldInfo> fieldsByName;
+
+    // Default collection
+    private TreeMap<String, ComponentInfo> componentsByName;
+
+    private TreeMap<Integer, ComponentInfo> componentsById;
+
+    /**
+     * Creates a new DictionaryInfo
+     *
+     * @param version - a version
+     */
+    public DictionaryInfo(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Returns the fields
+     *
+     * @return the fields
+     */
+    public List<FieldInfo> getFields() {
+        if (fieldsByTagNumber != null) {
+            return new ArrayList<FieldInfo>(fieldsByTagNumber.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a tagNumber
+     *
+     * @param tagNumber - a tagNumber
+     * @return a field given a tagNumber
+     */
+    public FieldInfo getField(int tagNumber) {
+        if (fieldsByTagNumber != null) {
+            return fieldsByTagNumber.get(tagNumber);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a name
+     *
+     * @param name - a name
+     * @return a field given a name
+     */
+    public FieldInfo getField(String name) {
+        if (fieldsByName != null) {
+            return fieldsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a field
+     *
+     * @param field - a field
+     */
+    public void addField(FieldInfo field) {
+        if (fieldsByTagNumber == null) {
+            fieldsByTagNumber = new TreeMap<Integer, FieldInfo>();
+            fieldsByName = new TreeMap<String, FieldInfo>();
+        }
+        fieldsByTagNumber.put(field.getTagNumber(), field);
+        fieldsByName.put(field.getName(), field);
+    }
+
+    /**
+     * Returns the components
+     *
+     * @return the components
+     */
+    public List<ComponentInfo> getComponents() {
+        if (componentsByName != null) {
+            return new ArrayList<ComponentInfo>(componentsByName.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given an id
+     *
+     * @param id - an id
+     * @return a component given an id
+     */
+    public ComponentInfo getComponent(int id) {
+        if (componentsById != null) {
+            return componentsById.get(id);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given a name
+     *
+     * @param name - a name
+     * @return a component given a name
+     */
+    public ComponentInfo getComponent(String name) {
+        if (componentsByName != null) {
+            return componentsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a component
+     *
+     * @param component
+     */
+    public void addComponent(ComponentInfo component) {
+        if (componentsByName == null) {
+            componentsByName = new TreeMap<String, ComponentInfo>();
+            componentsById = new TreeMap<Integer, ComponentInfo>();
+        }
+        componentsByName.put(component.getName(), component);
+        componentsById.put(component.getId(), component);
+    }
+
+    /**
+     * Replace the field by a group. This is used by FPL parsers which cannot
+     * tell if a field is a group just from Fields.xml
+     *
+     * @param field - a field
+     * @param group - a group
+     */
+    public void replaceAsGroup(FieldInfo field, GroupInfo group) {
+        fieldsByTagNumber.put(field.getTagNumber(), group);
+        fieldsByName.put(field.getName(), group);
+    }
+
+    /**
+     * Returns a message given an id
+     *
+     * @param id - an id
+     * @return a message given an id
+     */
+    public MessageInfo getMessage(int id) {
+        if (messagesById != null) {
+            return messagesById.get(id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a message given a name
+     *
+     * @param name - a name
+     * @return a message given a name
+     */
+    public MessageInfo getMessage(String name) {
+        if (messagesByName != null) {
+            return messagesByName.get(name);
+        } else {
+            return null;
+        }
+    }
+
+    public List<MessageInfo> getMessages() {
+        return new ArrayList<MessageInfo>(messagesById.values());
+    }
+
+    /**
+     * Adds a message
+     *
+     * @param message - a message
+     */
+    public void addMessage(MessageInfo message) {
+        if (messagesByName == null) {
+            messagesByName = new TreeMap<String, MessageInfo>();
+            messagesById = new TreeMap<Integer, MessageInfo>();
+        }
+        messagesById.put(message.getId(), message);
+        messagesByName.put(message.getName(), message);
+    }
+
+    /**
+     * Returns the version
+     *
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Modifies the version
+     *
+     * @param version - the version to set
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Increments the loadCount
+     */
+    public void incrementLoadCount() {
+        loadCount++;
+    }
+
+    /**
+     * Returns whether the dictionary is loaded
+     *
+     * @return whether the dictionary is loaded
+     */
+    public boolean isLoaded() {
+        return loadCount == 5;
+    }
+}
+","// DictionaryInfo_3Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getComponent(String)} method.
+*/
+class DictionaryInfo_3Test {","// DictionaryInfo_3Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getComponent(String)} method.
+*/
+class DictionaryInfo_3Test {
+
+		/**
+		 * Test case 1 for method getComponent(String).
+		 * 
+		 * Test case 1 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_1() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 2 for method getComponent(String).
+		 * 
+		 * Test case 2 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_2() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 3 for method getComponent(String).
+		 * 
+		 * Test case 3 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_3() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 4 for method getComponent(String).
+		 * 
+		 * Test case 4 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_4() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 5 for method getComponent(String).
+		 * 
+		 * Test case 5 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_5() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 6 for method getComponent(String).
+		 * 
+		 * Test case 6 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_6() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 7 for method getComponent(String).
+		 * 
+		 * Test case 7 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_7() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 8 for method getComponent(String).
+		 * 
+		 * Test case 8 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_8() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 9 for method getComponent(String).
+		 * 
+		 * Test case 9 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_9() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+		
+		/**
+		 * Test case 10 for method getComponent(String).
+		 * 
+		 * Test case 10 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(String)
+		 */
+		@Test
+		void testGetComponent_10() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(""""));
+		}
+}
+
+// DictionaryInfo_4Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getComponent(int)} method.
+*/
+class DictionaryInfo_4Test {
+		
+		/**
+		 * Test case 1 for method getComponent(int).
+		 * 
+		 * Test case 1 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(int)
+		 */
+		@Test
+		void testGetComponent_1() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(0));
+		}
+		
+		/**
+		 * Test case 2 for method getComponent(int).
+		 * 
+		 * Test case 2 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(int)
+		 */
+		@Test
+		void testGetComponent_2() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(0));
+		}
+		
+		/**
+		 * Test case 3 for method getComponent(int).
+		 * 
+		 * Test case 3 covers the following requirements:
+		 * 
+		 * 		- The method returns null if the component is not found.
+		 * 
+		 * @see DictionaryInfo#getComponent(int)
+		 */
+		@Test
+		void testGetComponent_3() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.2"");
+				assertNull(dictionaryInfo.getComponent(0));
+		}
+		
+		/**
+		 * Test case 4"
+cmpl-6wWsheeyoSkAsUuP7V1G0C0OJ0ZIs,/EvoSuiteBenchmark/original/74_fixsuite/src/main/java/org/fixsuite/message/info/DictionaryInfo_4Test.java,59.656548738479614,length,"// DictionaryInfo.java
+/**
+ * DictionaryInfo.java 11:33:45 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </PRE>
+ */
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+/**
+ * Represents a FIX version specification. DictionaryInfo acts as a central
+ * storage for all items defined in a version.
+ *
+ * @author jramoyo
+ */
+public class DictionaryInfo {
+
+    private String version;
+
+    private int loadCount;
+
+    // Default collection
+    private TreeMap<String, MessageInfo> messagesByName;
+
+    private TreeMap<Integer, MessageInfo> messagesById;
+
+    // Default collection
+    private TreeMap<Integer, FieldInfo> fieldsByTagNumber;
+
+    private TreeMap<String, FieldInfo> fieldsByName;
+
+    // Default collection
+    private TreeMap<String, ComponentInfo> componentsByName;
+
+    private TreeMap<Integer, ComponentInfo> componentsById;
+
+    /**
+     * Creates a new DictionaryInfo
+     *
+     * @param version - a version
+     */
+    public DictionaryInfo(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Returns the fields
+     *
+     * @return the fields
+     */
+    public List<FieldInfo> getFields() {
+        if (fieldsByTagNumber != null) {
+            return new ArrayList<FieldInfo>(fieldsByTagNumber.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a tagNumber
+     *
+     * @param tagNumber - a tagNumber
+     * @return a field given a tagNumber
+     */
+    public FieldInfo getField(int tagNumber) {
+        if (fieldsByTagNumber != null) {
+            return fieldsByTagNumber.get(tagNumber);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a name
+     *
+     * @param name - a name
+     * @return a field given a name
+     */
+    public FieldInfo getField(String name) {
+        if (fieldsByName != null) {
+            return fieldsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a field
+     *
+     * @param field - a field
+     */
+    public void addField(FieldInfo field) {
+        if (fieldsByTagNumber == null) {
+            fieldsByTagNumber = new TreeMap<Integer, FieldInfo>();
+            fieldsByName = new TreeMap<String, FieldInfo>();
+        }
+        fieldsByTagNumber.put(field.getTagNumber(), field);
+        fieldsByName.put(field.getName(), field);
+    }
+
+    /**
+     * Returns the components
+     *
+     * @return the components
+     */
+    public List<ComponentInfo> getComponents() {
+        if (componentsByName != null) {
+            return new ArrayList<ComponentInfo>(componentsByName.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given an id
+     *
+     * @param id - an id
+     * @return a component given an id
+     */
+    public ComponentInfo getComponent(int id) {
+        if (componentsById != null) {
+            return componentsById.get(id);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given a name
+     *
+     * @param name - a name
+     * @return a component given a name
+     */
+    public ComponentInfo getComponent(String name) {
+        if (componentsByName != null) {
+            return componentsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a component
+     *
+     * @param component
+     */
+    public void addComponent(ComponentInfo component) {
+        if (componentsByName == null) {
+            componentsByName = new TreeMap<String, ComponentInfo>();
+            componentsById = new TreeMap<Integer, ComponentInfo>();
+        }
+        componentsByName.put(component.getName(), component);
+        componentsById.put(component.getId(), component);
+    }
+
+    /**
+     * Replace the field by a group. This is used by FPL parsers which cannot
+     * tell if a field is a group just from Fields.xml
+     *
+     * @param field - a field
+     * @param group - a group
+     */
+    public void replaceAsGroup(FieldInfo field, GroupInfo group) {
+        fieldsByTagNumber.put(field.getTagNumber(), group);
+        fieldsByName.put(field.getName(), group);
+    }
+
+    /**
+     * Returns a message given an id
+     *
+     * @param id - an id
+     * @return a message given an id
+     */
+    public MessageInfo getMessage(int id) {
+        if (messagesById != null) {
+            return messagesById.get(id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a message given a name
+     *
+     * @param name - a name
+     * @return a message given a name
+     */
+    public MessageInfo getMessage(String name) {
+        if (messagesByName != null) {
+            return messagesByName.get(name);
+        } else {
+            return null;
+        }
+    }
+
+    public List<MessageInfo> getMessages() {
+        return new ArrayList<MessageInfo>(messagesById.values());
+    }
+
+    /**
+     * Adds a message
+     *
+     * @param message - a message
+     */
+    public void addMessage(MessageInfo message) {
+        if (messagesByName == null) {
+            messagesByName = new TreeMap<String, MessageInfo>();
+            messagesById = new TreeMap<Integer, MessageInfo>();
+        }
+        messagesById.put(message.getId(), message);
+        messagesByName.put(message.getName(), message);
+    }
+
+    /**
+     * Returns the version
+     *
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Modifies the version
+     *
+     * @param version - the version to set
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Increments the loadCount
+     */
+    public void incrementLoadCount() {
+        loadCount++;
+    }
+
+    /**
+     * Returns whether the dictionary is loaded
+     *
+     * @return whether the dictionary is loaded
+     */
+    public boolean isLoaded() {
+        return loadCount == 5;
+    }
+}
+","// DictionaryInfo_4Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getMessage(int)} method.
+*/
+class DictionaryInfo_4Test {","// DictionaryInfo_4Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getMessage(int)} method.
+*/
+class DictionaryInfo_4Test {
+
+		/**
+		 * Test case 1 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_1() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(1);
+				assertEquals(messageInfo, result);
+		}
+		
+		/**
+		 * Test case 2 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_2() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(2);
+				assertNull(result);
+		}
+		
+		/**
+		 * Test case 3 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_3() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(0);
+				assertNull(result);
+		}
+		
+		/**
+		 * Test case 4 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_4() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(-1);
+				assertNull(result);
+		}
+		
+		/**
+		 * Test case 5 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_5() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(Integer.MAX_VALUE);
+				assertNull(result);
+		}
+		
+		/**
+		 * Test case 6 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_6() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(Integer.MIN_VALUE);
+				assertNull(result);
+		}
+		
+		/**
+		 * Test case 7 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_7() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(Integer.MAX_VALUE - 1);
+				assertNull(result);
+		}
+		
+		/**
+		 * Test case 8 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_8() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(Integer.MIN_VALUE + 1);
+				assertNull(result);
+		}
+		
+		/**
+		 * Test case 9 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_9() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(Integer.MAX_VALUE / 2);
+				assertNull(result);
+		}
+		
+		/**
+		 * Test case 10 for method {@link DictionaryInfo#getMessage(int)}.
+		 * 
+		 * @see DictionaryInfo#getMessage(int)
+		 */
+		@Test
+		public void testGetMessage_10() {
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Heartbeat"");
+				dictionaryInfo.addMessage(messageInfo);
+				MessageInfo result = dictionaryInfo.getMessage(Integer.MIN_VALUE / 2);
+				assertNull(result);
+		}
+}
+
+// MessageInfo.java
+/**
+ * MessageInfo.java 11:33:45 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *"
+cmpl-6wWtkH8V3PgIlGLG90boJf6rPSg7k,/EvoSuiteBenchmark/original/74_fixsuite/src/main/java/org/fixsuite/message/info/DictionaryInfo_5Test.java,58.95520377159119,length,"// DictionaryInfo.java
+/**
+ * DictionaryInfo.java 11:33:45 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </PRE>
+ */
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+/**
+ * Represents a FIX version specification. DictionaryInfo acts as a central
+ * storage for all items defined in a version.
+ *
+ * @author jramoyo
+ */
+public class DictionaryInfo {
+
+    private String version;
+
+    private int loadCount;
+
+    // Default collection
+    private TreeMap<String, MessageInfo> messagesByName;
+
+    private TreeMap<Integer, MessageInfo> messagesById;
+
+    // Default collection
+    private TreeMap<Integer, FieldInfo> fieldsByTagNumber;
+
+    private TreeMap<String, FieldInfo> fieldsByName;
+
+    // Default collection
+    private TreeMap<String, ComponentInfo> componentsByName;
+
+    private TreeMap<Integer, ComponentInfo> componentsById;
+
+    /**
+     * Creates a new DictionaryInfo
+     *
+     * @param version - a version
+     */
+    public DictionaryInfo(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Returns the fields
+     *
+     * @return the fields
+     */
+    public List<FieldInfo> getFields() {
+        if (fieldsByTagNumber != null) {
+            return new ArrayList<FieldInfo>(fieldsByTagNumber.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a tagNumber
+     *
+     * @param tagNumber - a tagNumber
+     * @return a field given a tagNumber
+     */
+    public FieldInfo getField(int tagNumber) {
+        if (fieldsByTagNumber != null) {
+            return fieldsByTagNumber.get(tagNumber);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a field given a name
+     *
+     * @param name - a name
+     * @return a field given a name
+     */
+    public FieldInfo getField(String name) {
+        if (fieldsByName != null) {
+            return fieldsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a field
+     *
+     * @param field - a field
+     */
+    public void addField(FieldInfo field) {
+        if (fieldsByTagNumber == null) {
+            fieldsByTagNumber = new TreeMap<Integer, FieldInfo>();
+            fieldsByName = new TreeMap<String, FieldInfo>();
+        }
+        fieldsByTagNumber.put(field.getTagNumber(), field);
+        fieldsByName.put(field.getName(), field);
+    }
+
+    /**
+     * Returns the components
+     *
+     * @return the components
+     */
+    public List<ComponentInfo> getComponents() {
+        if (componentsByName != null) {
+            return new ArrayList<ComponentInfo>(componentsByName.values());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given an id
+     *
+     * @param id - an id
+     * @return a component given an id
+     */
+    public ComponentInfo getComponent(int id) {
+        if (componentsById != null) {
+            return componentsById.get(id);
+        }
+        return null;
+    }
+
+    /**
+     * Returns a component given a name
+     *
+     * @param name - a name
+     * @return a component given a name
+     */
+    public ComponentInfo getComponent(String name) {
+        if (componentsByName != null) {
+            return componentsByName.get(name);
+        }
+        return null;
+    }
+
+    /**
+     * Adds a component
+     *
+     * @param component
+     */
+    public void addComponent(ComponentInfo component) {
+        if (componentsByName == null) {
+            componentsByName = new TreeMap<String, ComponentInfo>();
+            componentsById = new TreeMap<Integer, ComponentInfo>();
+        }
+        componentsByName.put(component.getName(), component);
+        componentsById.put(component.getId(), component);
+    }
+
+    /**
+     * Replace the field by a group. This is used by FPL parsers which cannot
+     * tell if a field is a group just from Fields.xml
+     *
+     * @param field - a field
+     * @param group - a group
+     */
+    public void replaceAsGroup(FieldInfo field, GroupInfo group) {
+        fieldsByTagNumber.put(field.getTagNumber(), group);
+        fieldsByName.put(field.getName(), group);
+    }
+
+    /**
+     * Returns a message given an id
+     *
+     * @param id - an id
+     * @return a message given an id
+     */
+    public MessageInfo getMessage(int id) {
+        if (messagesById != null) {
+            return messagesById.get(id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a message given a name
+     *
+     * @param name - a name
+     * @return a message given a name
+     */
+    public MessageInfo getMessage(String name) {
+        if (messagesByName != null) {
+            return messagesByName.get(name);
+        } else {
+            return null;
+        }
+    }
+
+    public List<MessageInfo> getMessages() {
+        return new ArrayList<MessageInfo>(messagesById.values());
+    }
+
+    /**
+     * Adds a message
+     *
+     * @param message - a message
+     */
+    public void addMessage(MessageInfo message) {
+        if (messagesByName == null) {
+            messagesByName = new TreeMap<String, MessageInfo>();
+            messagesById = new TreeMap<Integer, MessageInfo>();
+        }
+        messagesById.put(message.getId(), message);
+        messagesByName.put(message.getName(), message);
+    }
+
+    /**
+     * Returns the version
+     *
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Modifies the version
+     *
+     * @param version - the version to set
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    /**
+     * Increments the loadCount
+     */
+    public void incrementLoadCount() {
+        loadCount++;
+    }
+
+    /**
+     * Returns whether the dictionary is loaded
+     *
+     * @return whether the dictionary is loaded
+     */
+    public boolean isLoaded() {
+        return loadCount == 5;
+    }
+}
+","// DictionaryInfo_5Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getMessage(String)} method.
+*/
+class DictionaryInfo_5Test {","// DictionaryInfo_5Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DictionaryInfo}.
+* It contains ten unit test cases for the {@link DictionaryInfo#getMessage(String)} method.
+*/
+class DictionaryInfo_5Test {
+
+		/**
+		 * Test case 1 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 1 is a positive test case.
+		 * 
+		 * Test case 1 tests the case where the message name is not null.
+		 * 
+		 * Test case 1 expects the method to return the message with the given name.
+		 */
+		@Test
+		void testGetMessage_1() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				// Exercise
+				MessageInfo actual = dictionaryInfo.getMessage(""Message"");
+				
+				// Verify
+				assertEquals(messageInfo, actual);
+		}
+		
+		/**
+		 * Test case 2 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 2 is a negative test case.
+		 * 
+		 * Test case 2 tests the case where the message name is null.
+		 * 
+		 * Test case 2 expects the method to return null.
+		 */
+		@Test
+		void testGetMessage_2() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				// Exercise
+				MessageInfo actual = dictionaryInfo.getMessage(null);
+				
+				// Verify
+				assertNull(actual);
+		}
+		
+		/**
+		 * Test case 3 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 3 is a negative test case.
+		 * 
+		 * Test case 3 tests the case where the message name is empty.
+		 * 
+		 * Test case 3 expects the method to return null.
+		 */
+		@Test
+		void testGetMessage_3() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				// Exercise
+				MessageInfo actual = dictionaryInfo.getMessage("""");
+				
+				// Verify
+				assertNull(actual);
+		}
+		
+		/**
+		 * Test case 4 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 4 is a negative test case.
+		 * 
+		 * Test case 4 tests the case where the message name is not in the dictionary.
+		 * 
+		 * Test case 4 expects the method to return null.
+		 */
+		@Test
+		void testGetMessage_4() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				// Exercise
+				MessageInfo actual = dictionaryInfo.getMessage(""Message1"");
+				
+				// Verify
+				assertNull(actual);
+		}
+		
+		/**
+		 * Test case 5 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 5 is a negative test case.
+		 * 
+		 * Test case 5 tests the case where the message name is not in the dictionary.
+		 * 
+		 * Test case 5 expects the method to return null.
+		 */
+		@Test
+		void testGetMessage_5() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				// Exercise
+				MessageInfo actual = dictionaryInfo.getMessage(""Message1"");
+				
+				// Verify
+				assertNull(actual);
+		}
+		
+		/**
+		 * Test case 6 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 6 is a negative test case.
+		 * 
+		 * Test case 6 tests the case where the message name is not in the dictionary.
+		 * 
+		 * Test case 6 expects the method to return null.
+		 */
+		@Test
+		void testGetMessage_6() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				// Exercise
+				MessageInfo actual = dictionaryInfo.getMessage(""Message1"");
+				
+				// Verify
+				assertNull(actual);
+		}
+		
+		/**
+		 * Test case 7 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 7 is a negative test case.
+		 * 
+		 * Test case 7 tests the case where the message name is not in the dictionary.
+		 * 
+		 * Test case 7 expects the method to return null.
+		 */
+		@Test
+		void testGetMessage_7() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				// Exercise
+				MessageInfo actual = dictionaryInfo.getMessage(""Message1"");
+				
+				// Verify
+				assertNull(actual);
+		}
+		
+		/**
+		 * Test case 8 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 8 is a negative test case.
+		 * 
+		 * Test case 8 tests the case where the message name is not in the dictionary.
+		 * 
+		 * Test case 8 expects the method to return null.
+		 */
+		@Test
+		void testGetMessage_8() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				// Exercise
+				MessageInfo actual = dictionaryInfo.getMessage(""Message1"");
+				
+				// Verify
+				assertNull(actual);
+		}
+		
+		/**
+		 * Test case 9 for method {@link DictionaryInfo#getMessage(String)}.
+		 * 
+		 * Test case 9 is a negative test case.
+		 * 
+		 * Test case 9 tests the case where the message name is not in the dictionary.
+		 * 
+		 * Test case 9 expects the method to return null.
+		 */
+		@Test
+		void testGetMessage_9() {
+				// Setup
+				DictionaryInfo dictionaryInfo = new DictionaryInfo(""FIX.4.4"");
+				MessageInfo messageInfo = new MessageInfo(1, ""Message"");
+				dictionaryInfo.addMessage(messageInfo);
+				
+				"
+cmpl-6wWunKrPNM9JsAAZgI6snqM2IeH0A,/EvoSuiteBenchmark/original/74_fixsuite/src/main/java/org/fixsuite/message/info/FieldInfo_0Test.java,61.794801235198975,length,"// FieldInfo.java
+/**
+ * FieldInfo.java 9:05:06 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </PRE>
+ */
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+/**
+ * Represents a Field as defined by the FIX specification.
+ *
+ * @author jramoyo
+ */
+public class FieldInfo implements FixInfo {
+
+    private int tagNumber;
+
+    private String name;
+
+    private String dataType;
+
+    private String description;
+
+    private String abbreviation;
+
+    private String overrideXmlName;
+
+    private String baseCategory;
+
+    private String baseCategoryXmlName;
+
+    private String unionDataType;
+
+    private String usesEnumFromTag;
+
+    private String comments;
+
+    private int length;
+
+    private boolean isNotRequiredXml;
+
+    private String deprecatingVersion;
+
+    private List<ComponentInfo> requiringComponents;
+
+    private TreeMap<String, ValueInfo> validValues;
+
+    /**
+     * Returns the tagNumber
+     *
+     * @return the tagNumber
+     */
+    public int getTagNumber() {
+        return tagNumber;
+    }
+
+    /**
+     * Modifies the tagNumber
+     *
+     * @param tagNumber - the tagNumber to set
+     */
+    public void setTagNumber(int tagNumber) {
+        this.tagNumber = tagNumber;
+    }
+
+    /**
+     * Returns the fieldName
+     *
+     * @return the fieldName
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Modifies the fieldName
+     *
+     * @param name - the fieldName to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Returns the dataType
+     *
+     * @return the dataType
+     */
+    public String getDataType() {
+        return dataType;
+    }
+
+    /**
+     * Modifies the dataType
+     *
+     * @param dataType - the dataType to set
+     */
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
+    }
+
+    /**
+     * Returns the description
+     *
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Modifies the description
+     *
+     * @param description - the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * Returns the comments
+     *
+     * @return the comments
+     */
+    public String getComments() {
+        return comments;
+    }
+
+    /**
+     * Modifies the comments
+     *
+     * @param comments - the comments to set
+     */
+    public void setComments(String comments) {
+        this.comments = comments;
+    }
+
+    /**
+     * Returns the abbreviation
+     *
+     * @return the abbreviation
+     */
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
+    /**
+     * Modifies the abbreviation
+     *
+     * @param abbreviation - the abbreviation to set
+     */
+    public void setAbbreviation(String abbreviation) {
+        this.abbreviation = abbreviation;
+    }
+
+    /**
+     * Returns the overrideXmlName
+     *
+     * @return the overrideXmlName
+     */
+    public String getOverrideXmlName() {
+        return overrideXmlName;
+    }
+
+    /**
+     * Modifies the overrideXmlName
+     *
+     * @param overrideXmlName - the overrideXmlName to set
+     */
+    public void setOverrideXmlName(String overrideXmlName) {
+        this.overrideXmlName = overrideXmlName;
+    }
+
+    /**
+     * Returns the baseCategory
+     *
+     * @return the baseCategory
+     */
+    public String getBaseCategory() {
+        return baseCategory;
+    }
+
+    /**
+     * Modifies the baseCategory
+     *
+     * @param baseCategory - the baseCategory to set
+     */
+    public void setBaseCategory(String baseCategory) {
+        this.baseCategory = baseCategory;
+    }
+
+    /**
+     * Returns the baseCategoryXmlName
+     *
+     * @return the baseCategoryXmlName
+     */
+    public String getBaseCategoryXmlName() {
+        return baseCategoryXmlName;
+    }
+
+    /**
+     * Modifies the baseCategoryXmlName
+     *
+     * @param baseCategoryXmlName - the baseCategoryXmlName to set
+     */
+    public void setBaseCategoryXmlName(String baseCategoryXmlName) {
+        this.baseCategoryXmlName = baseCategoryXmlName;
+    }
+
+    /**
+     * Returns the unionDataType
+     *
+     * @return the unionDataType
+     */
+    public String getUnionDataType() {
+        return unionDataType;
+    }
+
+    /**
+     * Modifies the unionDataType
+     *
+     * @param unionDataType - the unionDataType to set
+     */
+    public void setUnionDataType(String unionDataType) {
+        this.unionDataType = unionDataType;
+    }
+
+    /**
+     * Returns the usesEnumFromTag
+     *
+     * @return the usesEnumFromTag
+     */
+    public String getUsesEnumFromTag() {
+        return usesEnumFromTag;
+    }
+
+    /**
+     * Modifies the usesEnumFromTag
+     *
+     * @param usesEnumFromTag - the usesEnumFromTag to set
+     */
+    public void setUsesEnumFromTag(String usesEnumFromTag) {
+        this.usesEnumFromTag = usesEnumFromTag;
+    }
+
+    /**
+     * Returns the length
+     *
+     * @return the length
+     */
+    public int getLength() {
+        return length;
+    }
+
+    /**
+     * Modifies the length
+     *
+     * @param length - the length to set
+     */
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    /**
+     * Returns the isNotRequiredXml
+     *
+     * @return the isNotRequiredXml
+     */
+    public boolean isNotRequiredXml() {
+        return isNotRequiredXml;
+    }
+
+    /**
+     * Modifies the isNotRequiredXml
+     *
+     * @param isNotRequiredXml - the isNotRequiredXml to set
+     */
+    public void setNotRequiredXml(boolean isNotRequiredXml) {
+        this.isNotRequiredXml = isNotRequiredXml;
+    }
+
+    /**
+     * Returns the deprecatingVersion
+     *
+     * @return the deprecatingVersion
+     */
+    public String getDeprecatingVersion() {
+        return deprecatingVersion;
+    }
+
+    /**
+     * Modifies the deprecatingVersion
+     *
+     * @param deprecatingVersion - the deprecatingVersion to set
+     */
+    public void setDeprecatingVersion(String deprecatingVersion) {
+        this.deprecatingVersion = deprecatingVersion;
+    }
+
+    /**
+     * Returns the requiringComponents
+     *
+     * @return the requiringComponents
+     */
+    public List<ComponentInfo> getRequiringComponents() {
+        return requiringComponents;
+    }
+
+    /**
+     * Add a requiringComponent
+     *
+     * @param component - a requiringComponent
+     */
+    public void addRequiringComponent(ComponentInfo component) {
+        if (requiringComponents == null) {
+            requiringComponents = new ArrayList<ComponentInfo>();
+        }
+        requiringComponents.add(component);
+    }
+
+    /**
+     * Modifies the requiringComponents
+     *
+     * @param requiringComponents - the requiringComponent to set
+     */
+    protected void setRequiringComponents(List<ComponentInfo> requiringComponents) {
+        this.requiringComponents = requiringComponents;
+    }
+
+    /**
+     * Returns whether this field is required in the specified component
+     *
+     * @param component - a component
+     * @return whether this field is required in the specified component
+     */
+    public boolean isRequiredInComponent(ComponentInfo component) {
+        if (requiringComponents != null) {
+            return requiringComponents.contains(component);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the validValues
+     *
+     * @return the validValues
+     */
+    public List<ValueInfo> getValidValues() {
+        if (validValues != null) {
+            return new ArrayList<ValueInfo>(validValues.values());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Adds a value
+     *
+     * @param value - a value
+     */
+    public void addValidValue(ValueInfo value) {
+        if (validValues == null) {
+            validValues = new TreeMap<String, ValueInfo>();
+        }
+        validValues.put(value.getValue(), value);
+    }
+
+    /**
+     * Returns whether a given value is valid
+     *
+     * @param value - a value
+     * @return whether a given value is valid
+     */
+    public boolean isValidValue(String value) {
+        return validValues.keySet().contains(value);
+    }
+
+    /**
+     * Modifies the validValues
+     *
+     * @param validValues - the validValues to set
+     */
+    protected void setValidValues(TreeMap<String, ValueInfo> validValues) {
+        this.validValues = validValues;
+    }
+
+    /**
+     * Returns the validValues Map
+     *
+     * @return the validValues Map
+     */
+    protected TreeMap<String, ValueInfo> getValidValuesMap() {
+        return validValues;
+    }
+}
+","// FieldInfo_0Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FieldInfo}.
+* It contains ten unit test cases for the {@link FieldInfo#isRequiredInComponent(ComponentInfo)} method.
+*/
+class FieldInfo_0Test {","// FieldInfo_0Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FieldInfo}.
+* It contains ten unit test cases for the {@link FieldInfo#isRequiredInComponent(ComponentInfo)} method.
+*/
+class FieldInfo_0Test {
+
+		/**
+		 * Test case 1 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_1() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertTrue(fieldInfo.isRequiredInComponent(componentInfo));
+		}
+		
+		/**
+		 * Test case 2 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_2() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				assertFalse(fieldInfo.isRequiredInComponent(componentInfo));
+		}
+		
+		/**
+		 * Test case 3 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_3() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertFalse(fieldInfo.isRequiredInComponent(null));
+		}
+		
+		/**
+		 * Test case 4 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_4() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertFalse(fieldInfo.isRequiredInComponent(new ComponentInfo()));
+		}
+		
+		/**
+		 * Test case 5 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_5() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertFalse(fieldInfo.isRequiredInComponent(new ComponentInfo()));
+		}
+		
+		/**
+		 * Test case 6 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_6() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertFalse(fieldInfo.isRequiredInComponent(new ComponentInfo()));
+		}
+		
+		/**
+		 * Test case 7 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_7() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertFalse(fieldInfo.isRequiredInComponent(new ComponentInfo()));
+		}
+		
+		/**
+		 * Test case 8 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_8() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertFalse(fieldInfo.isRequiredInComponent(new ComponentInfo()));
+		}
+		
+		/**
+		 * Test case 9 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_9() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertFalse(fieldInfo.isRequiredInComponent(new ComponentInfo()));
+		}
+		
+		/**
+		 * Test case 10 for method isRequiredInComponent.
+		 * 
+		 * @see FieldInfo#isRequiredInComponent(ComponentInfo)
+		 */
+		@Test
+		void testIsRequiredInComponent_10() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ComponentInfo componentInfo = new ComponentInfo();
+				fieldInfo.addRequiringComponent(componentInfo);
+				assertFalse(fieldInfo.isRequiredInComponent(new ComponentInfo()));
+		}
+}
+
+// FieldInfo_1Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FieldInfo}.
+* It contains ten unit test cases for the {@link FieldInfo#isValidValue(String)} method.
+*/
+class FieldInfo_1Test {
+		
+		/**
+		 * Test case 1 for method isValidValue.
+		 * 
+		 * @see FieldInfo#isValidValue(String)
+		 */
+		@Test
+		void testIsValidValue_1() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ValueInfo valueInfo = new ValueInfo();
+				fieldInfo.addValidValue(valueInfo);
+				assertTrue(fieldInfo.isValidValue(valueInfo.getValue()));
+		}
+		
+		/**
+		 * Test case 2 for method isValidValue.
+		 * 
+		 * @see FieldInfo#isValidValue(String)
+		 */
+		@Test
+		void testIsValidValue_2() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ValueInfo valueInfo = new ValueInfo();
+				fieldInfo.addValidValue(valueInfo);
+				assertFalse(fieldInfo.isValidValue(null));
+		}
+		
+		/**
+		 * Test case 3 for method isValidValue.
+		 * 
+		 * @see FieldInfo#isValidValue(String)
+		 */
+		@Test
+		void testIsValidValue_3() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ValueInfo valueInfo = new ValueInfo();
+				fieldInfo.addValidValue(valueInfo);
+				assertFalse(fieldInfo.isValidValue(""""));
+		}
+		
+		/**
+		 * Test case 4 for method isValidValue.
+		 * 
+		 * @see FieldInfo#isValidValue(String)
+		 */
+		@Test
+		void testIsValidValue_4() {
+				FieldInfo fieldInfo = new FieldInfo();
+				ValueInfo valueInfo = new ValueInfo();
+				fieldInfo.addValidValue(valueInfo);
+				assertFalse(fieldInfo.isValidValue(""""));
+		}
+		
+		/**
+		 * Test case 5 for method isValidValue.
+		 * 
+		 * @see FieldInfo#isValidValue(String)
+		 */
+		@Test
+"
+cmpl-6wWvnVVr5ef5aoc9on79pOjNeQsnL,/EvoSuiteBenchmark/original/74_fixsuite/src/main/java/org/fixsuite/message/info/FieldInfo_1Test.java,63.74879240989685,length,"// FieldInfo.java
+/**
+ * FieldInfo.java 9:05:06 PM Apr 21, 2008
+ *
+ * <PRE>
+ * Copyright (c) 2008, Jan Amoyo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS';
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </PRE>
+ */
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+/**
+ * Represents a Field as defined by the FIX specification.
+ *
+ * @author jramoyo
+ */
+public class FieldInfo implements FixInfo {
+
+    private int tagNumber;
+
+    private String name;
+
+    private String dataType;
+
+    private String description;
+
+    private String abbreviation;
+
+    private String overrideXmlName;
+
+    private String baseCategory;
+
+    private String baseCategoryXmlName;
+
+    private String unionDataType;
+
+    private String usesEnumFromTag;
+
+    private String comments;
+
+    private int length;
+
+    private boolean isNotRequiredXml;
+
+    private String deprecatingVersion;
+
+    private List<ComponentInfo> requiringComponents;
+
+    private TreeMap<String, ValueInfo> validValues;
+
+    /**
+     * Returns the tagNumber
+     *
+     * @return the tagNumber
+     */
+    public int getTagNumber() {
+        return tagNumber;
+    }
+
+    /**
+     * Modifies the tagNumber
+     *
+     * @param tagNumber - the tagNumber to set
+     */
+    public void setTagNumber(int tagNumber) {
+        this.tagNumber = tagNumber;
+    }
+
+    /**
+     * Returns the fieldName
+     *
+     * @return the fieldName
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Modifies the fieldName
+     *
+     * @param name - the fieldName to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Returns the dataType
+     *
+     * @return the dataType
+     */
+    public String getDataType() {
+        return dataType;
+    }
+
+    /**
+     * Modifies the dataType
+     *
+     * @param dataType - the dataType to set
+     */
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
+    }
+
+    /**
+     * Returns the description
+     *
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Modifies the description
+     *
+     * @param description - the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * Returns the comments
+     *
+     * @return the comments
+     */
+    public String getComments() {
+        return comments;
+    }
+
+    /**
+     * Modifies the comments
+     *
+     * @param comments - the comments to set
+     */
+    public void setComments(String comments) {
+        this.comments = comments;
+    }
+
+    /**
+     * Returns the abbreviation
+     *
+     * @return the abbreviation
+     */
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
+    /**
+     * Modifies the abbreviation
+     *
+     * @param abbreviation - the abbreviation to set
+     */
+    public void setAbbreviation(String abbreviation) {
+        this.abbreviation = abbreviation;
+    }
+
+    /**
+     * Returns the overrideXmlName
+     *
+     * @return the overrideXmlName
+     */
+    public String getOverrideXmlName() {
+        return overrideXmlName;
+    }
+
+    /**
+     * Modifies the overrideXmlName
+     *
+     * @param overrideXmlName - the overrideXmlName to set
+     */
+    public void setOverrideXmlName(String overrideXmlName) {
+        this.overrideXmlName = overrideXmlName;
+    }
+
+    /**
+     * Returns the baseCategory
+     *
+     * @return the baseCategory
+     */
+    public String getBaseCategory() {
+        return baseCategory;
+    }
+
+    /**
+     * Modifies the baseCategory
+     *
+     * @param baseCategory - the baseCategory to set
+     */
+    public void setBaseCategory(String baseCategory) {
+        this.baseCategory = baseCategory;
+    }
+
+    /**
+     * Returns the baseCategoryXmlName
+     *
+     * @return the baseCategoryXmlName
+     */
+    public String getBaseCategoryXmlName() {
+        return baseCategoryXmlName;
+    }
+
+    /**
+     * Modifies the baseCategoryXmlName
+     *
+     * @param baseCategoryXmlName - the baseCategoryXmlName to set
+     */
+    public void setBaseCategoryXmlName(String baseCategoryXmlName) {
+        this.baseCategoryXmlName = baseCategoryXmlName;
+    }
+
+    /**
+     * Returns the unionDataType
+     *
+     * @return the unionDataType
+     */
+    public String getUnionDataType() {
+        return unionDataType;
+    }
+
+    /**
+     * Modifies the unionDataType
+     *
+     * @param unionDataType - the unionDataType to set
+     */
+    public void setUnionDataType(String unionDataType) {
+        this.unionDataType = unionDataType;
+    }
+
+    /**
+     * Returns the usesEnumFromTag
+     *
+     * @return the usesEnumFromTag
+     */
+    public String getUsesEnumFromTag() {
+        return usesEnumFromTag;
+    }
+
+    /**
+     * Modifies the usesEnumFromTag
+     *
+     * @param usesEnumFromTag - the usesEnumFromTag to set
+     */
+    public void setUsesEnumFromTag(String usesEnumFromTag) {
+        this.usesEnumFromTag = usesEnumFromTag;
+    }
+
+    /**
+     * Returns the length
+     *
+     * @return the length
+     */
+    public int getLength() {
+        return length;
+    }
+
+    /**
+     * Modifies the length
+     *
+     * @param length - the length to set
+     */
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    /**
+     * Returns the isNotRequiredXml
+     *
+     * @return the isNotRequiredXml
+     */
+    public boolean isNotRequiredXml() {
+        return isNotRequiredXml;
+    }
+
+    /**
+     * Modifies the isNotRequiredXml
+     *
+     * @param isNotRequiredXml - the isNotRequiredXml to set
+     */
+    public void setNotRequiredXml(boolean isNotRequiredXml) {
+        this.isNotRequiredXml = isNotRequiredXml;
+    }
+
+    /**
+     * Returns the deprecatingVersion
+     *
+     * @return the deprecatingVersion
+     */
+    public String getDeprecatingVersion() {
+        return deprecatingVersion;
+    }
+
+    /**
+     * Modifies the deprecatingVersion
+     *
+     * @param deprecatingVersion - the deprecatingVersion to set
+     */
+    public void setDeprecatingVersion(String deprecatingVersion) {
+        this.deprecatingVersion = deprecatingVersion;
+    }
+
+    /**
+     * Returns the requiringComponents
+     *
+     * @return the requiringComponents
+     */
+    public List<ComponentInfo> getRequiringComponents() {
+        return requiringComponents;
+    }
+
+    /**
+     * Add a requiringComponent
+     *
+     * @param component - a requiringComponent
+     */
+    public void addRequiringComponent(ComponentInfo component) {
+        if (requiringComponents == null) {
+            requiringComponents = new ArrayList<ComponentInfo>();
+        }
+        requiringComponents.add(component);
+    }
+
+    /**
+     * Modifies the requiringComponents
+     *
+     * @param requiringComponents - the requiringComponent to set
+     */
+    protected void setRequiringComponents(List<ComponentInfo> requiringComponents) {
+        this.requiringComponents = requiringComponents;
+    }
+
+    /**
+     * Returns whether this field is required in the specified component
+     *
+     * @param component - a component
+     * @return whether this field is required in the specified component
+     */
+    public boolean isRequiredInComponent(ComponentInfo component) {
+        if (requiringComponents != null) {
+            return requiringComponents.contains(component);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the validValues
+     *
+     * @return the validValues
+     */
+    public List<ValueInfo> getValidValues() {
+        if (validValues != null) {
+            return new ArrayList<ValueInfo>(validValues.values());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Adds a value
+     *
+     * @param value - a value
+     */
+    public void addValidValue(ValueInfo value) {
+        if (validValues == null) {
+            validValues = new TreeMap<String, ValueInfo>();
+        }
+        validValues.put(value.getValue(), value);
+    }
+
+    /**
+     * Returns whether a given value is valid
+     *
+     * @param value - a value
+     * @return whether a given value is valid
+     */
+    public boolean isValidValue(String value) {
+        return validValues.keySet().contains(value);
+    }
+
+    /**
+     * Modifies the validValues
+     *
+     * @param validValues - the validValues to set
+     */
+    protected void setValidValues(TreeMap<String, ValueInfo> validValues) {
+        this.validValues = validValues;
+    }
+
+    /**
+     * Returns the validValues Map
+     *
+     * @return the validValues Map
+     */
+    protected TreeMap<String, ValueInfo> getValidValuesMap() {
+        return validValues;
+    }
+}
+","// FieldInfo_1Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FieldInfo}.
+* It contains ten unit test cases for the {@link FieldInfo#isValidValue(String)} method.
+*/
+class FieldInfo_1Test {","// FieldInfo_1Test.java
+package org.fixsuite.message.info;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FieldInfo}.
+* It contains ten unit test cases for the {@link FieldInfo#isValidValue(String)} method.
+*/
+class FieldInfo_1Test {
+
+		/**
+		 * Test case 1.
+		 * 
+		 * <p>
+		 * Test case for the {@link FieldInfo#isValidValue(String)} method.
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following requirements:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns true if the given value is valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following assumptions:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns false if the given value is not valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following conditions:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns true if the given value is valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following steps:
+		 * <ol>
+		 * <li>Create a {@link FieldInfo} object.</li>
+		 * <li>Add a valid value to the {@link FieldInfo} object.</li>
+		 * <li>Call the {@link FieldInfo#isValidValue(String)} method with the valid value.</li>
+		 * <li>Verify that the {@link FieldInfo#isValidValue(String)} method returns true.</li>
+		 * </ol>
+		 * </p>
+		 */
+		@Test
+		void testIsValidValue_1() {
+				FieldInfo fieldInfo = new FieldInfo();
+				fieldInfo.addValidValue(new ValueInfo(""1"", ""One""));
+				assertTrue(fieldInfo.isValidValue(""1""));
+		}
+		
+		/**
+		 * Test case 2.
+		 * 
+		 * <p>
+		 * Test case for the {@link FieldInfo#isValidValue(String)} method.
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following requirements:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns true if the given value is valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following assumptions:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns false if the given value is not valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following conditions:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns true if the given value is valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following steps:
+		 * <ol>
+		 * <li>Create a {@link FieldInfo} object.</li>
+		 * <li>Add a valid value to the {@link FieldInfo} object.</li>
+		 * <li>Call the {@link FieldInfo#isValidValue(String)} method with the valid value.</li>
+		 * <li>Verify that the {@link FieldInfo#isValidValue(String)} method returns true.</li>
+		 * </ol>
+		 * </p>
+		 */
+		@Test
+		void testIsValidValue_2() {
+				FieldInfo fieldInfo = new FieldInfo();
+				fieldInfo.addValidValue(new ValueInfo(""1"", ""One""));
+				assertTrue(fieldInfo.isValidValue(""1""));
+		}
+		
+		/**
+		 * Test case 3.
+		 * 
+		 * <p>
+		 * Test case for the {@link FieldInfo#isValidValue(String)} method.
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following requirements:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns true if the given value is valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following assumptions:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns false if the given value is not valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following conditions:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns true if the given value is valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following steps:
+		 * <ol>
+		 * <li>Create a {@link FieldInfo} object.</li>
+		 * <li>Add a valid value to the {@link FieldInfo} object.</li>
+		 * <li>Call the {@link FieldInfo#isValidValue(String)} method with the valid value.</li>
+		 * <li>Verify that the {@link FieldInfo#isValidValue(String)} method returns true.</li>
+		 * </ol>
+		 * </p>
+		 */
+		@Test
+		void testIsValidValue_3() {
+				FieldInfo fieldInfo = new FieldInfo();
+				fieldInfo.addValidValue(new ValueInfo(""1"", ""One""));
+				assertTrue(fieldInfo.isValidValue(""1""));
+		}
+		
+		/**
+		 * Test case 4.
+		 * 
+		 * <p>
+		 * Test case for the {@link FieldInfo#isValidValue(String)} method.
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following requirements:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns true if the given value is valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following assumptions:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns false if the given value is not valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following conditions:
+		 * <ul>
+		 * <li>The {@link FieldInfo#isValidValue(String)} method returns true if the given value is valid.</li>
+		 * </ul>
+		 * </p>
+		 * 
+		 * <p>
+		 * This test case is for the following steps:
+		 * <ol>
+		 * <li>Create a {@link FieldInfo} object.</li>
+		 * <li>Add a valid value to the {@link FieldInfo} object.</li>
+		 * <li>Call the {@link FieldInfo#isValidValue(String)} method with the valid value.</li>
+		 * <li>Verify that the {@link FieldInfo#isValidValue(String)} method returns true.</li>
+		 * </ol>
+		 * </p>
+		 */
+		@Test
+		void testIsValidValue_"

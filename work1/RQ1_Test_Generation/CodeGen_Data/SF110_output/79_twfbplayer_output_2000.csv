@@ -1,0 +1,2579 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+fa564bb8-a44f-487f-af32-2f2067680280,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/model/impl/SimpleCombatant_0Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// SimpleCombatant.java
+package de.outstare.fortbattleplayer.model.impl;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+
+/**
+ * A Combatant with basic attributes (position, health)
+ *
+ * @author daniel
+ */
+public class SimpleCombatant implements Combatant {
+
+    private static final transient Logger LOG = Logger.getLogger(SimpleCombatant.class.getName());
+
+    private final int maxHealth;
+
+    private final CombatantSide side;
+
+    private final String name;
+
+    private final String city;
+
+    private final Set<CombatantObserver> observers = new HashSet<CombatantObserver>();
+
+    private final Object stateChangeLock = new Object();
+
+    private final CharacterClass charClass;
+
+    private final Weapon weapon;
+
+    private CombatantState state;
+
+    private Combatant aimingAt = null;
+
+    /**
+     * Create a new {@link Combatant} at the given position and the given amount
+     * of health.
+     *
+     * @param side
+     *            not null
+     * @param initialState
+     *            not null
+     * @param maxHealth
+     *            > 0
+     * @param name
+     *            the name of the player of this Combatant
+     * @param characterClass
+     *            maybe null for old logs
+     * @param weapon
+     *            not null
+     * @param city
+     *            not null
+     */
+    public SimpleCombatant(final CombatantSide side, final CombatantState initialState, final int maxHealth, final String name, final CharacterClass characterClass, final Weapon weapon, final String city) {
+        assert side != null && initialState != null && weapon != null && city != null : ""parameters may not be null!"";
+        assert maxHealth > 0 : ""health must be positive!"";
+        assert maxHealth >= initialState.getHealth() && initialState.getHealth() > 0 : ""currentHealth must be inbetween 1 and max, is "" + initialState.getHealth();
+        this.side = side;
+        this.maxHealth = maxHealth;
+        this.name = name;
+        this.city = city;
+        state = initialState;
+        charClass = characterClass;
+        this.weapon = weapon;
+        // move to current location
+        state.getPosition().occupy(this, null);
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return getSide() + "" "" + name;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getName()
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getWeapon()
+     */
+    public Weapon getWeapon() {
+        return weapon;
+    }
+
+    /**
+     * internal method for graphical display
+     *
+     * @return the maximal health
+     */
+    public int _getMaxLP() {
+        return maxHealth;
+    }
+
+    /**
+     * internal method for graphical display
+     *
+     * @return the current health
+     */
+    public int _getCurrentLP() {
+        return state.getHealth();
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#move(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void move(final Area target) {
+        LOG.fine(name + "" moving to "" + target);
+        synchronized (stateChangeLock) {
+            final Area oldPosition = state.getPosition();
+            moveAway(oldPosition);
+            state = state.changePosition(target);
+            final Combatant swapped = target.occupy(this, oldPosition);
+            fireHasMoved();
+            if (swapped != null) {
+                fireHasSwapped(swapped);
+            }
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#shoot(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void shoot(final int power) {
+        LOG.fine(name + "" shooting with "" + power);
+        aimingAt.hit(power);
+        final int sectorBonusDamage = state.getPosition().getSectorBonus(this).additionalDamage;
+        if (charClass == CharacterClass.DUELANT && power > weapon.maxDamage() + sectorBonusDamage) {
+            final double tenPercent = aimingAt._maxHealth() * 0.1;
+            if (power > weapon.minDamage() + tenPercent) {
+                fireCriticalShot(power);
+            } else {
+                LOG.fine(""almost crit by "" + name + "": "" + power);
+            }
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#hit(int)
+     */
+    public boolean hit(final int damageAmount) {
+        LOG.fine(name + "" was hit and lost "" + damageAmount + "" health points"");
+        synchronized (stateChangeLock) {
+            final int oldHealth = state.getHealth();
+            state = state.reduceHealthBy(damageAmount);
+            fireWasHit(damageAmount, oldHealth);
+            if (state.getHealth() <= 0) {
+                moveAway(state.getPosition());
+                fireIsDead();
+            }
+            return state.getHealth() > 0;
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#aimAt(de.outstare.fortbattleplayer.model.Combatant)
+     */
+    public void aimAt(final Combatant target) {
+        LOG.fine(name + "" aims at "" + target);
+        aimingAt = target;
+        fireAimingAt();
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#setDestination(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void setDestination(final Area destination) {
+        LOG.fine(name + "" wants to move to "" + destination);
+        synchronized (stateChangeLock) {
+            state = state.changeTarget(destination);
+            fireNewTarget();
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#addObserver(de.outstare.fortbattleplayer.model.CombatantObserver)
+     */
+    public void addObserver(final CombatantObserver observer) {
+        observers.add(observer);
+        // send current state
+        observer.hasMoved(this, state.getPosition());
+        if (aimingAt != null) {
+            observer.aimsAt(this, aimingAt);
+        }
+        if (state.getHealth() <= 0) {
+            observer.isDead(this);
+        } else {
+            observer.isAlive(this);
+        }
+        observer.isOnline(this, false);
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#removeObserver(de.outstare.fortbattleplayer.model.CombatantObserver)
+     */
+    public void removeObserver(final CombatantObserver observer) {
+        observers.remove(observer);
+    }
+
+    /**
+     * notify all observers about the current position
+     */
+    protected void fireHasMoved() {
+        for (final CombatantObserver observer : observers) {
+            observer.hasMoved(this, state.getPosition());
+        }
+    }
+
+    /**
+     * notify all observers about the current position
+     *
+     * @param swappedWith
+     */
+    protected void fireHasSwapped(final Combatant swappedWith) {
+        for (final CombatantObserver observer : observers) {
+            observer.hasSwappedPosition(this, swappedWith);
+        }
+    }
+
+    /**
+     * notify all observers about the current position
+     */
+    protected void fireNewTarget() {
+        for (final CombatantObserver observer : observers) {
+            observer.newDestination(this, state.getTarget());
+        }
+    }
+
+    /**
+     * notify all observers that I shot at somebody.
+     */
+    protected void fireAimingAt() {
+        if (aimingAt != null) {
+            for (final CombatantObserver observer : observers) {
+                observer.aimsAt(this, aimingAt);
+            }
+        }
+    }
+
+    /**
+     * notify all observers about a loss of health
+     *
+     * @param damage
+     *            amount of healthpoints lost
+     * @param healthBefore
+     *            original health amount before it was decreased by
+     *            <code>damage</code>
+     */
+    protected void fireWasHit(final int damage, final int healthBefore) {
+        for (final CombatantObserver observer : observers) {
+            observer.isHit(this, damage, healthBefore);
+        }
+    }
+
+    /**
+     * notify all observers about our dead
+     */
+    protected void fireIsDead() {
+        for (final CombatantObserver observer : observers) {
+            observer.isDead(this);
+        }
+    }
+
+    /**
+     * notify all observers about our resurrection
+     */
+    protected void fireIsAlive() {
+        for (final CombatantObserver observer : observers) {
+            observer.isAlive(this);
+        }
+    }
+
+    /**
+     * notify all observers about changed online state
+     *
+     * @param changed
+     *            if the value was changed or only set
+     */
+    protected void fireOnlineChange(final boolean changed) {
+        for (final CombatantObserver observer : observers) {
+            observer.isOnline(this, changed);
+        }
+    }
+
+    /**
+     * notify all observers that i have done a critical shot
+     *
+     * @param damage
+     *            the actual caused damage
+     */
+    protected void fireCriticalShot(final int damage) {
+        for (final CombatantObserver observer : observers) {
+            observer.criticalShot(this, aimingAt, damage);
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_getLocation()
+     */
+    public Area _getLocation() {
+        return state.getPosition();
+    }
+
+    /**
+     * @return the side
+     */
+    public CombatantSide getSide() {
+        return side;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_health()
+     */
+    public int _health() {
+        return state.getHealth();
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_maxHealth()
+     */
+    public int _maxHealth() {
+        return maxHealth;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_setState(de.outstare.fortbattleplayer.model.CombatantState)
+     */
+    public void _setState(final CombatantState newState) {
+        final CombatantState oldState = state;
+        // TODO maybe a PropertyChangeListener for the state
+        synchronized (stateChangeLock) {
+            state = newState;
+            // new pos has not to be null!
+            if (state.getPosition() != null) {
+                final Area oldPos = oldState.getPosition();
+                // fix for swapping:
+                // 1. go away from battlefield
+                moveAway(oldPos);
+                // 2. come from nowhere to new position (avoids swapping)
+                state.getPosition().occupy(this, null);
+                if (oldPos == null || !oldPos.equals(state.getPosition())) {
+                    fireHasMoved();
+                }
+            }
+            if (oldState.getHealth() != state.getHealth()) {
+                fireWasHit(oldState.getHealth() - state.getHealth(), oldState.getHealth());
+            }
+            if (state.getHealth() > 0 && oldState.getHealth() <= 0) {
+                fireIsAlive();
+            }
+            if (state.getHealth() <= 0 && oldState.getHealth() > 0) {
+                fireIsDead();
+            }
+            if (oldState.isGamerOnline() != state.isGamerOnline()) {
+                fireOnlineChange(true);
+            }
+            if (!oldState.getTarget().equals(state.getTarget())) {
+                fireNewTarget();
+            }
+        }
+    }
+
+    /**
+     * @param position
+     */
+    private void moveAway(final Area position) {
+        if (position != null && equals(position.getOccupier())) {
+            position.free();
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_state()
+     */
+    public CombatantState _state() {
+        return state;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#isOnline()
+     */
+    public boolean isOnline() {
+        return state.isGamerOnline();
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#setOnline()
+     */
+    public void setOnline(final boolean isOnline) {
+        synchronized (stateChangeLock) {
+            final boolean changed = isOnline() != isOnline;
+            if (changed) {
+                LOG.fine(name + "" is now "" + (isOnline ? ""online"" : ""offline""));
+                state = state.setOnline(isOnline);
+            }
+            fireOnlineChange(changed);
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getCharacterClass()
+     */
+    public CharacterClass getCharacterClass() {
+        return charClass;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getSectorBonus()
+     */
+    public SectorBonus getSectorBonus() {
+        return _getLocation().getSectorBonus(this);
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getCity()
+     */
+    public String getCity() {
+        return city;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#usesBayonet()
+     */
+    public boolean usesBayonet() {
+        final WeaponData weaponData = new JSWeaponData();
+        return weaponData.hasBayonet(getWeapon());
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 13;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((charClass == null) ? 0 : charClass.hashCode());
+        result = prime * result + ((city == null) ? 0 : city.hashCode());
+        return result;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof SimpleCombatant)) {
+            return false;
+        }
+        final SimpleCombatant other = (SimpleCombatant) obj;
+        if (name == null) {
+            if (other.name != null) {
+                return false;
+            }
+        } else if (!name.equals(other.name)) {
+            return false;
+        }
+        if (charClass != other.charClass) {
+            return false;
+        }
+        if (city == null) {
+            if (other.city != null) {
+                return false;
+            }
+        } else if (!city.equals(other.city)) {
+            return false;
+        }
+        return true;
+    }
+}
+","// SimpleCombatant_0Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getMaxLP()} method.
+*/
+class SimpleCombatant_0Test {","// SimpleCombatant_0Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getMaxLP()} method.
+*/
+class SimpleCombatant_0Test {
+"
+8638b779-9812-48c8-a833-b0a326506218,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/model/impl/SimpleCombatant_1Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// SimpleCombatant.java
+package de.outstare.fortbattleplayer.model.impl;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+
+/**
+ * A Combatant with basic attributes (position, health)
+ *
+ * @author daniel
+ */
+public class SimpleCombatant implements Combatant {
+
+    private static final transient Logger LOG = Logger.getLogger(SimpleCombatant.class.getName());
+
+    private final int maxHealth;
+
+    private final CombatantSide side;
+
+    private final String name;
+
+    private final String city;
+
+    private final Set<CombatantObserver> observers = new HashSet<CombatantObserver>();
+
+    private final Object stateChangeLock = new Object();
+
+    private final CharacterClass charClass;
+
+    private final Weapon weapon;
+
+    private CombatantState state;
+
+    private Combatant aimingAt = null;
+
+    /**
+     * Create a new {@link Combatant} at the given position and the given amount
+     * of health.
+     *
+     * @param side
+     *            not null
+     * @param initialState
+     *            not null
+     * @param maxHealth
+     *            > 0
+     * @param name
+     *            the name of the player of this Combatant
+     * @param characterClass
+     *            maybe null for old logs
+     * @param weapon
+     *            not null
+     * @param city
+     *            not null
+     */
+    public SimpleCombatant(final CombatantSide side, final CombatantState initialState, final int maxHealth, final String name, final CharacterClass characterClass, final Weapon weapon, final String city) {
+        assert side != null && initialState != null && weapon != null && city != null : ""parameters may not be null!"";
+        assert maxHealth > 0 : ""health must be positive!"";
+        assert maxHealth >= initialState.getHealth() && initialState.getHealth() > 0 : ""currentHealth must be inbetween 1 and max, is "" + initialState.getHealth();
+        this.side = side;
+        this.maxHealth = maxHealth;
+        this.name = name;
+        this.city = city;
+        state = initialState;
+        charClass = characterClass;
+        this.weapon = weapon;
+        // move to current location
+        state.getPosition().occupy(this, null);
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return getSide() + "" "" + name;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getName()
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getWeapon()
+     */
+    public Weapon getWeapon() {
+        return weapon;
+    }
+
+    /**
+     * internal method for graphical display
+     *
+     * @return the maximal health
+     */
+    public int _getMaxLP() {
+        return maxHealth;
+    }
+
+    /**
+     * internal method for graphical display
+     *
+     * @return the current health
+     */
+    public int _getCurrentLP() {
+        return state.getHealth();
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#move(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void move(final Area target) {
+        LOG.fine(name + "" moving to "" + target);
+        synchronized (stateChangeLock) {
+            final Area oldPosition = state.getPosition();
+            moveAway(oldPosition);
+            state = state.changePosition(target);
+            final Combatant swapped = target.occupy(this, oldPosition);
+            fireHasMoved();
+            if (swapped != null) {
+                fireHasSwapped(swapped);
+            }
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#shoot(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void shoot(final int power) {
+        LOG.fine(name + "" shooting with "" + power);
+        aimingAt.hit(power);
+        final int sectorBonusDamage = state.getPosition().getSectorBonus(this).additionalDamage;
+        if (charClass == CharacterClass.DUELANT && power > weapon.maxDamage() + sectorBonusDamage) {
+            final double tenPercent = aimingAt._maxHealth() * 0.1;
+            if (power > weapon.minDamage() + tenPercent) {
+                fireCriticalShot(power);
+            } else {
+                LOG.fine(""almost crit by "" + name + "": "" + power);
+            }
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#hit(int)
+     */
+    public boolean hit(final int damageAmount) {
+        LOG.fine(name + "" was hit and lost "" + damageAmount + "" health points"");
+        synchronized (stateChangeLock) {
+            final int oldHealth = state.getHealth();
+            state = state.reduceHealthBy(damageAmount);
+            fireWasHit(damageAmount, oldHealth);
+            if (state.getHealth() <= 0) {
+                moveAway(state.getPosition());
+                fireIsDead();
+            }
+            return state.getHealth() > 0;
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#aimAt(de.outstare.fortbattleplayer.model.Combatant)
+     */
+    public void aimAt(final Combatant target) {
+        LOG.fine(name + "" aims at "" + target);
+        aimingAt = target;
+        fireAimingAt();
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#setDestination(de.outstare.fortbattleplayer.model.Area)
+     */
+    public void setDestination(final Area destination) {
+        LOG.fine(name + "" wants to move to "" + destination);
+        synchronized (stateChangeLock) {
+            state = state.changeTarget(destination);
+            fireNewTarget();
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#addObserver(de.outstare.fortbattleplayer.model.CombatantObserver)
+     */
+    public void addObserver(final CombatantObserver observer) {
+        observers.add(observer);
+        // send current state
+        observer.hasMoved(this, state.getPosition());
+        if (aimingAt != null) {
+            observer.aimsAt(this, aimingAt);
+        }
+        if (state.getHealth() <= 0) {
+            observer.isDead(this);
+        } else {
+            observer.isAlive(this);
+        }
+        observer.isOnline(this, false);
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#removeObserver(de.outstare.fortbattleplayer.model.CombatantObserver)
+     */
+    public void removeObserver(final CombatantObserver observer) {
+        observers.remove(observer);
+    }
+
+    /**
+     * notify all observers about the current position
+     */
+    protected void fireHasMoved() {
+        for (final CombatantObserver observer : observers) {
+            observer.hasMoved(this, state.getPosition());
+        }
+    }
+
+    /**
+     * notify all observers about the current position
+     *
+     * @param swappedWith
+     */
+    protected void fireHasSwapped(final Combatant swappedWith) {
+        for (final CombatantObserver observer : observers) {
+            observer.hasSwappedPosition(this, swappedWith);
+        }
+    }
+
+    /**
+     * notify all observers about the current position
+     */
+    protected void fireNewTarget() {
+        for (final CombatantObserver observer : observers) {
+            observer.newDestination(this, state.getTarget());
+        }
+    }
+
+    /**
+     * notify all observers that I shot at somebody.
+     */
+    protected void fireAimingAt() {
+        if (aimingAt != null) {
+            for (final CombatantObserver observer : observers) {
+                observer.aimsAt(this, aimingAt);
+            }
+        }
+    }
+
+    /**
+     * notify all observers about a loss of health
+     *
+     * @param damage
+     *            amount of healthpoints lost
+     * @param healthBefore
+     *            original health amount before it was decreased by
+     *            <code>damage</code>
+     */
+    protected void fireWasHit(final int damage, final int healthBefore) {
+        for (final CombatantObserver observer : observers) {
+            observer.isHit(this, damage, healthBefore);
+        }
+    }
+
+    /**
+     * notify all observers about our dead
+     */
+    protected void fireIsDead() {
+        for (final CombatantObserver observer : observers) {
+            observer.isDead(this);
+        }
+    }
+
+    /**
+     * notify all observers about our resurrection
+     */
+    protected void fireIsAlive() {
+        for (final CombatantObserver observer : observers) {
+            observer.isAlive(this);
+        }
+    }
+
+    /**
+     * notify all observers about changed online state
+     *
+     * @param changed
+     *            if the value was changed or only set
+     */
+    protected void fireOnlineChange(final boolean changed) {
+        for (final CombatantObserver observer : observers) {
+            observer.isOnline(this, changed);
+        }
+    }
+
+    /**
+     * notify all observers that i have done a critical shot
+     *
+     * @param damage
+     *            the actual caused damage
+     */
+    protected void fireCriticalShot(final int damage) {
+        for (final CombatantObserver observer : observers) {
+            observer.criticalShot(this, aimingAt, damage);
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_getLocation()
+     */
+    public Area _getLocation() {
+        return state.getPosition();
+    }
+
+    /**
+     * @return the side
+     */
+    public CombatantSide getSide() {
+        return side;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_health()
+     */
+    public int _health() {
+        return state.getHealth();
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_maxHealth()
+     */
+    public int _maxHealth() {
+        return maxHealth;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_setState(de.outstare.fortbattleplayer.model.CombatantState)
+     */
+    public void _setState(final CombatantState newState) {
+        final CombatantState oldState = state;
+        // TODO maybe a PropertyChangeListener for the state
+        synchronized (stateChangeLock) {
+            state = newState;
+            // new pos has not to be null!
+            if (state.getPosition() != null) {
+                final Area oldPos = oldState.getPosition();
+                // fix for swapping:
+                // 1. go away from battlefield
+                moveAway(oldPos);
+                // 2. come from nowhere to new position (avoids swapping)
+                state.getPosition().occupy(this, null);
+                if (oldPos == null || !oldPos.equals(state.getPosition())) {
+                    fireHasMoved();
+                }
+            }
+            if (oldState.getHealth() != state.getHealth()) {
+                fireWasHit(oldState.getHealth() - state.getHealth(), oldState.getHealth());
+            }
+            if (state.getHealth() > 0 && oldState.getHealth() <= 0) {
+                fireIsAlive();
+            }
+            if (state.getHealth() <= 0 && oldState.getHealth() > 0) {
+                fireIsDead();
+            }
+            if (oldState.isGamerOnline() != state.isGamerOnline()) {
+                fireOnlineChange(true);
+            }
+            if (!oldState.getTarget().equals(state.getTarget())) {
+                fireNewTarget();
+            }
+        }
+    }
+
+    /**
+     * @param position
+     */
+    private void moveAway(final Area position) {
+        if (position != null && equals(position.getOccupier())) {
+            position.free();
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#_state()
+     */
+    public CombatantState _state() {
+        return state;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#isOnline()
+     */
+    public boolean isOnline() {
+        return state.isGamerOnline();
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#setOnline()
+     */
+    public void setOnline(final boolean isOnline) {
+        synchronized (stateChangeLock) {
+            final boolean changed = isOnline() != isOnline;
+            if (changed) {
+                LOG.fine(name + "" is now "" + (isOnline ? ""online"" : ""offline""));
+                state = state.setOnline(isOnline);
+            }
+            fireOnlineChange(changed);
+        }
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getCharacterClass()
+     */
+    public CharacterClass getCharacterClass() {
+        return charClass;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getSectorBonus()
+     */
+    public SectorBonus getSectorBonus() {
+        return _getLocation().getSectorBonus(this);
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#getCity()
+     */
+    public String getCity() {
+        return city;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.model.Combatant#usesBayonet()
+     */
+    public boolean usesBayonet() {
+        final WeaponData weaponData = new JSWeaponData();
+        return weaponData.hasBayonet(getWeapon());
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 13;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((charClass == null) ? 0 : charClass.hashCode());
+        result = prime * result + ((city == null) ? 0 : city.hashCode());
+        return result;
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof SimpleCombatant)) {
+            return false;
+        }
+        final SimpleCombatant other = (SimpleCombatant) obj;
+        if (name == null) {
+            if (other.name != null) {
+                return false;
+            }
+        } else if (!name.equals(other.name)) {
+            return false;
+        }
+        if (charClass != other.charClass) {
+            return false;
+        }
+        if (city == null) {
+            if (other.city != null) {
+                return false;
+            }
+        } else if (!city.equals(other.city)) {
+            return false;
+        }
+        return true;
+    }
+}
+","// SimpleCombatant_1Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getCurrentLP()} method.
+*/
+class SimpleCombatant_1Test {","// SimpleCombatant_1Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getCurrentLP()} method.
+*/
+class SimpleCombatant_1Test {
+"
+fcd2394d-e51a-470e-80b6-ee2133d9f983,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_0Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    /**
+     * a configuration which skips animation (used for purposes where the user
+     * should not see whats going on)
+     */
+    public static final PlayerConfiguration NO_DELAY = new PlayerConfiguration();
+
+    static {
+        NO_DELAY.ACTION_DELAY = 0;
+        NO_DELAY.PLAYER_DELAY = 0;
+        NO_DELAY.ROUND_DELAY = 0;
+        NO_DELAY.setShowMoveTargets(false);
+        NO_DELAY.setShowShootline(false);
+    }
+
+    /**
+     * this is used to control who currently does something with the player
+     */
+    private final Lock playLock = new ReentrantLock();
+
+    private final Set<PlayerConfigurationListener> listeners = new HashSet<PlayerConfigurationListener>();
+
+    /**
+     * current state of the player
+     */
+    private PlayerState state = PlayerState.STOP;
+
+    /**
+     * pause between two rounds in milliseconds
+     */
+    public volatile int ROUND_DELAY = Configuration.ROUND_DELAY;
+
+    /**
+     * pause between two players in a round in milliseconds
+     */
+    public volatile int PLAYER_DELAY = Configuration.PLAYER_DELAY;
+
+    /**
+     * pause between two actions in milliseconds
+     */
+    public volatile int ACTION_DELAY = Configuration.ACTION_DELAY;
+
+    /**
+     * draw a line to the point, where the player wants to go
+     */
+    private volatile boolean SHOW_MOVETARGETS = Configuration.SHOW_MOVETARGETS;
+
+    /**
+     * draw a line to the enemy ath wich the player shoots
+     */
+    private volatile boolean SHOW_SHOOTLINE = Configuration.SHOW_SHOOTLINE;
+
+    /**
+     * @param other
+     */
+    public void setTo(final PlayerConfiguration other) {
+        ROUND_DELAY = other.ROUND_DELAY;
+        PLAYER_DELAY = other.PLAYER_DELAY;
+        ACTION_DELAY = other.ACTION_DELAY;
+    }
+
+    /**
+     * @return a copy of this object
+     * @throws CloneNotSupportedException
+     */
+    public PlayerConfiguration copy() throws CloneNotSupportedException {
+        return (PlayerConfiguration) clone();
+    }
+
+    /**
+     * should only be called by {@link Battleplayer}!
+     *
+     * @param newState
+     */
+    synchronized void setState(final PlayerState newState) {
+        state = newState;
+    }
+
+    /**
+     * @return true if the player should be playing
+     */
+    public synchronized boolean isPlaying() {
+        return state == PlayerState.PLAY;
+    }
+
+    /**
+     * @return true if the player is hold
+     */
+    public synchronized boolean isPaused() {
+        return state == PlayerState.PAUSE;
+    }
+
+    /**
+     * @return true if the player is stopped
+     */
+    public synchronized boolean isStopped() {
+        return state == PlayerState.STOP;
+    }
+
+    /**
+     * exclusive use of the player
+     */
+    void lock() {
+        playLock.lock();
+    }
+
+    /**
+     * release the player
+     */
+    void unlock() {
+        playLock.unlock();
+    }
+
+    /**
+     * @return <code>true</code> if lines to movement targets should be
+     *         displayed
+     */
+    public boolean showMoveTargets() {
+        return SHOW_MOVETARGETS;
+    }
+
+    /**
+     * @param showMovetargets
+     */
+    public void setShowMoveTargets(final boolean showMovetargets) {
+        SHOW_MOVETARGETS = showMovetargets;
+        for (final PlayerConfigurationListener listener : listeners) {
+            listener.changedShowMoveTarget(SHOW_MOVETARGETS);
+        }
+    }
+
+    /**
+     * @return <code>true</code> if shooting lines should be displayed
+     */
+    public boolean showShootline() {
+        return SHOW_SHOOTLINE;
+    }
+
+    /**
+     * @param showShootline
+     */
+    public void setShowShootline(final boolean showShootline) {
+        SHOW_SHOOTLINE = showShootline;
+        for (final PlayerConfigurationListener listener : listeners) {
+            listener.changedShowShootingLine(SHOW_SHOOTLINE);
+        }
+    }
+
+    /**
+     * Adds a listener which will be notified about changes.
+     *
+     * @param listener
+     */
+    public void addListener(final PlayerConfigurationListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Removes the listener from the registered ones.
+     *
+     * @param listener
+     */
+    public void removeListener(final PlayerConfigurationListener listener) {
+        listeners.remove(listener);
+    }
+}
+","// PlayerConfiguration_0Test.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#copy()} method.
+*/
+class PlayerConfiguration_0Test {","// PlayerConfiguration_0Test.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#copy()} method.
+*/
+class PlayerConfiguration_0Test {
+"
+4ec92fa2-4793-4d31-8022-9237d1dc550b,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_1Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    /**
+     * a configuration which skips animation (used for purposes where the user
+     * should not see whats going on)
+     */
+    public static final PlayerConfiguration NO_DELAY = new PlayerConfiguration();
+
+    static {
+        NO_DELAY.ACTION_DELAY = 0;
+        NO_DELAY.PLAYER_DELAY = 0;
+        NO_DELAY.ROUND_DELAY = 0;
+        NO_DELAY.setShowMoveTargets(false);
+        NO_DELAY.setShowShootline(false);
+    }
+
+    /**
+     * this is used to control who currently does something with the player
+     */
+    private final Lock playLock = new ReentrantLock();
+
+    private final Set<PlayerConfigurationListener> listeners = new HashSet<PlayerConfigurationListener>();
+
+    /**
+     * current state of the player
+     */
+    private PlayerState state = PlayerState.STOP;
+
+    /**
+     * pause between two rounds in milliseconds
+     */
+    public volatile int ROUND_DELAY = Configuration.ROUND_DELAY;
+
+    /**
+     * pause between two players in a round in milliseconds
+     */
+    public volatile int PLAYER_DELAY = Configuration.PLAYER_DELAY;
+
+    /**
+     * pause between two actions in milliseconds
+     */
+    public volatile int ACTION_DELAY = Configuration.ACTION_DELAY;
+
+    /**
+     * draw a line to the point, where the player wants to go
+     */
+    private volatile boolean SHOW_MOVETARGETS = Configuration.SHOW_MOVETARGETS;
+
+    /**
+     * draw a line to the enemy ath wich the player shoots
+     */
+    private volatile boolean SHOW_SHOOTLINE = Configuration.SHOW_SHOOTLINE;
+
+    /**
+     * @param other
+     */
+    public void setTo(final PlayerConfiguration other) {
+        ROUND_DELAY = other.ROUND_DELAY;
+        PLAYER_DELAY = other.PLAYER_DELAY;
+        ACTION_DELAY = other.ACTION_DELAY;
+    }
+
+    /**
+     * @return a copy of this object
+     * @throws CloneNotSupportedException
+     */
+    public PlayerConfiguration copy() throws CloneNotSupportedException {
+        return (PlayerConfiguration) clone();
+    }
+
+    /**
+     * should only be called by {@link Battleplayer}!
+     *
+     * @param newState
+     */
+    synchronized void setState(final PlayerState newState) {
+        state = newState;
+    }
+
+    /**
+     * @return true if the player should be playing
+     */
+    public synchronized boolean isPlaying() {
+        return state == PlayerState.PLAY;
+    }
+
+    /**
+     * @return true if the player is hold
+     */
+    public synchronized boolean isPaused() {
+        return state == PlayerState.PAUSE;
+    }
+
+    /**
+     * @return true if the player is stopped
+     */
+    public synchronized boolean isStopped() {
+        return state == PlayerState.STOP;
+    }
+
+    /**
+     * exclusive use of the player
+     */
+    void lock() {
+        playLock.lock();
+    }
+
+    /**
+     * release the player
+     */
+    void unlock() {
+        playLock.unlock();
+    }
+
+    /**
+     * @return <code>true</code> if lines to movement targets should be
+     *         displayed
+     */
+    public boolean showMoveTargets() {
+        return SHOW_MOVETARGETS;
+    }
+
+    /**
+     * @param showMovetargets
+     */
+    public void setShowMoveTargets(final boolean showMovetargets) {
+        SHOW_MOVETARGETS = showMovetargets;
+        for (final PlayerConfigurationListener listener : listeners) {
+            listener.changedShowMoveTarget(SHOW_MOVETARGETS);
+        }
+    }
+
+    /**
+     * @return <code>true</code> if shooting lines should be displayed
+     */
+    public boolean showShootline() {
+        return SHOW_SHOOTLINE;
+    }
+
+    /**
+     * @param showShootline
+     */
+    public void setShowShootline(final boolean showShootline) {
+        SHOW_SHOOTLINE = showShootline;
+        for (final PlayerConfigurationListener listener : listeners) {
+            listener.changedShowShootingLine(SHOW_SHOOTLINE);
+        }
+    }
+
+    /**
+     * Adds a listener which will be notified about changes.
+     *
+     * @param listener
+     */
+    public void addListener(final PlayerConfigurationListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Removes the listener from the registered ones.
+     *
+     * @param listener
+     */
+    public void removeListener(final PlayerConfigurationListener listener) {
+        listeners.remove(listener);
+    }
+}
+","// PlayerConfiguration_1Test.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showMoveTargets()} method.
+*/
+class PlayerConfiguration_1Test {","// PlayerConfiguration_1Test.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showMoveTargets()} method.
+*/
+class PlayerConfiguration_1Test {
+"
+84e731cd-def5-4d70-8c62-0bc19505eaa3,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_2Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    /**
+     * a configuration which skips animation (used for purposes where the user
+     * should not see whats going on)
+     */
+    public static final PlayerConfiguration NO_DELAY = new PlayerConfiguration();
+
+    static {
+        NO_DELAY.ACTION_DELAY = 0;
+        NO_DELAY.PLAYER_DELAY = 0;
+        NO_DELAY.ROUND_DELAY = 0;
+        NO_DELAY.setShowMoveTargets(false);
+        NO_DELAY.setShowShootline(false);
+    }
+
+    /**
+     * this is used to control who currently does something with the player
+     */
+    private final Lock playLock = new ReentrantLock();
+
+    private final Set<PlayerConfigurationListener> listeners = new HashSet<PlayerConfigurationListener>();
+
+    /**
+     * current state of the player
+     */
+    private PlayerState state = PlayerState.STOP;
+
+    /**
+     * pause between two rounds in milliseconds
+     */
+    public volatile int ROUND_DELAY = Configuration.ROUND_DELAY;
+
+    /**
+     * pause between two players in a round in milliseconds
+     */
+    public volatile int PLAYER_DELAY = Configuration.PLAYER_DELAY;
+
+    /**
+     * pause between two actions in milliseconds
+     */
+    public volatile int ACTION_DELAY = Configuration.ACTION_DELAY;
+
+    /**
+     * draw a line to the point, where the player wants to go
+     */
+    private volatile boolean SHOW_MOVETARGETS = Configuration.SHOW_MOVETARGETS;
+
+    /**
+     * draw a line to the enemy ath wich the player shoots
+     */
+    private volatile boolean SHOW_SHOOTLINE = Configuration.SHOW_SHOOTLINE;
+
+    /**
+     * @param other
+     */
+    public void setTo(final PlayerConfiguration other) {
+        ROUND_DELAY = other.ROUND_DELAY;
+        PLAYER_DELAY = other.PLAYER_DELAY;
+        ACTION_DELAY = other.ACTION_DELAY;
+    }
+
+    /**
+     * @return a copy of this object
+     * @throws CloneNotSupportedException
+     */
+    public PlayerConfiguration copy() throws CloneNotSupportedException {
+        return (PlayerConfiguration) clone();
+    }
+
+    /**
+     * should only be called by {@link Battleplayer}!
+     *
+     * @param newState
+     */
+    synchronized void setState(final PlayerState newState) {
+        state = newState;
+    }
+
+    /**
+     * @return true if the player should be playing
+     */
+    public synchronized boolean isPlaying() {
+        return state == PlayerState.PLAY;
+    }
+
+    /**
+     * @return true if the player is hold
+     */
+    public synchronized boolean isPaused() {
+        return state == PlayerState.PAUSE;
+    }
+
+    /**
+     * @return true if the player is stopped
+     */
+    public synchronized boolean isStopped() {
+        return state == PlayerState.STOP;
+    }
+
+    /**
+     * exclusive use of the player
+     */
+    void lock() {
+        playLock.lock();
+    }
+
+    /**
+     * release the player
+     */
+    void unlock() {
+        playLock.unlock();
+    }
+
+    /**
+     * @return <code>true</code> if lines to movement targets should be
+     *         displayed
+     */
+    public boolean showMoveTargets() {
+        return SHOW_MOVETARGETS;
+    }
+
+    /**
+     * @param showMovetargets
+     */
+    public void setShowMoveTargets(final boolean showMovetargets) {
+        SHOW_MOVETARGETS = showMovetargets;
+        for (final PlayerConfigurationListener listener : listeners) {
+            listener.changedShowMoveTarget(SHOW_MOVETARGETS);
+        }
+    }
+
+    /**
+     * @return <code>true</code> if shooting lines should be displayed
+     */
+    public boolean showShootline() {
+        return SHOW_SHOOTLINE;
+    }
+
+    /**
+     * @param showShootline
+     */
+    public void setShowShootline(final boolean showShootline) {
+        SHOW_SHOOTLINE = showShootline;
+        for (final PlayerConfigurationListener listener : listeners) {
+            listener.changedShowShootingLine(SHOW_SHOOTLINE);
+        }
+    }
+
+    /**
+     * Adds a listener which will be notified about changes.
+     *
+     * @param listener
+     */
+    public void addListener(final PlayerConfigurationListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Removes the listener from the registered ones.
+     *
+     * @param listener
+     */
+    public void removeListener(final PlayerConfigurationListener listener) {
+        listeners.remove(listener);
+    }
+}
+","// PlayerConfiguration_2Test.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showShootline()} method.
+*/
+class PlayerConfiguration_2Test {","// PlayerConfiguration_2Test.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showShootline()} method.
+*/
+class PlayerConfiguration_2Test {
+"
+81b79f23-ef5a-454c-9415-a76b43496b6f,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/Battleplan_0Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// Battleplan.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+
+/**
+ * A plan which determines each step of the battle. A battle is divided into
+ * {@link Round}s.
+ *
+ * @author daniel
+ */
+public class Battleplan {
+
+    private static final transient Logger LOG = Logger.getLogger(Battleplan.class.getName());
+
+    private final SortedMap<Integer, Round> rounds = new TreeMap<Integer, Round>();
+
+    /**
+     * Create a new plan with the given rounds
+     *
+     * @param roundsOfPlan
+     */
+    public Battleplan(final Collection<Round> roundsOfPlan) {
+        mapRoundsToNumbers(roundsOfPlan);
+    }
+
+    /**
+     * @param roundsOfPlan
+     */
+    private void mapRoundsToNumbers(final Collection<Round> roundsOfPlan) {
+        for (final Round round : roundsOfPlan) {
+            final int no = round.getNo();
+            final Integer roundNo = Integer.valueOf(no);
+            if (rounds.containsKey(roundNo)) {
+                LOG.warning(""multiple rounds with number "" + roundNo + ""! overwriting"");
+            }
+            rounds.put(roundNo, round);
+        }
+    }
+
+    /**
+     * @return the number of rounds this plan has
+     */
+    public int numberOfRounds() {
+        return rounds.size();
+    }
+
+    /**
+     * executes the given {@link Round} of this plan
+     *
+     * @param roundNo
+     *            0 <= roundNo <= numberOfRounds()
+     * @param config
+     */
+    public void executeRound(final int roundNo, final PlayerConfiguration config) {
+        getRound(roundNo).execute(config);
+    }
+
+    /**
+     * @param roundNo
+     * @return
+     * @throws IllegalArgumentException
+     */
+    private Round getRound(final int roundNo) throws IllegalArgumentException {
+        final Integer roundKey = Integer.valueOf(roundNo);
+        if (!rounds.containsKey(roundKey)) {
+            throw new IllegalArgumentException(""the given round number does not exist: "" + roundNo);
+        }
+        final Round round = rounds.get(roundKey);
+        return round;
+    }
+
+    /**
+     * @param no
+     * @return <code>true</code> if this plan contains a round with the given
+     *         number
+     */
+    public boolean hasRoundNo(final int no) {
+        final Integer roundKey = Integer.valueOf(no);
+        return rounds.containsKey(roundKey);
+    }
+
+    /**
+     * @param roundNo
+     */
+    public void resetToRound(final int roundNo) {
+        if (hasRoundNo(roundNo)) {
+            getRound(roundNo).setInitialState();
+        }
+    }
+
+    /**
+     * @param roundNo
+     * @return <code>true</code> if more rounds follow after the given round
+     *         number.
+     */
+    public boolean hasMoreRounds(final int roundNo) {
+        return !getRemainingRounds(roundNo).isEmpty();
+    }
+
+    /**
+     * @require hasMoreRounds(currentRoundNo)
+     * @param currentRoundNo
+     * @return the number of the following round
+     */
+    public int getNextRound(final int currentRoundNo) {
+        final SortedMap<Integer, Round> remainingRounds = getRemainingRounds(currentRoundNo);
+        assert remainingRounds.size() > 0 : ""more rounds must exist!"";
+        return remainingRounds.firstKey().intValue();
+    }
+
+    /**
+     * @param currentRoundNo
+     * @return all rounds that follow after the given round number
+     */
+    private SortedMap<Integer, Round> getRemainingRounds(final int currentRoundNo) {
+        final Integer nextRoundNo = Integer.valueOf(currentRoundNo + 1);
+        final SortedMap<Integer, Round> remainingRounds = rounds.tailMap(nextRoundNo);
+        return remainingRounds;
+    }
+}
+","// Battleplan_0Test.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplan}.
+* It contains one unit test case for the {@link Battleplan#numberOfRounds()} method.
+*/
+class Battleplan_0Test {","// Battleplan_0Test.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplan}.
+* It contains one unit test case for the {@link Battleplan#numberOfRounds()} method.
+*/
+class Battleplan_0Test {
+"
+fab655a6-5a86-4c70-b9cd-678d99c71093,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/Battleplayer.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// Battleplayer.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+
+/**
+ * A {@link Battleplayer} controls the battle. It is a puppet player controlling
+ * the behavior of the {@link Combatant}s.
+ *
+ * @author daniel
+ */
+public class Battleplayer implements Player {
+
+    private static final transient Logger LOG = Logger.getLogger(Battleplayer.class.getName());
+
+    private final Battleplan plan;
+
+    private final Set<RoundListener> listeners = new HashSet<RoundListener>();
+
+    private boolean isPaused = false;
+
+    /**
+     * round numbers may not be sequential (this variable is also used for
+     * locking during a round)
+     */
+    private int currentRoundNo;
+
+    private volatile boolean isPlaying = false;
+
+    private volatile boolean shouldStop = false;
+
+    /**
+     * controls some aspects of the behavior of the player
+     */
+    public final PlayerConfiguration config;
+
+    /**
+     * @param plan
+     * @param config
+     */
+    public Battleplayer(final Battleplan plan, final PlayerConfiguration config) {
+        this.plan = plan;
+        this.config = config;
+        if (!plan.hasMoreRounds(0)) {
+            throw new IllegalStateException(""Cannot play a battle without rounds!"");
+        }
+        currentRoundNo = plan.getNextRound(0);
+    }
+
+    /**
+     * @param plan
+     */
+    public Battleplayer(final Battleplan plan) {
+        this(plan, new PlayerConfiguration());
+    }
+
+    /**
+     * let the battle begin! The whole battle is done by executing the
+     * {@link Battleplan}.
+     */
+    public void play() {
+        isPlaying = true;
+        LOG.info(""now playing"");
+        while (!shouldStop) {
+            playCurrentRound(currentRoundNo);
+            if (plan.hasMoreRounds(currentRoundNo)) {
+                currentRoundNo = plan.getNextRound(currentRoundNo);
+            } else {
+                break;
+            }
+        }
+        shouldStop = false;
+        isPlaying = false;
+        LOG.info(""stopped playing"");
+    }
+
+    /**
+     * blocks until current round has ended
+     *
+     * @see de.outstare.fortbattleplayer.player.Player#gotoRound(de.outstare.fortbattleplayer.player.Round)
+     */
+    public void gotoRound(final int i) {
+        assert plan.hasRoundNo(i) : ""round with number "" + i + "" must exist!"";
+        stop();
+        while (isPlaying) {
+            try {
+                LOG.fine(""waiting for round "" + currentRoundNo + "" to end to go to round "" + i);
+                Thread.sleep(500);
+            } catch (final InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        synchronized (this) {
+            currentRoundNo = i;
+        }
+        plan.resetToRound(currentRoundNo);
+    }
+
+    /**
+     * executes the round of the internal state
+     */
+    private void playCurrentRound(final int roundNo) {
+        fireNewRoundEvent(roundNo);
+        plan.executeRound(roundNo, config);
+        delayNextRound();
+    }
+
+    /**
+     * wait the time given in {@link PlayerConfiguration#ROUND_DELAY}
+     */
+    private void delayNextRound() {
+        try {
+            Thread.sleep(config.ROUND_DELAY);
+        } catch (final InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * tell all listeners that a new round will start now
+     *
+     * @param roundNo
+     */
+    private void fireNewRoundEvent(final int roundNo) {
+        for (final RoundListener listener : listeners) {
+            listener.nextRound(roundNo);
+        }
+    }
+
+    /**
+     * @param listener
+     */
+    public void addRoundListener(final RoundListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.player.Player#stop()
+     */
+    public void stop() {
+        if (isPlaying) {
+            LOG.fine(""stopping"");
+            shouldStop = true;
+        } else {
+            LOG.fine(""already stopped"");
+        }
+    }
+
+    /**
+     * A RoundListener waits for Round events.
+     *
+     * @author daniel
+     */
+    public static interface RoundListener {
+
+        /**
+         * a new round will begin immediatly
+         *
+         * @param roundNo
+         */
+        void nextRound(int roundNo);
+    }
+
+    /**
+     * @return the number of rounds this player shows
+     */
+    public int numberOfRounds() {
+        return plan.numberOfRounds();
+    }
+
+    /**
+     * toggles pause which holds playing rounds. if this player is currently
+     * paused can be checked with isPaused()
+     */
+    public void pause() {
+        if (isPaused) {
+            config.unlock();
+            isPaused = false;
+        } else {
+            config.lock();
+            isPaused = true;
+        }
+    }
+
+    /**
+     * @return <code>true</code> if this player is playing and is currently hold
+     */
+    public boolean isPaused() {
+        return isPaused;
+    }
+
+    /**
+     * @see de.outstare.fortbattleplayer.player.Player#getRoundNumbers()
+     */
+    public List<Integer> getRoundNumbers() {
+        // always generating a new list
+        final List<Integer> rounds = new ArrayList<Integer>(plan.numberOfRounds());
+        // check if first round exists
+        final int firstRound = 0;
+        if (plan.hasRoundNo(firstRound)) {
+            rounds.add(Integer.valueOf(firstRound));
+        }
+        // add all following rounds
+        int roundNo;
+        for (roundNo = plan.getNextRound(firstRound); plan.hasMoreRounds(roundNo); roundNo = plan.getNextRound(roundNo)) {
+            rounds.add(Integer.valueOf(roundNo));
+        }
+        // add last round (has no round after it)
+        rounds.add(Integer.valueOf(roundNo));
+        return rounds;
+    }
+}
+","// BattleplayerTest.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplayer}.
+* It contains one unit test case for the {@link Battleplayer#numberOfRounds()} method.
+*/
+class BattleplayerTest {","// BattleplayerTest.java
+package de.outstare.fortbattleplayer.player;
+
+/*
+ Copyright (c) 2010 Daniel Raap
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the ""Software""), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplayer}.
+* It contains one unit test case for the {@link Battleplayer#numberOfRounds()} method.
+*/
+class BattleplayerTest {
+"

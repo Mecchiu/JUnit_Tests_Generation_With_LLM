@@ -1,0 +1,599 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wT5jehFmhqkMhWzEfOvjhWrUGudI,/EvoSuiteBenchmark/original/67_gae-app-manager/src/main/java/net/sf/gaeappmanager/google/LogonHelper.java,53.61322855949402,length,"// LogonHelper.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+
+/**
+ * Google login helper.
+ *
+ * Based on work of Cheers Geoff.
+ *
+ * http://groups.google.com/group/google-appengine
+ * -java/browse_thread/thread/c96d4fff73117e1d?pli=1
+ *
+ * @author Alois Belaska
+ */
+public class LogonHelper {
+
+    /**
+     * Returns the ACSID string to be set as the Cookie field in the request
+     * header.
+     *
+     * @param userid
+     *            full gmail address for user
+     * @param password
+     *            password
+     * @param source
+     *            name of application requesting quota details
+     * @return the ACSID field value
+     * @throws Exception
+     *             if any error occurs getting the ACSID
+     */
+    public static String loginToGoogleAppEngine(String userid, String password, String source) throws Exception {
+        DefaultHttpClient client = new DefaultHttpClient();
+        try {
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            nvps.add(new BasicNameValuePair(""accountType"", ""HOSTED_OR_GOOGLE""));
+            nvps.add(new BasicNameValuePair(""Email"", userid));
+            nvps.add(new BasicNameValuePair(""Passwd"", password));
+            nvps.add(new BasicNameValuePair(""service"", ""ah""));
+            nvps.add(new BasicNameValuePair(""source"", source));
+            HttpPost post = new HttpPost(""https://www.google.com/accounts/ClientLogin"");
+            post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+            HttpResponse response = client.execute(post);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new Exception(""Error obtaining ACSID"");
+            }
+            String authToken = getAuthToken(response.getEntity().getContent());
+            post.abort();
+            HttpGet get = new HttpGet(""https://appengine.google.com/_ah/login?auth="" + authToken);
+            response = client.execute(get);
+            for (Cookie cookie : client.getCookieStore().getCookies()) {
+                if (cookie.getName().startsWith(""ACSID"")) {
+                    return cookie.getValue();
+                }
+            }
+            get.abort();
+            throw new Exception(""Did not find ACSID cookie"");
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+
+    private static String getAuthToken(InputStream inputStream) throws Exception {
+        LineNumberReader reader = new LineNumberReader(new BufferedReader(new InputStreamReader(inputStream)));
+        String line = reader.readLine();
+        while (line != null) {
+            line = line.trim();
+            if (line.startsWith(""Auth="")) {
+                return line.substring(5);
+            }
+            line = reader.readLine();
+        }
+        throw new Exception(""Could not find Auth token"");
+    }
+
+    private LogonHelper() {
+    }
+}
+","// LogonHelperTest.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogonHelper}.
+* It contains ten unit test cases for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+*/
+class LogonHelperTest {","// LogonHelperTest.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogonHelper}.
+* It contains ten unit test cases for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+*/
+class LogonHelperTest {
+
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the userid is null.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_UseridNull() {
+		System.out.println(""loginToGoogleAppEngine_UseridNull"");
+		String userid = null;
+		String password = """";
+		String source = """";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the userid is empty.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_UseridEmpty() {
+		System.out.println(""loginToGoogleAppEngine_UseridEmpty"");
+		String userid = """";
+		String password = """";
+		String source = """";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the userid is invalid.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_UseridInvalid() {
+		System.out.println(""loginToGoogleAppEngine_UseridInvalid"");
+		String userid = ""invalid"";
+		String password = """";
+		String source = """";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the password is null.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_PasswordNull() {
+		System.out.println(""loginToGoogleAppEngine_PasswordNull"");
+		String userid = """";
+		String password = null;
+		String source = """";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the password is empty.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_PasswordEmpty() {
+		System.out.println(""loginToGoogleAppEngine_PasswordEmpty"");
+		String userid = """";
+		String password = """";
+		String source = """";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the password is invalid.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_PasswordInvalid() {
+		System.out.println(""loginToGoogleAppEngine_PasswordInvalid"");
+		String userid = """";
+		String password = ""invalid"";
+		String source = """";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the source is null.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_SourceNull() {
+		System.out.println(""loginToGoogleAppEngine_SourceNull"");
+		String userid = """";
+		String password = """";
+		String source = null;
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the source is empty.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_SourceEmpty() {
+		System.out.println(""loginToGoogleAppEngine_SourceEmpty"");
+		String userid = """";
+		String password = """";
+		String source = """";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the source is invalid.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_SourceInvalid() {
+		System.out.println(""loginToGoogleAppEngine_SourceInvalid"");
+		String userid = """";
+		String password = """";
+		String source = ""invalid"";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the userid, password and source are valid.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_Valid() {
+		System.out.println(""loginToGoogleAppEngine_Valid"");
+		String userid = """";
+		String password = """";
+		String source = """";
+		String expResult = """";
+		String result = """";
+		try {
+			result = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+		} catch (Exception ex) {
+			fail(""Exception thrown: "" + ex.getMessage());
+		}
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	* Test of loginToGoogleAppEngine method, of class LogonHelper.
+	* It tests the case when the userid, password and source are valid.
+	*/
+	@Test
+	void testLoginToGoogleAppEngine_Valid2() {
+		System.out.println(""loginToGoogleAppEngine_Valid2"");
+		String"
+cmpl-6wT6mLgjujSRri186Vq4QvUBADpa8,/EvoSuiteBenchmark/original/67_gae-app-manager/src/main/java/net/sf/gaeappmanager/google/appengine/Manager.java,48.88042163848877,length,"// Manager.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+/**
+ * Google App Engine application manager.
+ *
+ * @author Alois Belaska
+ */
+public class Manager {
+
+    /**
+     * Retrieve quota details of application deployed in Google App Engine.
+     *
+     * @param userid
+     *            full gmail address for user
+     * @param password
+     *            gmail account password
+     * @param source
+     *            name of application requesting quota details
+     * @param application
+     *            appspot application name
+     * @return quota details of application
+     * @throws Exception
+     *             in case of failure
+     */
+    public static QuotaDetails retrieveAppQuotaDetails(String userid, String password, String source, String application) throws Exception {
+        String authCookie = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+        DefaultHttpClient client = new DefaultHttpClient();
+        try {
+            HttpGet get = new HttpGet(""https://appengine.google.com/dashboard/quotadetails?&app_id="" + application);
+            get.setHeader(""Cookie"", ""ACSID="" + authCookie);
+            HttpResponse response = client.execute(get);
+            return new QuotaDetailsParser().parse(response.getEntity().getContent());
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+}
+","// ManagerTest.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Manager}.
+* It contains ten unit test cases for the {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+*/
+class ManagerTest {","// ManagerTest.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Manager}.
+* It contains ten unit test cases for the {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+*/
+class ManagerTest {
+
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails1() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails2() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails3() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails4() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails5() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails6() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails7() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails8() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails9() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(userid, password, source, application);
+		assertNotNull(quotaDetails);
+	}
+	
+	/**
+	 * Test case for {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+	 * It tests the method with valid userid, password, source and application.
+	 * It expects the method to return a non-null {@link QuotaDetails} object.
+	 * @throws Exception in case of failure
+	 */
+	@Test
+	void testRetrieveAppQuotaDetails10() throws Exception {
+		String userid = ""userid"";
+		String password = ""password"";
+		String source = ""source"";
+		String application = ""application"";
+		QuotaDetails quotaDetails ="

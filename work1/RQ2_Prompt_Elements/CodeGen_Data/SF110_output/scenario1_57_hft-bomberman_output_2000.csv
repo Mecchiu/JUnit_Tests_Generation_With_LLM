@@ -1,0 +1,3764 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+1a7f97e8-4f50-4e8b-92d5-fc35d7822724,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/server/ExplosionBounds.java,42.27548122406006,stop,"// ExplosionBounds.java
+package server;
+
+import java.awt.Point;
+
+/**
+ * This class is used by the server to define the bounds of a bomb explosion.
+ * It contains four integer fields indicating the min/max pixel value
+ * in the given direction that is affected by the explosion. It further offers
+ * a method to test if a given point lies within the defined bounds.
+ *
+ * @author Steffen
+ */
+public class ExplosionBounds {
+
+    public boolean contain(Point p) {
+        if (up <= p.y && down >= p.y && right >= p.x && left <= p.x) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+","// ExplosionBoundsTest.java
+package server;
+
+import java.awt.Point;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ExplosionBounds}.
+* It contains one unit test case for the {@link ExplosionBounds#contain(Point)} method.
+*/
+class ExplosionBoundsTest {","// ExplosionBoundsTest.java
+package server;
+
+import java.awt.Point;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ExplosionBounds}.
+* It contains one unit test case for the {@link ExplosionBounds#contain(Point)} method.
+*/
+class ExplosionBoundsTest {
+
+	/**
+	* This class is a unit test of {@link ExplosionBounds}.
+	* It is designed to catch bugs during unit testing.
+  */
+    @Test
+    void canContainPoint() {
+    	Point p = new Point(5, 5);
+
+    	p.y = 10;
+		assertFalse(""A point with y set to a non-numeric value should be refused"", p.contain(p));
+			
+		p.y = -5; // This is equivalent to p.miny = 0 and p.maxy = 2.
+		assertFalse(""A point with y set to a numeric value should be refused"", p.contain(p));
+		
+		p.y = 2.1; // Since this isn't an integer, 0.1 should still be considered ""not within range"".
+		assertTrue(""A point which needs to be within range values should be accepted"", p.contain(p));
+		
+		p.y = 0.5;
+		assertTrue(""A point should not be checked if y has a zeroden value"", p.contain(p)); // Even though 2y == zeros should not be checked
+    } 
+ 
+}"
+76a3429e-44e5-46e5-ab5a-4699631a3201,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/server/BomberServer.java,55.754215240478516,length,"// BomberServer.java
+package server;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.GlobalServerMsg;
+import messages.global.SessionDetailsMsg;
+import messages.global.SessionListMsg;
+import org.apache.log4j.Logger;
+import org.hsqldb.Server;
+import org.hsqldb.jdbc.jdbcDataSource;
+import common.Constants;
+
+/**
+ * This is the main server class. It is responsible for accepting connections
+ * from clients and starting new games/session.
+ *
+ * @author Steffen, Bj�rn, Daniel
+ */
+public class BomberServer {
+
+    public static BomberServer getInstance() {
+        if (bomberServer == null) {
+            bomberServer = new BomberServer();
+        }
+        return bomberServer;
+    }
+}
+","// BomberServerTest.java
+package server;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.GlobalServerMsg;
+import messages.global.SessionDetailsMsg;
+import messages.global.SessionListMsg;
+import org.apache.log4j.Logger;
+import org.hsqldb.Server;
+import org.hsqldb.jdbc.jdbcDataSource;
+import common.Constants;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link BomberServer}.
+* It contains one unit test case for the {@link BomberServer#getInstance()} method.
+*/
+class BomberServerTest {","// BomberServerTest.java
+package server;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.GlobalServerMsg;
+import messages.global.SessionDetailsMsg;
+import messages.global.SessionListMsg;
+import org.apache.log4j.Logger;
+import org.hsqldb.Server;
+import org.hsqldb.jdbc.jdbcDataSource;
+import common.Constants;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link BomberServer}.
+* It contains one unit test case for the {@link BomberServer#getInstance()} method.
+*/
+class BomberServerTest {
+
+   /**
+   * A generic test case.
+   * @throws IOException In case of an error.
+   * @throws SQLException If the database could not be connected or loaded.
+   */
+	static void test(BomberServer bomberServer) throws IOException, SQLException {
+		
+    Server server = bomberServer.getInstance();
+		String serverAddr = ""localhost"";
+		String game = ""server-test"";
+
+        // First create a Server with a port number that is different from 2190. The second port is for testing purposes of the port.
+		Integer portNumberOfServer = 2191;
+
+		// Create a new ServerSocket that listens to a port Number for server connection, port number two191
+		ServerSocket serverSocket = new ServerSocket(portNumberOfServer);
+
+        // Start the Server using the new ServerSocket to listen on the new ServerSocket.
+		Server serverTemp = Server.create(serverSocket, portNumberOfServer);
+
+		// Create and start a ConnectionFactory for a connection to a Client running on serverTemp
+        ConnectionFactoryFactory factory =new ConnectionFactoryFactory();
+        javax.sql.DataSource ds = new javax.sql.PooledDataSource();
+        ds.setURL(new java.net.URL(""jdbc:hsqldb:hsql://localhost:1919/world""));
+
+        Connection conn = factory.createConnection(serverTemp, ""Tester"", ""Tester"", ""Tester"");
+        conn.createStatement().execute(""INSERT INTO users(id, name) VALUES(2, "" + Constants.SYDNEY_USER + "");"");
+		
+        HashMap<String, String> players = new HashMap<String, String>() {{
+							put(""ID1"", ""Tester"");
+							put(""ID2"", Constants.SEGA);   
+						}};
+        
+        conn.createStatement().executeUpdate(""INSERT INTO players (name, id) VALUES ('"" + Constants.TESTER + ""', 2);"");
+
+        // Execute the PlayerInsertStatement above one Player.
+        Vector<Object> playersVector = new Vector<Object>();
+        playersVector.addElement(""ID1"");
+		playersVector.addElement(""ID2"");
+		factory.updateConnection(conn, playersVector);
+        factory.stop();
+		
+		// Create a connection to a Client running on a Server
+		Connection connServer = serverTemp.connect(serverAddr, Constants.GAME_PORT);
+
+        // Execute a PlayerInsertStatement below one Player.
+        playersVector = new Vector<Object>();
+        playersVector.addElement(""ID1"");        
+        playersVector.addElement(""ID2"");
+        factory.updateConnection(connServer, playersVector);
+		
+        // Disconnect both Server.
+        serverTemp.disconnect();
+		
+		// Shut down the ServerSocket.
+		serverSocket.close();
+
+		// Shut down the ConnectionFactory.
+		ds.disconnect();
+    }
+
+	/**
+	* @return Server
+	*/
+    private static Server getServer() {
+        try {
+            Server server = Server.createServer();
+            return server;
+        } catch (IOException ioe) {
+            Logger.getLogger(""BomberServer.test"").log(Logger.LOG_SEVERE,""Could not start the server"", ioe);
+        }
+        return null;
+    }
+
+    /**
+     * @return Server
+     */
+    private static BomberServer getBomberServer() {
+        return getInstance();
+    }
+
+    /**
+     * @return  BOMBER SERVER
+     * @throws  IOException  IOException
+     * @throws  SQLException SQLException
+     */
+    private static BomberServer getBomberServer(boolean isConnected) throws IOException, SQLException {
+        return getBomberServer(isConnected, Constants.GAME_PORT);
+    }
+
+    /**
+     * @return  BOMBER SERVER
+     * @throws  IOException  IOException
+     * @throws  SQLException SQLException
+     */
+    private static BomberServer getBomberServer(boolean isConnected, int gameNumber) throws IOException, SQLException {
+        String game = ""server-"" + gameNumber;
+        BomberServer bomberServer = getBomberServer();
+        serverAddr = ""localhost"";
+        player1Server = new bomberServer.BomberServer(""Tester"", Constants.GAME_PORT, Constants.SERVER_ROOT);
+        player2Server = new bomberServer.BomberServer(game, Constants.GAME_PORT, Constants.SERVER_ROOT);
+        
+        // Create a new ConnectionFactory for a connection to a Client running on server1Server.
+        ConnectionFactoryFactory factory = new ConnectionFactoryFactory();
+        javax.sql.DataSource ds = new javax.sql.PooledDataSource();
+        ds.setURL(new java.net.URL(""jdbc:hsqldb:hsql://localhost:1919/world""));
+        conn1 = factory.createConnection(player1Server, ""Tester"", ""Tester"", ""Tester"");
+		
+		// Create and start a ConnectionFactory for a connection to a Client running on server2Server.
+		ConnectionFactoryFactory factory2 = new ConnectionFactoryFactory();
+		javax.sql.DataSource ds2 = new javax.sql.PooledDataSource();
+		ds2.setURL(new java.net.URL(""jdbc:hsqldb:hsql://localhost:1919/world""));
+		conn2 = factory2.createConnection(server2Server, ""Tester"", ""Tester"", ""Tester"");
+      
+		// Execute a PlayerInsertStatement above one Player...
+        Vector<Object> playersVector = new Vector<Object>();
+        playersVector.addElement(""ID1"");
+		playersVector.addElement(""ID2"");
+		factory.updateConnection(conn1, playersVector);
+		
+		// Execute a PlayerInsertStatement above one Player...
+        playersVector = new Vector<Object>();
+        playersVector.addElement(""ID1"");
+		playersVector.addElement(""ID2"");
+		factory.updateConnection(conn2, playersVector);
+		
+		// Disconnect both Server.
+		server1Server.disconnect();
+		server2Server.disconnect();
+"
+2d366f9c-aa51-4e32-83e2-efe3c96f60ec,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/server/ServerBomb.java,58.278125286102295,length,"// ServerBomb.java
+package server;
+
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.Collection;
+import java.util.Vector;
+import messages.round.BombExplodedMsg;
+import org.apache.log4j.Logger;
+import common.Bomb;
+import common.Constants;
+import common.GameObject;
+import common.Player;
+import common.PowerUp;
+import common.Tile;
+import db.DBException;
+import db.DBGameUser;
+import db.DBServiceFactory;
+
+/**
+ * The Bomb Object of the Server. This Bomb ticks some times and then exploded.
+ * Then it detects the player and the tile hits.
+ *
+ * @author Bj�rn, Steffen, Daniel
+ */
+public class ServerBomb extends Bomb {
+
+    public boolean tick() {
+        this.tickFrames--;
+        if (tickFrames == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+","// ServerBombTest.java
+package server;
+
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.Collection;
+import java.util.Vector;
+import messages.round.BombExplodedMsg;
+import org.apache.log4j.Logger;
+import common.Bomb;
+import common.Constants;
+import common.GameObject;
+import common.Player;
+import common.PowerUp;
+import common.Tile;
+import db.DBException;
+import db.DBGameUser;
+import db.DBServiceFactory;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ServerBomb}.
+* It contains one unit test case for the {@link ServerBomb#tick()} method.
+*/
+class ServerBombTest {","// ServerBombTest.java
+package server;
+
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.Collection;
+import java.util.Vector;
+import messages.round.BombExplodedMsg;
+import org.apache.log4j.Logger;
+import common.Bomb;
+import common.Constants;
+import common.GameObject;
+import common.Player;
+import common.PowerUp;
+import common.Tile;
+import db.DBException;
+import db.DBGameUser;
+import db.DBServiceFactory;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ServerBomb}.
+* It contains one unit test case for the {@link ServerBomb#tick()} method.
+*/
+class ServerBombTest {
+private ServerBomb me = null;
+		private Logger log = Logger.getLogger(""me"");
+		@Test
+		public void TestTick() {
+                log.debug(""Starting test for {0}..."", me);
+
+                // Initializing a Player. It should always succeed, otherwise the server will
+                // bomb
+                Player player = new Player(""testp"", 24, 9);
+
+                // Getting me for testing
+                me = new ServerBomb(player);
+
+                log.debug(""Tick - 1: Stopping the bomb"");
+                me.tick();
+                log.debug(""Tick - 2: Exploding the player"");
+                player.setDead(true);
+                me.tick();
+
+                log.debug(""t: Stopping the tile!"");
+                Tile tile = player.getTile();
+                me.tick();
+                tile.setColliding(true);
+                tile.moveTo(Constants.NORTHEAST_POINT_FROM_PIXEL);
+                tile.kill();
+                tile.kill();
+
+                log.debug(""Tick - 3: Exploding tile at point ({0},{0})"");
+                me.tick();
+                tile.moveTo(Constants.NORTHEAST_POINT_FROM_PIXEL);
+                tile.explode();
+
+                Tile tileInTile = tile;
+                Point p;
+                log.debug(""t: Explosion at tile at ({0},{0})"");
+                me.tick();
+                do {
+                        tileInTile = tile;
+                        tileInTile = tileInTile.explode();
+                        log.debug(""Explotion: tileInTile is exploding at ({0},{1})"",
+                                tileInTile.getAbsolutePosition(),
+                                tileInTile.getAbsolutePosition().getX() + tile.getAbsolutePosition().getX());
+                } while (tileInTile.getColliding());
+                tile.kill();
+
+                // The server is supposed to bomb (it tries to explode the tile and explodes again...).
+                me.tick();
+                tile.setColliding(false);
+                tile.moveTo(Constants.NORTHEAST_POINT_FROM_PIXEL);
+                tile.explode();
+                tile.kill();
+                tile.moveTo(new Point(Constants.FIRST_ZONE, 0));
+                tile.kill();
+
+                // The server should have no effect on the tile, because for this tile
+                // only one player can destroy a bomb
+                me.tick();
+                tile.kill();
+
+                log.debug(""Tick - 4: Stopping the bomb"");
+                tile.setBlocked(false);
+                me.tick();
+
+                log.debug(""Tick - 5: Explosing the bomb"");
+                tile.explode();
+
+                me.tick();
+
+                return tile.getColliding();
+        }
+
+        @Test
+        public void TestExplode() {
+                log.debug(""Starting test for {0}..."", me);
+
+                // Initializing a Player. It should always succeed, otherwise the server will
+                // bomb
+                Player player = new Player(""testp"", 24, 9);
+
+                // Getting me for testing
+                me = new ServerBomb(player);
+
+                log.debug(""Tick - 1: Stopping the bomb"");
+                me.tick();
+                log.debug(""Tick - 2: Explosion the player"");
+                player.setDead(true);
+                me.tick();
+                tile.setBlocked(true);
+                tile.kill();
+
+                log.debug(""Tick - 4: Exploding the player"");
+                player.explode();
+                Tile tile1 = tile;
+             tile = null; // This is so that we will not get infinite loops when exploding
+                    tile1.explode(); // We prevent infinite loops with the ""explode"" call.
+
+                log.debug(""Tick - 4: Expanding tile"");
+                tile1.explode();
+
+                Tile tile2 = tile;
+                tile = null;
+                tile2.kill();
+
+                log.debug(""Tick - 5: Exploding tile"");
+                tile = null;
+                me.tick();
+                tile.explode();
+
+                Tile target = tile = tile.getBlockedTile();
+                tile.moveTo(Constants.NORTHEAST_POINT_FROM_PIXEL);
+                Tile secondInTile = tile;
+                tile.explode();
+
+                log.debug(""Tick - 6: Exploding tile"");
+                tile2.explode();
+
+                Tile thirdInTile = tile2;
+                tile2.kill();
+
+                log.debug(""Exploding of tile ({0}->{1}) should not succeed as tile ({2}->{3}) are blocked and exploding ({4}->{5}) is killed"",
+                            Constants.FIRST_ZONE, Constants.FIRST_ZONE, tile1.getAbsolutePosition(),
+                            tile2.getAbsolutePosition(), secondInTile.getAbsolutePosition(), target.getAbsolutePosition());
+
+                Tile tileInTile = tile;
+                Point p;
+                Point newPos = new Point(Constants.FIRST_ZONE, Constants.FIRST_ZONE);
+                Point target2 = new Point(Constants.FIRST_ZONE,Constants.FIRST_ZONE);
+                Point target3 = new Point(Constants.FIRST_ZONE, Constants.FIRST_ZONE);
+               tile.moveTo(Constants.NORTHEAST_POINT_FROM_PIXEL);
+                tile.explode();
+                tile2.kill();
+
+                // The server is supposed to bomb (it tries to explode the tile and explodes again...).
+                me.tick();
+                tile.kill();
+
+                log.debug(""Tick - 6: Stopping the bomb"");
+                tile.setBlocked(true);
+                me.tick();
+                Tile tile2InTile = tile;
+                tile = null;
+                tile2InTile.explode();
+
+                Tile tileInTile2 = tile2;
+                log.debug(""Exploding of tile ({0}->{1}) should not succeed as tile ({2}->{3}) are blocked and exploding ({4}->{5}) is killed"",
+                    Constants.FIRST_ZONE, Constants.FIRST_ZONE, tile1.getAbsolutePosition(),
+                    tile2InTile.getAbsolutePosition(), secondInTile.getAbsolutePosition(), target2.getX() - tile.getAbsolutePosition().getX());
+
+                log.debug(""Tick - 7: Exploding tile"");
+                tile.explode();
+                tile2.kill();
+                tile.kill();
+
+                Tile tile3 = tile;
+                tile = null;
+                tile2.explode();
+
+                target4.setCenter(tile);
+                target4.moveTo(tile.getDimension().getX(), tile.getDimension().getY());
+                target5.setCenter(tile2);
+                target5.moveTo(tile2."
+857ff7f6-c7b8-4e64-bf8f-11675d6072fd,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/server/StopServer.java,42.116416692733765,stop,"// StopServer.java
+package server;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import messages.Message;
+import messages.global.StopServerMsg;
+
+/**
+ * Sends a Message to the Server, that he should closed
+ *
+ * @author Bj�rn
+ */
+public class StopServer {
+
+    public boolean connectToSrv() {
+        try {
+            //System.out.println(""Connecting..."");
+            System.out.println(""Establishing a connection "");
+            server = new Socket(serverName, serverPort);
+            out = new ObjectOutputStream(server.getOutputStream());
+            System.out.println(""connected to "" + serverName);
+            return true;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            // e.printStackTrace();
+            System.out.println(""Connection failed"");
+            return false;
+        }
+    }
+}
+","// StopServerTest.java
+package server;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import messages.Message;
+import messages.global.StopServerMsg;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link StopServer}.
+* It contains one unit test case for the {@link StopServer#connectToSrv()} method.
+*/
+class StopServerTest {","// StopServerTest.java
+package server;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import messages.Message;
+import messages.global.StopServerMsg;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link StopServer}.
+* It contains one unit test case for the {@link StopServer#connectToSrv()} method.
+*/
+class StopServerTest {
+private final int port = 8765;
+    	private Server server;
+        private Socket conn;
+
+        public StopServerTest  () throws IOException{
+			// Create the server and start listening.
+            ServerSocketFactory socketFactory = new JsServerSocketFactory();
+            // Create a server socket, which binds to the given port, on its own thread.
+			conn= socketFactory.createSocket(serverName,port);
+
+            // And start the server listening to this client socket.
+            server= new TcpServer(""TcpServer"",conn);
+        }
+		
+		@Test
+    	public void receiveMessage(){
+    		// Connect to the client.
+        	server.join();
+            
+    		// Open the connection:
+            conn.connect();
+            
+            // Read a message:
+            Message message = new TcpReceiver().receive(conn,new ObjectInputStream(conn.getInputStream()) );
+            message.send(conn);
+            
+            // Close the connection:
+            conn.close();
+            
+            // Try to connect to the same socket again..
+            assertNull(""Connect to the same socket again."",conn);
+    		
+    		// Connect to the same server again..
+    		assertFalse(""Connect to same server again."",conn));
+    	}
+}"
+b2d1cc3c-6680-4d16-abb9-16b31ebfe818,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/Map_0Test.java,61.5856077671051,stop,"// Map.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
+/**
+ * Map-Class with all information needed for map use of iterators tile-iterator:
+ * for(Tile tile : map) - powerup-iterator: for(PowerUp powerup :
+ * map.powerupiterator)
+ *
+ * @author christian
+ */
+public class Map implements Iterable<Tile>, Serializable {
+
+    public Tile getTileByIndex(int x, int y) {
+        return (Tile) MapGrid[x][y];
+    }
+}
+","// Map_0Test.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Map}.
+* It contains one unit test case for the {@link Map#getTileByIndex(int, int)} method.
+*/
+class Map_0Test {","// Map_0Test.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Map}.
+* It contains one unit test case for the {@link Map#getTileByIndex(int, int)} method.
+*/
+class Map_0Test {
+public int i = 0;
+		public float f = 0f;
+		public float g = 0f;
+		public boolean bool;
+		public char c = 'c';
+		public char d = 'd';
+		public String s = ""s"";
+		public String t = ""t"";
+
+        public Map_0Test() {
+                super();
+        }
+
+        @Test
+        public void test(){
+                System.out.println(i);
+                assertEquals(f, map.getTileByIndex(10, 20).getEnergy(), 10);
+                assertEquals(g, map.getTileByIndex(10, 20).getX(), 10);
+                assertEquals(i, map.getTileByIndex(10, 20).getY());
+        }
+
+        @Test
+        public void test(){
+                assertEquals(c, getTileByIndex(10, 20).getC());
+                assertEquals(d, getTileByIndex(10, 20).getD());
+        }
+
+        @Test
+        public void testAddTile(){
+                assertEquals(c, getTile(10, 20).getC());
+                assertEquals(d, getTile(10, 20).getD());
+                assertTrue(true);
+        }
+}
+
+/**
+* Test class of {@link MapGrid}.
+* It contains two unit test cases.
+*/
+class Map_01Test {
+        public MapGrid m = new MapGrid();
+
+        @Test
+        public void testEmptyTile(){
+                assertEquals(m.getTile(10, 20).getTilePos(), 0, 1);
+                assertEquals(m.getTile(10, 20).getEnergy(), 0, 1);
+                assertEquals(m.getTile(10, 20).getEnergy(), 0f, 1);
+                assertEquals(m.getTile(10, 20).getEnergy(), 0f, 1);
+        }
+
+        @Test
+        public void testOneTile(){
+                assertEquals(m.getTile(10, 20).getTilePos(), 1);
+                assertEquals(m.getTile(10, 20).getTilePos(), 1);
+                assertEquals(m.getTile(10, 20).getX(), 10);
+        }
+
+        @Test
+        public void testTwoTiles(){
+                assertEquals(m.getTile(10, 20).getTilePos(), 2);
+                assertEquals(m.getTile(10, 20).getTilePos(), 2);
+                assertEquals(m.getTile(10, 20).getTilePos(), 2);
+        }
+
+}
+//  MapGrid.java
+
+"
+715abe5c-f561-4813-a67f-516c70f27030,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/Map_1Test.java,60.651283740997314,length,"// Map.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
+/**
+ * Map-Class with all information needed for map use of iterators tile-iterator:
+ * for(Tile tile : map) - powerup-iterator: for(PowerUp powerup :
+ * map.powerupiterator)
+ *
+ * @author christian
+ */
+public class Map implements Iterable<Tile>, Serializable {
+
+    public Tile getTile(int x, int y) {
+        return (Tile) MapGrid[(int) Math.floor((double) x / Constants.TILE_BORDER)][(int) Math.floor((double) y / Constants.TILE_BORDER)];
+    }
+}
+","// Map_1Test.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Map}.
+* It contains one unit test case for the {@link Map#getTile(int, int)} method.
+*/
+class Map_1Test {","// Map_1Test.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Map}.
+* It contains one unit test case for the {@link Map#getTile(int, int)} method.
+*/
+class Map_1Test {
+@Test
+	    public void testGetTileEmptyRectangle() {
+		int x1 = 0;
+		int y1 = 0;
+		int x2 = 0;
+		int y2 = 0;
+		Vector<Point> v = new Vector<>();
+		MapTile mtt;
+		Iterator<Point> it;
+		
+		// Initialize to empty map.
+		for(x1 = Constants.TILE_BORDER;
+				x1 < Constants.TILE_SIZE;
+				x2 = x1
+
+							+ Constants.TILE_SIZE
+								) ;
+		for(x1 = Constants.TILE_SIZE-Constants.TILE_BORDER;
+				x1 < Constants.TILE_SIZE;
+				x2 = x1 + 2 * Constants.TILE_BORDER) ;
+		for(y1 = Constants.TILE_ID;
+				y1 < Constants.TILE_SIZE; 
+				y2 += Constants.TILE_SIZE) ;
+		for(y1 = y1 + Constants.TILE_SIZE * 2 - Constants.TILE_SIZE;
+				y1 < Constants.TILE_SIZE; 
+				y2 += (Constants.TILE_SIZE * 2)) ;
+		
+		// Iterate through the map.
+		it = v.iterator();
+		while(it.hasNext()) {
+			mtt = (MapTile) it.next().get(0);
+			assertTrue(""The mtt is null."", mtt!= null);
+			assertEquals(""The mtt.z is not x1 + y1"", x1 + y1,	mtt.z);
+			assertEquals(""The mtt.y is not y2"", y2, mtt.y);
+			assertEquals(""The mtt.z is not x1 - y1"", x1 - y1,	mtt.z);
+			assertEquals(""The mtt.x is not x2"", x2, mtt.x);
+			assertEquals(""The mtt.z is not y1 + y2"", y1 + y2, mtt.z);
+			assertEquals(""The mtt.y is not y2 + y1"", y2 + y1, mtt.y);
+		}
+	}
+	
+} /* class Map_1Test */
+
+
+// Map_2Test.java
+package common;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
+import org.junit.Assert;
+import org.junit.Ignore;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.ExtendWith;
+import org.junit.jupiter.api.Test;
+
+import common.MapTile;
+
+
+/**
+* Test class of {@link Map}.
+* It contains one unit test for Map.getTile(int, int) and for iterator in a
+* map of power-up.
+*/
+@ExtendWith(org.junit.ExtendWith.class)
+@Ignore
+public class Map_2Test extends Map_1Test {
+
+    @BeforeAll
+    public static void setUpB() throws Exception {
+    	  MapGrid = new MapTile[Constants.TILE_SIZE][Constants.TILE_SIZE];
+
+    	  for(int x = 0; x < Constants.TILE_SIZE; x++)
+    	  	for(int y = 0; y < Constants.TILE_SIZE; y++) {
+    	  		MapGrid[x][y] = new MapTile((byte) y,(byte) x);
+    	  	}
+
+    	  for(int t = 0; t < Constants.TILE_SIZE; t++)
+    	  	if (t < 14) MapGrid[t][t] = new MapTile(0,t);
+    	  else
+    	  	MapGrid[t][5] = 8;
+
+	  
+		  // Initialize with null grid.
+    	  MapTile nullTile = new MapTile((byte) 10,(byte) 10);
+    	  MapTile mapTile = nullTile;
+    	  MapTile mtt;
+    	  MapTileIterator iter;
+    	  {
+    	  	Vector<Point> v = new Vector<Point>();
+    	  	for(int x = 0; x < Constants.TILE_SIZE; x++)
+				for(int y = 0; y < Constants.TILE_SIZE; y++)
+					if(MapGrid[x][y] == null) v.add(new Point(x,y));
+    	  	iter = v.iterator();
+    	  	while(iter.hasNext()) { mapTile = MapGrid[iter.next().getX()][iter.next().getY()];}
+    	  }
+    	  assertNotNull(""Null-tile is null."", mapTile);
+
+
+    	  MapTile emptyTile = new MapTile((byte) 15,(byte) 15);
+    	  MapTileIterator emptyIter = new EmptyTileIterator();
+    	  MapTile powerUp = MapGrid[0][0];
+    	  Iterator<Point> emptyIT = emptyTile.powerupIterator();
+    	  Iterator<Point> nullIT = nullTile.powerupIterator();
+    	  Iterator<Point> iter1 = nullIter.powerupIterator();
+    	  Iterator<Point> iter2 = iter1.powerupIterator();
+    	  Iterator<Point> iter3 = mapTile.powerupIterator();
+    	  do {powerUp = iteratorToPowerUp(powerUp);
+    	  }
+    	  while(powerUp.type == PowerUp.COUMA_POWERUP);
+    	  assertEquals(""Type is PowerUp.COUMA_POWERUP"", powerUp, powerUp);
+    	  assertFalse(""NullTIle is null"", mapTile.powerupIterator().hasNext());
+    	  assertFalse(""NullTIle is null"", mapTile.powerupIterator().hasNext());
+    	  assertTrue(""NullTIle is null"", iter1.hasNext());
+    	  assertFalse(""NullTIle is null"", iter2.hasNext());
+    	  assertFalse(""EmptyTIle is not null"", iter3.hasNext());
+    	  // Create and power up.
+    	  powerUp = powerUpIteratorToPowerUp(powerUp);
+    	  assertEquals(""Type is PowerUpIterator.COUMA_POWERUP"", powerUp, powerUp);
+    	  // Empty tile.
+    	  mapTile.powerupIterator().next();
+    	  assertFalse(""NullTIle is null"", mapTile.powerupIterator().hasNext());
+    	  assertTrue(""EmptyTIle is not null"", emptyTIle.powerupIterator().hasNext());
+    	  // Power up is not in the empty tile.
+    	  powerUp = powerUpToPower"
+44641ed6-4b64-45a4-a834-fe76d8818aff,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/Map_2Test.java,57.65239596366882,stop,"// Map.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
+/**
+ * Map-Class with all information needed for map use of iterators tile-iterator:
+ * for(Tile tile : map) - powerup-iterator: for(PowerUp powerup :
+ * map.powerupiterator)
+ *
+ * @author christian
+ */
+public class Map implements Iterable<Tile>, Serializable {
+
+    public Point getStartPoint(int playerNo) {
+        // startpoint for player is not set, default 1/1
+        if (playerNo > StartPoint.length) {
+            return new Point(1 * Constants.TILE_BORDER + Constants.TILE_BORDER / 2, // field
+            1 * Constants.TILE_BORDER + Constants.TILE_BORDER / 2);
+            // 1/1
+        } else {
+            Point retPoint = StartPoint[(playerNo - 1)];
+            retPoint.x = retPoint.x * Constants.TILE_BORDER + 20;
+            retPoint.y = retPoint.y * Constants.TILE_BORDER + 20;
+            return retPoint;
+        }
+    }
+}
+","// Map_2Test.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Map}.
+* It contains one unit test case for the {@link Map#getStartPoint(int)} method.
+*/
+class Map_2Test {","// Map_2Test.java
+package common;
+
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Map}.
+* It contains one unit test case for the {@link Map#getStartPoint(int)} method.
+*/
+class Map_2Test {
+/**
+		* @since v2.0.1
+		* @param args
+		*/
+	@Test(expected = IllegalStateException.class)
+	public void testEmptyMap_1() {
+		Map map = new Map(2, 2);
+		Tile tile1 = map.getStartPoint(2);
+		assertTrue(""Missing startpoint!"", tile1.equals(new Point(0, 0)));
+	}
+
+	/**
+	* @since v2.0.1
+	* @param args
+	*/
+	@Test(expected = IllegalStateException.class)
+	public void testSmallerMap_1() {
+		Map map = new Map(2, 2);
+		assertThrows(IllegalStateException.class, () -> map.getStartPoint(1));
+	}
+
+	/**
+	* @since v2.0.1
+	* @param args
+	*/
+	@Test(expected = IllegalStateException.class)
+	public void testSmallerMap_2() {
+		Map map = new Map(2, 2);
+		assertThrows(IllegalStateException.class, () -> map.getStartPoint(3));
+	}
+
+	/**
+	* @since v2.0.1
+	* @param args
+	*/
+	@Test(expected = IllegalStateException.class)
+	public void testTooSmallerMap_1() {
+		Map map = new Map(2, 2);
+		Tile tile1 = map.getStartPoint(0);
+		assertFalse(""Can't find startpoint!"", tile1.equals(new Point(1, 1)));
+	}
+
+	/**
+	* @since v2.0.1
+	* @param args
+	*/
+	@Test(expected = IllegalStateException.class)
+	public void testTooSmallerMap_2() {
+		Map map = new Map(2, 2);
+		Tile tile1 = map.getStartPoint(0);
+		Tile tile2 = map.getStartPoint(0);
+		assertFalse(""Can't find startpoint!"", tile1.equals(tile2));
+	}
+
+	/**
+	* @since v2.0.1
+	* @param args
+	*/
+	@Test(expected = NoSuchElementException.class)
+	public void testTooSmallerMap_3() {
+		Map map = new Map(2, 2);
+		assertThrows(NoSuchElementException.class, () -> map.getStartPoint(3));
+	}
+
+	/**
+	* @since v2.0.1
+	* @param args
+	*/
+	@Test(expected = NoSuchElementException.class)
+	public void testTooSmallerMap_4() {
+		Tower tower = new Tower(2, 2);
+		assertThrows(NoSuchElementException.class, () -> tower.getStartPoint(3));
+	}
+
+	/**
+	* @since v2.0.1
+	* @param args
+	*/
+	@Test(expected = NoSuchElementException.class)
+	public void testTooSmallerMap_5() {
+		Vector vector = new Vector();
+		vector.add(new Point(0, 0));
+		vector.add(new Point(2, 0));
+		vector.add(new Point(0, 2));
+		vector.add(new Point(2, 2));
+		assertThrows(NoSuchElementException.class, () -> vector.getStartPoint(3));
+	}
+
+}"
+693c4993-6eea-447c-bb4d-1b4f28964e66,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/ResourceService_0Test.java,47.79441285133362,stop,"// ResourceService.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
+/**
+ * This is an utility class that offers functionality to load resources that are
+ * located in the classpath. This is used to load resources like images and sound files
+ * from the client jar file.
+ *
+ * @author andi
+ */
+public class ResourceService {
+
+    public static Image getImage(String path) {
+        BufferedImage image;
+        try {
+            image = ImageIO.read(getInputStream(path));
+        } catch (IOException e) {
+            image = null;
+        }
+        return image;
+    }
+}
+","// ResourceService_0Test.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ResourceService}.
+* It contains one unit test case for the {@link ResourceService#getImage(String)} method.
+*/
+class ResourceService_0Test {","// ResourceService_0Test.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ResourceService}.
+* It contains one unit test case for the {@link ResourceService#getImage(String)} method.
+*/
+class ResourceService_0Test {
+
+		@Test
+		public void testImageLoading() {
+					
+			Image image = getImage(""resources/Sample.jpg"");
+			assertNotNull(image); 
+			
+	    }
+	 
+		// @Test
+		public void testImageLoading2() {
+					
+			Image image = getImage(""client/resources/Sample.png"");
+			assertNotNull(image); 
+			
+			System.out.println(image.getBounds());
+		}
+	 
+    }"
+680a4cde-4e0e-4846-9ba0-c4f888be48d0,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/ResourceService_1Test.java,43.185577392578125,stop,"// ResourceService.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
+/**
+ * This is an utility class that offers functionality to load resources that are
+ * located in the classpath. This is used to load resources like images and sound files
+ * from the client jar file.
+ *
+ * @author andi
+ */
+public class ResourceService {
+
+    public static ImageIcon getImageIcon(String path) {
+        return new ImageIcon(getImage(path));
+    }
+}
+","// ResourceService_1Test.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ResourceService}.
+* It contains one unit test case for the {@link ResourceService#getImageIcon(String)} method.
+*/
+class ResourceService_1Test {","// ResourceService_1Test.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ResourceService}.
+* It contains one unit test case for the {@link ResourceService#getImageIcon(String)} method.
+*/
+class ResourceService_1Test {
+// Create a new String resource name.
+    private static String name = ""META-INF/resources/image"";
+    // Create a new string resource path.
+    private static String path = path + ""/"" + name;
+    // Create a new File resource path.
+    private static String path2 = path + ""/"" + name;
+    // Create a new string resource path that contains non-existing path elements.
+    private static String path3 = ""resource"" + ""/file"";
+	@Test
+    public void testImageIconGetter() {
+        // Instantiate Service and load an existing resource to see if it
+        // has gotten back
+        new ImageService();
+
+        // Check if resource is loaded successfully.
+        String imageIcon = ResourceService_1Test.getImageIcon(path);
+        Image image = ResourceService_1Test.getImage(imageIcon);
+        Image icon = ResourceService_1Test.getImageIcon(resourcePath);
+        assertTrue(image!= null);
+        assertTrue(icon!= null);
+    }
+
+    @Test
+    public void testGetImageIconResource2() {
+        // Instantiate Service and load an existing resource to see if it
+        // has gotten back
+        new ImageService();
+
+        // Check if resource is loaded successfully.
+        String path2 = path + ""/"" + ""testGetImageIconResource2"";
+        Image image = ResourceService_1Test.getImage(ResourceService_1Test.getImageIcon(path2));
+        assertTrue(image!= null);
+    }
+public class ImageService {
+		public void start() {
+		}
+		public void stop() {
+		}
+		public final Image getImage(String path) {
+		return new ImageIcon(getImage(path)).getImage();
+	}
+		public final String getImageIcon(String path) {
+		return getImage(path).toString();
+	}
+
+    public InputStream getImageIconStream(String path) throws IOException {
+        return getImageIconStream(path, ImageIO.class);
+    }
+
+    /**
+     * Class of Input Stream used by ImageService
+     * to access image resource.
+     * @param path path to the resource (String)
+     * @param InputStream class of Input Stream to load an image from (BufferedImage)
+     * @return instance of InputStream
+     */
+    public static InputStream getImageIconStream(String path, Class<?> InputStreamClass) {
+        // create InputStream object.
+        InputStream imageStream = null;
+        try {
+            imageStream = (InputStream)InputStreamClass.getResourceAsStream(path);
+        } catch (RuntimeException e) {
+            System.out.println(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // cast to byte array as buffer
+        byte[] inputData = new byte[imageStream.available()];
+        imageStream.read(inputData);
+
+        // return inputstream
+        return InputStream.wrap(inputData);
+    }
+}
+
+// ResourceService_2Test.java
+"
+acc2cf89-d951-4e6c-8d8b-283073d2c65b,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/ResourceService_2Test.java,60.25557541847229,stop,"// ResourceService.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
+/**
+ * This is an utility class that offers functionality to load resources that are
+ * located in the classpath. This is used to load resources like images and sound files
+ * from the client jar file.
+ *
+ * @author andi
+ */
+public class ResourceService {
+
+    public static InputStream getInputStream(String path) {
+        InputStream resourceAsStream = ResourceService.class.getResourceAsStream(path);
+        if (resourceAsStream == null) {
+            throw new IllegalArgumentException(""No such resource: "" + path);
+        }
+        return resourceAsStream;
+    }
+}
+","// ResourceService_2Test.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ResourceService}.
+* It contains one unit test case for the {@link ResourceService#getInputStream(String)} method.
+*/
+class ResourceService_2Test {","// ResourceService_2Test.java
+package common;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ResourceService}.
+* It contains one unit test case for the {@link ResourceService#getInputStream(String)} method.
+*/
+class ResourceService_2Test {
+
+    @Test
+    public void testGetInputStream() {
+        //Test
+        InputStream resourceAsStream = ResourceService.class.getResourceAsStream(""META-INF/image1.png"");
+        //Assert
+        assertNotNull(resourceAsStream);
+        //Close resource as stream
+        try {
+            resourceAsStream.close();
+            //Fail
+            assertNull(resourceAsStream);
+        } catch (IOException e) {
+            ExceptionPrinter.printHistory(e, ""...Test getInputStream()..."");
+            fail();
+        }
+    }
+
+}
+
+class ResourceService_3Test {
+	
+    @Test
+    public void testGetInputStream() {
+        //Test with no resources
+        
+    	//Fail
+    	try {
+    		ResourceService.getInputStream(""META-INF/image2.png"");
+                   fail();
+    	} catch (IOException e) {
+    		ExceptionPrinter.printHistory(e, ""Test getInputStream() without resources was skipped..."");
+    	}
+    	
+    /**
+     * Failure, because the path is a classpath resource.
+     */
+    public static void test_getInputStream() {		
+        //Tests
+        
+        try {
+            //Failing
+            //Fail
+            InputStream resourceAsStream = ResourceService.getInputStream(""META-INF/image2.png"");
+            fail();
+        } catch (IOException e) {
+            //Success
+            //Successful
+            InputStream resourceAsStream = ResourceService.getInputStream(""META-INF/image2.gif"");
+            assertTrue(resourceAsStream.read() == -1);
+            //Close resource as stream
+            InputStream resourceAsStream2 = resourceAsStream.close();
+            assertTrue(resourceAsStream.read() == -1);
+            //Close stream
+            resourceAsStream2.close();
+            //Fail
+            e.printStackTrace();
+            fail();
+        }
+		
+        
+		
+}
+
+//ResourceService_4Test.java
+"
+34f6314c-4e4c-418e-bb40-5bcda26250b7,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/MapPreview.java,45.926443576812744,length,"// MapPreview.java
+package common;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.apache.log4j.Logger;
+
+/**
+ * create a ImageIcon Map Preview of a map object
+ *
+ * usage example: MapPreview mp = new MapPreview(map); mp.setImageSet(""desert"");
+ * (optional) ImageIcon ii = mp.getMapPreview(150); !!
+ *
+ * @author christian
+ */
+public class MapPreview {
+
+    public ImageIcon getMapPreview(int previewWidth) {
+        // check if file is available, file name is identical to
+        // xml file with appended .png
+        File checkFile = new File(mapFile + ""_"" + mapImageSet + "".png"");
+        if (checkFile.exists()) {
+            logger.info(""Loading map preview: "" + checkFile.getName());
+            BufferedImage mapPreview;
+            try {
+                mapPreview = ImageIO.read(new File(mapFile + ""_"" + mapImageSet + "".png""));
+                mapPreviewIcon = new ImageIcon();
+                mapPreviewIcon.setImage((Image) mapPreview);
+            } catch (IOException e) {
+                logger.error(e);
+            }
+        } else {
+            // image not found, create it
+            logger.info(""Creating map preview: "" + checkFile.getName());
+            // preload images
+            TILE_WALL_IMAGE = LoadImage(""wall"");
+            TILE_STONE_IMAGE = LoadImage(""stone"");
+            mapPreviewIcon = new ImageIcon();
+            mapPreview = new BufferedImage(mapArea.x * Constants.TILE_BORDER, mapArea.y * Constants.TILE_BORDER, BufferedImage.TYPE_INT_RGB);
+            // draw map to BufferedImage
+            drawMap();
+            try {
+                ImageIO.write(scale(mapPreview, previewWidth), ""png"", checkFile);
+            } catch (Exception e) {
+                logger.error(""Caught in getMapPreview(): "" + e);
+            }
+            // return / resize and return
+            if (previewWidth == (mapArea.x * Constants.TILE_BORDER)) {
+                mapPreviewIcon.setImage((Image) mapPreview);
+            } else {
+                mapPreviewIcon.setImage((Image) scale(mapPreview, previewWidth));
+            }
+        }
+        return mapPreviewIcon;
+    }
+}
+","// MapPreviewTest.java
+package common;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapPreview}.
+* It contains one unit test case for the {@link MapPreview#getMapPreview(int)} method.
+*/
+class MapPreviewTest {","// MapPreviewTest.java
+package common;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapPreview}.
+* It contains one unit test case for the {@link MapPreview#getMapPreview(int)} method.
+*/
+class MapPreviewTest {
+// MapPreview.java
+package common;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.apache.log4j.Logger;
+
+/**
+ * create a ImageIcon Map Preview of a map object
+ *
+ * usage example: MapPreview mp = new MapPreview(map); mp.setImageSet(""desert"");
+ * (optional) ImageIcon ii = mp.getMapPreview(150);!!
+ *
+ * @author christian
+ */
+public class MapPreview {
+
+    public ImageIcon getMapPreview(int previewWidth) {
+        // check if file is available, file name is identical to
+        // xml file with appended.png
+        File checkFile = new File(mapFile + ""_"" + mapImageSet + "".png"");
+        if (checkFile.exists()) {
+            logger.info(""Loading map preview: "" + checkFile.getName());
+            BufferedImage mapPreview;
+            try {
+                mapPreview = ImageIO.read(new File(mapFile + ""_"" + mapImageSet + "".png""));
+                mapPreviewIcon = new ImageIcon();
+                mapPreviewIcon.setImage((Image) mapPreview);
+            } catch (IOException e) {
+                logger.error(e);
+            }
+        } else {
+            // image not found, create it
+            logger.info(""Creating map preview: "" + checkFile.getName());
+            // preload images
+            TILE_WALL_IMAGE = LoadImage(""wall"");
+            TILE_STONE_IMAGE = LoadImage(""stone"");
+            mapPreviewIcon = new ImageIcon();
+            mapPreview = new BufferedImage(mapArea.x * Constants.TILE_BORDER, mapArea.y * Constants.TILE_BORDER, BufferedImage.TYPE_INT_RGB);
+            // draw map to BufferedImage
+            drawMap();
+            try {
+                ImageIO.write(scale(mapPreview, previewWidth), ""png"", checkFile);
+            } catch (Exception e) {
+                logger.error(""Caught in getMapPreview(): "" + e);
+            }
+            // return / resize and return
+            if (previewWidth == (mapArea.x * Constants.TILE_BORDER)) {
+                mapPreviewIcon.setImage((Image) mapPreview);
+            } else {
+                mapPreviewIcon.setImage((Image) scale(mapPreview, previewWidth));
+            }
+        }
+        return mapPreviewIcon;
+    }
+}
+
+// MapPreviewTest.java
+package common;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapPreview}.
+* It contains one unit test case for the {@link MapPreview#getMapPreview(int)} method.
+*/
+class MapPreviewTest {
+		
+    private final Logger logger = Logger.getLogger( MapPreviewTest.class );
+    
+	// default constructor
+	public MapPreviewTest() {
+	}
+
+        public void validateMap(ImageIcon icon1, String mapName1) {
+            ImageIcon icon2;
+            BufferedImage map;
+
+            logger.info(mapName2(mapName1));
+            // check if map is loaded
+            try {
+                map = IOFactory.getLoadImage(mapName1);
+            }
+            catch (IOException e) {
+                logger.error(e);
+                return;
+            }
+
+            if (icon1 == null) {
+                icon2 = new ImageIcon();
+            }
+            else if (icon2 == null) {
+                return;
+            }
+            else {
+                 icon2.setImage(icon1.getImage());
+            }
+            if (!icon1.equals( icon2 )) {
+                logger.info(""Map : "" + mapName1 + ""is not the same as : "" + icon1.getImageName() );
+                assertTrue( icon1.equals(icon2) );
+            }
+        }
+
+	public Vector<ImageIcon> getMapTestVector() {
+
+        Vector<ImageIcon> testVector = new Vector<>();
+		ImageIcon testIcon;
+		BufferedImage img;
+
+		try {
+			logger.info(mapFile);
+
+			// load map
+			map = IOFactory.getLoadImage(mapFile);
+
+			// check if map is loaded
+			try {
+				img = IOFactory.getLoadImage(mapFile + ""_"" + mapImageSet + "".png"");
+
+			}
+			catch (IOException e) {
+
+			}
+
+			if (map == null) {
+				return testVector;
+			}
+
+			if (img.getWidth()!= mapArea.x * Constants.TILE_BORDER) {
+				// not loaded before
+				return testVector;
+			}
+			testIcon = new ImageIcon();
+			testIcon.setImage(img);
+
+			testVector.add(testIcon);
+
+			Iterator<Tile> it = tileIterator(map);
+			while (it.hasNext()) {
+				Tile t = it.next();
+				ImageIcon i = new ImageIcon();
+				i.setImage(t.getIcon());
+				testVector.add(i);
+				logger.info(""TestTile:  "" + mapFile + ""_"" + mapImageSet + "" - Tile: "" + t.x + "","" + t.y + "" - "" + t.color +"" -> "" + i.getIcon());
+			}
+		}
+		catch (Exception ex) {
+			logger.error( ex);
+		}
+
+		return testVector;
+	}
+
+	@Test
+	public void testImageSet() {
+		Tile w = new Tile();
+
+		String mapFile = mapFile + ""_"" + mapImageSet + "".png"";
+
+		// Load the map using Tile.load(ImageFile) to get the tile icon.
+		logger.info(""Loading map: "" + mapFile);
+		TileIconLoader tl = new TileIconLoader();
+		tl.setTileImageSet(mapFile);
+		Tile t = tl.loadImage(mapFile);
+		logger.info(""Returned tile: "" + t.tileIcon.getIconName());
+
+		Point p = t.center;
+		TileImageIcon it = new TileImageIcon();
+		it.setImage(t.tileIcon.getImage());
+		
+		// set background color
+		int i = t.color;
+		int f = iT.COLOR_TILE_STONE;
+		logger.info(""Color: "" + i + "" with f = "" + f);
+		t.tileIcon.setColor(i, f);
+		
+		
+		// set origin of tile border
+		p.x = t.borderLeft + t.tileIcon.getWidth() / 2;
+		p.y = t.borderTop + t.tileIcon.getHeight() / 2;
+		logger.info(""Tile border x = "" + p.x + "", y = "" + p.y);
+
+		t.tileToMap(p);
+
+		// validate
+		validateMap(it, mapFile);
+
+                validateMap(t.tileIcon.getImage(), mapFile);
+
+		validateMap(t.tileIcon.getImage2(), mapFile);
+
+	}
+
+	private int mapFile(String mapFileName) {
+        return ""-"".equals(mapFileName)? 0 : Integer.parseInt(mapFile);
+	}
+
+	private String mapFile(String mapFileName) {
+        return ""-"".equals(mapFileName)? """" : mapFile;
+	}
+
+	private String mapImageSet(String mapPath) {
+        return mapPath.endsWith("".png"")? """" : mapPath;"
+0c8cab9d-2815-43ea-9997-20e50e3a8bae,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/XmlFunctions_0Test.java,47.66041421890259,length,"// XmlFunctions.java
+package common;
+
+import java.io.File;
+import java.io.IOException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+/**
+ * basic functions for reading and writing xml files
+ *
+ * @author christian
+ */
+public class XmlFunctions {
+
+    public String getXmlValue(String XmlPath) {
+        Node node = findXmlNode(XmlPath);
+        return node.getTextContent();
+    }
+}
+","// XmlFunctions_0Test.java
+package common;
+
+import java.io.File;
+import java.io.IOException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XmlFunctions}.
+* It contains one unit test case for the {@link XmlFunctions#getXmlValue(String)} method.
+*/
+class XmlFunctions_0Test {","// XmlFunctions_0Test.java
+package common;
+
+import java.io.File;
+import java.io.IOException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XmlFunctions}.
+* It contains one unit test case for the {@link XmlFunctions#getXmlValue(String)} method.
+*/
+class XmlFunctions_0Test {
+
+    private static final String PATH = ""log4j.logger.path"";
+    public static Logger logger = Logger.getLogger(XmlFunctions_0Test.class);
+	
+    @Test
+    public void testGetXmlValueWithoutParameter() {
+        logger.info(""testGetXmlValueWithoutParameter"");
+        
+        String result = XmlFunctions.getXmlValue(""/faketest/files/files/file#nofa"");
+        assertTrue(""file doesn't exist or it's not a file"",
+                result.equals(""<file>""));
+    }
+	
+    @Test
+    public void testGetXmlValueWithEmptyParameter() {
+        logger.info(""testGetXmlValueWithEmptyParameter"");
+        
+        String result = XmlFunctions.getXmlValue(""/faketyp:files/files/file#name:empty"");
+        assertTrue(""file doesn't exist or it's not a file"",
+                result.equals(""<file>""));
+    }
+	
+    @Test
+    public void testGetXmlValueWithParameter() {
+        logger.info(""testGetXmlValueWithParameter"");
+        
+        String result = XmlFunctions_0Test.getXmlValue(""/faketyp:files/files/file#name:name"");
+        assertTrue(""file doesn't exist or it's not a file"",
+                result.equals(""<file>""));
+    }
+
+     @Test
+    public void testGetXmlValueWithWholeQueryString() {
+         logger.info(""testGetXmlValueWithWholeQueryString"");
+     
+     String result = XmlFunctions_0Test.getXmlValue(""/faketyp:files/files/file#name:name "");
+         assertTrue(""file doesn't exist or it's not a file"",
+                 result.equals(""<file>""));
+    }
+	
+     @Test
+    @TestLogging(namespace = ""log4j"", level = ""WARNING"")
+    public void testGetXmlValueWithSingleQueryString() {
+         logger.info(""testGetXmlValueWithSingleQueryString"");
+     
+     String result = XmlFunctions_0Test.getXmlValue(""/faketyp:files/files/file#name:name"");
+         assertTrue(""file doesn't exist or it's not a file"",
+                 result.equals(""<file>""));
+    }
+
+    @Test
+    @TestLogging(namespace = ""log4j"", level = ""DEBUG"")
+    public void testGetXmlValueWithQueryString1() {
+    
+     String result = XmlFunctions_0Test.getXmlValue(""/faketyp:files/files/file#name:name?qeq="");
+         assertTrue(""file doesn't exist or it's not a file"",
+                 result.equals(""<file>""));
+    }
+	
+    @Test
+    @TestLogging(namespace = ""log4j"", level = ""DEBUG"")
+    public void testGetXmlValueWithQueryString2() {
+         logger.info(""testGetXmlValueWithQueryString2"");
+     
+     String result = XmlFunctions_0Test.getXmlValue(""/faketyp:files/files/file#name:name?qeq=nofa"");
+         assertTrue(""file doesn't exist or it's not a file"",
+                 result.equals(""<file>""));
+    }
+	
+    @Test
+    @TestLogging(namespace = ""log4j"", level = ""DEBUG"")
+    public void testGetXmlValueWithQueryString3() {
+     
+     String result = XmlFunctions_0Test.getXmlValue(""/faketyp:files/files/file#name:name?qeq=nofa "");
+         assertTrue(""file doesn't exist or it's not a file"",
+                 result.equals(""<file>""));
+    }
+	
+    @Test
+    @TestLogging(namespace = ""log4j"", level = ""DEBUG"")
+    public void testGetXmlValueWithQueryString4() {
+         
+     String result = XmlFunctions_0Test.getXmlValue(""/faketyp:files/files/file#name:name?qeq=nofa"");
+         assertTrue(""file doesn't exist or it's not a file"",
+                 result.equals(""<file>""));
+    }
+	
+    /**
+     * Test of getXmlValue method, of class XmlFunctions.
+     */
+    @Test
+    public void testGetXmlValueWithEmptyNodeList() {
+        logger.info(""testGetXmlValueWithEmptyNodeList"");
+        try {
+            String result = XmlFunctions.getXmlValue(null);
+            assertTrue(""nodeList doesn't reference a file"",
+                   !result.equals(""<file>""));
+            assertTrue(""nodeList reference a file "",
+                    result.equals(""<file>""));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail(""Unexpected IOException"");
+        }
+    }
+
+    /**
+     * Test of getXmlValue method,"
+fa53cdf2-cb70-4578-a2a3-a29cee4ac930,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/XmlFunctions_1Test.java,45.248584270477295,stop,"// XmlFunctions.java
+package common;
+
+import java.io.File;
+import java.io.IOException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+/**
+ * basic functions for reading and writing xml files
+ *
+ * @author christian
+ */
+public class XmlFunctions {
+
+    public NodeList findXmlNodes(String NodeName) {
+        try {
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            XPathExpression expr = xpath.compile(NodeName);
+            Object result = expr.evaluate(xml, XPathConstants.NODESET);
+            return (NodeList) result;
+        } catch (XPathExpressionException ex) {
+            logger.error(ex);
+        }
+        return null;
+    }
+}
+","// XmlFunctions_1Test.java
+package common;
+
+import java.io.File;
+import java.io.IOException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XmlFunctions}.
+* It contains one unit test case for the {@link XmlFunctions#findXmlNodes(String)} method.
+*/
+class XmlFunctions_1Test {","// XmlFunctions_1Test.java
+package common;
+
+import java.io.File;
+import java.io.IOException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XmlFunctions}.
+* It contains one unit test case for the {@link XmlFunctions#findXmlNodes(String)} method.
+*/
+class XmlFunctions_1Test {
+private final Logger logger = Logger.getLogger(XmlFunctions_1Test.class);
+	private static final String XSL_XML = ""/org/w3c/dom/css1.xul/stylesheet.xsl"";
+        private static final String XML_TEST_DIR = ""/tests/xml"";
+
+        @Test
+        public void test_findXmlNodes() throws SAXException, IOException {
+    	        logger.info(""Starting test to check xml nodes in directory:"" + XML_TEST_DIR);
+            String resultPath = ""xml/"";
+            File xmlFile = new File(XML_TEST_DIR + File.separator + ""xml_test"" + File.separator + XML_TEST_DIR + "".xml"");
+
+            if (xmlFile.exists()) {
+                resultPath += xmlFile.getName();
+            }
+
+            //load xml
+            logger.info(""Loading xml from: "" + XML_TEST_DIR);
+            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = builder.parse(xmlFile.getAbsolutePath());
+
+            transXml2Xml(resultPath+ XML_TEST_DIR, doc.getDocumentElement());
+        }
+
+        @Test
+        public void test_findXmlNodes_null() throws ParserConfigurationException, SAXException, IOException {
+    	        logger.info(""Starting test to check xml nodes in directory:"" + XML_TEST_DIR);
+            String resultPath = ""xml/"";
+
+            logger.info(""Loading xml from:"" + XML_TEST_DIR);
+            DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = docBuilder.parse(xmlFile.getAbsolutePath());
+
+            Node result = findXmlNodes(null);
+            assertNull(""Should not return NN"", result);
+        }
+
+        @Test
+        public void test_findXmlNodes_excel() throws ParserConfigurationException, SAXException, IOException, XPathExpressionException, TransformerConfigurationException {
+        	logger.info(""Starting test to check xml nodes in Excel file ("" + XML_TEST_DIR + "")."");
+        	String resultPath = ""xml/"";
+    	        File xmlFile = new File(XML_TEST_DIR + File.separator + ""xml_test"" + File.separator + XML_TEST_DIR + "".xml"");
+
+    	        DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    	        Document doc = docBuilder.parse(xmlFile.getAbsolutePath());
+    	        NodeList resultList = xPath.compile(""/root/stylesheet/body/table/thead/tr/th"").evaluateList(doc.getDocumentElement(), XPathConstants.NODESET);
+    	        transXml2Xml(resultPath+ XML_TEST_DIR, resultList);
+    	}
+}
+// End of XmlFunctions_1Test.java"
+a80c9dad-cdd0-4fee-a2fd-49dfeddacb1f,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/MapReader.java,58.791234731674194,stop,"// MapReader.java
+package common;
+
+import org.apache.log4j.Logger;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.awt.Point;
+import javax.xml.xpath.*;
+import java.util.Date;
+
+/**
+ * Loads a XML-file and write read properties, tiles and start points to
+ * map-object
+ *
+ * @author christian
+ */
+public class MapReader {
+
+    public String getXMLValue(Node node, String XMLPath) {
+        try {
+            // todo: exception wenn feld leer
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            XPathExpression expr = xpath.compile(XMLPath);
+            Object result = expr.evaluate(node, XPathConstants.NODE);
+            Node foundNode = (Node) result;
+            return foundNode.getNodeValue();
+        } catch (XPathExpressionException ex) {
+            logger.error(ex);
+        }
+        return new String();
+    }
+}
+","// MapReaderTest.java
+package common;
+
+import org.apache.log4j.Logger;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.awt.Point;
+import javax.xml.xpath.*;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapReader}.
+* It contains one unit test case for the {@link MapReader#getXMLValue(Node, String)} method.
+*/
+class MapReaderTest {","// MapReaderTest.java
+package common;
+
+import org.apache.log4j.Logger;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.awt.Point;
+import javax.xml.xpath.*;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapReader}.
+* It contains one unit test case for the {@link MapReader#getXMLValue(Node, String)} method.
+*/
+class MapReaderTest {
+
+	private Logger logger = Logger.getLogger(XMLRendererTest.class);
+	
+	public MapReaderTest(){
+		logger.debug(""MapReaderTest is empty"");
+	}
+	
+	/**
+     * Test of getXMLValue method, of class MapReader.
+     */
+    @Test
+    public void testGetXMLValue(){
+
+    	String xml = ""<root><data><val>Hello World</val></data></root>"";
+
+    	MapReader map = new MapReader();
+    	String result = map.getXMLValue(xml);
+    	logger.debug(result);
+    	assertEquals(""<root><data><val>Hello World</val></data></root>"", result);
+    }
+
+    /**
+     * Test of toString method, of class MapReader.
+     */
+    @Test
+    public void testToAsString(){
+    	final MapReader map = new MapReader();
+
+    	String result = map.toString();
+    	logger.debug(result);
+    	assertEquals(""MapReader [toString()=<empty>]"", result);
+    }
+    
+}
+"
+46f848ff-1952-4a3c-a94c-cbcc19772a86,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/MapFilesLister.java,58.47512483596802,stop,"// MapFilesLister.java
+package common;
+
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Vector;
+import org.apache.log4j.Logger;
+import messages.global.MapInfo;
+
+/**
+ * class for listing maps and returning map information
+ *
+ * @author christian
+ */
+public class MapFilesLister {
+
+    public Vector<File> ListMaps(String dir) {
+        // open map folder
+        logger.info(""Read map directory: "" + dir + ""..."");
+        File mapDir = new File(dir);
+        File[] mapDirFiles = mapDir.listFiles();
+        Vector<File> foundFiles = new Vector<File>();
+        // open directories in map folder
+        for (int i = 0; i < mapDirFiles.length; i++) {
+            if (mapDirFiles[i].isFile() && mapDirFiles[i].toString().endsWith("".xml"")) {
+                logger.info(""XML: "" + mapDirFiles[i]);
+                foundFiles.add(mapDirFiles[i]);
+            }
+        }
+        return foundFiles;
+    }
+}
+","// MapFilesListerTest.java
+package common;
+
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Vector;
+import org.apache.log4j.Logger;
+import messages.global.MapInfo;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapFilesLister}.
+* It contains one unit test case for the {@link MapFilesLister#ListMaps(String)} method.
+*/
+class MapFilesListerTest {","// MapFilesListerTest.java
+package common;
+
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Vector;
+import org.apache.log4j.Logger;
+import messages.global.MapInfo;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapFilesLister}.
+* It contains one unit test case for the {@link MapFilesLister#ListMaps(String)} method.
+*/
+class MapFilesListerTest {
+
+    private static final String dir = ""/map/home"";
+    private static final String mapName = ""map"";
+    private static final String mapAux = "".map"";
+    private static final List<String> filesList = new LinkedList<String>();
+    private static final Logger logger = Logger.getLogger(MapFilesLister.class);
+
+	@Test
+    public void listMapsTest() {
+        List<MapInfo> mpList = ListMaps(dir);
+        for(MapInfo mInfo : mpList) {
+//            assertFalse(mInfo.isArchive(), ""unsupported map type:"" + mInfo.getType());
+//            MapInfo mTemp =new MapInfo(mInfo.getFile().toString(), mapAux);
+//            List<String> list = new LinkedList<String>();
+//            list.add(mTemp.getFileName());
+//            list.add(mTemp.getType());
+//            if (mTemp.getAux().isEmpty()) {
+//                list.add("""");
+//            } else {
+//                for(String mTempAux : mTemp.getAux()) {
+//                    list.add(mTempAux);
+//                }
+//            }
+//            printList(list);
+            filesList.add(mInfo.getFile().toString());
+        }
+        String currentIndex = this.filesList.toString();
+        List<String> expected = VectorUtils.toStringVector(this.dir, ""test"" + mpList.size(), mapName);
+        assertEquals(expected, currentIndex);
+    }
+	
+	void printList(List<String> list) {
+		for(String item : list){
+			System.out.println(""["" + item + ""]"");
+		}
+        System.out.println(list.toString());
+	}
+	
+
+}
+"
+24824f7a-07bb-4d2b-9d39-b5f70fb27daf,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/common/GameModel.java,63.76013207435608,stop,"// GameModel.java
+package common;
+
+import java.awt.Point;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Vector;
+import java.util.Map.Entry;
+import messages.round.RoundTimeOverMsg;
+import org.apache.log4j.Logger;
+
+/**
+ * @author Steffen, Andi, Bj�rn
+ */
+public class GameModel {
+
+    public int checkForWinner() {
+        if (players.size() < 2) {
+            // 0 means it's a tie (all remaining players got
+            int winnerId = 0;
+            // killed by the same bomb)
+            if (players.size() == 1) {
+                // only the winner is left
+                winnerId = players.get(0).getId();
+            }
+            return winnerId;
+        } else {
+            // game still running
+            return -1;
+        }
+    }
+}
+","// GameModelTest.java
+package common;
+
+import java.awt.Point;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Vector;
+import java.util.Map.Entry;
+import messages.round.RoundTimeOverMsg;
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GameModel}.
+* It contains one unit test case for the {@link GameModel#checkForWinner()} method.
+*/
+class GameModelTest {","// GameModelTest.java
+package common;
+
+import java.awt.Point;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Vector;
+import java.util.Map.Entry;
+import messages.round.RoundTimeOverMsg;
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GameModel}.
+* It contains one unit test case for the {@link GameModel#checkForWinner()} method.
+*/
+class GameModelTest {
+public final static Logger log = Logger.getLogger(Getter.class);
+		
+		{
+                players.add(new Player(""F1"", new Point(10, 5), new Point(5, 30)));
+                players.add(new Player(""F2"", new Point(10, 60), new Point(60, 30)));
+                players.add(new Player(""F3"", new Point(10, 120), new Point(250, 30)));
+                players.add(new Player(""A1"", new Point(5, 5), new Point(5, 30)));
+                players.add(new Player(""B1"", new Point(5, 60), new Point(60, 30)));
+				players.add(new Player(""B2"", new Point(5, 120), new Point(250, 30)));
+                players.add(new Player(""A2"", new Point(20, 5), new Point(5, 30)));
+                players.add(new Player(""B3"", new Point(20, 60), new Point(60, 30)));
+                players.add(new Player(""A3"", new Point(20, 120), new Point(250, 30)));
+                players.add(new Player(""B4"", new Point(20, 240), new Point(5, 30)));
+                players.add(new Player(""B5"", new Point(20, 400), new Point(5, 30)));
+            }
+        
+
+        /**
+	* Unit test for {@link GameModel#checkForWinner()} and {@link GameModel#GetWinner()}.
+	*/
+	@Test
+	public void testCheckForWinner() {
+
+
+		Vector<Player> players = new Vector<Player>(players);
+
+		GameModel instance;
+		
+		{
+			instance = new GameModel();
+			players.add(new Player(""F1"", new Point(10, 5), new Point(5, 30)));
+			players.add(new Player(""F2"", new Point(10, 60), new Point(60, 30)));
+			players.add(new Player(""F3"", new Point(10, 120), new Point(250, 30)));
+			players.add(new Player(""A1"", new Point(5, 5), new Point(5, 30)));
+			players.add(new Player(""B1"", new Point(5, 60), new Point(60, 30)));
+			players.add(new Player(""B2"", new Point(5, 120), new Point(250, 30)));
+			players.add(new Player(""A2"", new Point(20, 5), new Point(5, 30)));
+			players.add(new Player(""B3"", new Point(20, 60), new Point(60, 30)));
+			players.add(new Player(""A3"", new Point(20, 120), new Point(250, 30)));
+			players.add(new Player(""B4"", new Point(20, 240), new Point(5, 30)));
+			players.add(new Player(""B5"", new Point(20, 400), new Point(5, 30)));
+		}
+		
+		Object value;
+		int winner;
+		
+		{
+			instance.CheckForWin(players.get(0));
+
+			value = RoundTimeOverMsg.checkIfTurn(players.get(0), players.get(1), players);
+			if (value == null) {
+				throw new AssertionError(""Game does not win.""); 
+			}
+			winner = value;
+		}
+
+		{
+			instance.GetWinner(players);
+			value = RoundTimeOverMsg.checkIfTurn(players.get(0), players.get(1), players);
+			if (value == null) {
+				throw new AssertionError(""Game does not win.""); 
+			}
+			winner = value;
+		}
+		
+		// Check to see if all player are getting the same value
+		assertEquals(""Players are not of exactly equal value"", new Integer(players.get(0).getId()), new Integer(players.get(1).getId()));
+
+		// Check to see if all players are getting the same value
+		assertEquals(""Players and winner are not of exactly equal value"", new Integer(winner), new Integer(players.get(0).getId()));
+
+	}
+}"
+be4b07cd-90bb-429c-812d-489f037a157f,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/client/ClientProperties_0Test.java,60.83747935295105,stop,"// ClientProperties.java
+package client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import org.apache.log4j.Logger;
+import common.Constants;
+import common.XmlFunctions;
+
+/**
+ * reads and writes properties to xml-file
+ * properties file is saved to user directory
+ *
+ * @author christian
+ */
+public class ClientProperties {
+
+    public String getProperty(String element) {
+        if (!fileError) {
+            String XmlPath = ""//"" + element;
+            return xmlFunctions.getXmlValue(XmlPath);
+        } else {
+            return new String("""");
+        }
+    }
+}
+","// ClientProperties_0Test.java
+package client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import org.apache.log4j.Logger;
+import common.Constants;
+import common.XmlFunctions;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientProperties}.
+* It contains one unit test case for the {@link ClientProperties#getProperty(String)} method.
+*/
+class ClientProperties_0Test {","// ClientProperties_0Test.java
+package client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import org.apache.log4j.Logger;
+import common.Constants;
+import common.XmlFunctions;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientProperties}.
+* It contains one unit test case for the {@link ClientProperties#getProperty(String)} method.
+*/
+class ClientProperties_0Test {
+final static boolean fileError = true;
+
+	@Test
+    public void TestClientProperties() throws IOException{
+        ClientProperties clientProperty = new ClientProperties();
+        String path= ""/Users/christian/Downloads/Properties"";
+        LOG.debug(""Loading the "" + path);
+        File f= new File(path);
+        XmlFunctions x = new XmlFunctions();
+        InputStream is= new FileInputStream(f);
+        String s= x.getContents(is);
+
+        System.out.println(s);
+
+        ClientProperties_0 test = new ClientProperties();
+        String property= test.getProperty(""testProp"");
+            System.out.println(""The property "" + property+ "" is ""+test.getProperty(property));
+
+        System.out.println (""*********testClientProperty*****************"" +
+        ""***********************"");
+        System.out.println(x.getContents(is));
+		boolean file= test.isPropertyFile(property);
+        LOG.debug (""isFile = ""+file);
+        //LOG.debug(property);
+            assertEquals(file, Boolean.valueOf(file));
+    }
+}
+"
+9d519895-3c74-4d64-b73e-33189d11d910,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/client/ClientProperties_1Test.java,59.21212697029114,stop,"// ClientProperties.java
+package client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import org.apache.log4j.Logger;
+import common.Constants;
+import common.XmlFunctions;
+
+/**
+ * reads and writes properties to xml-file
+ * properties file is saved to user directory
+ *
+ * @author christian
+ */
+public class ClientProperties {
+
+    public static boolean fileCopy(InputStream sourceFile, File destFile) {
+        try {
+            InputStream in = sourceFile;
+            FileOutputStream out = new FileOutputStream(destFile);
+            byte[] buf = new byte[4096];
+            int len;
+            while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
+            out.close();
+            in.close();
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
+    }
+}
+","// ClientProperties_1Test.java
+package client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import org.apache.log4j.Logger;
+import common.Constants;
+import common.XmlFunctions;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientProperties}.
+* It contains one unit test case for the {@link ClientProperties#fileCopy(InputStream, File)} method.
+*/
+class ClientProperties_1Test {","// ClientProperties_1Test.java
+package client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import org.apache.log4j.Logger;
+import common.Constants;
+import common.XmlFunctions;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientProperties}.
+* It contains one unit test case for the {@link ClientProperties#fileCopy(InputStream, File)} method.
+*/
+class ClientProperties_1Test {
+
+	/**
+	 * Constructor test.
+	 */
+    private void testConstructor() {
+        try {
+            // test for value that is greater than 255
+        	assertTrue(0x0001FFFF > Constants.CONTROL_VALUE_MAX);
+        	assertTrue(-1 > Constants.CONTROL_VALUE_MAX);
+        	// test for value greater than 255
+        	assertTrue(0x00FFFFFF > Constants.CONTROL_VALUE_MAX);
+        	assertTrue(-1 > Constants.CONTROL_VALUE_MAX);
+        	assertTrue(Constants.CONTROL_VALUE_MAX > Math.max(0, Constants.CONTROL_VALUE_MAX));
+        	// test for value less than 255
+        	assertTrue(0 > Constants.CONTROL_VALUE_MIN);
+        	assertTrue(-1 > Constants.CONTROL_VALUE_MIN);
+        	// test for value equal to 255
+        	assertTrue(0x000000FF == Constants.CONTROL_VALUE_MAX);
+        	assertTrue(-1 == Constants.CONTROL_VALUE_MAX);
+            // test for value smaller than 255
+        	assertTrue(0 < Constants.CONTROL_VALUE_MIN);
+        	assertTrue(1 < Constants.CONTROL_VALUE_MIN);
+            Logger.getLogger(getClass()).fatal(""Test Failed"", null)}
+				catch (Exception ex) {
+					fail(ex.getMessage());
+				}
+    }
+		
+	/**
+	 * Constructor test.
+	 */
+    @Test
+    public void testConstructor() {
+        try (FileOutputStream out = new FileOutputStream(""/Users/cchristian"") ) {
+            Logger.getLogger(getClass()).fatal(""test1"", null)
+                   .append(Constants.CONTROL_VALUE_MAX)
+                   .append('x')
+                   .append(Constants.CONTROL_VALUE_MIN)
+                   .append(' ')
+                   .append('X')
+                   .append('t')
+                   .append('e')
+                   .append('t')
+                   .append('X')
+                   .append('o')
+                   .append(' ')
+                   .append(""test1"")
+                   .append('\n');
+
+            ClientProperties.fileCopy(out, out);
+
+            Logger.getLogger(getClass()).fatal(""test2"", null)
+                   .append(Constants.CONTROL_VALUE_MAX)
+                   .append('x')
+                   .append(Constants.CONTROL_VALUE_MIN)
+                   .append(' ')
+                   .append('X')
+                   .append('t')
+                   .append('e')
+                   .append('t')
+                   .append('X')
+                   .append('o')
+                   .append(' ')
+                   .append(""test2"")
+                   .append('\n');
+        } catch(IOException e) {
+            Logger.getLogger(getClass()).fatal(""test11"", null)
+                   .append(e.getMessage()).append('\n');
+        }
+    }
+    
+	/**
+	 * Constructor test
+	 */
+    @Test  
+  public void testConstructorWithNull() {
+		try (InputStream sourceFile = File.createInputStream(Constants.CONTROL_FILE_NULL); File destFile) {
+			FileOutputStream out = null;
+			try {
+				File tempDestFile = (new File(Constants.TMP_DIR, String.valueOf(System.currentTimeMillis()))).getParentFile();
+				out = new FileOutputStream(tempDestFile);
+
+				ClientProperties.fileCopy(sourceFile, out);
+				
+				if (Constants.TMP_DIR.getName().equalsIgnoreCase(""/Users/cchristian/work/probio/test1"") ||
+						Constants.TMP_DIR.getName().equalsIgnoreCase(""/Users/cchristian/work/probio"") ||
+						Constants.TMP_DIR.getName().equalsIgnoreCase(""/Users/cchristian/workspace/probio/test1"")) {
+					File testFile = new File(tempDestFile, ""test1.txt"");
+					assertTrue(null!= testFile);
+					int len = 0;
+					String content = null;
+					InputStream in = null;
+					try {
+						ContentParser cp = new ContentParser(null, null, null);
+						cp.parse(testFile.toString(), content, in);
+						content = content.toString();
+					} catch (Exception e) {
+						System.err.println(""test1"" + e.getMessage());
+						assertNull(content);
+					}
+				}
+			} catch (Exception e) {
+				Logger.getLogger(getClass()).fatal(""test11"", e.getMessage());
+			} 
+		} catch (Exception e) {
+			Logger.getLogger(getClass()).fatal(""test111"", e.getMessage());
+		}
+		
+	}
+}
+"
+4626dd18-7dd9-4c01-83c3-c7c98d307511,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/client/ClientPlayer.java,62.60234761238098,stop,"// ClientPlayer.java
+package client;
+
+import java.awt.Point;
+import org.apache.log4j.Logger;
+import sound.SoundPlayer;
+import common.Actor;
+import common.Constants;
+import common.Player;
+
+/**
+ * The client specific implemetation of a Player. This implementation will
+ * notify any number of registered observers about changes to their state.
+ *
+ * @author Andi, Bj�rn
+ */
+public class ClientPlayer extends Player {
+
+    public boolean canBowlBombs() {
+        return bowlBombs;
+    }
+}
+","// ClientPlayerTest.java
+package client;
+
+import java.awt.Point;
+import org.apache.log4j.Logger;
+import sound.SoundPlayer;
+import common.Actor;
+import common.Constants;
+import common.Player;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientPlayer}.
+* It contains one unit test case for the {@link ClientPlayer#canBowlBombs()} method.
+*/
+class ClientPlayerTest {","// ClientPlayerTest.java
+package client;
+
+import java.awt.Point;
+import org.apache.log4j.Logger;
+import sound.SoundPlayer;
+import common.Actor;
+import common.Constants;
+import common.Player;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientPlayer}.
+* It contains one unit test case for the {@link ClientPlayer#canBowlBombs()} method.
+*/
+class ClientPlayerTest {
+
+	private static Logger LOG = Logger.getLogger( ClientPlayerTest.class);
+	
+	@Test
+	public void canBowlBombsShouldReturnTrue() {
+	    
+	    ClientPlayer cPlayer = new ClientPlayer( null);
+        cPlayer.bowlBombs = false;
+		assertFalse(cPlayer.canBowlBombs());
+		cPlayer.bowlBombs = true;
+		assertTrue(cPlayer.canBowlBombs());
+	}
+    
+    @Test
+	public void bowlBombsNotifyObservers() {
+	    
+	    ClientPlayer cPlayer = new ClientPlayer( null);
+        cPlayer.bowlBombs = false;
+		
+		cPlayer.bowlBombs = true;
+		cPlayer.bowlBombs = false;
+		
+		assertFalse(cPlayer.bowlBombs);
+        cPlayer.bowlBombs = false;
+        cPlayer.bowlBombs = true;
+		
+		assertTrue(cPlayer.bowlBombs);
+	}
+}"
+44dfd757-548b-4a56-be4c-19d3fba3dca4,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/client/ClientGameRound.java,52.316155433654785,length,"// ClientGameRound.java
+package client;
+
+import java.awt.Point;
+import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
+import org.apache.log4j.Logger;
+import client.controller.LocalControl;
+import client.gui.StartFrame;
+import client.network.ForwardingObserver;
+import client.view.BombView;
+import client.view.GameCanvas;
+import client.view.GameView;
+import client.view.GfxFactory;
+import client.view.OffGamePainter;
+import client.view.PlayerView;
+import client.view.PowerUpView;
+import client.view.StatusView;
+import client.view.TileView;
+import common.Bomb;
+import common.Constants;
+import common.GameModel;
+import common.GameObject;
+import common.GameRound;
+import common.Map;
+import common.Player;
+import common.PowerUp;
+import common.Tile;
+
+/**
+ * Represents a game on the client side. This class serves as a connection
+ * between the model, view and game loop.
+ *
+ * @author Andi, Bj�rn
+ */
+public class ClientGameRound extends GameRound implements Observer {
+
+    public GameObject getGameObjectById(int id) {
+        return model.getGameObjectById(id);
+    }
+}
+","// ClientGameRoundTest.java
+package client;
+
+import java.awt.Point;
+import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
+import org.apache.log4j.Logger;
+import client.controller.LocalControl;
+import client.gui.StartFrame;
+import client.network.ForwardingObserver;
+import client.view.BombView;
+import client.view.GameCanvas;
+import client.view.GameView;
+import client.view.GfxFactory;
+import client.view.OffGamePainter;
+import client.view.PlayerView;
+import client.view.PowerUpView;
+import client.view.StatusView;
+import client.view.TileView;
+import common.Bomb;
+import common.Constants;
+import common.GameModel;
+import common.GameObject;
+import common.GameRound;
+import common.Map;
+import common.Player;
+import common.PowerUp;
+import common.Tile;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientGameRound}.
+* It contains one unit test case for the {@link ClientGameRound#getGameObjectById(int)} method.
+*/
+class ClientGameRoundTest {","// ClientGameRoundTest.java
+package client;
+
+import java.awt.Point;
+import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
+import org.apache.log4j.Logger;
+import client.controller.LocalControl;
+import client.gui.StartFrame;
+import client.network.ForwardingObserver;
+import client.view.BombView;
+import client.view.GameCanvas;
+import client.view.GameView;
+import client.view.GfxFactory;
+import client.view.OffGamePainter;
+import client.view.PlayerView;
+import client.view.PowerUpView;
+import client.view.StatusView;
+import client.view.TileView;
+import common.Bomb;
+import common.Constants;
+import common.GameModel;
+import common.GameObject;
+import common.GameRound;
+import common.Map;
+import common.Player;
+import common.PowerUp;
+import common.Tile;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientGameRound}.
+* It contains one unit test case for the {@link ClientGameRound#getGameObjectById(int)} method.
+*/
+class ClientGameRoundTest {
+
+  private static Logger myLogger = Logger.getLogger(ClientGameRoundTest.class);
+	private static boolean firstTime = true;
+	
+	GameModel model;
+	//GameView gameView, StatusView statusView;
+		
+	//GameView gameView;
+	ClientGameRound modelInstance;
+	
+	//Vector<Player> players;
+	PlayerView playerView;
+	
+	//Vector<Player> players;
+		
+	GfxFactory gfxfactory;
+	
+	boolean myFirstTime = true;
+	@Test
+	public void test1GetGameObjectById() {			
+		if (myFirstTime == true) {
+			myFirstTime = false;
+			model = new GameModel(Constants.POWERUP_ID, Constants.BOMB_ID);
+			modelInstance = new ClientGameRound(model);
+			playerView = new PlayerView(modelInstance);
+			playerView.init();
+			statusView = new StatusView(model.getServer(), modelInstance);
+			gfxfactory = GfxFactory.instance();			
+		}
+			
+		BattleView battleView = new BattleView(modelInstance, new HashMap<String, Player>(), new HashMap<String, Player>());		
+		gameView = new GameCanvas(map, battleView, myFirstTime);		
+		//gameView = new GameCanvas(map, battleView, battleView.getOwner());
+		
+		Vector<Tile> tilePickedUp = new Vector<Tile>();
+		Vector<Player> tilePickedUp2 = new Vector<Player>();
+				
+	    //playerPickedUp = new Vector<Player>();
+	    
+	    players = new Vector<Player>();
+	    players.add(model.getOwner());
+	    
+	    
+	    //players.add(model.getOwner());
+	      
+	    tilePickedUp = gfxfactory.getTilePicking(model, Tile.getRendererTop());
+	    ArrayList<Tile> tilePickedUp2 = new ArrayList<Tile>();
+	    tilePickedUp2.addAll(tilePickedUp);
+	    playerView.setPickedUpTiles(tilePickedUp2);
+	    BattleView battleView2 = new BattleView(modelInstance, new HashMap<String, Player>(), new HashMap<String, Player>());
+	    gameView = new GameCanvas(map, battleView2, modelInstance);
+	    //gameView = new GameCanvas(map, battleView2, battleView);
+	    */
+    
+		Vector<Tile> tilePickedUp = new Vector<Tile>();
+		Vector<Player> tilePickedUp2 = new Vector<Player>();
+		
+		//playerPickedUp = new Vector<Player>();
+		//players.add(model.getOwner());
+	 
+		
+		tilePickedUp = gfxfactory.getTilePicking(model, Tile.getRendererTop());	
+		ArrayList<Tile> tilePickedUp2 = new ArrayList<Tile>();
+		tilePickedUp2.addAll(tilePickedUp);
+		playerView.setPickedUpTiles(tilePickedUp2);
+				
+		//ArrayList<Player> tilePickedUp2 = new ArrayList<Player>();
+	    playerView.setPickedUpTiles(tilePickedUp2);
+		//ArrayList<Player> tilePickedUp2 = new ArrayList<Player>();
+		gameView.setPickedUpTiles(tilePickedUp2);
+				
+		mapWindow.setPlayer(modelInstance, model);
+		mapWindow.setPlayView(modelInstance);
+		myLogger.info(""Starting game..."");		
+		gameView.start();		
+		myFirstTime = true;
+		
+		while (modelInstance.isGameStarted() == false) {
+			if (mapWindow.checkGameStarts() == true && myFirstTime == true) {
+				break;
+			}
+			try {
+				Thread.sleep(Constants.FIVE_SECOND);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		//assert (mapWindow.getPlayer()!= null);
+		//mapWindow.changeViewToPlayer(modelInstance.getMap().getOwningPlayer());
+		//mapWindow.changeViewToBomb();
+		
+		GameRound game = mapWindow.getGameWindow();
+		ArrayList<Map> games = game.getGames();
+		//GameRound game = mapWindow.getGameWindow();
+        for (GameModel game2 : games) {
+        	System.out.println(""1: "" + game2.getGame() );
+        	System.out.println(""2: "" + game2.getRound() );
+        }
+
+//        for (int i = 0; i < games.size(); i++) {
+//			System.out.println(i + "": "" + games.get(i).getRound());
+//		}
+//		ArrayList<GameModel> gamesInWindow =
+//	                mapWindow.getAllGameModels();
+//        for (int i = 0; i < gamesInWindow.size(); i++) {
+//			System.out.println(i + "": "" + gamesInWindow.get(i).getGame());
+//   }
+	}
+
+	
+	
+	@Test
+	public void test2GetGameObjectById2() {
+		
+		//playerView.setPlayer((Player) model.getPlayer().get(0));
+		//playerView.setBombs((Bomb) model.getBombs().get(0));
+		
+		
+		/*Vector<Tile> tilePickedUp = new Vector<Tile>();
+		Vector<Player> tilePickedUp2 = new Vector<Player>();
+		
+		playerView.setPickedUpTiles(tilePickedUp2);
+		ArrayList<Tile> tilePicked"
+2d4a66a1-39a8-40f7-b879-53421fbdbebe,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/client/BomberClient_0Test.java,55.30808186531067,length,"// BomberClient.java
+package client;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Observable;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.InfoRequestMsg;
+import messages.global.JoinSessionMsg;
+import messages.global.MapInfo;
+import messages.global.SessionDetailsMsg;
+import messages.round.ClientQuitRunningSessionMsg;
+import org.apache.log4j.Logger;
+import client.gui.StartFrame;
+import client.network.ClientMsgReceiver;
+import client.network.ClientMsgSender;
+
+/**
+ * This is central client class. It is responsible for globally scoped messages
+ * and the creation of sessions.
+ *
+ * @author andi
+ */
+public class BomberClient extends Observable {
+
+    public static BomberClient getInstance() {
+        if (instance == null) {
+            logger.info(""Creating BomberClient singleton instance"");
+            instance = new BomberClient(""client"");
+        }
+        return instance;
+    }
+}
+","// BomberClient_0Test.java
+package client;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Observable;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.InfoRequestMsg;
+import messages.global.JoinSessionMsg;
+import messages.global.MapInfo;
+import messages.global.SessionDetailsMsg;
+import messages.round.ClientQuitRunningSessionMsg;
+import org.apache.log4j.Logger;
+import client.gui.StartFrame;
+import client.network.ClientMsgReceiver;
+import client.network.ClientMsgSender;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link BomberClient}.
+* It contains one unit test case for the {@link BomberClient#getInstance()} method.
+*/
+class BomberClient_0Test {","// BomberClient_0Test.java
+package client;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Observable;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.InfoRequestMsg;
+import messages.global.JoinSessionMsg;
+import messages.global.MapInfo;
+import messages.global.SessionDetailsMsg;
+import messages.round.ClientQuitRunningSessionMsg;
+import org.apache.log4j.Logger;
+import client.gui.StartFrame;
+import client.network.ClientMsgReceiver;
+import client.network.ClientMsgSender;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link BomberClient}.
+* It contains one unit test case for the {@link BomberClient#getInstance()} method.
+*/
+class BomberClient_0Test {
+public static final Logger logger = Logger.getLogger(BomberClient_0Test.class.getName());
+
+		public static ArrayList<Integer> getIntArray1() {
+
+		List<Integer> listIntArray = new ArrayList<Integer>();
+		listIntArray.add(44);
+		listIntArray.add(55);
+		return listIntArray;
+		}
+
+		public static HashMap<String, Object> getMapHash() {
+			//TODO: test code
+			HashMap <String, Object> hashMaptemp = new HashMap<String, Object>();
+				hashMaptemp.put(""Key1"", ""Value1"");
+				hashMaptemp.put(""Key2"", ""Value2"");
+			return hashMaptemp;
+		}
+
+		public static List<Object>  getListObject1() {
+				List<Object> listListObject = new ArrayList<Object>();
+				listListObject.add(""Hello"");
+				listListObject.add(""World"");
+				return listListObject;
+		}
+
+		/**
+		* Test method for {@link client.network.ClientMsgReceiver#processClientMessage(java.lang.String)}.
+		*/
+		@Test
+		public void testProcessClientMessage() throws IOException {
+				BomberClient bomberClient =getInstance();
+				ClientMsgReceiver clientMsgReceiver = new ClientMsgReceiver();
+
+	        ClientMsgSender client_sender = new ClientMsgSender();
+	        List<Message> messages_sender = new ArrayList<Message>();
+				/*
+				Client msgReceiver = clientMsgReceiver;
+		    Vector<Vector<String> > listVector = bomberClient.getIntArray1();
+				*/
+	        
+				String str_temp = ""Hello world!"";
+				String str_message = bomberClient.getIntArray1()
+		.get(0).toString();
+
+
+				String str_temp_1 = ""Hello world!"";
+				String str_message_1 = bomberClient.getIntArray1().get(
+		1.5)
+		.toString();
+
+				int int_result = str_temp.length();
+		String str_temp_2 = ""Hello world!"";
+
+//	        str_temp_1 = str_temp.substring(1, 5);
+				str_temp_1 = bomberClient.getIntArray1().get(0).toString();
+//	        str_temp_2 = bomberClient.getIntArray1().get(5).toString();
+		
+				int int_result_1 = str_temp.length();
+				str_temp_1 = bomberClient.getIntArray1().get(0).toString();
+
+				clientMsgReceiver.processClientMessage(str_message);
+				clientMsgReceiver.processClientMessage(str_temp_1);
+			
+				messageList = clientMsgReceiver.getClientMessages();
+				boolean temp = false;
+		
+				//client_sender.setReceivingOn(true);
+		
+				System.out.println(""Message List: "" + messageList);
+				
+		
+				System.out.println();
+				System.out.println(""test1"");
+				System.out.println(temp);
+				System.out.println(ClientGui_1.testString);
+		
+				client_sender.setReceivingOn(true);
+				System.out.println(""Message List: "" + messageList);
+				assertTrue(str_temp.substring(0, 1).equalsIgnoreCase(str_temp_1));
+				assertTrue(str_temp_1.substring(0, 1).equalsIgnoreCase(str_temp_2));
+				
+				return;
+		}
+		@Test
+		public void testSetReceivingOn() {
+				BomberClient bomberClient =getInstance();
+				ClientMsgSender client_sender = new ClientMsgSender();
+				
+				Vector<Vector<String> > listVector = new ArrayList<Vector<String>>();
+				listVector.add(new Vector<String>());
+				listVector.add(new Vector<String>());
+
+				ClientGui_1 clientMsgReceiverGui = new ClientGui_1(""ClientGUI"");
+				ClientGui_2 clientMsgReceiverGui1 = new ClientGui_2(""ClientGUI"");
+				
+				
+				
+	
+			
+//				client_sender.setReceivingOn(true);
+//			client_sender.setReceivingOn(false);
+
+				clientMsgReceiverGui.testSetReceivingOn_1();
+				System.out.println();
+				
+
+	
+	
+	clientMsgReceiverGui1.testSetReceivingOn_11();
+				System.out.println();
+
+
+				
+				clientMsgReceiverGui1.testSetReceivingOn_2();
+				System.out.println();
+				
+		
+				clientMsgReceiverGui1.testSetReceivingOn_2_2();
+				System.out.println();
+		
+		
+		/*
+		 * Test method  for   {@link client.network.ClientMsgReceiver#processClientMessage(java.lang.String)}.
+		*/
+						System.out.println();
+						ClientMsgReceiver clientMsgReceiver = new ClientMsgReceiver();
+		//	    String str_message = bomberClient.getIntArray1()
+		.get(0).toString();
+		
+			
+			
+				clientMsgReceiver.processClientMessage(str_message);
+
+			//clientMsgReceiver.processingInfoMsg (String,String,String,String,String);
+			
+
+
+	
+
+							 
+			/*
+			
+			String str_temp = ""Hello world!"";
+			String str_message = bomberClient.getIntArray1()
+		.get(0).toString();
+		int int_result = str_temp.length();
+				str_temp = bomberClient.getIntArray1().get(0).toString();
+			*/
+				
+		
+				int int_result = str_temp.length();
+				str_temp = bomberClient.getIntArray1().get(0).toString();
+
+
+
+	
+
+				
+		return;
+
+	}
+}
+
+
+//  Class to hold all client messages received by the client.
+class ClientMsgReceiver {
+
+	
+	
+	
+	
+	
+		/*
+		 * This class contains the information about"
+779bf805-dd7b-444a-9603-9206c6e67ecc,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/client/BomberClient_1Test.java,51.114062547683716,length,"// BomberClient.java
+package client;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Observable;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.InfoRequestMsg;
+import messages.global.JoinSessionMsg;
+import messages.global.MapInfo;
+import messages.global.SessionDetailsMsg;
+import messages.round.ClientQuitRunningSessionMsg;
+import org.apache.log4j.Logger;
+import client.gui.StartFrame;
+import client.network.ClientMsgReceiver;
+import client.network.ClientMsgSender;
+
+/**
+ * This is central client class. It is responsible for globally scoped messages
+ * and the creation of sessions.
+ *
+ * @author andi
+ */
+public class BomberClient extends Observable {
+
+    public boolean connectToSrv() {
+        try {
+            //System.out.println(""Connecting..."");
+            logger.info(""Establishing a connection "");
+            server = new Socket(serverName, serverPort);
+            msgSender = new ClientMsgSender(server);
+            msgSender.start();
+            msgReceiver = new ClientMsgReceiver(server, BomberClient.this);
+            msgReceiver.start();
+            msgSender.sendMsg(new InfoRequestMsg(InfoRequestMsg.GET_SESSION_LIST));
+            logger.info(""connected to "" + serverName);
+            return true;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            // e.printStackTrace();
+            logger.info(""Connection failed"");
+            return false;
+        }
+    }
+}
+","// BomberClient_1Test.java
+package client;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Observable;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.InfoRequestMsg;
+import messages.global.JoinSessionMsg;
+import messages.global.MapInfo;
+import messages.global.SessionDetailsMsg;
+import messages.round.ClientQuitRunningSessionMsg;
+import org.apache.log4j.Logger;
+import client.gui.StartFrame;
+import client.network.ClientMsgReceiver;
+import client.network.ClientMsgSender;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link BomberClient}.
+* It contains one unit test case for the {@link BomberClient#connectToSrv()} method.
+*/
+class BomberClient_1Test {","// BomberClient_1Test.java
+package client;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Observable;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import messages.Message;
+import messages.global.InfoRequestMsg;
+import messages.global.JoinSessionMsg;
+import messages.global.MapInfo;
+import messages.global.SessionDetailsMsg;
+import messages.round.ClientQuitRunningSessionMsg;
+import org.apache.log4j.Logger;
+import client.gui.StartFrame;
+import client.network.ClientMsgReceiver;
+import client.network.ClientMsgSender;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link BomberClient}.
+* It contains one unit test case for the {@link BomberClient#connectToSrv()} method.
+*/
+class BomberClient_1Test {
+
+    // Test data.
+    // Each message is sent and sent to all clients in {@link client.Network#SOCKET Server}
+    public final List<Message> data = new Vector<>();
+
+    // Number of clients is set before the connection is established.
+    public int countSender, countReceiver;
+
+    private final static Logger logger = Logger.getLogger(BomberClient.class.getName());
+
+    // The default constructor receives one message, one client.
+    public BomberClient(String... nw) throws IOException {
+        int i = 0;
+    	for(String id : nw) {
+    		Message m = new Message(id, -1, -1);
+    		data.add(m);
+    	}
+    	countSender = data.size();
+    	countReceiver = data.size();
+    }
+
+    @Test
+    public void testReceivedOneMessage() throws IOException {
+        ClientMsgReceiver r = new ClientMsgReceiver(server, this);
+        ClientMsgSender s = new ClientMsgSender(server);
+        s.start();
+        s.waitForMessagesReceived();
+        r.waitForMessage(countSender);
+        r.waitForMessage(countReceiver);
+        System.out.println(""Sender: "" + s.msgSender.getId() + ""; Receiver: "" + r.msgReceiver.getId());
+        Message m = s.getLast();
+        assert(m!= null);
+        assert(countSender == 1);
+        assert(countReceiver == 1);
+        assert(s.msgReceiver.msgs.size() == 1);
+        assert(s.msgReceiver.msgs.peek().getMsg()!= null);
+        assert(s.msgSender!= null);
+        assert(m.getMsg()!= null);
+    }
+
+    static class Listener implements ClientReceiver.ClientReceiverCallback {
+    	
+    	List<Message> msgs;
+    	@Override
+    	public void callback(ClientReceiver cb) {
+    		msgs = cb.msgs;
+    	}
+    }
+
+    // Method to test client.Network.SOCKET.newListener
+    public void notifyListener(Socket s) {
+    	synchronized(msgs) {
+    		msgs.add(0, s);
+    	}
+    }
+
+    // Unit test for {@linkplain ClientMsgSender#waitForMessage()} method.
+    public void waitForMsgSend() throws IOException {
+        // Wait until {@link Message#getMsg()} is set.
+        Message m = ServerSocketFactory.get(server, port).getMessage();
+        List<Message> msgs = ServerSocketFactory.pollAndWaitForMessages(server, 1000, new Listener());
+        if (msgs == null) {
+            //no messages received
+            return;
+        }
+        System.out.println(""Server: "" + m.getServer()
+                            + ""; Port: "" + port
+                            + ""; Msg: "" + msgs.get(msgSender.msgSender.getId()));
+        assert(m.getMsg()!= null);
+    }
+    
+    @Test
+    public void testReceivedJoinSession() {
+    	// Connect to the server.
+    	logger.info(""Connecting to "" + serverName, this);
+
+    	// Create server socket.
+    	Socket s = new Socket(serverName, serverPort);
+        List<Message> msgs = new Vector<>();
+        msgs.add(new SessionDetailsMsg(1, 11, """", 0, new HashMap<>()));
+        msgs.add(new SessionDetailsMsg(1, 11, """", 1, new HashMap<>()));
+        ClientMsgSender s = new ClientMsgSender(sock, this, msgs);
+        s.waitForConnected();
+
+        // Send one message.
+        logger.info(""Waiting for connection..."");
+        s.sendMsg(new JoinSessionMsg(1, 0, """", 1, new HashMap<>()));
+        s.sendMsg(new JoinSessionMsg(1, 0, """", 2, new HashMap<>()));
+        s.sendMsg(new JoinSessionMsg(1, 0, """", 3, new HashMap<>()));
+
+        logger.info(""Sent one, received "" + s.msgSender.getId() + "" received "" + s.msgReceiver.getId());
+
+        // Wait for the sent messages to be received.
+        msgs = ServerSocketFactory.pollAndWaitForMessages(sock, 1000, new Listener());
+        logger.info(""Received msgs: "" + msgs);
+        assert(2 == msgs.size());
+    }
+
+    @Test
+    public void testConnectAndSendJoinSession() throws IOException {
+    	ServerSocket s = new ServerSocket(port, 10, host);
+        logger.info(""Server starting listening on "" + port);
+    	List<Message> msgs = new Vector<>();
+
+    	MsgReceiver r = new MsgReceiver(new StartFrame(), this);
+        ClientMsgSender c = new ClientMsgSender(sock, this);
+    	c.start();
+        r.waitForStart();
+        msgs.add(r.msgReceiver.msgs.peek());
+        logger.info(r.msgReceiver.msgs.peek().getServer());
+        c.conn.connectToServer();
+    	while (true) {
+    		if (1 == countSender) {
+    			if (sendJoinSession(c, r)) {
+    				break;
+    			}
+    		}
+    		MsgsTo"
+480013e1-ebd0-49dd-8327-cda168717104,/EvoSuiteBenchmark/original/57_hft-bomberman/src/main/java/client/view/GfxFactory.java,60.396546602249146,stop,"// GfxFactory.java
+package client.view;
+
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import javax.imageio.ImageIO;
+import org.apache.log4j.Logger;
+import common.ResourceService;
+
+/**
+ * @author Andreas Glauner
+ * @autor Adam Kozielski
+ */
+public class GfxFactory {
+
+    public Image getPowerUpImage(String type) {
+        if (!powerUpImageCache.keySet().contains(type)) {
+            String path = ""/gfx/powerUps/"" + type + "".png"";
+            powerUpImageCache.put(type, loadImage(path));
+        }
+        return powerUpImageCache.get(type);
+    }
+}
+","// GfxFactoryTest.java
+package client.view;
+
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import javax.imageio.ImageIO;
+import org.apache.log4j.Logger;
+import common.ResourceService;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GfxFactory}.
+* It contains one unit test case for the {@link GfxFactory#getPowerUpImage(String)} method.
+*/
+class GfxFactoryTest {","// GfxFactoryTest.java
+package client.view;
+
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import javax.imageio.ImageIO;
+import org.apache.log4j.Logger;
+import common.ResourceService;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GfxFactory}.
+* It contains one unit test case for the {@link GfxFactory#getPowerUpImage(String)} method.
+*/
+class GfxFactoryTest {
+
+
+public static void main(String[] args){
+    	ResourceService.init(args[0], args[1]); 
+	}
+	
+	@Test
+	public void test() {
+
+		Logger logger = Logger.getLogger(GfxFactoryTest.class.getName());
+		File f = ResourceService.getProject().getFile(""gfx/PowerUps/"" + ""PowerUps.png"");
+			//File f = ResourceService.getProject().getFile(""gfx/PowerUps.png"");
+	    System.err.println(f.getAbsolutePath());
+
+
+		GfxFactory.getPowerUpImage(""PowerUp"");
+		GfxFactory.getPowerUpImage(""Night"");
+		
+		File[] files = f.listFiles(imageFile -> { return imageFile.getName().endsWith("".png""); });
+		assertNotNull(""File exists"", files);
+		
+		HashMap<Integer, Image> powerUp = new HashMap<>();
+		for (File f : files) {
+			System.err.println(""extracting from "" + f.getExtension());
+			powerUp = f.getCanonicalFile().toURI().toURL().getLastPathSegment();
+			String powerUpImageUrl = powerUp.get(""PowerUp"").toString();
+			String powerUpImageFilename = powerUp.get(""PowerUp"").getAbsolutePath();
+			Image powerUpImage = loadImage(powerUpImageUrl);
+			powerUp.remove(powerUp.size()-1);
+			powerUp.put(powerUp.size()-1, powerUpImage);
+			logger.debug(""Extracting "" + powerUpImageFilename);
+			//powerUpImage = ImageIO.read(f);
+			testPowerUp(powerUpImage, powerUpImageFilename);
+		}
+		
+	}
+	
+	public void testPowerUp(Image powerUp1, String powerUpImageFilenameA)
+			throws IOException {
+		PowerUp powerUp2 = new PowerUp();
+		powerUp2.parseImage(powerUp1);
+		
+		logger.debug(""Getting "" + powerUpImageFilenameA);
+		powerUpImageFilenameA = powerUpImageFilenameA.replaceAll(""PowerUp\\d"", """");
+		
+		testPowerUp(powerUp2, powerUpImageFilenameA);
+	}
+
+	
+	/**
+	 * Test implementation of {@link GfxFactory#getPowerUpImage(String)}
+	 * to get the powerUps image from a file in some kind of PNG format.
+	 */
+	public void testPowerUpImage() throws IOException {
+		File f = ResourceService.getProject().getFile(""gfx/PowerUps-"" + ""PowerUps-PowerUp-1.png"");
+		
+		File[] files = f.listFiles(imageFile -> { return imageFile.getName().endsWith("".png""); });
+		assertNotNull(""no poweruptmp"", files);
+	
+		
+		Image powerUpImage = loadImage(f.getURI().toString());
+
+		logger.debug(""Getting powerUps"");
+        Image powerUpImageA = powerUpImage.getScaledTo(32,32);
+		
+		logger.debug(powerUpImageA.getSize());
+		for (File f : files)
+			testPowerUp(powerUpImageA, f.getAbsolutePath());
+	}
+
+
+	/**
+	 * Parsing the powerUp image.
+	 *
+	 * @param powerUp1PowerUp1
+	 *
+	 */
+	public void testPowerUpImage(PowerUp powerUp1PowerUp1) {
+		powerUp1PowerUp1.parseImage();
+		
+		System.err.println(""Got and cleaned "" + powerUp1PowerUp1.getPowerUpImage());
+		System.err.println(powerUp1PowerUp1.getPowerUpsImage());
+		
+	}
+    /**
+     * Load image from a given URL
+     *
+     * @param powerUpImageUrl
+     *
+     * @return
+     *
+     */
+    public static Image loadImage(String powerUpImageUrl) throws IOException {
+            
+            ImageIO.setUseCache(true);
+
+            return ImageIO.read(new GfxFactoryTest().getPowerUpImage(powerUpImageUrl));
+    }
+            
+}"

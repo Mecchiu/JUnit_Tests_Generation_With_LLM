@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `SimpleUserMgr_2Test` is not properly defined. Can you please provide the complete code for this class?

@@ -1,0 +1,169 @@
+// ByteBufferInputStreamTest.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
+import java.util.*;
+import org.quickserver.net.server.ClientHandler;
+import java.util.logging.*;
+import org.quickserver.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ByteBufferInputStream}.
+* It contains ten unit test cases for the {@link ByteBufferInputStream#readLine()} method.
+*/
+class ByteBufferInputStreamTest {
+
+	@Test
+	public void testReadLine() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine2() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine3() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine4() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine5() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine6() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine7() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine8() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine9() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+	
+	@Test
+	public void testReadLine10() throws IOException {
+		ByteBufferInputStream bbis = new ByteBufferInputStream();
+		bbis.addByteBuffer(ByteBuffer.wrap("Hello\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("World\r\n".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("!".getBytes()));
+		bbis.addByteBuffer(ByteBuffer.wrap("\r\n".getBytes()));
+		
+		assertEquals("Hello", bbis.readLine());
+		assertEquals("World", bbis.readLine());
+		assertEquals("!", bbis.readLine());
+		assertNull(bbis.readLine());
+	}
+}
+
+// ByteBufferOutputStream.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
+import

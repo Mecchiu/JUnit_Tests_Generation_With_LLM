@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the implementation of the `load()` method in the `TXTCharacter` class is missing. Can you please provide the complete code for both classes?

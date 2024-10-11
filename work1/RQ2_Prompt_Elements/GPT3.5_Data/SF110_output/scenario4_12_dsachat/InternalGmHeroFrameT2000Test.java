@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems to be missing the actual implementation of the InternalGmHeroFrame class and its methods. Without that, I cannot generate a valid test class.

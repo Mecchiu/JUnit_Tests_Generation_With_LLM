@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Candidat.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">fr.unice.gfarce.identity</a> &gt; <span class="el_source">Candidat.java</span></div><h1>Candidat.java</h1><pre class="source lang-java linenums">package fr.unice.gfarce.identity;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Calendar;
+
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.persistence.*;
+
+
+/**
+ * Classe Candidat &lt;br&gt;
+ * Sous-classe de cr&amp;eacute;ation des candidats &amp;agrave; partir des champs recuper&amp;eacute;s de l'interface graphique.
+ * H&amp;eacute;rite de la classe Identite.
+ */
+@Entity
+@Table(name=&quot;GFARCE_CANDIDAT&quot;)
+@DiscriminatorValue(&quot;C&quot;)
+public class Candidat extends Identite {
+
+	@Temporal(TemporalType.DATE)
+	private java.util.Calendar date_naissance;
+
+	private String diplome;
+
+	@Lob
+	public byte[] photo;
+
+	private String nationalite;
+
+	private int bourse ;
+
+	private int acceptation ; 
+
+	private Formation formation ;
+
+
+/**
+ * Constructeurs
+ */
+	public Candidat(){
+<span class="nc" id="L43">		super();</span>
+<span class="nc" id="L44">	}</span>
+
+	public Candidat(String nom,String prenom,String sex, String email, TypeIdentite type, Calendar date_naissance,String diplome,String photo,String nationalite,int bourse,int acceptation,Formation f) throws IOException{
+<span class="nc" id="L47">		super(nom,prenom,sex,email, type);</span>
+<span class="nc" id="L48">		this.date_naissance = date_naissance;</span>
+<span class="nc" id="L49">		this.diplome = diplome;</span>
+<span class="nc" id="L50">		this.photo = photoToByte(photo);</span>
+<span class="nc" id="L51">		this.date_naissance = date_naissance;</span>
+<span class="nc" id="L52">		this.nationalite = nationalite;	</span>
+<span class="nc" id="L53">		this.bourse = bourse;</span>
+<span class="nc" id="L54">		this.acceptation = acceptation;</span>
+<span class="nc" id="L55">		this.formation = f;</span>
+<span class="nc" id="L56">	}</span>
+
+	public Candidat(String nom,String prenom,String sex, String email, Calendar date_naissance,String diplome,String photo,String nationalite,int bourse,int acceptation,Formation f) throws IOException{
+<span class="nc" id="L59">		this(nom, prenom, sex, email, TypeIdentite.CANDIDAT, date_naissance, diplome, photo, nationalite,bourse,acceptation,f);</span>
+<span class="nc" id="L60">	}</span>
+	
+	/**
+	 * Conversion de l'image gif en tableau de byte.
+	 * @param path
+	 * @return byte[]
+	 * @throws IOException
+	 */
+	private byte[] photoToByte(String path) throws IOException{
+<span class="nc" id="L69">		File f = new File(path);</span>
+<span class="nc" id="L70">		byte[] b =null;</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">		if(f.exists()){</span>
+			FileImageInputStream fi;
+<span class="nc" id="L73">			fi = new FileImageInputStream(f);</span>
+<span class="nc" id="L74">			int taille = (int)f.length() * 8 ;</span>
+
+<span class="nc" id="L76">			b = new byte[taille];</span>
+<span class="nc" id="L77">			fi.read(b) ;</span>
+		}
+<span class="nc" id="L79">		return b;</span>
+	}
+
+/**
+ * Enregistre la photo dans le dossier img.
+ * Si le tableau de byte est null aucune image n'est cr&amp;eacute;&amp;eacute;e.
+ * Le nom de la photo est compos&amp;eacute; du nom du Candidat et de son id.
+ * @param
+ * @return
+ * @throws IOException
+ */
+	public void savePhoto() throws IOException{				
+<span class="nc bnc" id="L91" title="All 2 branches missed.">		if(this.photo != null){</span>
+<span class="nc" id="L92">			String filename = &quot;&quot;+this.getNom()+&quot;-&quot;+this.getId();</span>
+<span class="nc" id="L93">			File f  = new File(&quot;img&quot;,filename +&quot;.gif&quot;);</span>
+<span class="nc" id="L94">			FileImageOutputStream fo = new FileImageOutputStream(f);</span>
+<span class="nc" id="L95">			fo.write(this.photo);</span>
+		}
+<span class="nc" id="L97">	}</span>
+
+	// method pour alex 
+	// a completer suivant si alex a besoin d'un Image ou une bufferedImage ou autre
+	// permet d'afficher l'image sans lenregistrer en dur
+/**
+ * 
+ * @param
+ * @return
+ */
+	public void afficherPhoto(){
+<span class="nc" id="L108">	}</span>
+
+/**
+ * Accesseurs en lecture
+ */
+	public java.util.Calendar getDateNaissance (){
+<span class="nc" id="L114">		return date_naissance;</span>
+	}
+
+	public String getDiplome(){
+<span class="nc" id="L118">		return this.diplome;</span>
+
+	}
+
+	public byte[] getPhoto(){
+<span class="nc" id="L123">		return this.photo;</span>
+	}
+
+	public String getNationalite(){
+<span class="nc" id="L127">		return nationalite;</span>
+	}
+	
+	@ManyToOne
+	public Formation getFormation(){
+<span class="nc" id="L132">		return this.formation;</span>
+	}
+	
+	public int getBource(){
+<span class="nc" id="L136">		return this.bourse;</span>
+	}
+	
+	public int getAcceptation(){
+<span class="nc" id="L140">		return this.acceptation;</span>
+	}
+
+/**
+ * Accesseurs en &amp;eacute;criture
+ */
+	public void setDate_naissance(java.util.Calendar date_naissance) {
+<span class="nc" id="L147">		this.date_naissance = date_naissance;</span>
+<span class="nc" id="L148">	}</span>
+
+	public void setDiplome(String diplome) {
+<span class="nc" id="L151">		this.diplome = diplome;</span>
+<span class="nc" id="L152">	}</span>
+
+	public void setPhoto(String photo) throws IOException {
+<span class="nc" id="L155">		this.photo = photoToByte(photo);</span>
+<span class="nc" id="L156">	}</span>
+
+	public void setNationalite(String nationalite) {
+<span class="nc" id="L159">		this.nationalite = nationalite;</span>
+<span class="nc" id="L160">	}</span>
+
+	public void setBource(int bourse){
+<span class="nc" id="L163">		this.bourse = bourse;</span>
+<span class="nc" id="L164">	}</span>
+
+	public void setAcceptation(int a){
+<span class="nc" id="L167">		this.acceptation = a;</span>
+<span class="nc" id="L168">	}</span>
+
+	public void setFormation(Formation f){
+<span class="nc" id="L171">		this.formation = f;</span>
+<span class="nc" id="L172">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

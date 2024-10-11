@@ -1,0 +1,3814 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wiI7eWM0L8mEtAD02II2GNwh3Tqp,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/data/logging/MessageFormatter0.java,74.33050322532654,length,"// MessageFormatter.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * <p>Replacement for org.slf4j.helpers.MessageFormatter.</p>
+ * <p>
+ * In contrast to the mentioned class, the formatting of message pattern and arguments into the actual message
+ * is split into three parts:
+ * </p>
+ * <ol>
+ * <li>Counting of placeholders in the message pattern (cheap)</li>
+ * <li>Conversion of argument array into an ArgumentResult, containing the arguments converted to String as well as
+ * an optional Throwable if available (relatively cheap)</li>
+ * <li>Replacement of placeholders in a message pattern with arguments given as String[]. (most expensive)</li>
+ * </ol>
+ * <p>
+ * That way only the first two steps have to be done during event creation while the most expensive part, i.e. the
+ * actual construction of the message, is only done on demand.
+ * </p>
+ */
+public class MessageFormatter {
+
+    /**
+     * Replace placeholders in the given messagePattern with arguments.
+     *
+     * @param messagePattern the message pattern containing placeholders.
+     * @param arguments the arguments to be used to replace placeholders.
+     * @return the formatted message.
+     */
+    public static String format(String messagePattern, String[] arguments) {
+        if (messagePattern == null || arguments == null || arguments.length == 0) {
+            return messagePattern;
+        }
+        StringBuilder result = new StringBuilder();
+        int escapeCounter = 0;
+        int currentArgument = 0;
+        for (int i = 0; i < messagePattern.length(); i++) {
+            char curChar = messagePattern.charAt(i);
+            if (curChar == ESCAPE_CHAR) {
+                escapeCounter++;
+            } else {
+                if (curChar == DELIM_START) {
+                    if (i < messagePattern.length() - 1) {
+                        if (messagePattern.charAt(i + 1) == DELIM_STOP) {
+                            // write escaped escape chars
+                            int escapedEscapes = escapeCounter / 2;
+                            for (int j = 0; j < escapedEscapes; j++) {
+                                result.append(ESCAPE_CHAR);
+                            }
+                            if (escapeCounter % 2 == 1) {
+                                // i.e. escaped
+                                // write escaped escape chars
+                                result.append(DELIM_START);
+                                result.append(DELIM_STOP);
+                            } else {
+                                // unescaped
+                                if (currentArgument < arguments.length) {
+                                    result.append(arguments[currentArgument]);
+                                } else {
+                                    result.append(DELIM_START).append(DELIM_STOP);
+                                }
+                                currentArgument++;
+                            }
+                            i++;
+                            escapeCounter = 0;
+                            continue;
+                        }
+                    }
+                }
+                // any other char beside ESCAPE or DELIM_START/STOP-combo
+                // write unescaped escape chars
+                if (escapeCounter > 0) {
+                    for (int j = 0; j < escapeCounter; j++) {
+                        result.append(ESCAPE_CHAR);
+                    }
+                    escapeCounter = 0;
+                }
+                result.append(curChar);
+            }
+        }
+        return result.toString();
+    }
+}
+","// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#format(String, String[])} method.
+*/
+class MessageFormatterTest {","// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#format(String, String[])} method.
+*/
+class MessageFormatterTest {
+
+	@Test
+	void testFormat() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, {}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, arg3"", result);
+	}
+	
+	@Test
+	void testFormat_nullMessagePattern() {
+		String messagePattern = null;
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertNull(result);
+	}
+	
+	@Test
+	void testFormat_nullArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, {}"";
+		String[] arguments = null;
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(messagePattern, result);
+	}
+	
+	@Test
+	void testFormat_emptyArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, {}"";
+		String[] arguments = new String[0];
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(messagePattern, result);
+	}
+	
+	@Test
+	void testFormat_tooManyArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, {}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"", ""arg4"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, arg3"", result);
+	}
+	
+	@Test
+	void testFormat_tooFewArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, {}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, {}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedPlaceholder() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, {}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedPlaceholder_tooManyArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"", ""arg4"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, {}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedPlaceholder_tooFewArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, {}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, \\{}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar_tooManyArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"", ""arg4"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, \\{}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar_tooFewArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, \\{}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar_escapedPlaceholder() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\\\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, \\{}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar_escapedPlaceholder_tooManyArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\\\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"", ""arg4"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, \\{}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar_escapedPlaceholder_tooFewArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\\\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, \\{}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar_escapedEscapeChar() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\\\\\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, \\\\{}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar_escapedEscapeChar_tooManyArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\\\\\{}"";
+		String[] arguments = new String[] { ""arg1"", ""arg2"", ""arg3"", ""arg4"" };
+		String result = MessageFormatter.format(messagePattern, arguments);
+		assertEquals(""This is a test message with placeholders: arg1, arg2, \\\\{}"", result);
+	}
+	
+	@Test
+	void testFormat_escapedEscapeChar_escapedEscapeChar_tooFewArguments() {
+		String messagePattern = ""This is a test message with placeholders: {}, {}, \\\\\\\\{}"";
+		String[] arguments = new String[] { ""arg1"", """
+cmpl-6wiJJlYFXJIKrQ1Yw2o7QLoUk2x0V,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/data/logging/MessageFormatter1.java,70.97831654548645,length,"// MessageFormatter.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * <p>Replacement for org.slf4j.helpers.MessageFormatter.</p>
+ * <p>
+ * In contrast to the mentioned class, the formatting of message pattern and arguments into the actual message
+ * is split into three parts:
+ * </p>
+ * <ol>
+ * <li>Counting of placeholders in the message pattern (cheap)</li>
+ * <li>Conversion of argument array into an ArgumentResult, containing the arguments converted to String as well as
+ * an optional Throwable if available (relatively cheap)</li>
+ * <li>Replacement of placeholders in a message pattern with arguments given as String[]. (most expensive)</li>
+ * </ol>
+ * <p>
+ * That way only the first two steps have to be done during event creation while the most expensive part, i.e. the
+ * actual construction of the message, is only done on demand.
+ * </p>
+ */
+public class MessageFormatter {
+
+    /**
+     * Counts the number of unescaped placeholders in the given messagePattern.
+     *
+     * @param messagePattern the message pattern to be analyzed.
+     * @return the number of unescaped placeholders.
+     */
+    public static int countArgumentPlaceholders(String messagePattern) {
+        if (messagePattern == null) {
+            return 0;
+        }
+        int delim = messagePattern.indexOf(DELIM_START);
+        if (delim == -1) {
+            // special case, no placeholders at all.
+            return 0;
+        }
+        int result = 0;
+        boolean isEscaped = false;
+        for (int i = 0; i < messagePattern.length(); i++) {
+            char curChar = messagePattern.charAt(i);
+            if (curChar == ESCAPE_CHAR) {
+                isEscaped = !isEscaped;
+            } else if (curChar == DELIM_START) {
+                if (!isEscaped) {
+                    if (i < messagePattern.length() - 1) {
+                        if (messagePattern.charAt(i + 1) == DELIM_STOP) {
+                            result++;
+                            i++;
+                        }
+                    }
+                }
+                isEscaped = false;
+            } else {
+                isEscaped = false;
+            }
+        }
+        return result;
+    }
+}
+","// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#countArgumentPlaceholders(String)} method.
+*/
+class MessageFormatterTest {","// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#countArgumentPlaceholders(String)} method.
+*/
+class MessageFormatterTest {
+
+	@Test
+	void countArgumentPlaceholders_null() {
+		int result = MessageFormatter.countArgumentPlaceholders(null);
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_empty() {
+		int result = MessageFormatter.countArgumentPlaceholders("""");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_noPlaceholders() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello World!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_onePlaceholder() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello {}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_twoPlaceholders() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello {}! {}"");
+		assertEquals(2, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedPlaceholder() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape2() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape3() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape4() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape5() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape6() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape7() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape8() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape9() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape10() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape11() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape12() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape13() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape14() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape15() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape16() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape17() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape18() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape19() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape20() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape21() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape22() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape23() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape24() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape25() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape26() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(0, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_escapedEscape27() {
+		int result = MessageFormatter.countArgumentPlaceholders(""Hello \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\{}!"");
+		assertEquals(1, result);
+	}
+	
+	@Test
+	void countArgumentPlaceholders_"
+cmpl-6wiKST5lER3Xga4O3G0H5vTIlXrq6,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/data/logging/MessageFormatter2.java,60.53819298744202,length,"// MessageFormatter.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * <p>Replacement for org.slf4j.helpers.MessageFormatter.</p>
+ * <p>
+ * In contrast to the mentioned class, the formatting of message pattern and arguments into the actual message
+ * is split into three parts:
+ * </p>
+ * <ol>
+ * <li>Counting of placeholders in the message pattern (cheap)</li>
+ * <li>Conversion of argument array into an ArgumentResult, containing the arguments converted to String as well as
+ * an optional Throwable if available (relatively cheap)</li>
+ * <li>Replacement of placeholders in a message pattern with arguments given as String[]. (most expensive)</li>
+ * </ol>
+ * <p>
+ * That way only the first two steps have to be done during event creation while the most expensive part, i.e. the
+ * actual construction of the message, is only done on demand.
+ * </p>
+ */
+public class MessageFormatter {
+
+    /**
+     * <p>This method returns a MessageFormatter.ArgumentResult which contains the arguments converted to String
+     * as well as an optional Throwable.</p>
+     * <p/>
+     * <p>If the last argument is a Throwable and is NOT used up by a placeholder in the message pattern it is returned
+     * in MessageFormatter.ArgumentResult.getThrowable() and won't be contained in the created String[].<br/>
+     * If it is used up getThrowable will return null even if the last argument was a Throwable!</p>
+     *
+     * @param messagePattern the message pattern that to be checked for placeholders.
+     * @param arguments the argument array to be converted.
+     * @return a MessageFormatter.ArgumentResult containing the converted arformatted message and optionally a Throwable.
+     */
+    public static ArgumentResult evaluateArguments(String messagePattern, Object[] arguments) {
+        if (arguments == null) {
+            return null;
+        }
+        int argsCount = countArgumentPlaceholders(messagePattern);
+        int resultArgCount = arguments.length;
+        Throwable throwable = null;
+        if (argsCount < arguments.length) {
+            if (arguments[arguments.length - 1] instanceof Throwable) {
+                throwable = (Throwable) arguments[arguments.length - 1];
+                resultArgCount--;
+            }
+        }
+        String[] stringArgs;
+        if (argsCount == 1 && throwable == null && arguments.length > 1) {
+            // special case
+            stringArgs = new String[1];
+            stringArgs[0] = deepToString(arguments);
+        } else {
+            stringArgs = new String[resultArgCount];
+            for (int i = 0; i < stringArgs.length; i++) {
+                stringArgs[i] = deepToString(arguments[i]);
+            }
+        }
+        return new ArgumentResult(stringArgs, throwable);
+    }
+}
+","// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#evaluateArguments(String, Object[])} method.
+*/
+class MessageFormatterTest {","// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#evaluateArguments(String, Object[])} method.
+*/
+class MessageFormatterTest {
+
+		@Test
+		public void testEvaluateArguments() {
+				String messagePattern = """";
+				Object[] arguments = null;
+				MessageFormatter.ArgumentResult result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNull(result);
+				
+				messagePattern = """";
+				arguments = new Object[0];
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(0, result.getArguments().length);
+				assertNull(result.getThrowable());
+				
+				messagePattern = """";
+				arguments = new Object[] { ""foo"" };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(0, result.getArguments().length);
+				assertNull(result.getThrowable());
+				
+				messagePattern = """";
+				arguments = new Object[] { ""foo"", new Throwable() };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(0, result.getArguments().length);
+				assertNotNull(result.getThrowable());
+				
+				messagePattern = ""foo"";
+				arguments = null;
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNull(result);
+				
+				messagePattern = ""foo"";
+				arguments = new Object[0];
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(0, result.getArguments().length);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""foo"";
+				arguments = new Object[] { ""foo"" };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(1, result.getArguments().length);
+				assertEquals(""foo"", result.getArguments()[0]);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""foo"";
+				arguments = new Object[] { ""foo"", new Throwable() };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(1, result.getArguments().length);
+				assertEquals(""foo"", result.getArguments()[0]);
+				assertNotNull(result.getThrowable());
+				
+				messagePattern = ""{}"";
+				arguments = null;
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNull(result);
+				
+				messagePattern = ""{}"";
+				arguments = new Object[0];
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(0, result.getArguments().length);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""{}"";
+				arguments = new Object[] { ""foo"" };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(1, result.getArguments().length);
+				assertEquals(""foo"", result.getArguments()[0]);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""{}"";
+				arguments = new Object[] { ""foo"", new Throwable() };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(1, result.getArguments().length);
+				assertEquals(""foo"", result.getArguments()[0]);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""{}"";
+				arguments = new Object[] { ""foo"", ""bar"" };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(1, result.getArguments().length);
+				assertEquals(""foo"", result.getArguments()[0]);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""{}"";
+				arguments = new Object[] { ""foo"", ""bar"", new Throwable() };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(1, result.getArguments().length);
+				assertEquals(""foo"", result.getArguments()[0]);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""{}{}"";
+				arguments = null;
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNull(result);
+				
+				messagePattern = ""{}{}"";
+				arguments = new Object[0];
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(0, result.getArguments().length);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""{}{}"";
+				arguments = new Object[] { ""foo"" };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(2, result.getArguments().length);
+				assertEquals(""foo"", result.getArguments()[0]);
+				assertNull(result.getArguments()[1]);
+				assertNull(result.getThrowable());
+				
+				messagePattern = ""{}{}"";
+				arguments = new Object[] { ""foo"", new Throwable() };
+				result = MessageFormatter.evaluateArguments(messagePattern, arguments);
+				assertNotNull(result);
+				assertNotNull(result.getArguments());
+				assertEquals(2, result.getArguments().length);
+				assertEquals(""foo"", result.getArguments()[0]);
+				assertNull(result.getArguments()[1]);
+			"
+cmpl-6wiLQTDtmLy94jtXcS7xmPbL763VE,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/data/logging/MessageFormatter3.java,61.00740361213684,length,"// MessageFormatter.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * <p>Replacement for org.slf4j.helpers.MessageFormatter.</p>
+ * <p>
+ * In contrast to the mentioned class, the formatting of message pattern and arguments into the actual message
+ * is split into three parts:
+ * </p>
+ * <ol>
+ * <li>Counting of placeholders in the message pattern (cheap)</li>
+ * <li>Conversion of argument array into an ArgumentResult, containing the arguments converted to String as well as
+ * an optional Throwable if available (relatively cheap)</li>
+ * <li>Replacement of placeholders in a message pattern with arguments given as String[]. (most expensive)</li>
+ * </ol>
+ * <p>
+ * That way only the first two steps have to be done during event creation while the most expensive part, i.e. the
+ * actual construction of the message, is only done on demand.
+ * </p>
+ */
+public class MessageFormatter {
+
+    /**
+     * This method returns the same as if Object.toString() would not have been
+     * overridden in obj.
+     * <p/>
+     * Note that this isn't 100% secure as collisions can always happen with hash codes.
+     * <p/>
+     * Copied from Object.hashCode():
+     * As much as is reasonably practical, the hashCode method defined by
+     * class <tt>Object</tt> does return distinct integers for distinct
+     * objects. (This is typically implemented by converting the internal
+     * address of the object into an integer, but this implementation
+     * technique is not required by the
+     * Java<font size=""-2""><sup>TM</sup></font> programming language.)
+     *
+     * @param obj the Object that is to be converted into an identity string.
+     * @return the identity string as also defined in Object.toString()
+     */
+    public static String identityToString(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        return obj.getClass().getName() + ""@"" + Integer.toHexString(System.identityHashCode(obj));
+    }
+}
+","// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#identityToString(Object)} method.
+*/
+class MessageFormatterTest {","// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#identityToString(Object)} method.
+*/
+class MessageFormatterTest {
+
+	@Test
+	void identityToString_null() {
+		assertNull(MessageFormatter.identityToString(null));
+	}
+	
+	@Test
+	void identityToString_String() {
+		String testString = ""test"";
+		assertEquals(""java.lang.String@"" + Integer.toHexString(System.identityHashCode(testString)), MessageFormatter.identityToString(testString));
+	}
+	
+	@Test
+	void identityToString_StringBuffer() {
+		StringBuffer testStringBuffer = new StringBuffer(""test"");
+		assertEquals(""java.lang.StringBuffer@"" + Integer.toHexString(System.identityHashCode(testStringBuffer)), MessageFormatter.identityToString(testStringBuffer));
+	}
+	
+	@Test
+	void identityToString_StringBuilder() {
+		StringBuilder testStringBuilder = new StringBuilder(""test"");
+		assertEquals(""java.lang.StringBuilder@"" + Integer.toHexString(System.identityHashCode(testStringBuilder)), MessageFormatter.identityToString(testStringBuilder));
+	}
+	
+	@Test
+	void identityToString_Date() {
+		Date testDate = new Date();
+		assertEquals(""java.util.Date@"" + Integer.toHexString(System.identityHashCode(testDate)), MessageFormatter.identityToString(testDate));
+	}
+	
+	@Test
+	void identityToString_SimpleDateFormat() {
+		SimpleDateFormat testSimpleDateFormat = new SimpleDateFormat();
+		assertEquals(""java.text.SimpleDateFormat@"" + Integer.toHexString(System.identityHashCode(testSimpleDateFormat)), MessageFormatter.identityToString(testSimpleDateFormat));
+	}
+	
+	@Test
+	void identityToString_Array() {
+		String[] testArray = new String[]{""test""};
+		assertEquals(""[Ljava.lang.String;@"" + Integer.toHexString(System.identityHashCode(testArray)), MessageFormatter.identityToString(testArray));
+	}
+	
+	@Test
+	void identityToString_Collection() {
+		Collection<String> testCollection = Arrays.asList(""test"");
+		assertEquals(""java.util.Arrays$ArrayList@"" + Integer.toHexString(System.identityHashCode(testCollection)), MessageFormatter.identityToString(testCollection));
+	}
+	
+	@Test
+	void identityToString_Set() {
+		Set<String> testSet = new HashSet<String>();
+		testSet.add(""test"");
+		assertEquals(""java.util.HashSet@"" + Integer.toHexString(System.identityHashCode(testSet)), MessageFormatter.identityToString(testSet));
+	}
+	
+	@Test
+	void identityToString_Map() {
+		Map<String, String> testMap = new java.util.HashMap<String, String>();
+		testMap.put(""test"", ""test"");
+		assertEquals(""java.util.HashMap@"" + Integer.toHexString(System.identityHashCode(testMap)), MessageFormatter.identityToString(testMap));
+	}
+}
+
+// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#identityToString(Object)} method.
+*/
+class MessageFormatterTest {
+		
+	@Test
+	void identityToString_null() {
+		assertNull(MessageFormatter.identityToString(null));
+	}
+	
+	@Test
+	void identityToString_String() {
+		String testString = ""test"";
+		assertEquals(""java.lang.String@"" + Integer.toHexString(System.identityHashCode(testString)), MessageFormatter.identityToString(testString));
+	}
+	
+	@Test
+	void identityToString_StringBuffer() {
+		StringBuffer testStringBuffer = new StringBuffer(""test"");
+		assertEquals(""java.lang.StringBuffer@"" + Integer.toHexString(System.identityHashCode(testStringBuffer)), MessageFormatter.identityToString(testStringBuffer));
+	}
+	
+	@Test
+	void identityToString_StringBuilder() {
+		StringBuilder testStringBuilder = new StringBuilder(""test"");
+		assertEquals(""java.lang.StringBuilder@"" + Integer.toHexString(System.identityHashCode(testStringBuilder)), MessageFormatter.identityToString(testStringBuilder));
+	}
+	
+	@Test
+	void identityToString_Date() {
+		Date testDate = new Date();
+		assertEquals(""java.util.Date@"" + Integer.toHexString(System.identityHashCode(testDate)), MessageFormatter.identityToString(testDate));
+	}
+	
+	@Test
+	void identityToString_SimpleDateFormat() {
+		SimpleDateFormat testSimpleDateFormat = new SimpleDateFormat();
+		assertEquals(""java.text.SimpleDateFormat@"" + Integer.toHexString(System.identityHashCode(testSimpleDateFormat)), MessageFormatter.identityToString(testSimpleDateFormat));
+	}
+	
+	@Test
+	void identityToString_Array() {
+		String[] testArray = new String[]{""test""};
+		assertEquals(""[Ljava.lang.String;@"" + Integer.toHexString(System.identityHashCode(testArray)), MessageFormatter.identityToString(testArray));
+	}
+	
+	@Test
+	void identityToString_Collection() {
+		Collection<String> testCollection = Arrays.asList(""test"");
+		assertEquals(""java.util.Arrays$ArrayList@"" + Integer.toHexString(System.identityHashCode(testCollection)), MessageFormatter.identityToString(testCollection));
+	}
+	
+	@Test
+	void identityToString_Set() {
+		Set<String> testSet = new HashSet<String>();
+		testSet.add(""test"");
+		assertEquals(""java.util.HashSet@"" + Integer.toHexString(System.identityHashCode(testSet)), MessageFormatter.identityToString(testSet));
+	}
+	
+	@Test
+	void identityToString_Map() {
+		Map<String, String> testMap = new java.util.HashMap<String, String>();
+		testMap.put(""test"", ""test"");
+		assertEquals(""java.util.HashMap@"" + Integer.toHexString(System.identityHashCode(testMap)), MessageFormatter.identityToString(testMap));
+	}
+}
+
+// MessageFormatterTest.java
+package de.huxhorn.lilith.data.logging;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MessageFormatter}.
+* It contains ten unit test cases for the {@link MessageFormatter#identityToString(Object)} method.
+*/
+class MessageFormatterTest {
+		
+	@Test
+	void identityToString_null() {
+		assertNull(MessageFormatter.identityToString(null));
+	}
+	
+	@Test
+	void identityToString_String() {
+		String testString = ""test"";
+		assertEquals(""java.lang.String"
+cmpl-6wiMPBmFQrEAcTiObOkYESql4zHYt,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/logback/classic/NDC.java,64.84643244743347,length,"// NDC.java
+package de.huxhorn.lilith.logback.classic;
+
+import de.huxhorn.lilith.data.logging.Message;
+
+public class NDC {
+
+    /**
+     * Returns an array containing all messages of the stack.
+     * <p/>
+     * The messages from the NDC stack should not be used in application logic.
+     *
+     * @return an array containing all messages of the stack.
+     */
+    public static Message[] getContextStack() {
+        return ndcAdapter.getContextStack();
+    }
+}
+","// NDCTest.java
+package de.huxhorn.lilith.logback.classic;
+
+import de.huxhorn.lilith.data.logging.Message;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link NDC}.
+* It contains ten unit test cases for the {@link NDC#getContextStack()} method.
+*/
+class NDCTest {","// NDCTest.java
+package de.huxhorn.lilith.logback.classic;
+
+import de.huxhorn.lilith.data.logging.Message;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link NDC}.
+* It contains ten unit test cases for the {@link NDC#getContextStack()} method.
+*/
+class NDCTest {
+
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with an empty NDC stack.
+	*/
+	@Test
+	void testGetContextStackEmpty() {
+		NDC.clear();
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(0, contextStack.length);
+	}
+	
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with a NDC stack containing one message.
+	*/
+	@Test
+	void testGetContextStackOne() {
+		NDC.clear();
+		NDC.push(""Test"");
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(1, contextStack.length);
+		assertEquals(""Test"", contextStack[0].getMessage());
+	}
+	
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with a NDC stack containing two messages.
+	*/
+	@Test
+	void testGetContextStackTwo() {
+		NDC.clear();
+		NDC.push(""Test1"");
+		NDC.push(""Test2"");
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(2, contextStack.length);
+		assertEquals(""Test1"", contextStack[0].getMessage());
+		assertEquals(""Test2"", contextStack[1].getMessage());
+	}
+	
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with a NDC stack containing three messages.
+	*/
+	@Test
+	void testGetContextStackThree() {
+		NDC.clear();
+		NDC.push(""Test1"");
+		NDC.push(""Test2"");
+		NDC.push(""Test3"");
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(3, contextStack.length);
+		assertEquals(""Test1"", contextStack[0].getMessage());
+		assertEquals(""Test2"", contextStack[1].getMessage());
+		assertEquals(""Test3"", contextStack[2].getMessage());
+	}
+	
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with a NDC stack containing four messages.
+	*/
+	@Test
+	void testGetContextStackFour() {
+		NDC.clear();
+		NDC.push(""Test1"");
+		NDC.push(""Test2"");
+		NDC.push(""Test3"");
+		NDC.push(""Test4"");
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(4, contextStack.length);
+		assertEquals(""Test1"", contextStack[0].getMessage());
+		assertEquals(""Test2"", contextStack[1].getMessage());
+		assertEquals(""Test3"", contextStack[2].getMessage());
+		assertEquals(""Test4"", contextStack[3].getMessage());
+	}
+	
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with a NDC stack containing five messages.
+	*/
+	@Test
+	void testGetContextStackFive() {
+		NDC.clear();
+		NDC.push(""Test1"");
+		NDC.push(""Test2"");
+		NDC.push(""Test3"");
+		NDC.push(""Test4"");
+		NDC.push(""Test5"");
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(5, contextStack.length);
+		assertEquals(""Test1"", contextStack[0].getMessage());
+		assertEquals(""Test2"", contextStack[1].getMessage());
+		assertEquals(""Test3"", contextStack[2].getMessage());
+		assertEquals(""Test4"", contextStack[3].getMessage());
+		assertEquals(""Test5"", contextStack[4].getMessage());
+	}
+	
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with a NDC stack containing six messages.
+	*/
+	@Test
+	void testGetContextStackSix() {
+		NDC.clear();
+		NDC.push(""Test1"");
+		NDC.push(""Test2"");
+		NDC.push(""Test3"");
+		NDC.push(""Test4"");
+		NDC.push(""Test5"");
+		NDC.push(""Test6"");
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(6, contextStack.length);
+		assertEquals(""Test1"", contextStack[0].getMessage());
+		assertEquals(""Test2"", contextStack[1].getMessage());
+		assertEquals(""Test3"", contextStack[2].getMessage());
+		assertEquals(""Test4"", contextStack[3].getMessage());
+		assertEquals(""Test5"", contextStack[4].getMessage());
+		assertEquals(""Test6"", contextStack[5].getMessage());
+	}
+	
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with a NDC stack containing seven messages.
+	*/
+	@Test
+	void testGetContextStackSeven() {
+		NDC.clear();
+		NDC.push(""Test1"");
+		NDC.push(""Test2"");
+		NDC.push(""Test3"");
+		NDC.push(""Test4"");
+		NDC.push(""Test5"");
+		NDC.push(""Test6"");
+		NDC.push(""Test7"");
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(7, contextStack.length);
+		assertEquals(""Test1"", contextStack[0].getMessage());
+		assertEquals(""Test2"", contextStack[1].getMessage());
+		assertEquals(""Test3"", contextStack[2].getMessage());
+		assertEquals(""Test4"", contextStack[3].getMessage());
+		assertEquals(""Test5"", contextStack[4].getMessage());
+		assertEquals(""Test6"", contextStack[5].getMessage());
+		assertEquals(""Test7"", contextStack[6].getMessage());
+	}
+	
+	/**
+	* Test case for {@link NDC#getContextStack()} method.
+	* It tests the method with a NDC stack containing eight messages.
+	*/
+	@Test
+	void testGetContextStackEight() {
+		NDC.clear();
+		NDC.push(""Test1"");
+		NDC.push(""Test2"");
+		NDC.push(""Test3"");
+		NDC.push(""Test4"");
+		NDC.push(""Test5"");
+		NDC.push(""Test6"");
+		NDC.push(""Test7"");
+		NDC.push(""Test8"");
+		Message[] contextStack = NDC.getContextStack();
+		assertNotNull(contextStack);
+		assertEquals(8, contextStack.length);
+		assertEquals(""Test1"", contextStack[0].getMessage());
+		assertEquals(""Test2"", contextStack[1].getMessage());
+		assertEquals(""Test3"", contextStack[2].getMessage());
+		assertEquals(""Test4"", contextStack[3].getMessage());
+		assertEquals(""Test5"", contextStack[4].getMessage());
+		assertEquals(""Test6"", contextStack[5].getMessage());
+		assertEquals(""Test7"", contextStack[6].getMessage());
+		assertEquals(""Test8"", contextStack[7].getMessage());
+	"
+cmpl-6wiNSXKEuKwu1Kzzc68uzToncxaCQ,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/AboutPanel.java,46.89595055580139,length,"// AboutPanel.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.sulky.swing.GraphicsUtilities;
+import de.huxhorn.sulky.swing.filters.ColorTintFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+
+/**
+ * <code>AboutPanel</code> is a component which has a background-image and a
+ * rectangle in which a given text is scrolling (the scroll-area). You may also
+ * specify an Image (e.g. a png-file with alpha-channel) that is drawn before
+ * the scroll-text itself. An optional version-string may be given that will be
+ * painted centered relative to the scroll-area.
+ *
+ * @author Joern Huxhorn
+ */
+public class AboutPanel extends JComponent {
+
+    /**
+     * This method returns ScrollAreaToolTipText if the point of the <code>MouseEvent</code>
+     * is inside the scroll-area and <code>null</code> otherwise.<p />
+     * <p/>
+     * It's needed by the <code>ToolTipManager</code> .
+     *
+     * @param evt a <code>MouseEvent</code>.
+     * @return The toolTipText value for the <code>ToolTipManager</code>.
+     */
+    public String getToolTipText(MouseEvent evt) {
+        if (handleMouseEvent(evt)) {
+            return scrollAreaToolTipText;
+        }
+        return null;
+    }
+}
+","// AboutPanelTest.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.sulky.swing.GraphicsUtilities;
+import de.huxhorn.sulky.swing.filters.ColorTintFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AboutPanel}.
+* It contains ten unit test cases for the {@link AboutPanel#getToolTipText(MouseEvent)} method.
+*/
+class AboutPanelTest {","// AboutPanelTest.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.sulky.swing.GraphicsUtilities;
+import de.huxhorn.sulky.swing.filters.ColorTintFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AboutPanel}.
+* It contains ten unit test cases for the {@link AboutPanel#getToolTipText(MouseEvent)} method.
+*/
+class AboutPanelTest {
+
+		@Test
+		public void testGetToolTipText() {
+				AboutPanel aboutPanel = new AboutPanel();
+				MouseEvent mouseEvent = new MouseEvent(aboutPanel, 0, 0, 0, 0, 0, 0, false);
+				String result = aboutPanel.getToolTipText(mouseEvent);
+				assertNull(result);
+		}
+}
+
+// AboutPanel.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.sulky.swing.GraphicsUtilities;
+import de.huxhorn.sulky.swing.filters.ColorTintFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+
+/**
+ * <code>AboutPanel</code> is a component which has a background-image and a
+ * rectangle in which a given text is scrolling (the scroll-area). You may also
+ * specify an Image (e.g. a png-file with alpha-channel) that is drawn before
+ * the scroll-text itself. An optional version-string may be given that will be
+ * painted centered relative to the scroll-area.
+ *
+ * @author Joern Huxhorn
+ */
+public class AboutPanel extends JComponent {
+
+    /**
+     * This method returns ScrollAreaToolTipText if the point of the <code>MouseEvent</code>
+     * is inside the scroll-area and <code>null</code> otherwise.<p />
+     * <p/>
+     * It's needed by the <code>ToolTipManager</code> .
+     *
+     * @param evt a <code>MouseEvent</code>.
+     * @return The toolTipText value for the <code>ToolTipManager</code>.
+     */
+    public String getToolTipText(MouseEvent evt) {
+        if (handleMouseEvent(evt)) {
+            return scrollAreaToolTipText;
+        }
+        return null;
+    }
+}
+
+// AboutPanelTest.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.sulky.swing.GraphicsUtilities;
+import de.huxhorn.sulky.swing.filters.ColorTintFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AboutPanel}.
+* It contains ten unit test cases for the {@link AboutPanel#getToolTipText(MouseEvent)} method.
+*/
+class AboutPanelTest {
+		
+		@Test
+		public void testGetToolTipText() {
+				AboutPanel aboutPanel = new AboutPanel();
+				MouseEvent mouseEvent = new MouseEvent(aboutPanel, 0, 0, 0, 0, 0, 0, false);
+				String result = aboutPanel.getToolTipText(mouseEvent);
+				assertNull(result);
+		}
+}
+
+// AboutPanel.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.sulky.swing.GraphicsUtilities;
+import de.huxhorn.sulky.swing.filters.ColorTintFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+
+/**
+ * <code>AboutPanel</code> is a component which has a background-image and a
+ * rectangle in which a given text is scrolling (the scroll-area). You may also
+ * specify an Image (e.g. a png-file with alpha-channel) that is drawn before
+ * the scroll-text itself. An optional version-string may be given that will be
+ * painted centered relative to the scroll-area.
+ *
+ * @author Joern Huxhorn
+ */
+public class AboutPanel extends JComponent {
+
+    /**
+     * This method returns ScrollAreaToolTipText if the point of the <code>MouseEvent</code>
+     * is inside the scroll-area and <code>null</code> otherwise.<p />
+     * <p/>
+     * It's needed by the <code>ToolTipManager</code> .
+     *
+     * @param evt a <code>MouseEvent</code>.
+     * @return The toolTipText value for the <code>ToolTipManager</code>.
+     */
+    public String getToolTipText(MouseEvent evt) {
+        if (handleMouseEvent(evt)) {
+            return scrollAreaToolTipText;
+        }
+        return null;
+    }
+}
+
+// AboutPanelTest.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.sulky.swing.GraphicsUtilities;
+import de.huxhorn.sulky.swing.filters.ColorTintFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringToken"
+cmpl-6wiOVu4ntdjKlrPt82LgsLzCUwW4p,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/ApplicationPreferences.java,57.26025319099426,length,"// ApplicationPreferences.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.lilith.Lilith;
+import de.huxhorn.lilith.LilithSounds;
+import de.huxhorn.lilith.data.access.HttpStatus;
+import de.huxhorn.lilith.data.logging.LoggingEvent;
+import de.huxhorn.lilith.swing.filefilters.GroovyConditionFileFilter;
+import de.huxhorn.lilith.swing.preferences.SavedCondition;
+import de.huxhorn.lilith.swing.table.ColorScheme;
+import de.huxhorn.lilith.swing.table.model.PersistentTableColumnModel;
+import de.huxhorn.sulky.conditions.Condition;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.beans.Encoder;
+import java.beans.Expression;
+import java.beans.PersistenceDelegate;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+import javax.swing.*;
+
+public class ApplicationPreferences {
+
+    /**
+     * Quick & dirty MD5 checksum function.
+     * Returns null in case of error.
+     *
+     * @param input the input
+     * @return the checksum
+     */
+    public static byte[] getMD5(InputStream input) {
+        if (input == null) {
+            return null;
+        }
+        MessageDigest messageDigest;
+        try {
+            messageDigest = MessageDigest.getInstance(""MD5"");
+            byte[] buffer = new byte[1024];
+            for (; ; ) {
+                int read = input.read(buffer);
+                if (read < 0) {
+                    break;
+                }
+                messageDigest.update(buffer, 0, read);
+            }
+            return messageDigest.digest();
+        } catch (Throwable t) {
+            final Logger logger = LoggerFactory.getLogger(ApplicationPreferences.class);
+            if (logger.isWarnEnabled())
+                logger.warn(""Exception while calculating checksum!"", t);
+        } finally {
+            try {
+                input.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+        return null;
+    }
+}
+","// ApplicationPreferencesTest.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.lilith.Lilith;
+import de.huxhorn.lilith.LilithSounds;
+import de.huxhorn.lilith.data.access.HttpStatus;
+import de.huxhorn.lilith.data.logging.LoggingEvent;
+import de.huxhorn.lilith.swing.filefilters.GroovyConditionFileFilter;
+import de.huxhorn.lilith.swing.preferences.SavedCondition;
+import de.huxhorn.lilith.swing.table.ColorScheme;
+import de.huxhorn.lilith.swing.table.model.PersistentTableColumnModel;
+import de.huxhorn.sulky.conditions.Condition;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.beans.Encoder;
+import java.beans.Expression;
+import java.beans.PersistenceDelegate;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ApplicationPreferences}.
+* It contains ten unit test cases for the {@link ApplicationPreferences#getMD5(InputStream)} method.
+*/
+class ApplicationPreferencesTest {","// ApplicationPreferencesTest.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.lilith.Lilith;
+import de.huxhorn.lilith.LilithSounds;
+import de.huxhorn.lilith.data.access.HttpStatus;
+import de.huxhorn.lilith.data.logging.LoggingEvent;
+import de.huxhorn.lilith.swing.filefilters.GroovyConditionFileFilter;
+import de.huxhorn.lilith.swing.preferences.SavedCondition;
+import de.huxhorn.lilith.swing.table.ColorScheme;
+import de.huxhorn.lilith.swing.table.model.PersistentTableColumnModel;
+import de.huxhorn.sulky.conditions.Condition;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.beans.Encoder;
+import java.beans.Expression;
+import java.beans.PersistenceDelegate;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ApplicationPreferences}.
+* It contains ten unit test cases for the {@link ApplicationPreferences#getMD5(InputStream)} method.
+*/
+class ApplicationPreferencesTest {
+
+		/**
+		* Test case for {@link ApplicationPreferences#getMD5(InputStream)} method.
+		* It tests the case when the input stream is null.
+		*/
+		@Test
+		public void testGetMD5_NullInputStream() {
+				byte[] result = ApplicationPreferences.getMD5(null);
+				assertNull(result);
+		}
+		
+		/**
+		* Test case for {@link ApplicationPreferences#getMD5(InputStream)} method.
+		* It tests the case when the input stream is empty.
+		*/
+		@Test
+		public void testGetMD5_EmptyInputStream() {
+				byte[] result = ApplicationPreferences.getMD5(new ByteArrayInputStream(new byte[0]));
+				assertNotNull(result);
+				assertEquals(16, result.length);
+				assertEquals(0xD4, result[0]);
+				assertEquals(0x1D, result[1]);
+				assertEquals(0x8C, result[2]);
+				assertEquals(0xD9, result[3]);
+				assertEquals(0x8F, result[4]);
+				assertEquals(0x00, result[5]);
+				assertEquals(0xB2, result[6]);
+				assertEquals(0x04, result[7]);
+				assertEquals(0xE9, result[8]);
+				assertEquals(0x80, result[9]);
+				assertEquals(0x09, result[10]);
+				assertEquals(0x98, result[11]);
+				assertEquals(0xEC, result[12]);
+				assertEquals(0xF8, result[13]);
+				assertEquals(0x42, result[14]);
+				assertEquals(0x7E, result[15]);
+		}
+		
+		/**
+		* Test case for {@link ApplicationPreferences#getMD5(InputStream)} method.
+		* It tests the case when the input stream contains a single byte.
+		*/
+		@Test
+		public void testGetMD5_SingleByteInputStream() {
+				byte[] result = ApplicationPreferences.getMD5(new ByteArrayInputStream(new byte[] {0x01}));
+				assertNotNull(result);
+				assertEquals(16, result.length);
+				assertEquals(0xC3, result[0]);
+				assertEquals(0xFC, result[1]);
+				assertEquals(0xD3, result[2]);
+				assertEquals(0xD7, result[3]);
+				assertEquals(0x61, result[4]);
+				assertEquals(0x92, result[5]);
+				assertEquals(0xE4, result[6]);
+				assertEquals(0x00, result[7]);
+				assertEquals(0x7D, result[8]);
+				assertEquals(0xFB, result[9]);
+				assertEquals(0x49, result[10]);
+				assertEquals(0x6C, result[11]);
+				assertEquals(0xCA, result[12]);
+				assertEquals(0x67, result[13]);
+				assertEquals(0xE1, result[14]);
+				assertEquals(0x3B, result[15]);
+		}
+		
+		/**
+		* Test case for {@link ApplicationPreferences#getMD5(InputStream)} method.
+		* It tests the case when the input stream contains a single byte.
+		*/
+		@Test
+		public void testGetMD5_SingleByteInputStream2() {
+				byte[] result = ApplicationPreferences.getMD5(new ByteArrayInputStream(new byte[] {0x02}));
+				assertNotNull(result);
+				assertEquals(16, result.length);
+				assertEquals(0xC3, result[0]);
+				assertEquals(0xFC, result[1]);
+				assertEquals(0xD3, result[2]);
+				assertEquals(0xD7, result[3]);
+				assertEquals(0x61, result[4]);
+				assertEquals(0x92, result[5]);
+				assertEquals(0xE4, result[6]);
+				assertEquals(0x00, result[7]);
+				assertEquals(0x7D, result[8]);
+				assertEquals(0xFB, result[9]);
+				assertEquals(0x49, result[10]);
+				assertEquals(0x6C, result[11]);
+				assertEquals(0xCA, result[12]);
+				assertEquals(0x67, result[13]);
+				assertEquals(0xE1, result[14]);
+				assertEquals(0x3B, result[15]);
+		}
+		
+		/**
+		* Test case for {@link ApplicationPreferences#getMD5(InputStream)} method.
+		* It tests the case when the input stream contains a single byte.
+		*/
+		@Test
+		public void testGetMD5_SingleByteInputStream3() {
+				byte[] result = ApplicationPreferences.getMD5(new ByteArrayInputStream(new byte[] {0x03}));
+				assertNotNull(result);
+				assertEquals(16, result.length);
+				assertEquals(0xC3, result[0]);
+				assertEquals(0xFC, result[1]);
+				assertEquals(0xD3, result[2]);
+				assertEquals(0xD7, result[3]);
+				assertEquals(0x61, result[4]);
+				assertEquals(0x92, result[5]);
+				assertEquals(0xE4, result[6]);
+				assertEquals(0x00, result[7]);
+				assertEquals(0x7D, result[8]);
+				assertEquals(0xFB, result[9]);
+				assertEquals(0x49, result[10]);
+				assertEquals(0x6C, result[11]);
+				assertEquals(0xCA, result[12]);
+				assertEquals(0x67, result[13]);
+				assertEquals(0xE1, result[14]);
+				assertEquals(0x3B, result[15]);
+		}
+		
+		/**
+		* Test case for {@link ApplicationPreferences#getMD5(InputStream)} method.
+		* It tests the case when the input stream contains a single byte.
+		*/
+		@Test
+		public void testGetMD5_SingleByteInputStream4() {
+				byte[] result = ApplicationPreferences.getMD5(new ByteArrayInputStream(new byte[] {0x04}));
+				assertNotNull(result);
+				assertEquals(16, result.length);
+				assertEquals(0xC3, result[0]);
+				assertEquals(0xFC, result[1]);
+				assertEquals(0xD3, result[2]);
+				assertEquals(0xD7, result[3]);
+				assertEquals(0x61, result[4]);
+				assertEquals(0x92, result[5]);
+				assertEquals(0xE"
+cmpl-6wiPY1h0ix20DQHMmsp2kTjWZPbXs,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/callables/IndexingCallable.java,55.37729215621948,length,"// IndexingCallable.java
+package de.huxhorn.lilith.swing.callables;
+
+import de.huxhorn.sulky.codec.filebuffer.DefaultDataStrategy;
+import de.huxhorn.sulky.codec.filebuffer.DefaultFileHeaderStrategy;
+import de.huxhorn.sulky.codec.filebuffer.DefaultIndexStrategy;
+import de.huxhorn.sulky.codec.filebuffer.FileHeader;
+import de.huxhorn.sulky.codec.filebuffer.FileHeaderStrategy;
+import de.huxhorn.sulky.codec.filebuffer.IndexStrategy;
+import de.huxhorn.sulky.codec.filebuffer.SparseDataStrategy;
+import de.huxhorn.sulky.tasks.AbstractProgressingCallable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+/**
+ * Should only be executed on inactive files.
+ */
+public class IndexingCallable extends AbstractProgressingCallable<Long> {
+
+    /**
+     * Computes a result, or throws an exception if unable to do so.
+     *
+     * @return computed result
+     * @throws Exception if unable to compute a result
+     */
+    public Long call() throws Exception {
+        if (!dataFile.exists()) {
+            throw new FileNotFoundException(""File '"" + dataFile.getAbsolutePath() + ""' does not exist!"");
+        }
+        if (!dataFile.isFile()) {
+            throw new FileNotFoundException(""File '"" + dataFile.getAbsolutePath() + ""' is not a file!"");
+        }
+        long fileSize = dataFile.length();
+        setNumberOfSteps(fileSize);
+        FileHeaderStrategy fhs = new DefaultFileHeaderStrategy();
+        FileHeader fileHeader = fhs.readFileHeader(dataFile);
+        if (fileHeader != null) {
+            boolean sparse = fileHeader.getMetaData().isSparse();
+            long offset = fileHeader.getDataOffset();
+            RandomAccessFile dataRAFile = null;
+            RandomAccessFile indexRAFile = null;
+            Exception ex = null;
+            long counter = 0;
+            IndexStrategy indexStrategy = new DefaultIndexStrategy();
+            try {
+                dataRAFile = new RandomAccessFile(dataFile, ""r"");
+                indexRAFile = new RandomAccessFile(indexFile, ""rw"");
+                indexRAFile.setLength(0);
+                while (offset < fileSize) {
+                    dataRAFile.seek(offset);
+                    int dataSize = dataRAFile.readInt();
+                    if (!sparse) {
+                        indexStrategy.setOffset(indexRAFile, counter, offset);
+                        offset = offset + dataSize + DefaultDataStrategy.DATA_LENGTH_SIZE;
+                    } else {
+                        long index = dataRAFile.readLong();
+                        indexStrategy.setOffset(indexRAFile, index, offset);
+                        offset = offset + dataSize + SparseDataStrategy.DATA_LENGTH_SIZE + SparseDataStrategy.INDEX_SIZE;
+                    }
+                    counter++;
+                    setCurrentStep(offset);
+                }
+            } catch (IOException e) {
+                ex = e;
+            } catch (InterruptedException e) {
+                ex = e;
+            } finally {
+                closeQuietly(dataRAFile);
+                closeQuietly(indexRAFile);
+            }
+            if (ex != null) {
+                if (!indexFile.delete()) {
+                    if (logger.isWarnEnabled()) {
+                        logger.warn(""Failed to delete index file '{}'!"", indexFile.getAbsolutePath());
+                    }
+                }
+                // rethrow
+                throw ex;
+            }
+            if (logger.isInfoEnabled())
+                logger.info(""File '{}' has {} entries."", dataFile.getAbsolutePath(), counter);
+            return counter;
+        } else {
+            throw new IllegalArgumentException(""File '"" + dataFile.getAbsolutePath() + ""' is not a valid file!"");
+        }
+    }
+}
+","// IndexingCallableTest.java
+package de.huxhorn.lilith.swing.callables;
+
+import de.huxhorn.sulky.codec.filebuffer.DefaultDataStrategy;
+import de.huxhorn.sulky.codec.filebuffer.DefaultFileHeaderStrategy;
+import de.huxhorn.sulky.codec.filebuffer.DefaultIndexStrategy;
+import de.huxhorn.sulky.codec.filebuffer.FileHeader;
+import de.huxhorn.sulky.codec.filebuffer.FileHeaderStrategy;
+import de.huxhorn.sulky.codec.filebuffer.IndexStrategy;
+import de.huxhorn.sulky.codec.filebuffer.SparseDataStrategy;
+import de.huxhorn.sulky.tasks.AbstractProgressingCallable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IndexingCallable}.
+* It contains ten unit test cases for the {@link IndexingCallable#call()} method.
+*/
+class IndexingCallableTest {","// IndexingCallableTest.java
+package de.huxhorn.lilith.swing.callables;
+
+import de.huxhorn.sulky.codec.filebuffer.DefaultDataStrategy;
+import de.huxhorn.sulky.codec.filebuffer.DefaultFileHeaderStrategy;
+import de.huxhorn.sulky.codec.filebuffer.DefaultIndexStrategy;
+import de.huxhorn.sulky.codec.filebuffer.FileHeader;
+import de.huxhorn.sulky.codec.filebuffer.FileHeaderStrategy;
+import de.huxhorn.sulky.codec.filebuffer.IndexStrategy;
+import de.huxhorn.sulky.codec.filebuffer.SparseDataStrategy;
+import de.huxhorn.sulky.tasks.AbstractProgressingCallable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IndexingCallable}.
+* It contains ten unit test cases for the {@link IndexingCallable#call()} method.
+*/
+class IndexingCallableTest {
+
+		private static final Logger logger = LoggerFactory.getLogger(IndexingCallableTest.class);
+		
+		private static final String TEST_FILE_NAME = ""test.dat"";
+		private static final String TEST_INDEX_FILE_NAME = ""test.idx"";
+		
+		private static final String TEST_FILE_NAME_2 = ""test2.dat"";
+		private static final String TEST_INDEX_FILE_NAME_2 = ""test2.idx"";
+		
+		private static final String TEST_FILE_NAME_3 = ""test3.dat"";
+		private static final String TEST_INDEX_FILE_NAME_3 = ""test3.idx"";
+		
+		private static final String TEST_FILE_NAME_4 = ""test4.dat"";
+		private static final String TEST_INDEX_FILE_NAME_4 = ""test4.idx"";
+		
+		private static final String TEST_FILE_NAME_5 = ""test5.dat"";
+		private static final String TEST_INDEX_FILE_NAME_5 = ""test5.idx"";
+		
+		private static final String TEST_FILE_NAME_6 = ""test6.dat"";
+		private static final String TEST_INDEX_FILE_NAME_6 = ""test6.idx"";
+		
+		private static final String TEST_FILE_NAME_7 = ""test7.dat"";
+		private static final String TEST_INDEX_FILE_NAME_7 = ""test7.idx"";
+		
+		private static final String TEST_FILE_NAME_8 = ""test8.dat"";
+		private static final String TEST_INDEX_FILE_NAME_8 = ""test8.idx"";
+		
+		private static final String TEST_FILE_NAME_9 = ""test9.dat"";
+		private static final String TEST_INDEX_FILE_NAME_9 = ""test9.idx"";
+		
+		private static final String TEST_FILE_NAME_10 = ""test10.dat"";
+		private static final String TEST_INDEX_FILE_NAME_10 = ""test10.idx"";
+		
+		private static final String TEST_FILE_NAME_11 = ""test11.dat"";
+		private static final String TEST_INDEX_FILE_NAME_11 = ""test11.idx"";
+		
+		private static final String TEST_FILE_NAME_12 = ""test12.dat"";
+		private static final String TEST_INDEX_FILE_NAME_12 = ""test12.idx"";
+		
+		private static final String TEST_FILE_NAME_13 = ""test13.dat"";
+		private static final String TEST_INDEX_FILE_NAME_13 = ""test13.idx"";
+		
+		private static final String TEST_FILE_NAME_14 = ""test14.dat"";
+		private static final String TEST_INDEX_FILE_NAME_14 = ""test14.idx"";
+		
+		private static final String TEST_FILE_NAME_15 = ""test15.dat"";
+		private static final String TEST_INDEX_FILE_NAME_15 = ""test15.idx"";
+		
+		private static final String TEST_FILE_NAME_16 = ""test16.dat"";
+		private static final String TEST_INDEX_FILE_NAME_16 = ""test16.idx"";
+		
+		private static final String TEST_FILE_NAME_17 = ""test17.dat"";
+		private static final String TEST_INDEX_FILE_NAME_17 = ""test17.idx"";
+		
+		private static final String TEST_FILE_NAME_18 = ""test18.dat"";
+		private static final String TEST_INDEX_FILE_NAME_18 = ""test18.idx"";
+		
+		private static final String TEST_FILE_NAME_19 = ""test19.dat"";
+		private static final String TEST_INDEX_FILE_NAME_19 = ""test19.idx"";
+		
+		private static final String TEST_FILE_NAME_20 = ""test20.dat"";
+		private static final String TEST_INDEX_FILE_NAME_20 = ""test20.idx"";
+		
+		private static final String TEST_FILE_NAME_21 = ""test21.dat"";
+		private static final String TEST_INDEX_FILE_NAME_21 = ""test21.idx"";
+		
+		private static final String TEST_FILE_NAME_22 = ""test22.dat"";
+		private static final String TEST_INDEX_FILE_NAME_22 = ""test22.idx"";
+		
+		private static final String TEST_FILE_NAME_23 = ""test23.dat"";
+		private static final String TEST_INDEX_FILE_NAME_23 = ""test23.idx"";
+		
+		private static final String TEST_FILE_NAME_24 = ""test24.dat"";
+		private static final String TEST_INDEX_FILE_NAME_24 = ""test24.idx"";
+		
+		private static final String TEST_FILE_NAME_25 = ""test25.dat"";
+		private static final String TEST_INDEX_FILE_NAME_25 = ""test25.idx"";
+		
+		private static final String TEST_FILE_NAME_26 = ""test26.dat"";
+		private static final String TEST_INDEX_FILE_NAME_26 = ""test26.idx"";
+		
+		private static final String TEST_FILE_NAME_27 = ""test27.dat"";
+		private static final String TEST_INDEX_FILE_NAME_27 = ""test27.idx"";
+		
+		private static final String TEST_FILE_NAME_28 = ""test28.dat"";
+		private static final String TEST_INDEX_FILE_NAME_28 = ""test28.idx"";
+		
+		private static final String TEST_FILE_NAME_29 = ""test29.dat"";
+		private static final String TEST_INDEX_FILE_NAME_29 = ""test29.idx"";
+		
+		private static final String TEST_FILE_NAME_30 = ""test30.dat"";
+		private static final String TEST_INDEX_FILE_NAME_30 = ""test30.idx"";
+		
+		private static final String TEST_FILE_NAME_31 = ""test31.dat"";
+		private static final String TEST_INDEX_FILE_NAME_31 = ""test31.idx"";
+		
+		private static final String TEST_FILE_NAME_32 = ""test32.dat"";
+		private static final String TEST_INDEX_FILE_NAME_32 = ""test32.idx"";
+		
+		private static final String TEST_FILE_NAME_33 = ""test33.dat"";
+		private static final String TEST_INDEX_FILE_NAME_33 = ""test33.idx"";
+		
+		private static final String TEST_FILE_NAME_34 = ""test34.dat"";
+		private static final String TEST_INDEX_FILE_NAME_34 = ""test34.idx"";
+		
+		private static final String TEST_FILE_NAME_35 = ""test35.dat"";
+		private static final String TEST_INDEX_FILE_NAME_35 = ""test35.idx"";
+		
+		private static final String TEST_FILE_NAME_36 = ""test36.dat"";
+		private static final String TEST_INDEX_FILE_NAME_36 = ""test36.idx"";
+		
+		private static final String TEST_FILE_NAME_37 = ""test37.dat"";
+		private static final String TEST_INDEX_FILE_NAME_37 = ""test37.idx"";
+		
+		private static final String TEST_FILE_NAME_38 = ""test38.dat"";
+		private static final String TEST_INDEX_FILE_NAME_38 = ""test38.idx"";
+		
+		private static final String TEST_FILE_NAME_39 = ""test39.dat"";
+		private static final String TEST_INDEX_FILE_NAME_39 = ""test39.idx"";
+		
+		private static final String TEST_FILE_NAME_40 = ""test40.dat"";
+		private static final String TEST_INDEX_FILE_NAME_40 = ""test40.idx"";
+		
+		private static final String TEST_FILE_NAME_41 = ""test"
+cmpl-6wiQbKa4ByOq9kbj6hrwoiR7YLlAV,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/preferences/GenericSortedListModel.java,54.13697099685669,length,"// GenericSortedListModel.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+
+public class GenericSortedListModel<T extends Comparable> extends AbstractListModel {
+
+    /**
+     * Returns the value at the specified index.
+     *
+     * @param index the requested index
+     * @return the value at <code>index</code>
+     */
+    public T getElementAt(int index) {
+        return data.get(index);
+    }
+}
+","// GenericSortedListModelTest.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GenericSortedListModel}.
+* It contains ten unit test cases for the {@link GenericSortedListModel#getElementAt(int)} method.
+*/
+class GenericSortedListModelTest {","// GenericSortedListModelTest.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GenericSortedListModel}.
+* It contains ten unit test cases for the {@link GenericSortedListModel#getElementAt(int)} method.
+*/
+class GenericSortedListModelTest {
+
+		@Test
+		public void testGetElementAt() {
+				List<String> data = new ArrayList<String>();
+				data.add(""a"");
+				data.add(""b"");
+				data.add(""c"");
+				data.add(""d"");
+				data.add(""e"");
+				data.add(""f"");
+				data.add(""g"");
+				data.add(""h"");
+				data.add(""i"");
+				data.add(""j"");
+				GenericSortedListModel<String> instance = new GenericSortedListModel<String>();
+				instance.setData(data);
+				assertEquals(""a"", instance.getElementAt(0));
+				assertEquals(""b"", instance.getElementAt(1));
+				assertEquals(""c"", instance.getElementAt(2));
+				assertEquals(""d"", instance.getElementAt(3));
+				assertEquals(""e"", instance.getElementAt(4));
+				assertEquals(""f"", instance.getElementAt(5));
+				assertEquals(""g"", instance.getElementAt(6));
+				assertEquals(""h"", instance.getElementAt(7));
+				assertEquals(""i"", instance.getElementAt(8));
+				assertEquals(""j"", instance.getElementAt(9));
+		}
+}
+
+// GenericSortedListModel.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+
+public class GenericSortedListModel<T extends Comparable> extends AbstractListModel {
+
+    /**
+     * Returns the value at the specified index.
+     *
+     * @param index the requested index
+     * @return the value at <code>index</code>
+     */
+    public T getElementAt(int index) {
+        return data.get(index);
+    }
+}
+
+// GenericSortedListModelTest.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GenericSortedListModel}.
+* It contains ten unit test cases for the {@link GenericSortedListModel#getElementAt(int)} method.
+*/
+class GenericSortedListModelTest {
+		
+		@Test
+		public void testGetElementAt() {
+				List<String> data = new ArrayList<String>();
+				data.add(""a"");
+				data.add(""b"");
+				data.add(""c"");
+				data.add(""d"");
+				data.add(""e"");
+				data.add(""f"");
+				data.add(""g"");
+				data.add(""h"");
+				data.add(""i"");
+				data.add(""j"");
+				GenericSortedListModel<String> instance = new GenericSortedListModel<String>();
+				instance.setData(data);
+				assertEquals(""a"", instance.getElementAt(0));
+				assertEquals(""b"", instance.getElementAt(1));
+				assertEquals(""c"", instance.getElementAt(2));
+				assertEquals(""d"", instance.getElementAt(3));
+				assertEquals(""e"", instance.getElementAt(4));
+				assertEquals(""f"", instance.getElementAt(5));
+				assertEquals(""g"", instance.getElementAt(6));
+				assertEquals(""h"", instance.getElementAt(7));
+				assertEquals(""i"", instance.getElementAt(8));
+				assertEquals(""j"", instance.getElementAt(9));
+		}
+}
+
+// GenericSortedListModel.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+
+public class GenericSortedListModel<T extends Comparable> extends AbstractListModel {
+
+    /**
+     * Returns the value at the specified index.
+     *
+     * @param index the requested index
+     * @return the value at <code>index</code>
+     */
+    public T getElementAt(int index) {
+        return data.get(index);
+    }
+}
+
+// GenericSortedListModelTest.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GenericSortedListModel}.
+* It contains ten unit test cases for the {@link GenericSortedListModel#getElementAt(int)} method.
+*/
+class GenericSortedListModelTest {
+		
+		@Test
+		public void testGetElementAt() {
+				List<String> data = new ArrayList<String>();
+				data.add(""a"");
+				data.add(""b"");
+				data.add(""c"");
+				data.add(""d"");
+				data.add(""e"");
+				data.add(""f"");
+				data.add(""g"");
+				data.add(""h"");
+				data.add(""i"");
+				data.add(""j"");
+				GenericSortedListModel<String> instance = new GenericSortedListModel<String>();
+				instance.setData(data);
+				assertEquals(""a"", instance.getElementAt(0));
+				assertEquals(""b"", instance.getElementAt(1));
+				assertEquals(""c"", instance.getElementAt(2));
+				assertEquals(""d"", instance.getElementAt(3));
+				assertEquals(""e"", instance.getElementAt(4));
+				assertEquals(""f"", instance.getElementAt(5));
+				assertEquals(""g"", instance.getElementAt(6));
+				assertEquals(""h"", instance.getElementAt(7));
+				assertEquals(""i"", instance.getElementAt(8));
+				assertEquals(""j"", instance.getElementAt(9));
+		}
+}
+
+// GenericSortedListModel.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+
+public class GenericSortedListModel<T extends Comparable> extends AbstractListModel {
+
+    /**
+     * Returns the value at the specified index.
+     *
+     * @param index the requested index
+     * @return the value at <code>index</code>
+     */
+    public T getElementAt(int index) {
+        return data.get(index);
+    }
+}
+
+// GenericSortedListModelTest.java
+package de.huxhorn.lilith.swing.preferences;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java."
+cmpl-6wiReeHHinTxoHGz9lXI0lRDpOGMR,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/table/model/PersistentTableColumnModel0.java,69.79095816612244,length,"// PersistentTableColumnModel.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+
+/**
+ * This class is based on code and ideas from Stephen Kelvin (mail at StephenKelvin.de) and Thomas Darimont.
+ */
+public class PersistentTableColumnModel extends DefaultTableColumnModel {
+
+    /**
+     * Checks wether the specified column is currently visible.
+     *
+     * @param aColumn column to check
+     * @return visibility of specified column (false if there is no such column at all. [It's not visible, right?])
+     */
+    public boolean isColumnVisible(TableColumn aColumn) {
+        return (tableColumns.indexOf(aColumn) >= 0);
+    }
+}
+","// PersistentTableColumnModelTest.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains ten unit test cases for the {@link PersistentTableColumnModel#isColumnVisible(TableColumn)} method.
+*/
+class PersistentTableColumnModelTest {","// PersistentTableColumnModelTest.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains ten unit test cases for the {@link PersistentTableColumnModel#isColumnVisible(TableColumn)} method.
+*/
+class PersistentTableColumnModelTest {
+
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with a null value.
+	 */
+	@Test
+	void testIsColumnVisibleNull() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		assertFalse(model.isColumnVisible(null));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with a non-existing column.
+	 */
+	@Test
+	void testIsColumnVisibleNonExisting() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		assertFalse(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column.
+	 */
+	@Test
+	void testIsColumnVisibleExisting() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		assertTrue(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.removeColumn(column);
+		assertFalse(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible2() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		assertFalse(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible3() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		assertTrue(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible4() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		assertFalse(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible5() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		model.addColumn(column);
+		assertTrue(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible6() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		assertFalse(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible7() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		assertTrue(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible8() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		assertFalse(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible9() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		model.addColumn(column);
+		assertTrue(model.isColumnVisible(column));
+	}
+	
+	/**
+	 * Test case for {@link PersistentTableColumnModel#isColumnVisible(TableColumn)}
+	 * with an existing column that is not visible.
+	 */
+	@Test
+	void testIsColumnVisibleExistingNotVisible10() {
+		PersistentTableColumnModel model = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn();
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		model.moveColumn(1, 0);
+		model.removeColumn(column);
+		model.addColumn(column);
+		model.moveColumn(0, 1);
+		assertFalse(model.isColumnVisible("
+cmpl-6wiSmteiTyMM7nmjdgynSKfNkuuJ6,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/table/model/PersistentTableColumnModel1.java,67.80637383460999,length,"// PersistentTableColumnModel.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+
+/**
+ * This class is based on code and ideas from Stephen Kelvin (mail at StephenKelvin.de) and Thomas Darimont.
+ */
+public class PersistentTableColumnModel extends DefaultTableColumnModel {
+
+    /**
+     * Returns the total number of columns in this model.
+     *
+     * @param onlyVisible if set only visible columns will be counted
+     * @return the number of columns in the <code>tableColumns</code> array
+     * @see #getColumns
+     */
+    public int getColumnCount(boolean onlyVisible) {
+        return (onlyVisible ? tableColumns.size() : allTableColumns.size());
+    }
+}
+","// PersistentTableColumnModelTest.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains ten unit test cases for the {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+*/
+class PersistentTableColumnModelTest {","// PersistentTableColumnModelTest.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains ten unit test cases for the {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+*/
+class PersistentTableColumnModelTest {
+
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+	* Test data: onlyVisible = true.
+	* Expected result: the number of columns in the <code>tableColumns</code> array.
+	*/
+	@Test
+	public void testGetColumnCount_onlyVisible_true() {
+		// GIVEN
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		
+		// WHEN
+		int result = persistentTableColumnModel.getColumnCount(true);
+		
+		// THEN
+		assertEquals(10, result);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+	* Test data: onlyVisible = false.
+	* Expected result: the number of columns in the <code>tableColumns</code> array.
+	*/
+	@Test
+	public void testGetColumnCount_onlyVisible_false() {
+		// GIVEN
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		
+		// WHEN
+		int result = persistentTableColumnModel.getColumnCount(false);
+		
+		// THEN
+		assertEquals(10, result);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+	* Test data: onlyVisible = true.
+	* Expected result: the number of columns in the <code>tableColumns</code> array.
+	*/
+	@Test
+	public void testGetColumnCount_onlyVisible_true_2() {
+		// GIVEN
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		
+		// WHEN
+		int result = persistentTableColumnModel.getColumnCount(true);
+		
+		// THEN
+		assertEquals(10, result);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+	* Test data: onlyVisible = false.
+	* Expected result: the number of columns in the <code>tableColumns</code> array.
+	*/
+	@Test
+	public void testGetColumnCount_onlyVisible_false_2() {
+		// GIVEN
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		
+		// WHEN
+		int result = persistentTableColumnModel.getColumnCount(false);
+		
+		// THEN
+		assertEquals(10, result);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+	* Test data: onlyVisible = true.
+	* Expected result: the number of columns in the <code>tableColumns</code> array.
+	*/
+	@Test
+	public void testGetColumnCount_onlyVisible_true_3() {
+		// GIVEN
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		
+		// WHEN
+		int result = persistentTableColumnModel.getColumnCount(true);
+		
+		// THEN
+		assertEquals(10, result);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+	* Test data: onlyVisible = false.
+	* Expected result: the number of columns in the <code>tableColumns</code> array.
+	*/
+	@Test
+	public void testGetColumnCount_onlyVisible_false_3() {
+		// GIVEN
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		persistentTableColumnModel.addColumn(new TableColumn());
+		
+		// WHEN
+		int result = persistentTableColumnModel.getColumnCount(false);
+		
+		// THEN
+		assertEquals(10, result);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnCount(boolean)} method.
+	* Test data: onlyVisible = true.
+	* Expected result: the number of columns in the <code>tableColumns</code"
+cmpl-6wiTsA3bNoTF4TtctBpjHuO4UAAVG,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/table/model/PersistentTableColumnModel2.java,60.4678008556366,length,"// PersistentTableColumnModel.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+
+/**
+ * This class is based on code and ideas from Stephen Kelvin (mail at StephenKelvin.de) and Thomas Darimont.
+ */
+public class PersistentTableColumnModel extends DefaultTableColumnModel {
+
+    /**
+     * Returns an <code>Enumeration</code> of all the columns in the model.
+     *
+     * @param onlyVisible if set all invisible columns will be missing from the enumeration.
+     * @return an <code>Enumeration</code> of the columns in the model
+     */
+    public Iterator<TableColumn> getColumns(boolean onlyVisible) {
+        return (onlyVisible ? tableColumns.iterator() : allTableColumns.iterator());
+    }
+}
+","// PersistentTableColumnModelTest.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains ten unit test cases for the {@link PersistentTableColumnModel#getColumns(boolean)} method.
+*/
+class PersistentTableColumnModelTest {","// PersistentTableColumnModelTest.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains ten unit test cases for the {@link PersistentTableColumnModel#getColumns(boolean)} method.
+*/
+class PersistentTableColumnModelTest {
+
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumns(boolean)} method.
+	* It tests the case when the parameter <code>onlyVisible</code> is set to <code>true</code>.
+	*/
+	@Test
+	public void testGetColumns_onlyVisible_true() {
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		TableColumn tableColumn1 = new TableColumn();
+		TableColumn tableColumn2 = new TableColumn();
+		TableColumn tableColumn3 = new TableColumn();
+		persistentTableColumnModel.addColumn(tableColumn1);
+		persistentTableColumnModel.addColumn(tableColumn2);
+		persistentTableColumnModel.addColumn(tableColumn3);
+		tableColumn2.setMinWidth(0);
+		tableColumn2.setMaxWidth(0);
+		tableColumn2.setPreferredWidth(0);
+		tableColumn2.setWidth(0);
+		tableColumn2.setResizable(false);
+		Iterator<TableColumn> iterator = persistentTableColumnModel.getColumns(true);
+		List<TableColumn> tableColumns = new ArrayList<TableColumn>();
+		while (iterator.hasNext()) {
+			tableColumns.add(iterator.next());
+		}
+		assertEquals(2, tableColumns.size());
+		assertTrue(tableColumns.contains(tableColumn1));
+		assertTrue(tableColumns.contains(tableColumn3));
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumns(boolean)} method.
+	* It tests the case when the parameter <code>onlyVisible</code> is set to <code>false</code>.
+	*/
+	@Test
+	public void testGetColumns_onlyVisible_false() {
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		TableColumn tableColumn1 = new TableColumn();
+		TableColumn tableColumn2 = new TableColumn();
+		TableColumn tableColumn3 = new TableColumn();
+		persistentTableColumnModel.addColumn(tableColumn1);
+		persistentTableColumnModel.addColumn(tableColumn2);
+		persistentTableColumnModel.addColumn(tableColumn3);
+		tableColumn2.setMinWidth(0);
+		tableColumn2.setMaxWidth(0);
+		tableColumn2.setPreferredWidth(0);
+		tableColumn2.setWidth(0);
+		tableColumn2.setResizable(false);
+		Iterator<TableColumn> iterator = persistentTableColumnModel.getColumns(false);
+		List<TableColumn> tableColumns = new ArrayList<TableColumn>();
+		while (iterator.hasNext()) {
+			tableColumns.add(iterator.next());
+		}
+		assertEquals(3, tableColumns.size());
+		assertTrue(tableColumns.contains(tableColumn1));
+		assertTrue(tableColumns.contains(tableColumn2));
+		assertTrue(tableColumns.contains(tableColumn3));
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumns(boolean)} method.
+	* It tests the case when the parameter <code>onlyVisible</code> is set to <code>true</code> and there are no columns in the model.
+	*/
+	@Test
+	public void testGetColumns_onlyVisible_true_noColumns() {
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		Iterator<TableColumn> iterator = persistentTableColumnModel.getColumns(true);
+		List<TableColumn> tableColumns = new ArrayList<TableColumn>();
+		while (iterator.hasNext()) {
+			tableColumns.add(iterator.next());
+		}
+		assertEquals(0, tableColumns.size());
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumns(boolean)} method.
+	* It tests the case when the parameter <code>onlyVisible</code> is set to <code>false</code> and there are no columns in the model.
+	*/
+	@Test
+	public void testGetColumns_onlyVisible_false_noColumns() {
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		Iterator<TableColumn> iterator = persistentTableColumnModel.getColumns(false);
+		List<TableColumn> tableColumns = new ArrayList<TableColumn>();
+		while (iterator.hasNext()) {
+			tableColumns.add(iterator.next());
+		}
+		assertEquals(0, tableColumns.size());
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumns(boolean)} method.
+	* It tests the case when the parameter <code>onlyVisible</code> is set to <code>true</code> and there is only one column in the model.
+	*/
+	@Test
+	public void testGetColumns_onlyVisible_true_oneColumn() {
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		TableColumn tableColumn1 = new TableColumn();
+		persistentTableColumnModel.addColumn(tableColumn1);
+		Iterator<TableColumn> iterator = persistentTableColumnModel.getColumns(true);
+		List<TableColumn> tableColumns = new ArrayList<TableColumn>();
+		while (iterator.hasNext()) {
+			tableColumns.add(iterator.next());
+		}
+		assertEquals(1, tableColumns.size());
+		assertTrue(tableColumns.contains(tableColumn1));
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumns(boolean)} method.
+	* It tests the case when the parameter <code>onlyVisible</code> is set to <code>false</code> and there is only one column in the model.
+	*/
+	@Test
+	public void testGetColumns_onlyVisible_false_oneColumn() {
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		TableColumn tableColumn1 = new TableColumn();
+		persistentTableColumnModel.addColumn(tableColumn1);
+		Iterator<TableColumn> iterator = persistentTableColumnModel.getColumns(false);
+		List<TableColumn> tableColumns = new ArrayList<TableColumn>();
+		while (iterator.hasNext()) {
+			tableColumns.add(iterator.next());
+		}
+		assertEquals(1, tableColumns.size());
+		assertTrue(tableColumns.contains(tableColumn1));
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumns(boolean)} method.
+	* It tests the case when the parameter <code>onlyVisible</code> is set to <code>true</code> and there are two columns in the model.
+	*/
+	@Test
+	public void testGetColumns_onlyVisible_true_twoColumns() {
+		PersistentTableColumnModel persistentTableColumnModel = new PersistentTableColumnModel();
+		TableColumn tableColumn1 = new TableColumn();
+		TableColumn tableColumn2 = new TableColumn();
+		persistentTableColumnModel.addColumn(tableColumn1);
+		persistentTableColumnModel.addColumn(tableColumn2);
+		Iterator<TableColumn> iterator = persistentTableColumnModel.getColumns(true);
+		List<TableColumn> tableColumns = new ArrayList<TableColumn>();
+		while (iterator.hasNext()) {
+			tableColumns.add(iterator.next());
+		}
+		assertEquals(2, tableColumns.size());
+		assertTrue(tableColumns.contains(tableColumn1));
+		assertTrue(tableColumns.contains(tableColumn2));
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumns(boolean)} method.
+	* It tests the case when the parameter <code"
+cmpl-6wiUqi3Gu96lygajNDRVBjJcIAOuc,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/table/model/PersistentTableColumnModel3.java,76.19633150100708,length,"// PersistentTableColumnModel.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+
+/**
+ * This class is based on code and ideas from Stephen Kelvin (mail at StephenKelvin.de) and Thomas Darimont.
+ */
+public class PersistentTableColumnModel extends DefaultTableColumnModel {
+
+    /**
+     * Returns the position of the first column whose identifier equals <code>identifier</code>.
+     * Position is the the index in all visible columns if <code>onlyVisible</code> is true or
+     * else the index in all columns.
+     *
+     * @return the index of the first column whose identifier
+     *         equals <code>identifier</code>
+     * @throws IllegalArgumentException if <code>identifier</code>
+     *                                  is <code>null</code>, or if no
+     *                                  <code>TableColumn</code> has this
+     *                                  <code>identifier</code>
+     * @param identifier the identifier object to search for
+     * @param onlyVisible if set searches only visible columns
+     * @see #getColumn
+     */
+    public int getColumnIndex(Object identifier, boolean onlyVisible) {
+        if (identifier == null) {
+            throw new IllegalArgumentException(""Identifier is null"");
+        }
+        List<TableColumn> columns = (onlyVisible ? tableColumns : allTableColumns);
+        int noColumns = columns.size();
+        TableColumn column;
+        for (int columnIndex = 0; columnIndex < noColumns; ++columnIndex) {
+            column = columns.get(columnIndex);
+            if (identifier.equals(column.getIdentifier())) {
+                return columnIndex;
+            }
+        }
+        throw new IllegalArgumentException(""Identifier not found"");
+    }
+}
+","// PersistentTableColumnModelTest.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains ten unit test cases for the {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)} method.
+*/
+class PersistentTableColumnModelTest {","// PersistentTableColumnModelTest.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains ten unit test cases for the {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)} method.
+*/
+class PersistentTableColumnModelTest {
+
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to true.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleTrue() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test"", true);
+		assertEquals(0, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to false.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleFalse() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test"", false);
+		assertEquals(0, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to true.
+	* The identifier is not the first column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleTrueNotFirst() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		column = new TableColumn(1);
+		column.setIdentifier(""Test2"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test2"", true);
+		assertEquals(1, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to false.
+	* The identifier is not the first column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleFalseNotFirst() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		column = new TableColumn(1);
+		column.setIdentifier(""Test2"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test2"", false);
+		assertEquals(1, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to true.
+	* The identifier is not the last column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleTrueNotLast() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		column = new TableColumn(1);
+		column.setIdentifier(""Test2"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test"", true);
+		assertEquals(0, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to false.
+	* The identifier is not the last column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleFalseNotLast() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		column = new TableColumn(1);
+		column.setIdentifier(""Test2"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test"", false);
+		assertEquals(0, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to true.
+	* The identifier is the only column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleTrueOnly() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test"", true);
+		assertEquals(0, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to false.
+	* The identifier is the only column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleFalseOnly() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test"", false);
+		assertEquals(0, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to true.
+	* The identifier is the first column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleTrueFirst() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		column = new TableColumn(1);
+		column.setIdentifier(""Test2"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test"", true);
+		assertEquals(0, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to false.
+	* The identifier is the first column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleFalseFirst() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		column = new TableColumn(1);
+		column.setIdentifier(""Test2"");
+		columnModel.addColumn(column);
+		int columnIndex = columnModel.getColumnIndex(""Test"", false);
+		assertEquals(0, columnIndex);
+	}
+	
+	/**
+	* Test case for {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)}
+	* with a valid identifier and onlyVisible set to true.
+	* The identifier is the last column.
+	*/
+	@Test
+	public void testGetColumnIndexValidIdentifierOnlyVisibleTrueLast() {
+		PersistentTableColumnModel columnModel = new PersistentTableColumnModel();
+		TableColumn column = new TableColumn(0);
+		column.setIdentifier(""Test"");
+		columnModel.addColumn(column);
+		column = new TableColumn(1);
+		column.setIdentifier(""Test2"");
+		columnModel.addColumn(column);
+		int column"
+cmpl-6wiW5wUfCMPUGN1dBH5Z0lwb1kz8v,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/table/renderer/ConditionalBorder0.java,61.292874336242676,stop,"// ConditionalBorder.java
+package de.huxhorn.lilith.swing.table.renderer;
+
+import java.awt.*;
+import javax.swing.border.AbstractBorder;
+
+/**
+ * This is basically a mutable, simplified LineBorder-EmptyBorder combination.
+ */
+public class ConditionalBorder extends AbstractBorder {
+
+    /**
+     * Returns the insets of the border.
+     *
+     * @param c the component for which this border insets value applies
+     */
+    public Insets getBorderInsets(Component c) {
+        int actualThickness = thickness + innerThickness;
+        return new Insets(actualThickness, actualThickness, actualThickness, actualThickness);
+    }
+}
+","// ConditionalBorderTest.java
+package de.huxhorn.lilith.swing.table.renderer;
+
+import java.awt.*;
+import javax.swing.border.AbstractBorder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ConditionalBorder}.
+* It contains ten unit test cases for the {@link ConditionalBorder#getBorderInsets(Component)} method.
+*/
+class ConditionalBorderTest {","// ConditionalBorderTest.java
+package de.huxhorn.lilith.swing.table.renderer;
+
+import java.awt.*;
+import javax.swing.border.AbstractBorder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ConditionalBorder}.
+* It contains ten unit test cases for the {@link ConditionalBorder#getBorderInsets(Component)} method.
+*/
+class ConditionalBorderTest {
+
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is zero and the inner thickness is zero.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessZero_InnerThicknessZero() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(0);
+		border.setInnerThickness(0);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(0, insets.top);
+		assertEquals(0, insets.left);
+		assertEquals(0, insets.bottom);
+		assertEquals(0, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is zero and the inner thickness is one.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessZero_InnerThicknessOne() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(0);
+		border.setInnerThickness(1);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(1, insets.top);
+		assertEquals(1, insets.left);
+		assertEquals(1, insets.bottom);
+		assertEquals(1, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is one and the inner thickness is zero.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessOne_InnerThicknessZero() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(1);
+		border.setInnerThickness(0);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(1, insets.top);
+		assertEquals(1, insets.left);
+		assertEquals(1, insets.bottom);
+		assertEquals(1, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is one and the inner thickness is one.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessOne_InnerThicknessOne() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(1);
+		border.setInnerThickness(1);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(2, insets.top);
+		assertEquals(2, insets.left);
+		assertEquals(2, insets.bottom);
+		assertEquals(2, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is one and the inner thickness is two.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessOne_InnerThicknessTwo() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(1);
+		border.setInnerThickness(2);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(3, insets.top);
+		assertEquals(3, insets.left);
+		assertEquals(3, insets.bottom);
+		assertEquals(3, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is two and the inner thickness is zero.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessTwo_InnerThicknessZero() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(2);
+		border.setInnerThickness(0);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(2, insets.top);
+		assertEquals(2, insets.left);
+		assertEquals(2, insets.bottom);
+		assertEquals(2, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is two and the inner thickness is one.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessTwo_InnerThicknessOne() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(2);
+		border.setInnerThickness(1);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(3, insets.top);
+		assertEquals(3, insets.left);
+		assertEquals(3, insets.bottom);
+		assertEquals(3, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is two and the inner thickness is two.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessTwo_InnerThicknessTwo() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(2);
+		border.setInnerThickness(2);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(4, insets.top);
+		assertEquals(4, insets.left);
+		assertEquals(4, insets.bottom);
+		assertEquals(4, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is two and the inner thickness is three.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessTwo_InnerThicknessThree() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(2);
+		border.setInnerThickness(3);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(5, insets.top);
+		assertEquals(5, insets.left);
+		assertEquals(5, insets.bottom);
+		assertEquals(5, insets.right);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component)} method.
+	* Test case for the case when the thickness is three and the inner thickness is three.
+	*/
+	@Test
+	void testGetBorderInsets_ThicknessThree_InnerThicknessThree() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.setThickness(3);
+		border.setInnerThickness(3);
+		Insets insets = border.getBorderInsets(null);
+		assertEquals(6, insets.top);
+		assertEquals(6, insets.left);
+		assertEquals(6, insets.bottom);
+		assertEquals(6, insets.right);
+	}
+	
+}"
+cmpl-6wiX4rJDhcrsURhJwS6Hg9Gvp8s8n,/EvoSuiteBenchmark/scenario2/43_lilith/src/main/java/de/huxhorn/lilith/swing/table/renderer/ConditionalBorder1.java,62.16391372680664,length,"// ConditionalBorder.java
+package de.huxhorn.lilith.swing.table.renderer;
+
+import java.awt.*;
+import javax.swing.border.AbstractBorder;
+
+/**
+ * This is basically a mutable, simplified LineBorder-EmptyBorder combination.
+ */
+public class ConditionalBorder extends AbstractBorder {
+
+    /**
+     * Reinitialize the insets parameter with this Border's current Insets.
+     *
+     * @param c the component for which this border insets value applies
+     * @param insets the object to be reinitialized
+     */
+    public Insets getBorderInsets(Component c, Insets insets) {
+        int actualThickness = thickness + innerThickness;
+        insets.left = actualThickness;
+        insets.top = actualThickness;
+        insets.right = actualThickness;
+        insets.bottom = actualThickness;
+        return insets;
+    }
+}
+","// ConditionalBorderTest.java
+package de.huxhorn.lilith.swing.table.renderer;
+
+import java.awt.*;
+import javax.swing.border.AbstractBorder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ConditionalBorder}.
+* It contains ten unit test cases for the {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+*/
+class ConditionalBorderTest {","// ConditionalBorderTest.java
+package de.huxhorn.lilith.swing.table.renderer;
+
+import java.awt.*;
+import javax.swing.border.AbstractBorder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ConditionalBorder}.
+* It contains ten unit test cases for the {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+*/
+class ConditionalBorderTest {
+
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = 0, {@link ConditionalBorder#innerThickness} = 0.
+	* Expected result: {@link Insets} with all values set to 0.
+	*/
+	@Test
+	public void testGetBorderInsets_0_0() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.thickness = 0;
+		border.innerThickness = 0;
+		Insets insets = new Insets(0, 0, 0, 0);
+		border.getBorderInsets(null, insets);
+		assertEquals(0, insets.left);
+		assertEquals(0, insets.top);
+		assertEquals(0, insets.right);
+		assertEquals(0, insets.bottom);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = 1, {@link ConditionalBorder#innerThickness} = 0.
+	* Expected result: {@link Insets} with all values set to 1.
+	*/
+	@Test
+	public void testGetBorderInsets_1_0() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.thickness = 1;
+		border.innerThickness = 0;
+		Insets insets = new Insets(0, 0, 0, 0);
+		border.getBorderInsets(null, insets);
+		assertEquals(1, insets.left);
+		assertEquals(1, insets.top);
+		assertEquals(1, insets.right);
+		assertEquals(1, insets.bottom);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = 0, {@link ConditionalBorder#innerThickness} = 1.
+	* Expected result: {@link Insets} with all values set to 1.
+	*/
+	@Test
+	public void testGetBorderInsets_0_1() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.thickness = 0;
+		border.innerThickness = 1;
+		Insets insets = new Insets(0, 0, 0, 0);
+		border.getBorderInsets(null, insets);
+		assertEquals(1, insets.left);
+		assertEquals(1, insets.top);
+		assertEquals(1, insets.right);
+		assertEquals(1, insets.bottom);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = 1, {@link ConditionalBorder#innerThickness} = 1.
+	* Expected result: {@link Insets} with all values set to 2.
+	*/
+	@Test
+	public void testGetBorderInsets_1_1() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.thickness = 1;
+		border.innerThickness = 1;
+		Insets insets = new Insets(0, 0, 0, 0);
+		border.getBorderInsets(null, insets);
+		assertEquals(2, insets.left);
+		assertEquals(2, insets.top);
+		assertEquals(2, insets.right);
+		assertEquals(2, insets.bottom);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = -1, {@link ConditionalBorder#innerThickness} = 0.
+	* Expected result: {@link Insets} with all values set to 0.
+	*/
+	@Test
+	public void testGetBorderInsets_minus1_0() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.thickness = -1;
+		border.innerThickness = 0;
+		Insets insets = new Insets(0, 0, 0, 0);
+		border.getBorderInsets(null, insets);
+		assertEquals(0, insets.left);
+		assertEquals(0, insets.top);
+		assertEquals(0, insets.right);
+		assertEquals(0, insets.bottom);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = 0, {@link ConditionalBorder#innerThickness} = -1.
+	* Expected result: {@link Insets} with all values set to 0.
+	*/
+	@Test
+	public void testGetBorderInsets_0_minus1() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.thickness = 0;
+		border.innerThickness = -1;
+		Insets insets = new Insets(0, 0, 0, 0);
+		border.getBorderInsets(null, insets);
+		assertEquals(0, insets.left);
+		assertEquals(0, insets.top);
+		assertEquals(0, insets.right);
+		assertEquals(0, insets.bottom);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = -1, {@link ConditionalBorder#innerThickness} = -1.
+	* Expected result: {@link Insets} with all values set to 0.
+	*/
+	@Test
+	public void testGetBorderInsets_minus1_minus1() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.thickness = -1;
+		border.innerThickness = -1;
+		Insets insets = new Insets(0, 0, 0, 0);
+		border.getBorderInsets(null, insets);
+		assertEquals(0, insets.left);
+		assertEquals(0, insets.top);
+		assertEquals(0, insets.right);
+		assertEquals(0, insets.bottom);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = -1, {@link ConditionalBorder#innerThickness} = 1.
+	* Expected result: {@link Insets} with all values set to 1.
+	*/
+	@Test
+	public void testGetBorderInsets_minus1_1() {
+		ConditionalBorder border = new ConditionalBorder();
+		border.thickness = -1;
+		border.innerThickness = 1;
+		Insets insets = new Insets(0, 0, 0, 0);
+		border.getBorderInsets(null, insets);
+		assertEquals(1, insets.left);
+		assertEquals(1, insets.top);
+		assertEquals(1, insets.right);
+		assertEquals(1, insets.bottom);
+	}
+	
+	/**
+	* Test case for {@link ConditionalBorder#getBorderInsets(Component, Insets)} method.
+	* Test data: {@link ConditionalBorder#thickness} = 1, {@link ConditionalBorder#innerThickness} = -1.
+	* Expected result: {@link Insets} with all values set to 1.
+	*/
+	"

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RIFImplementationManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">com.densebrain.rif.server</a> &gt; <span class="el_source">RIFImplementationManager.java</span></div><h1>RIFImplementationManager.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+
+
+/**
+ * Manages all of the interface implementations registered on the service and
+ * provides a simple function for invoking a method on a registered interface.
+ * 
+ * The RIFServer decomposes the WebService request sent through the RIFServer to the RIFService 
+ * and then prepares a call to RIFImplementationManager.invoke to call the actual function.
+ * 
+ * To register an implementation:
+ * &lt;code&gt;
+ * 
+ * RIFImplementationManager.getInstance().registerImplementation(YourInterface.class, new YourImpl());
+ * 
+ * &lt;/code&gt;
+ * @author Jonathan Glanz
+ *
+ */
+public class RIFImplementationManager {
+<span class="nc" id="L53">	private static RIFImplementationManager instance = new RIFImplementationManager();</span>
+	
+	/**
+	 * Retrieve the singleton RIFImplementationManager instance.
+	 * 
+	 * @return
+	 */
+	public static RIFImplementationManager getInstance() {
+<span class="nc" id="L61">		return instance;</span>
+	}
+	
+<span class="nc" id="L64">	private Hashtable&lt;String, Object&gt; implementationMap = new Hashtable&lt;String, Object&gt;();</span>
+<span class="nc" id="L65">	private Hashtable&lt;Object, Map&lt;String, Method&gt;&gt; methodsMap = new Hashtable&lt;Object, Map&lt;String, Method&gt;&gt;();</span>
+<span class="nc" id="L66">	private RIFImplementationManager() { }</span>
+	
+	/**
+	 * Register an implementation to be served from this JVM
+	 * 
+	 * @param interfaceClazz - The interface that is served by the passed implementation
+	 * @param implementation - the implementation of the passed interface
+	 */
+	public void registerImplementation(Class interfaceClazz, Object implementation) {
+<span class="nc" id="L75">		implementationMap.put(interfaceClazz.getName(), implementation);</span>
+<span class="nc" id="L76">	}</span>
+	
+	/**
+	 * Invoke a method on a registered implementation.  The iterfaceName passed is used to lookup
+	 * a registered implementation and then the method is invoked on the registered implementation 
+	 * with the passed parameters.
+	 * 
+	 * @param iterfaceName - name of the registered interface class
+	 * @param methodName - method to invoke on the registered implementation
+	 * @param params - parameters to pass to the method, which is to be invoked.
+	 * @return the return from the method being invoked.
+	 * 
+	 * @throws RemoteException
+	 */
+	public Object invoke(String iterfaceName, String methodName, Object[] params) throws RemoteException {
+<span class="nc" id="L91">		Object impl = implementationMap.get(iterfaceName);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">		if (impl == null) throw new RemoteException(&quot;Not registered: &quot; + iterfaceName);</span>
+		
+<span class="nc" id="L94">		Map&lt;String, Method&gt; methodMap = methodsMap.get(impl);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">		if (methodMap == null) {</span>
+<span class="nc" id="L96">			synchronized (this) {</span>
+<span class="nc" id="L97">				methodMap = methodsMap.get(impl);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">				if (methodMap == null) {</span>
+<span class="nc" id="L99">					methodMap = new Hashtable&lt;String, Method&gt;();</span>
+<span class="nc" id="L100">					Class clazz = impl.getClass();</span>
+<span class="nc" id="L101">					Method[] methods = clazz.getMethods();</span>
+					
+<span class="nc bnc" id="L103" title="All 2 branches missed.">					for (int i = 0; i &lt; methods.length;i++) {</span>
+<span class="nc" id="L104">						Method method = methods[i];</span>
+<span class="nc" id="L105">						methodMap.put(method.getName(), method);</span>
+					}
+					
+<span class="nc" id="L108">					methodsMap.put(impl, methodMap);</span>
+				}
+<span class="nc" id="L110">			}</span>
+		}
+		
+<span class="nc" id="L113">		Method method = methodMap.get(methodName);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">		if (method == null) throw new IllegalArgumentException(&quot;Unknown method &quot; + methodName + &quot; on &quot; + iterfaceName);</span>
+		
+		try {
+<span class="nc" id="L117">			return method.invoke(impl, params);</span>
+<span class="nc" id="L118">		} catch (Exception e) {</span>
+<span class="nc" id="L119">			throw new RemoteException(&quot;Error occured while invoking &quot; + iterfaceName + &quot;.&quot; + methodName + &quot;: &quot; + e.getMessage(), e);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

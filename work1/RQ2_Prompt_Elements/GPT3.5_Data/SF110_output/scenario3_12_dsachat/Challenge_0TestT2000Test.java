@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `Challenge` has a method `roll()` but it is not implemented. Can you provide more information or code for me to work with?

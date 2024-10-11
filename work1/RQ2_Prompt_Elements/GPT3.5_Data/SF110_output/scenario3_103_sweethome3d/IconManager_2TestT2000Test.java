@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems to be missing the implementation of the `getIcon` method and the actual test cases for `IconManager`. Can you please provide the complete code so I can assist you better?

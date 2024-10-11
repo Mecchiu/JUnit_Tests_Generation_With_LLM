@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OracleIdentiteDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">fr.unice.gfarce.dao</a> &gt; <span class="el_source">OracleIdentiteDao.java</span></div><h1>OracleIdentiteDao.java</h1><pre class="source lang-java linenums">/**
+ * Classe OracleIdentiteDao
+ */
+
+package fr.unice.gfarce.dao;
+
+import java.util.Calendar;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.Persistence;
+
+import fr.unice.gfarce.identity.Candidat;
+import fr.unice.gfarce.identity.RespFormation;
+import fr.unice.gfarce.identity.Identite;
+import fr.unice.gfarce.identity.Identite.TypeIdentite;
+import javax.persistence.PersistenceContext;
+
+/**
+ *  Classe permettant d'acc&amp;eacute;der &amp;agrave; la base de donn&amp;eacute;es oracle et d'en modifier les Identites.
+ */
+
+<span class="nc" id="L25">public class OracleIdentiteDao implements IdentiteDao{</span>
+
+<span class="nc" id="L27">	String persistUnitName = &quot;Identite&quot;;</span>
+	@PersistenceContext
+	private EntityManager em;
+
+	public static OracleIdentiteDao getDAO() {
+<span class="nc" id="L32">		return new OracleIdentiteDao();</span>
+	}
+
+/**
+ * Ajoute une Identite dans la base de donn&amp;eacute;es.
+ * on ajoute &amp;eacute;galement le candidat &amp;agrave; la  formation nomForm.
+ * @param identite
+ * @param nomForm
+ * @param dateLimite
+ * @return 
+ */
+	@Override
+	public void insert(Identite identite, String nomForm, Calendar dateLimite) {
+<span class="nc" id="L45">		EntityManagerFactory emf = null;</span>
+<span class="nc" id="L46">		em = null;</span>
+<span class="nc" id="L47">		EntityTransaction tx = null;		</span>
+		try{ 
+<span class="nc" id="L49">			emf = Persistence.createEntityManagerFactory(persistUnitName);</span>
+<span class="nc" id="L50">			em = emf.createEntityManager();</span>
+<span class="nc" id="L51">			tx = em.getTransaction();</span>
+<span class="nc" id="L52">			tx.begin();</span>
+<span class="nc" id="L53">			em.persist(identite);</span>
+<span class="nc" id="L54">			tx.commit();</span>
+		}
+<span class="nc" id="L56">		catch(Exception e) {</span>
+<span class="nc" id="L57">			e.printStackTrace();</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">			if (tx != null) {</span>
+<span class="nc" id="L59">				tx.rollback();</span>
+			}
+		}
+		finally {	
+<span class="nc bnc" id="L63" title="All 2 branches missed.">			if (em != null) {</span>
+<span class="nc" id="L64">				em.close();</span>
+			}
+<span class="nc bnc" id="L66" title="All 2 branches missed.">			if (emf != null) {</span>
+<span class="nc" id="L67">				emf.close();</span>
+			}
+		}
+<span class="nc" id="L70">	}</span>
+	
+/**
+ * Modifie une Identite deja pr&amp;eacute;sente dans la base de donn&amp;eacute;es.
+ * @param identite
+ * @return 
+ */
+	@Override
+	public void update(Identite identite) {
+<span class="nc" id="L79">		EntityManagerFactory emf = null;</span>
+<span class="nc" id="L80">		em = null;</span>
+<span class="nc" id="L81">		EntityTransaction tx = null;</span>
+		try{ 
+<span class="nc" id="L83">			emf = Persistence.createEntityManagerFactory(persistUnitName);</span>
+<span class="nc" id="L84">			em = emf.createEntityManager();</span>
+<span class="nc" id="L85">			tx = em.getTransaction();</span>
+<span class="nc" id="L86">			tx.begin();</span>
+			
+<span class="nc" id="L88">			Identite i = em.find(identite.getClass(), identite.getId());</span>
+<span class="nc" id="L89">			i.setEmail(identite.getEmail());</span>
+<span class="nc" id="L90">			i.setNom(identite.getNom());</span>
+<span class="nc" id="L91">			i.setPrenom(identite.getPrenom());</span>
+<span class="nc" id="L92">			i.setSex(identite.getSex());</span>
+<span class="nc" id="L93">			i.setType(identite.getType());</span>
+			
+<span class="nc" id="L95">			em.merge(identite);</span>
+<span class="nc" id="L96">			tx.commit();</span>
+		}
+<span class="nc" id="L98">		catch(Exception e) {</span>
+<span class="nc" id="L99">			e.printStackTrace();</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">			if (tx != null) {</span>
+<span class="nc" id="L101">				tx.rollback();</span>
+			}
+		}
+		finally {	
+<span class="nc bnc" id="L105" title="All 2 branches missed.">			if (em != null) {</span>
+<span class="nc" id="L106">				em.close();</span>
+			}
+<span class="nc bnc" id="L108" title="All 2 branches missed.">			if (emf != null) {</span>
+<span class="nc" id="L109">				emf.close();</span>
+			}
+		}
+<span class="nc" id="L112">	}</span>
+		
+/**
+ * Supprime une Identite dans la base de donn&amp;eacute;es.
+ * @param identite
+ * @return 
+ */
+	@Override
+	public void delete(Identite identite){	
+<span class="nc" id="L121">		EntityManagerFactory emf = null;</span>
+<span class="nc" id="L122">		em = null;</span>
+<span class="nc" id="L123">		EntityTransaction tx = null;</span>
+
+		try{ 
+<span class="nc" id="L126">			emf = Persistence.createEntityManagerFactory(persistUnitName);</span>
+<span class="nc" id="L127">			em = emf.createEntityManager();</span>
+<span class="nc" id="L128">			tx = em.getTransaction();</span>
+<span class="nc" id="L129">			tx.begin();	</span>
+
+<span class="nc" id="L131">			Identite ident = em.find(identite.getClass(), identite.getId());</span>
+
+<span class="nc" id="L133">			em.remove(ident);</span>
+<span class="nc" id="L134">			tx.commit();</span>
+		}
+<span class="nc" id="L136">		catch(Exception e1) {</span>
+<span class="nc" id="L137">			e1.printStackTrace();</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">			if (tx != null) {</span>
+<span class="nc" id="L139">				tx.rollback();</span>
+			}
+		}
+		finally {	
+<span class="nc bnc" id="L143" title="All 2 branches missed.">			if (em != null) {</span>
+<span class="nc" id="L144">				em.close();</span>
+			}
+<span class="nc bnc" id="L146" title="All 2 branches missed.">			if (emf != null) {</span>
+<span class="nc" id="L147">				emf.close();</span>
+			}
+		}
+<span class="nc" id="L150">	}</span>
+	
+/**
+ * Recherche les Identit&amp;eacute;s de la base de donn&amp;eacute;es selon certains crit&amp;egraves;.
+ * Retourne toutes les Identites si tous les parametres sont null.
+ * @param nom
+ * @param prenom
+ * @param sex
+ * @param email
+ * @param type
+ * @return List&lt;Identite&gt;
+ */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public List&lt;Identite&gt; find(String nom,String prenom,String sex, String email, TypeIdentite type) {
+		String a,b,c,e;
+<span class="nc bnc" id="L165" title="All 2 branches missed.">		if(nom==null)</span>
+<span class="nc" id="L166">			a = &quot;ident.nom like '%'&quot;;</span>
+<span class="nc" id="L167">		else a=&quot;ident.nom='&quot;+nom+&quot;'&quot; ;</span>
+		
+<span class="nc bnc" id="L169" title="All 2 branches missed.">		if(prenom==null)</span>
+<span class="nc" id="L170">			b = &quot;ident.prenom like '%'&quot;;</span>
+<span class="nc" id="L171">		else b=&quot;ident.prenom='&quot;+prenom+&quot;'&quot; ;</span>
+
+<span class="nc bnc" id="L173" title="All 2 branches missed.">		if(sex==null)</span>
+<span class="nc" id="L174">			c = &quot;ident.sex like '%'&quot;;</span>
+<span class="nc" id="L175">		else c=&quot;ident.sex='&quot;+sex+&quot;'&quot; ;</span>
+
+<span class="nc bnc" id="L177" title="All 2 branches missed.">		if(type==TypeIdentite.CANDIDAT){</span>
+<span class="nc" id="L178">			e=&quot;ident.type= :CANDIDAT&quot; ; </span>
+		}
+<span class="nc bnc" id="L180" title="All 2 branches missed.">		else if(type==TypeIdentite.FORMATEUR){</span>
+<span class="nc" id="L181">			e=&quot;ident.type= :FORMATEUR&quot; ; </span>
+		}
+		else
+<span class="nc" id="L184">			e = &quot;ident.type like '%'&quot;;</span>
+		
+<span class="nc" id="L186">		String s = &quot;select ident from Identite as ident&quot;</span>
+			+&quot; where &quot;+a+&quot; and &quot;+b+&quot; and &quot;+c+&quot; and &quot;+e;
+<span class="nc" id="L188">		EntityManagerFactory emf = null;</span>
+<span class="nc" id="L189">		em = null;</span>
+<span class="nc" id="L190">		EntityTransaction tx = null;</span>
+<span class="nc" id="L191">		List&lt;Identite&gt; list=null;</span>
+		try{ 
+<span class="nc" id="L193">			emf = Persistence.createEntityManagerFactory(persistUnitName);</span>
+<span class="nc" id="L194">			em = emf.createEntityManager();</span>
+<span class="nc" id="L195">			tx = em.getTransaction();</span>
+<span class="nc" id="L196">			tx.begin();		</span>
+			
+<span class="nc bnc" id="L198" title="All 2 branches missed.">			if(type==TypeIdentite.CANDIDAT){</span>
+<span class="nc" id="L199">				list = em.createQuery(s).setParameter(&quot;CANDIDAT&quot;, TypeIdentite.CANDIDAT).getResultList();</span>
+			}
+<span class="nc bnc" id="L201" title="All 2 branches missed.">			else if(type==TypeIdentite.FORMATEUR){</span>
+<span class="nc" id="L202">				list = em.createQuery(s).setParameter(&quot;FORMATEUR&quot;, TypeIdentite.FORMATEUR).getResultList();</span>
+			}
+			else
+<span class="nc" id="L205">				list = em.createQuery(s).getResultList();</span>
+		}
+<span class="nc" id="L207">		catch(Exception e1) {</span>
+<span class="nc" id="L208">			e1.printStackTrace();</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">			if (tx != null) {</span>
+<span class="nc" id="L210">				tx.rollback();</span>
+			}
+		}
+		finally {	
+<span class="nc bnc" id="L214" title="All 2 branches missed.">			if (em != null) {</span>
+<span class="nc" id="L215">				em.close();</span>
+			}
+<span class="nc bnc" id="L217" title="All 2 branches missed.">			if (emf != null) {</span>
+<span class="nc" id="L218">				emf.close();</span>
+			}
+		}
+<span class="nc" id="L221">		return list;</span>
+	}
+
+
+/**	
+ * Appelle la m&amp;eacute;thode find() avec le type Candidat.
+ * @param nom
+ * @param prenom
+ * @param sex
+ * @param email
+ * @return Candidat[]
+ */
+	@Override
+	public Candidat[] findCandidat(String nom,String prenom,String sex, String email){
+<span class="nc" id="L235">		List&lt;Identite&gt; resultList = find(nom,prenom,sex,email,TypeIdentite.CANDIDAT);</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">		if(resultList != null){</span>
+<span class="nc" id="L237">			Candidat[] result=resultList.toArray(new Candidat[resultList.size()]);</span>
+<span class="nc" id="L238">			return result;</span>
+		}
+		else{
+<span class="nc" id="L241">			return null;</span>
+		}
+	}
+	
+/**	
+ * Appelle la m&amp;eacute;thode find() avec le type RespFormation.
+ * @param nom
+ * @param prenom
+ * @param sex
+ * @param email
+ * @return RespFormation[]
+ */
+	@Override
+	public RespFormation[] findRespForm(String nom,String prenom,String sex, String email){
+<span class="nc" id="L255">		List&lt;Identite&gt; resultList = find(nom,prenom,sex,email,TypeIdentite.FORMATEUR);</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">		if(resultList != null){</span>
+<span class="nc" id="L257">			RespFormation[] result=resultList.toArray(new RespFormation[resultList.size()]);</span>
+<span class="nc" id="L258">			return result;</span>
+		}
+		else{
+<span class="nc" id="L261">			return null;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

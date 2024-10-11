@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Db4oFormationFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">fr.unice.gfarce.dao</a> &gt; <span class="el_source">Db4oFormationFactory.java</span></div><h1>Db4oFormationFactory.java</h1><pre class="source lang-java linenums">/**
+ * Classe Db4oFormationFactory
+ */
+
+package fr.unice.gfarce.dao;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import com.db4o.Db4o;
+import com.db4o.ObjectContainer;
+import com.db4o.ObjectSet;
+import com.db4o.config.Configuration;
+import com.db4o.ext.ExtObjectContainer;
+
+import fr.unice.gfarce.connect.Db4oConfig;
+import fr.unice.gfarce.identity.Formation;
+import fr.unice.gfarce.identity.RespFormation;
+
+/**
+ *  Classe permettant d'acc&amp;eacute;der &amp;agrave; la base de donn&amp;eacute;es db4o et d'en modifier les Formations.
+ */
+
+public class Db4oFormationFactory implements FormationDao{
+
+	ObjectContainer bd; // Interface qui repr&amp;eacute;sente la connexion � la BD
+	String nombase;
+	Configuration configuration;
+
+<span class="nc" id="L31">	public Db4oFormationFactory() throws IOException {</span>
+<span class="nc" id="L32">		nombase=Db4oConfig.getInfo();</span>
+<span class="nc" id="L33">	}</span>
+
+	private void getConfig(){
+<span class="nc" id="L36">		configuration =Db4o.newConfiguration();</span>
+<span class="nc" id="L37">		configuration.lockDatabaseFile(false);</span>
+<span class="nc" id="L38">		configuration.objectClass(Calendar.class).storeTransientFields(true);</span>
+<span class="nc" id="L39">	}</span>
+
+/**
+ * Ajoute une Formation dans le cache.
+ * nomResp devient responsable de cette formation.
+ * @param f
+ * @param nomResp
+ * @param prenomResp
+ * @return 
+ */
+	@Override
+	public void insert(Formation f,String nomResp, String prenomResp) {
+<span class="nc" id="L51">		getConfig();</span>
+<span class="nc" id="L52">		bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc" id="L53">		configuration.objectClass(RespFormation.class).cascadeOnDelete(true); </span>
+
+<span class="nc" id="L55">		ObjectSet&lt;RespFormation&gt; test = bd.queryByExample(new RespFormation());	   </span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">		for (RespFormation ligne : test) {</span>
+<span class="nc bnc" id="L57" title="All 4 branches missed.">			if (ligne.getNom().equals(nomResp) &amp;&amp; ligne.getPrenom().equals(prenomResp)) {</span>
+<span class="nc" id="L58">				f.setResponsable(ligne);				</span>
+<span class="nc" id="L59">				ligne.ajouterFormation(f); // On ajoute la formation a la Collection&lt;Formation&gt; du responsable.</span>
+<span class="nc" id="L60">				bd.delete(ligne);</span>
+<span class="nc" id="L61">				break;</span>
+			}
+<span class="nc" id="L63">		}</span>
+<span class="nc" id="L64">		bd.commit();</span>
+<span class="nc" id="L65">		bd.close();</span>
+<span class="nc" id="L66">		insertFormation(f);</span>
+<span class="nc" id="L67">	}</span>
+	
+	public void insertFormation(Formation formation){
+<span class="nc" id="L70">		getConfig();</span>
+<span class="nc" id="L71">		bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc" id="L72">		bd.store(formation);</span>
+<span class="nc" id="L73">		bd.commit();</span>
+<span class="nc" id="L74">		bd.close();</span>
+<span class="nc" id="L75">	}</span>
+
+/**
+ * Modifie une Formation deja pr&amp;eacute;sente dans le cache.
+ * @param f
+ * @return 
+ */
+	@Override
+	public void update(Formation formation) throws DaoException {
+<span class="nc" id="L84">		getConfig();</span>
+<span class="nc" id="L85">		bd = Db4o.openFile(configuration,nombase);</span>
+
+<span class="nc" id="L87">		ObjectSet&lt;Formation&gt; result=bd.queryByExample(new Formation(formation.getTitre_formation(), null, 0, null));</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">		for(Formation ligne : result){</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">			if(formation.getDate_limite_candidature().get(Calendar.MONTH) == ligne.getDate_limite_candidature().get(Calendar.MONTH) &amp;&amp; </span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">					formation.getDate_limite_candidature().get(Calendar.DAY_OF_MONTH) == ligne.getDate_limite_candidature().get(Calendar.DAY_OF_MONTH)&amp;&amp;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">					formation.getDate_limite_candidature().get(Calendar.YEAR) == ligne.getDate_limite_candidature().get(Calendar.YEAR)){</span>
+		
+<span class="nc" id="L93">				ligne.setMontant_inscription(formation.getMontant_inscription());</span>
+
+<span class="nc" id="L95">				ExtObjectContainer eoc = bd.ext();</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">				if (! eoc.isStored(ligne)) {</span>
+<span class="nc" id="L97">					System.out.println(ligne + &quot; n'a pas d'identit� dans la base&quot;);</span>
+				}
+<span class="nc" id="L99">				bd.store(ligne);</span>
+<span class="nc" id="L100">				bd.commit();</span>
+<span class="nc" id="L101">				bd.close();</span>
+<span class="nc" id="L102">				break;</span>
+			}
+<span class="nc" id="L104">		}</span>
+<span class="nc" id="L105">	}</span>
+	
+/**
+ * Supprime une Formation dans le cache.
+ * @param f
+ * @return 
+ */
+	@Override
+	public void delete(Formation formation){
+<span class="nc" id="L114">		getConfig();</span>
+<span class="nc" id="L115">		bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc" id="L116">		ObjectSet&lt;Formation&gt; result=bd.queryByExample(new Formation(formation.getId()));</span>
+<span class="nc" id="L117">		List&lt;Formation&gt; res = (List&lt;Formation&gt;) result;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">		if(res!=null){</span>
+<span class="nc" id="L119">			bd.delete(res.get(0));</span>
+		}
+<span class="nc" id="L121">		bd.commit();</span>
+<span class="nc" id="L122">		bd.close();</span>
+<span class="nc" id="L123">	}</span>
+
+/**
+ * Recherche des Formations du cache selon certains crit&amp;egrave;res.
+ * Retourne toutes les formations du cache si name=date=null.
+ * @param name
+ * @param date
+ * @return Formation[]
+ */
+	@Override
+	public Formation[] findFormation(String name,Calendar date){
+<span class="nc" id="L134">		getConfig();</span>
+<span class="nc" id="L135">		bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc" id="L136">		List&lt;Formation&gt; tab = new ArrayList&lt;Formation&gt;();</span>
+<span class="nc" id="L137">		ObjectSet&lt;Formation&gt; f=bd.queryByExample(new Formation (name,null,0,null));	</span>
+<span class="nc" id="L138">		List&lt;Formation&gt; res = (List&lt;Formation&gt;) f;</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">		for(int i=0 ; i&lt;res.size(); i++){</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">			if(date!=null){</span>
+<span class="nc" id="L141">				Calendar d =res.get(i).getDate_limite_candidature();</span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">				if(d.get(Calendar.MONTH) == date.get(Calendar.MONTH) &amp;&amp; d.get(Calendar.DAY_OF_MONTH) == date.get(Calendar.DAY_OF_MONTH)&amp;&amp;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">					d.get(Calendar.YEAR) == date.get(Calendar.YEAR)){</span>
+<span class="nc" id="L144">					tab.add(res.get(i));</span>
+				}
+<span class="nc" id="L146">			}</span>
+<span class="nc" id="L147">			else tab.add(res.get(i));</span>
+		}
+<span class="nc" id="L149">		bd.close();</span>
+<span class="nc" id="L150">		return tab.toArray(new Formation[tab.size()]);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,1 @@
+Sorry, I cannot generate a complete code for you as the implementation of the `ClientPool` class and its `shouldNioWriteHappen()` method is missing. Please provide the complete implementation of the class and method so that I can assist you better.

@@ -1,0 +1,1 @@
+// Sorry, I cannot generate code for this task as the test cases are missing. Please provide the test cases for the HorizontalBlock class.

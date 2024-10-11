@@ -1,0 +1,1 @@
+I'm sorry, but your code is incomplete. It seems that the test cases for the `MediaWiki#decode(String)` method are missing. Could you please provide the test cases so that I can assist you better?

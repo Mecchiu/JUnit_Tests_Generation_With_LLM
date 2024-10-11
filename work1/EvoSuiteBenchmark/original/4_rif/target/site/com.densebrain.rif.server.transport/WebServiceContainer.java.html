@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebServiceContainer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">com.densebrain.rif.server.transport</a> &gt; <span class="el_source">WebServiceContainer.java</span></div><h1>WebServiceContainer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.densebrain.rif.server.transport;
+
+import java.net.InetAddress;
+import java.rmi.RemoteException;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.axis2.AxisFault;
+import org.apache.axis2.addressing.EndpointReference;
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.context.ConfigurationContextFactory;
+import org.apache.axis2.description.AxisService;
+import org.apache.axis2.rpc.receivers.RPCMessageReceiver;
+import org.apache.axis2.transport.http.turnup.SimpleHTTPServer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+/**
+ * WebServiceContainer is a wrapper around the Axis SimpleHTTPServer
+ * 
+ * It wraps a simple http server which is hosting Axis2 Web services
+ * and provides simple functionality for creating and managing services.
+ * 
+ * @author Jonathan Glanz
+ *
+ */
+public class WebServiceContainer extends SimpleHTTPServer {
+	
+<span class="nc" id="L56">	private static final Log logger = LogFactory.getLog(WebServiceContainer.class);</span>
+	
+	/**
+	 * Initialize a new container as an embedded server
+	 * 
+	 * @param port - port for the http server to listen on
+	 * @return
+	 * @throws ServerException
+	 */
+	public static WebServiceContainer newInstance(String hostName, int port, String contextPath) throws RemoteException{
+		
+		try {
+<span class="nc" id="L68">			ConfigurationContext configurationContext = </span>
+<span class="nc" id="L69">				ConfigurationContextFactory.createConfigurationContextFromFileSystem(null,null);</span>
+		
+<span class="nc" id="L71">			WebServiceContainer container = new WebServiceContainer(configurationContext, contextPath, hostName, port);</span>
+<span class="nc" id="L72">			return container;</span>
+<span class="nc" id="L73">		} catch (AxisFault af) {</span>
+<span class="nc" id="L74">			throw af;</span>
+		}
+	}
+	
+	/**
+	 * Create a new WebServiceContainer with the passed configurationContext, this is only used
+	 * for embedding the container in an existing servlet container.
+	 * 
+	 * @param configurationContext
+	 * @return
+	 * @throws RemoteException
+	 */
+	public static WebServiceContainer newInstance(ConfigurationContext configurationContext) throws RemoteException{
+		
+<span class="nc" id="L88">		WebServiceContainer container = new WebServiceContainer(configurationContext);</span>
+<span class="nc" id="L89">		return container;</span>
+		
+	}
+	
+	
+	ConfigurationContext configurationContext;
+	String contextPath;
+	String hostName;
+	int port;
+	List&lt;WebServiceDescriptor&gt; descriptorList;
+	
+	public WebServiceContainer(ConfigurationContext configurationContext) {
+<span class="nc" id="L101">		super();</span>
+<span class="nc" id="L102">		this.configurationContext = configurationContext;</span>
+		
+<span class="nc" id="L104">		descriptorList = new LinkedList&lt;WebServiceDescriptor&gt;();</span>
+<span class="nc" id="L105">	}</span>
+	
+	public WebServiceContainer(ConfigurationContext configurationContext, String contextPath, String hostName, int port) throws AxisFault, RemoteException {
+<span class="nc" id="L108">		super(contextPath, configurationContext, port);</span>
+		try {
+<span class="nc" id="L110">			this.configurationContext = configurationContext;</span>
+<span class="nc" id="L111">			this.contextPath = contextPath;</span>
+<span class="nc" id="L112">			this.hostName = hostName;</span>
+<span class="nc" id="L113">			this.port = port;</span>
+			
+<span class="nc bnc" id="L115" title="All 2 branches missed.">			if (hostName == null) {</span>
+<span class="nc" id="L116">				hostName = InetAddress.getLocalHost().getHostName();</span>
+			}
+			
+<span class="nc" id="L119">			descriptorList = new LinkedList&lt;WebServiceDescriptor&gt;();</span>
+<span class="nc" id="L120">		} catch (Exception e) {</span>
+<span class="nc" id="L121">			throw new RemoteException(&quot;Unable to initialize container&quot;, e);</span>
+<span class="nc" id="L122">		}</span>
+<span class="nc" id="L123">	}</span>
+	
+	public void configureService(Class serviceClazz, String targetNamespace, String typesNamespace) throws RemoteException {
+<span class="nc" id="L126">		WebServiceDescriptor descriptor = new WebServiceDescriptor(serviceClazz, targetNamespace, typesNamespace);</span>
+<span class="nc" id="L127">		configureService(descriptor);</span>
+<span class="nc" id="L128">	}</span>
+	
+	public void configureService(WebServiceDescriptor descriptor) throws RemoteException {
+		try {
+<span class="nc" id="L132">			AxisService service =</span>
+<span class="nc" id="L133">				AxisService.createService(</span>
+<span class="nc" id="L134">						descriptor.getServiceClazz().getName(), </span>
+<span class="nc" id="L135">						configurationContext.getAxisConfiguration(),</span>
+						RPCMessageReceiver.class, 
+<span class="nc" id="L137">						descriptor.getTargetNamespace(),</span>
+<span class="nc" id="L138">						descriptor.getTypesNamespace());</span>
+<span class="nc" id="L139">			configurationContext.getAxisConfiguration().addService(service);</span>
+			
+<span class="nc bnc" id="L141" title="All 2 branches missed.">			if (!descriptorList.contains(descriptor))</span>
+<span class="nc" id="L142">				descriptorList.add(descriptor);</span>
+<span class="nc" id="L143">		} catch (Exception e) {</span>
+<span class="nc" id="L144">			throw new RemoteException(&quot;Unable to add service&quot;, e);</span>
+<span class="nc" id="L145">		}</span>
+<span class="nc" id="L146">	}</span>
+	
+	public WebServiceContainer restartContainer() throws RemoteException {
+		//logger.debug(&quot;Restarting web service container&quot;);
+<span class="nc" id="L150">		stopContainer();</span>
+		try {
+			//configurationContext = 
+			//	ConfigurationContextFactory.createConfigurationContextFromFileSystem(null,null);
+			
+			//super.configurationContext = configurationContext;
+			
+<span class="nc bnc" id="L157" title="All 2 branches missed.">			for (int i = 0; i &lt; descriptorList.size();i++) {</span>
+<span class="nc" id="L158">				WebServiceDescriptor descriptor = descriptorList.get(i);</span>
+<span class="nc" id="L159">				configurationContext.getAxisConfiguration().removeService(descriptor.getServiceClazz().getSimpleName());</span>
+<span class="nc" id="L160">				configureService(descriptor);</span>
+			}
+			
+<span class="nc" id="L163">			startContainer();</span>
+			//logger.debug(&quot;Restarted web service container&quot;);
+<span class="nc" id="L165">		} catch (AxisFault af) {</span>
+			//logger.error(&quot;Error occured while restarting WebServiceContainer&quot;, af);
+<span class="nc" id="L167">			throw new RemoteException(&quot;Error occured while restarting WebServiceContainer&quot;, af);</span>
+<span class="nc" id="L168">		}</span>
+<span class="nc" id="L169">		return this;</span>
+	}
+	
+	public void startContainer() throws RemoteException {
+		try {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">			if (port &gt; 0) </span>
+<span class="nc" id="L175">				super.start();</span>
+<span class="nc" id="L176">		} catch (AxisFault af) {</span>
+<span class="nc" id="L177">			throw new RemoteException(&quot;Unable to start WebServiceContainer: &quot; + af.getMessage(), af);</span>
+<span class="nc" id="L178">		}</span>
+<span class="nc" id="L179">	}</span>
+	
+	public void stopContainer() throws RemoteException {
+<span class="nc bnc" id="L182" title="All 2 branches missed.">		if (port &gt; 0)</span>
+<span class="nc" id="L183">			super.stop();		</span>
+<span class="nc" id="L184">	}</span>
+	
+	
+	/**
+     * replyToEPR
+     * If the user has given host address paramter then it gets the high priority and
+     * ERP will be creatd using that
+     * N:B - hostAddress should be a complte url (http://www.myApp.com/ws)
+     *
+     * @param serviceName
+     * @param ip
+     * @return an EndpointReference
+     * @see org.apache.axis2.transport.TransportListener#getEPRForService(String,String)
+     */
+    public EndpointReference getEPRForService(String serviceName, String ip) throws AxisFault {
+<span class="nc" id="L199">        return new EndpointReference(</span>
+        		&quot;http://&quot; + hostName + ':' + port + contextPath + '/' + serviceName);
+    	
+    }
+    
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

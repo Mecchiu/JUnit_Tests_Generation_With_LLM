@@ -1,0 +1,498 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+c1ee57c7-43b8-42c8-85b6-5c20041f6161,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/servlet/HTMLOutputStream.java,66.10207200050354,stop,"// HTMLOutputStream.java
+package bible.servlet;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.net.*;
+
+/**
+ * A container for output streams with its own buffers
+ *
+ * @author Luke Samaha
+ */
+public class HTMLOutputStream {
+
+    /**
+     * @author James Stauffer
+     * @return String the contents of the buffer.
+     */
+    public String reset() {
+        String contents = baos.toString();
+        baos.reset();
+        return contents;
+    }
+}
+","// HTMLOutputStreamTest.java
+package bible.servlet;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.net.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HTMLOutputStream}.
+* It contains one unit test case for the {@link HTMLOutputStream#reset()} method.
+*/
+class HTMLOutputStreamTest {","// HTMLOutputStreamTest.java
+package bible.servlet;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.net.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HTMLOutputStream}.
+* It contains one unit test case for the {@link HTMLOutputStream#reset()} method.
+*/
+class HTMLOutputStreamTest {
+
+	@Test
+    public void doesNotResetBuffer() throws Exception {
+        String contents = baos.toString(); // default value
+        String s = ""Some text"";
+        
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        MockServletConfig sc = new MockServletConfig();
+        sc.getServletConfig().setInitParameter(""buffer"", ""1"");
+        
+        // Default buffer
+        //DefaultHttpRequestConfigurer p = new DefaultHttpRequestConfigurer(""http://localhost:8088/"");
+        //HttpServletRequest r = p.getServletConfig().getInitParameter(""buffer"");
+        
+        HtmlOutputStream stream = new HTMLOutputStream(""http://localhost:8088/content"", s);
+        
+        // assert that reset() is not invoked with no value is sent in the buffer
+        assertEquals(null, stream.reset());
+        // assert that the buffer reset() is not invoked with a value
+        assertFalse(stream.reset());
+        
+        // default value will be sent in the buffer
+        // assert that reset() is not invoked with a message sent in the buffer
+        assertNotEquals("""", contents);
+    }
+
+	/** Verify that an error occurs if a request for a buffer size larger than the content size, 
+	 * ie. when the buffer is full. **/
+	@Test
+    public void sendsContentSizeExceededError() throws Exception {
+        HtmlOutputStream stream = new HTMLOutputStream(""http://localhost:8088/content"", ""some text"");
+        assertNotEquals(null, stream.reset());
+        assertNotEquals(null, stream.reset());
+        assertEquals(null, stream.reset());
+        
+        try {
+            stream.reset();
+        } catch (Exception e) {
+            assertExceptionOccurred(e);
+        }
+		
+    }
+    
+    /** Send message content to another location and reset the stream when message is sent **/
+    @Test
+    public void sendsContent() throws Exception {
+        HtmlOutputStream stream = new HTMLOutputStream(""http://localhost:8088/content"", ""some text"");
+        assertNotEquals(null, stream.reset());
+        assertEquals(null, stream.reset());
+        
+        stream.clear();
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        MockServletConfig sc = new MockServletConfig();
+        sc.getServletConfig().setInitParameter(""buffer"", ""10"");
+        
+        try {
+            stream = new HTMLOutputStream(""http://localhost:8088/content"", ""some text"", sc);
+            stream.reset();
+            assertEquals(""Some text"", stream.getContents());
+        } catch (Exception e) {
+            fail(e.toString());
+        }
+		
+    }
+    
+    /** Send a random message, and reset the stream when message is sent **/
+    @Test
+    public void sendsRandom() throws Exception {
+        HtmlOutputStream stream = new HTMLOutputStream(""http://localhost:8088/content"", ""some text"");
+        assertNotEquals(null, stream.reset());
+        assertNotEquals(null, stream.reset());
+        assertEquals(null, stream.reset());
+        
+        stream.clear();
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        MockServletConfig sc = new MockServletConfig();
+        sc.getServletConfig().setInitParameter(""buffer"", ""10"");
+        
+        try {
+            stream = new HTMLOutputStream(""http://localhost:8088/content"", ""some text"", sc);
+            stream.reset();
+            assertNotEquals(""Some text"", stream.getContents());
+        } catch (Exception e) {
+            fail(e.toString());
+        }
+		
+    }
+    
+    /** Send a message with a buffer size of 1024 **/
+    @Test
+    public void setsRandomBufferSize() throws Exception {
+        String message = ""This is very a message"";
+        HtmlOutputStream stream = new HTMLOutputStream(""http://localhost:8088/content"", message);
+        assertNotEquals(null, stream.reset());
+        assertEquals(null, stream.reset());
+        assertEquals(null, stream.reset());
+        
+        stream.clear();
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        MockServletConfig sc = new MockServletConfig();
+        sc.getServletConfig().setInitParameter(""buffer"", String.valueOf(1024));
+        
+        try {
+            stream = new HTMLOutputStream(""http://localhost:8088/content"", message, sc);
+            stream.reset();
+            assertNotEquals(null, stream.getContents());
+        } catch (Exception e) {
+            fail(e.toString());
+        }
+    }
+    
+    /** Verify that the correct value is sent when a buffer size is not equal to the initial value **/
+	@Test
+    public void setsCorrectBufferSizeToInitialValue() throws Exception {
+        String message = ""This is very a message"";
+        HtmlOutputStream stream = new HTMLOutputStream(""http://localhost:8088/content"", message);
+        assertEquals(null, stream.reset());
+        
+        assertEquals(""This is a message"",stream.getContents());
+    }
+    
+    private static void assertExceptionOccurred(Exception e) {
+        assertTrue(!""The response contained an unexpected exception""+e.getMessage(), e.getMessage().contains(""Unexpected""));
+        assertTrue(!""The response contained an unexpected exception""+e.getMessage(), e.getMessage().contains(""ContentLength""));
+        assertTrue(!""The response contained an unexpected exception""+e.getMessage(), e.getMessage().contains(""buffer""));
+    }
+
+}"
+ceaca327-09c4-4327-8b5e-e074a1017ac6,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/util/Queue_0Test.java,60.84061145782471,stop,"// Queue.java
+package bible.util;
+
+import java.util.*;
+
+/**
+ * Queue is a storage class to link together <b>Node</b> objects which are
+ * stored in a first in first out storage system.
+ *
+ * @see Node
+ * @version 1.0
+ * @author LaMoine Zielieke, James Stauffer
+ */
+public class Queue {
+
+    /**
+     * Remove an object from the front of the Queue
+     *
+     * @return Object if Queue is not empty
+     *               otherwise print message to dos window
+     * @see GameQuestion
+     */
+    public synchronized Object dequeue() {
+        Object obj = null;
+        if (isEmpty()) {
+            System.out.println(""Cannot remove when queue is empty"");
+        } else if (first == last) {
+            // first see if we only have one item in the queue
+            obj = first.value;
+            first = null;
+            last = null;
+        } else {
+            obj = first.value;
+            first = first.next;
+        }
+        numItems--;
+        return obj;
+    }
+}
+","// Queue_0Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#dequeue()} method.
+*/
+class Queue_0Test {","// Queue_0Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#dequeue()} method.
+*/
+class Queue_0Test {
+
+	/**
+	 * Test constructor of this class.
+	 * It contains only one test case for the dequeue method.
+	*/
+	@Test
+	public void test_dequeue() {
+		Queue q = new Queue();
+		assertNull(""Queue is null"", q.dequeue());
+		//dequeue();
+		q.dequeue();
+		assertTrue(""size = 0"", q.numItems==0);
+	}
+}
+"
+470100bb-47e6-4014-8d58-af4122e5e6ed,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/util/Queue_1Test.java,60.42391014099121,stop,"// Queue.java
+package bible.util;
+
+import java.util.*;
+
+/**
+ * Queue is a storage class to link together <b>Node</b> objects which are
+ * stored in a first in first out storage system.
+ *
+ * @see Node
+ * @version 1.0
+ * @author LaMoine Zielieke, James Stauffer
+ */
+public class Queue {
+
+    /**
+     *  Returns true if the first should be removed.
+     */
+    public boolean maxCapacityExceeded() {
+        return (numItems > (maxCapacity - 1)) && (maxCapacity != NO_MAXIMUM);
+    }
+}
+","// Queue_1Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#maxCapacityExceeded()} method.
+*/
+class Queue_1Test {","// Queue_1Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#maxCapacityExceeded()} method.
+*/
+class Queue_1Test {
+// Queue.java
+package bible.util;
+
+import java.util.*;
+
+/**
+ * Queue is a storage class to link together <b>Node</b> objects which are
+ * stored in a first in first out storage system.
+ *
+ * @see Node
+ * @version 1.0
+ * @author LaMoine Zielieke, James Stauffer
+ */
+public class Queue {
+
+    /**
+     *  Returns true if the first should be removed.
+     */
+    public boolean maxCapacityExceeded() {
+        return (numItems > (maxCapacity - 1)) && (maxCapacity!= NO_MAXIMUM);
+    }
+}
+
+// Queue_1Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#maxCapacityExceeded()} method.
+*/
+class Queue_1Test {
+		/**
+	 *  Constructor of Queue.
+	 */
+    public Queue_1Test() {}
+
+	/**
+	 *  Returns true if the queue can have items.
+	 */
+    @Test
+    public void maxCapacityExceededItemReturned() {
+        for (int i = 0; i <= maxItem; i++) {
+            assert (i <= maxItem);
+        }
+        assert (maxItem <= maxItem);
+    }
+
+        /**
+	 *  Creates a new queue with a capacity of one item.
+	 */
+    @Test
+    public void createOneItemInt() {
+        Queue one = new Queue_1();
+        one.numItems = 1;
+        assert (one.numItems <= 1);
+    }
+
+        /**
+	 *  Creates a new queue with some capacity.
+	 */
+    @Test
+    public void createSomeCapacityInt() {
+        Queue aList = new ArrayDeque(maxItem);
+        Queue bList = new ArrayDeque(2 * maxItem);
+        aList.addLast(1);
+        bList.addLast(2);
+        aList.addLast(3);
+        bList.addLast(4);
+    }
+
+	/**
+	 *  Creates a new queue with a capacity of two items.
+	 */
+    @Test
+    public void createTwoItemsInt() {
+        Queue one = new Queue_1();
+        one.numItems = 2;
+        assert (one.numItems <= 2);
+    }
+
+        /**
+	 *  Creates a new empty Queue.
+	 */
+    @Test
+    public void createEmptyQueue() {
+        Queue one = new Queue_1();
+        assert (one.numItems == 0);
+    }
+
+        /**
+	 *  Add a new node to a Queue.
+	 *  It can keep the old node in a list.
+	 */
+    @Test
+    public void addNodeInt() {
+        Queue aList = new ArrayDeque(2 * maxItem + 1);
+        assert (aList.getFirst(); > 0);
+        assert (aList.getFirst() == aList.getLast());
+
+        aList.addLast(1);
+        aList.addLast(2);
+        aList.addLast(3);
+        aList.addLast(4);
+        assert (aList.getLast() > 0);
+        assert (aList.getFirst() == 2);
+    }
+
+        /**
+	 *  Return an iterator on a Queue.
+	 */
+    @Test
+    public void returnIteratorInt() {
+        Queue aList = new ArrayDeque(2 * maxItem + 1);
+        assert (aList.iterator().next() == 2);
+    }
+
+        /**
+	 *  Remove one item from a Queue.
+	 */
+    @Test
+    public void removeOneItemInt() {
+        Queue aList = new ArrayDeque(2 * maxItem + 1);
+        aList.addLast(1);
+        aList.addLast(1);
+        aList.addLast(1);
+        aList.addLast(1);
+        aList.addLast(1);
+        assert (aList.size() <= maxItem);
+	Iterator<Node> it = aList.iterator();
+        it.next();
+        it.next();
+        it.next();
+        it.remove();
+        assert (aList.size() <= maxItem);
+	assertFalse(it.hasNext());
+    }
+
+        /**
+	 *  Remove several items from a Queue.
+	 */
+    @Test
+    public void removeSeveralItemsInt() {
+        Queue aList = new ArrayDeque(maxItem + 1);
+        for (int j = 0; j < maxItem; j++) {
+            aList.addLast(j);
+        }
+        assert (aList.size() <= maxItem);
+        Iterator<Node> it = aList.iterator();
+        it.next();
+        it.next();
+        it.next();
+        it.remove();
+        assert (aList.size() <= maxItem);
+        assert (it.hasNext());
+        Node n = it.next();
+        assert (n!= null);
+        assert (n.getItem() % maxItem == j);
+        n.recycle(n.getItem());
+        assert (n.getItem() % maxItem == j);
+        n.recycle(n.getItem());
+    }
+
+    /**
+	 *  Add an iterator to a Queue.
+	 */
+    @Test
+    public void iteratorInt() {
+        Queue aList = new ArrayDeque(maxItem + 1);
+        Iterator<Node> it = aList.iterator();
+        it.next();
+        it.next();
+        it.next();
+        it.next();
+        it.next();
+        it.remove();
+        aList.addLast(1);
+        aList.addLast(2);
+        aList.addLast(3);
+        aList.addLast(4);
+        Iterator<Node> listIt = aList.iterator();
+        assert (listIt.next()!= null);
+        assert (listIt.size() <= maxItem);
+        assert (listIt.hasNext());
+        Node node = listIt.next();
+        assert (node!= null);
+        assert (listIt.hasNext() || listIt.hasNext());
+    }
+}
+"

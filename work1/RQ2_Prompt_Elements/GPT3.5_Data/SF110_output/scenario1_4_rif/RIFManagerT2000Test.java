@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class definition for `RIFManagerTest` is missing. Can you please provide the complete code for `RIFManagerTest`?

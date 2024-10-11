@@ -1,0 +1,1438 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-A5TeXyc2PzHYSNaIbzJpg1wrixcSh,/EvoSuiteBenchmark/original/14_omjstate/src/main/java/uk/me/jockmacmad/jstate/state/Transition_0Test.java,4.010469675064087,stop,"// Transition.java
+/*
+	This code is (c) Don Stewart 2001.
+
+This file is part of OMJState.
+
+	OMJState is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+    OMJState is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with OMJState; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
+/**
+ * A transition that is evaluated upon receiving an event.
+ * <p>
+ *   Given a start state and an event the transition
+ *     firstly evaluates if it applies by checking
+ *     the start state and and event match its own.
+ *     Once it ascertains it is for the start state/event
+ *     combination, then the transition evaluates any
+ *     guard conditions it has associated to it.
+ *     If all the guard conditions evaluate to true,
+ *     then the transition executes and returns the
+ *     new state that the state machine is in.
+ * Creation date: (14/02/01 6:14:35 PM)
+ * @author:
+ */
+public class Transition {
+
+    /**
+     * The initial state that the state machine must
+     * be in for this transition to apply.
+     */
+    private final IState initialState;
+
+    /**
+     * The outcome state that the state machine will be
+     *   in if this transition applies.
+     */
+    private final IState outcomeState;
+
+    /**
+     * List of guard conditions that must be
+     * evaluated and return true before the transition
+     * can execute.
+     */
+    private final java.util.List<IGuardCondition> guardConditions = new java.util.ArrayList<IGuardCondition>();
+
+    /**
+     * The event upon which this transition takes place.
+     */
+    private final Event triggerEvent;
+
+    /**
+     * The name of the transition.
+     */
+    private final java.lang.String name;
+
+    /**
+     * Transition constructor comment.
+     *
+     * @param pName the name of this Transition
+     * @param pTriggerEvent the Event that causes
+     * this Transition
+     * @param pInitialState the State which we must
+     * be in to initiate this Transition
+     * @param pOutcomeState the State we will be
+     * in once we have performed this Transition
+     */
+    public Transition(final java.lang.String pName, final Event pTriggerEvent, final IState pInitialState, final IState pOutcomeState) {
+        super();
+        name = pName;
+        initialState = pInitialState;
+        outcomeState = pOutcomeState;
+        triggerEvent = pTriggerEvent;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 2:57:02 PM)
+     * @param pGuard com.objectmentors.state.IGuardCondition
+     */
+    public final void addGuardCondition(final uk.me.jockmacmad.jstate.predicate.IPredicate pGuard) {
+        guardConditions.add((IGuardCondition) pGuard);
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 2:57:02 PM)
+     * @param pGuard com.objectmentors.state.IGuardCondition
+     */
+    public final void addGuardCondition(final IGuardCondition pGuard) {
+        guardConditions.add(pGuard);
+    }
+
+    /**
+     * Method to compare two Transition objects.
+     *
+     * Returns true if both Transition objects are identical,
+     * otherwise returns false.
+     * <p>
+     * Uses the Apache Commons Lang
+     *  <code>EqualsBuilder.reflectionEquals(this, pIState);</code> function.
+     * @since 0.1
+     * @return boolean
+     * @param pTransition the Transition to compare against
+     * the State to compare against
+     */
+    @Override
+    public final boolean equals(final Object pTransition) {
+        return EqualsBuilder.reflectionEquals(this, pTransition);
+    }
+
+    /**
+     *  Builds the <code>hashCode</code> of this <code>Object</code>
+     *  using the Apache Commons Lang
+     *  <code>HashCodeBuilder.reflectionHashCode(this);</code> function.
+     * @return int the HashCode of this <code>Object</code>
+     */
+    @Override
+    public final int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/14/01 6:19:57 PM)
+     */
+    protected void evaluateGuardConditions() {
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 9:34:41 AM)
+     * @return com.objectmentors.state.IState
+     */
+    public final IState getInitialState() {
+        return initialState;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 9:34:41 AM)
+     * @return com.objectmentors.state.IState
+     */
+    public final IState getOutcomeState() {
+        return outcomeState;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 9:34:41 AM)
+     * @return com.objectmentors.state.Event
+     */
+    public final Event getTriggerEvent() {
+        return triggerEvent;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (15/02/01 2:14:58 PM)
+     * @return java.lang.String
+     */
+    @Override
+    public final String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
+    /**
+     * Causes this Transition to fire.
+     * Creation date: (14/02/01 6:21:09 PM)
+     * @author Don Stewart
+     * @since 0.1
+     * @param pCurrentState the current State
+     * @param pEvent the Event to trigger
+     * @return com.objectmentors.state.State
+     */
+    public final IState trigger(final IState pCurrentState, final Event pEvent) {
+        IState retVal = pCurrentState;
+        boolean passesGuards = false;
+        if ((initialState.equals(pCurrentState)) && (triggerEvent.equals(pEvent))) {
+            // Check if there are any guard conditions
+            if (guardConditions.isEmpty()) {
+                // No guards so just trigger
+                passesGuards = true;
+            } else {
+                for (IGuardCondition ig : guardConditions) {
+                    passesGuards = ig.evaluate(pEvent);
+                }
+            }
+            if (passesGuards) {
+                retVal = outcomeState;
+            }
+        }
+        return retVal;
+    }
+
+    /**
+     * Check to evaluate if this Transition will trigger
+     * given the supplied current State of the State Machine
+     * and the supplied Event.
+     * Creation date: (14/02/01 6:21:09 PM)
+     * @param pCurrentState current State of the State Machine
+     * @param pEvent the supplied Event
+     * @return com.objectmentors.state.State
+     */
+    public final boolean willTrigger(final IState pCurrentState, final Event pEvent) {
+        boolean retVal = false;
+        boolean passesGuards = false;
+        if ((initialState.equals(pCurrentState)) && (triggerEvent.equals(pEvent))) {
+            for (IGuardCondition ig : guardConditions) {
+                passesGuards = ig.evaluate(pEvent);
+            }
+            if (passesGuards) {
+                retVal = true;
+            }
+        }
+        return retVal;
+    }
+}
+","// Transition_0Test.java
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Transition}.
+* It contains ten unit test cases for the {@link Transition#trigger(IState, Event)} method.
+*/
+class Transition_0Test {","```java
+class Transition_0Test {
+
+    @Test
+    void testTrigger_InitialStateNotMatch() {
+        // Test case where initial state does not match
+    }
+
+    @Test
+    void testTrigger_EventNotMatch() {
+        // Test case where event does not match
+    }
+
+    @Test
+    void testTrigger_NoGuardConditions() {
+        // Test case where there are no guard conditions
+    }
+
+    @Test
+    void testTrigger_PassesGuardConditions() {
+        // Test case where all guard conditions pass
+    }
+
+    @Test
+    void testTrigger_FailsGuardConditions() {
+        // Test case where at least one guard condition fails
+    }
+
+    @Test
+    void testTrigger_NoInitialStateAndEventMatch() {
+        // Test case where neither initial state nor event match
+    }
+
+    @Test
+    void testTrigger_NoInitialStateMatch() {
+        // Test case where initial state does not match
+    }
+
+    @Test
+    void testTrigger_NoEventMatch() {
+        // Test case where event does not match
+    }
+
+    @Test
+    void testTrigger_AllConditionsPass() {
+        // Test case where all conditions pass
+    }
+}
+```
+```"
+chatcmpl-A5TfaD9MWS4CRprII0DFewcmpFS6j,/EvoSuiteBenchmark/original/14_omjstate/src/main/java/uk/me/jockmacmad/jstate/state/Transition_1Test.java,4.164729833602905,stop,"// Transition.java
+/*
+	This code is (c) Don Stewart 2001.
+
+This file is part of OMJState.
+
+	OMJState is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+    OMJState is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with OMJState; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
+/**
+ * A transition that is evaluated upon receiving an event.
+ * <p>
+ *   Given a start state and an event the transition
+ *     firstly evaluates if it applies by checking
+ *     the start state and and event match its own.
+ *     Once it ascertains it is for the start state/event
+ *     combination, then the transition evaluates any
+ *     guard conditions it has associated to it.
+ *     If all the guard conditions evaluate to true,
+ *     then the transition executes and returns the
+ *     new state that the state machine is in.
+ * Creation date: (14/02/01 6:14:35 PM)
+ * @author:
+ */
+public class Transition {
+
+    /**
+     * The initial state that the state machine must
+     * be in for this transition to apply.
+     */
+    private final IState initialState;
+
+    /**
+     * The outcome state that the state machine will be
+     *   in if this transition applies.
+     */
+    private final IState outcomeState;
+
+    /**
+     * List of guard conditions that must be
+     * evaluated and return true before the transition
+     * can execute.
+     */
+    private final java.util.List<IGuardCondition> guardConditions = new java.util.ArrayList<IGuardCondition>();
+
+    /**
+     * The event upon which this transition takes place.
+     */
+    private final Event triggerEvent;
+
+    /**
+     * The name of the transition.
+     */
+    private final java.lang.String name;
+
+    /**
+     * Transition constructor comment.
+     *
+     * @param pName the name of this Transition
+     * @param pTriggerEvent the Event that causes
+     * this Transition
+     * @param pInitialState the State which we must
+     * be in to initiate this Transition
+     * @param pOutcomeState the State we will be
+     * in once we have performed this Transition
+     */
+    public Transition(final java.lang.String pName, final Event pTriggerEvent, final IState pInitialState, final IState pOutcomeState) {
+        super();
+        name = pName;
+        initialState = pInitialState;
+        outcomeState = pOutcomeState;
+        triggerEvent = pTriggerEvent;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 2:57:02 PM)
+     * @param pGuard com.objectmentors.state.IGuardCondition
+     */
+    public final void addGuardCondition(final uk.me.jockmacmad.jstate.predicate.IPredicate pGuard) {
+        guardConditions.add((IGuardCondition) pGuard);
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 2:57:02 PM)
+     * @param pGuard com.objectmentors.state.IGuardCondition
+     */
+    public final void addGuardCondition(final IGuardCondition pGuard) {
+        guardConditions.add(pGuard);
+    }
+
+    /**
+     * Method to compare two Transition objects.
+     *
+     * Returns true if both Transition objects are identical,
+     * otherwise returns false.
+     * <p>
+     * Uses the Apache Commons Lang
+     *  <code>EqualsBuilder.reflectionEquals(this, pIState);</code> function.
+     * @since 0.1
+     * @return boolean
+     * @param pTransition the Transition to compare against
+     * the State to compare against
+     */
+    @Override
+    public final boolean equals(final Object pTransition) {
+        return EqualsBuilder.reflectionEquals(this, pTransition);
+    }
+
+    /**
+     *  Builds the <code>hashCode</code> of this <code>Object</code>
+     *  using the Apache Commons Lang
+     *  <code>HashCodeBuilder.reflectionHashCode(this);</code> function.
+     * @return int the HashCode of this <code>Object</code>
+     */
+    @Override
+    public final int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/14/01 6:19:57 PM)
+     */
+    protected void evaluateGuardConditions() {
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 9:34:41 AM)
+     * @return com.objectmentors.state.IState
+     */
+    public final IState getInitialState() {
+        return initialState;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 9:34:41 AM)
+     * @return com.objectmentors.state.IState
+     */
+    public final IState getOutcomeState() {
+        return outcomeState;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/15/01 9:34:41 AM)
+     * @return com.objectmentors.state.Event
+     */
+    public final Event getTriggerEvent() {
+        return triggerEvent;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (15/02/01 2:14:58 PM)
+     * @return java.lang.String
+     */
+    @Override
+    public final String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
+    /**
+     * Causes this Transition to fire.
+     * Creation date: (14/02/01 6:21:09 PM)
+     * @author Don Stewart
+     * @since 0.1
+     * @param pCurrentState the current State
+     * @param pEvent the Event to trigger
+     * @return com.objectmentors.state.State
+     */
+    public final IState trigger(final IState pCurrentState, final Event pEvent) {
+        IState retVal = pCurrentState;
+        boolean passesGuards = false;
+        if ((initialState.equals(pCurrentState)) && (triggerEvent.equals(pEvent))) {
+            // Check if there are any guard conditions
+            if (guardConditions.isEmpty()) {
+                // No guards so just trigger
+                passesGuards = true;
+            } else {
+                for (IGuardCondition ig : guardConditions) {
+                    passesGuards = ig.evaluate(pEvent);
+                }
+            }
+            if (passesGuards) {
+                retVal = outcomeState;
+            }
+        }
+        return retVal;
+    }
+
+    /**
+     * Check to evaluate if this Transition will trigger
+     * given the supplied current State of the State Machine
+     * and the supplied Event.
+     * Creation date: (14/02/01 6:21:09 PM)
+     * @param pCurrentState current State of the State Machine
+     * @param pEvent the supplied Event
+     * @return com.objectmentors.state.State
+     */
+    public final boolean willTrigger(final IState pCurrentState, final Event pEvent) {
+        boolean retVal = false;
+        boolean passesGuards = false;
+        if ((initialState.equals(pCurrentState)) && (triggerEvent.equals(pEvent))) {
+            for (IGuardCondition ig : guardConditions) {
+                passesGuards = ig.evaluate(pEvent);
+            }
+            if (passesGuards) {
+                retVal = true;
+            }
+        }
+        return retVal;
+    }
+}
+","// Transition_1Test.java
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Transition}.
+* It contains ten unit test cases for the {@link Transition#willTrigger(IState, Event)} method.
+*/
+class Transition_1Test {","```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class Transition_1Test {
+
+    @Test
+    void testWillTrigger_InitialStateNotMatch() {
+        // Test case for initial state not matching
+    }
+
+    @Test
+    void testWillTrigger_EventNotMatch() {
+        // Test case for event not matching
+    }
+
+    @Test
+    void testWillTrigger_NoGuardConditions() {
+        // Test case for no guard conditions
+    }
+
+    @Test
+    void testWillTrigger_OneGuardConditionPasses() {
+        // Test case for one guard condition passing
+    }
+
+    @Test
+    void testWillTrigger_OneGuardConditionFails() {
+        // Test case for one guard condition failing
+    }
+
+    @Test
+    void testWillTrigger_AllGuardConditionsPass() {
+        // Test case for all guard conditions passing
+    }
+
+    @Test
+    void testWillTrigger_AllGuardConditionsFail() {
+        // Test case for all guard conditions failing
+    }
+
+    @Test
+    void testWillTrigger_InitialStateAndEventMatch() {
+        // Test case for initial state and event matching
+    }
+
+    @Test
+    void testWillTrigger_InitialStateAndEventMatchButGuardsFail() {
+        // Test case for initial state and event matching but guard conditions failing
+    }
+
+    @Test
+    void testWillTrigger_InitialStateAndEventMatchAndAllGuardsPass() {
+        // Test case for initial state and event matching and all guard conditions passing
+    }
+}
+```
+```"
+chatcmpl-A5TgdmMbWRxucbmyc4lr376onuEpY,/EvoSuiteBenchmark/original/14_omjstate/src/main/java/uk/me/jockmacmad/jstate/state/StringMatchesGuardCondition.java,4.500190019607544,stop,"// StringMatchesGuardCondition.java
+/*
+	This code is (c) Don Stewart 2001.
+
+This file is part of OMJState.
+
+	OMJState is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+    OMJState is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with OMJState; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+package uk.me.jockmacmad.jstate.state;
+
+/**
+ * Insert the type's description here.
+ * Creation date: (2/26/01 5:09:09 PM)
+ * @author: Administrator
+ */
+public class StringMatchesGuardCondition implements uk.me.jockmacmad.jstate.state.IGuardCondition {
+
+    private final java.lang.String Value;
+
+    /**
+     * StringMatchesGuardCondition constructor comment.
+     */
+    public StringMatchesGuardCondition(java.lang.String newStr) {
+        super();
+        Value = newStr;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/26/01 5:09:09 PM)
+     * @return boolean
+     * @param o java.lang.Object
+     */
+    public boolean evaluate(Object o) {
+        boolean rc = false;
+        try {
+            java.util.Vector params = ((uk.me.jockmacmad.jstate.state.Event) o).getParameters();
+            String str = (String) params.elementAt(0);
+            if (Value.equals(str)) {
+                rc = true;
+            }
+        } catch (ClassCastException ex) {
+            ex.printStackTrace();
+        }
+        return rc;
+    }
+
+    /**
+     * Insert the method's description here.
+     * Creation date: (2/26/01 5:11:09 PM)
+     * @return java.lang.String
+     */
+    public final java.lang.String getValue() {
+        return Value;
+    }
+
+    /**
+     * Returns a String that represents the value of this object.
+     * @return a string representation of the receiver
+     */
+    @Override
+    public String toString() {
+        // Insert code to print the receiver here.
+        // This implementation forwards the message to super. You may replace or supplement this.
+        return super.toString();
+    }
+}
+","// StringMatchesGuardConditionTest.java
+package uk.me.jockmacmad.jstate.state;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link StringMatchesGuardCondition}.
+* It contains ten unit test cases for the {@link StringMatchesGuardCondition#evaluate(Object)} method.
+*/
+class StringMatchesGuardConditionTest {","```java
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+class StringMatchesGuardConditionTest {
+
+    @Test
+    void testEvaluate_StringMatches() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition(""test"");
+        assertTrue(condition.evaluate(new Event(""test"")));
+    }
+
+    @Test
+    void testEvaluate_StringNotMatches() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition(""test"");
+        assertFalse(condition.evaluate(new Event(""example"")));
+    }
+
+    @Test
+    void testEvaluate_NullParameter() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition(""test"");
+        assertFalse(condition.evaluate(new Event(null)));
+    }
+
+    @Test
+    void testEvaluate_EmptyString() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition("""");
+        assertTrue(condition.evaluate(new Event("""")));
+    }
+
+    @Test
+    void testEvaluate_StringMatchesWithExtraParameters() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition(""test"");
+        assertTrue(condition.evaluate(new Event(""test"", ""extra"")));
+    }
+
+    @Test
+    void testEvaluate_StringMatchesWithDifferentCase() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition(""Test"");
+        assertTrue(condition.evaluate(new Event(""test"")));
+    }
+
+    @Test
+    void testEvaluate_ClassCastException() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition(""test"");
+        assertFalse(condition.evaluate(new Object()));
+    }
+
+    @Test
+    void testGetValue() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition(""test"");
+        assertEquals(""test"", condition.getValue());
+    }
+
+    @Test
+    void testToString() {
+        StringMatchesGuardCondition condition = new StringMatchesGuardCondition(""test"");
+        assertNotNull(condition.toString());
+    }
+}
+```
+```"
+chatcmpl-A5ThgPlLkEwyVBsbzkDov0JBwbWsM,/EvoSuiteBenchmark/original/14_omjstate/src/main/java/uk/me/jockmacmad/jstate/state/EndState_0Test.java,2.397348165512085,stop,"// EndState.java
+/*
+	This code is (c) Don Stewart 2001.
+
+This file is part of OMJState.
+
+	OMJState is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+    OMJState is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with OMJState; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+/**
+ * Class representing a  state machines ending state.
+ * There is no instance data associated with such a class therefore
+ *   there only needs to be a single instance of the end state.
+ * Creation date: (2/19/01 4:22:51 PM)
+ * @since 0.1
+ * @author :Don Stewart
+ * @version 0.1
+ * @stereotype singleton
+ */
+public final class EndState extends java.lang.Object implements IState, uk.me.jockmacmad.jstate.patterns.ISingleton {
+
+    /**
+     * Field storing a stringified version of the classname.
+     * @since 0.1
+     */
+    private static final java.lang.String NAME = ""com.objectmentors.state.EndState"";
+
+    /**
+     * Variable used to store the singleton instance of the EndState class.
+     *
+     * Uses the private constructor to create the instance on the loading this
+     * class.
+     * @since 0.1
+     */
+    private static final EndState SINGLETON = new EndState();
+
+    /**
+     * The actual method a client should call to get a
+     * reference to the single instance of the EndState object.
+     * Creation date: (2/20/01 11:05:10 AM)
+     * @return com.objectmentors.state.EndState
+     */
+    public static EndState getSingleton() {
+        return SINGLETON;
+    }
+
+    /**
+     *  Method to compare two IState objects.
+     * <p>
+     *  Returns true if both IState objects are instances of
+     *  <code>EndState</code>, otherwise returns false.
+     *  <p>
+     *  Uses the Apache Commons Lang
+     *   <code>EqualsBuilder.reflectionEquals(this, pIState);</code> function.
+     *  @since 0.1
+     *  @return boolean
+     *  @param pIState the State to compare against
+     *  the State to compare against
+     */
+    @Override
+    public boolean equals(final Object pIState) {
+        return EqualsBuilder.reflectionEquals(this, pIState);
+    }
+
+    /**
+     *  Builds the <code>hashCode</code> of this <code>Object</code>
+     *  using the Apache Commons Lang
+     *  <code>HashCodeBuilder.reflectionHashCode(this);</code> function.
+     * @return int the HashCode of this <code>Object</code>
+     */
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Field storing a stringified version of the classname.
+     * Creation date: (20/02/01 10:55:55 AM)
+     * @return java.lang.String
+     */
+    public java.lang.String getName() {
+        return NAME;
+    }
+
+    /**
+     * Returns this EndState object as a java.lang.Object.
+     * Used during reflection.
+     * Creation date: (2/26/01 10:49:49 AM)
+     * @return java.lang.Object
+     */
+    public java.lang.Object toObject() {
+        return (java.lang.Object) this;
+    }
+}
+","// EndState_0Test.java
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EndState}.
+* It contains ten unit test cases for the {@link EndState#getSingleton()} method.
+*/
+class EndState_0Test {","```java
+class EndState_0Test {
+
+    @Test
+    void testGetSingletonReturnsSameInstance() {
+        EndState endState1 = EndState.getSingleton();
+        EndState endState2 = EndState.getSingleton();
+        assertSame(endState1, endState2);
+    }
+
+    @Test
+    void testEqualsMethod() {
+        EndState endState = EndState.getSingleton();
+        assertTrue(endState.equals(endState));
+    }
+
+    @Test
+    void testHashCodeMethod() {
+        EndState endState = EndState.getSingleton();
+        assertEquals(endState.hashCode(), endState.hashCode());
+    }
+
+    // Add more test cases as needed
+
+}
+```
+```"
+chatcmpl-A5Tijyl1o0Yv8NkjZa7OsLQFQuE0X,/EvoSuiteBenchmark/original/14_omjstate/src/main/java/uk/me/jockmacmad/jstate/state/EndState_1Test.java,4.8075971603393555,stop,"// EndState.java
+/*
+	This code is (c) Don Stewart 2001.
+
+This file is part of OMJState.
+
+	OMJState is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+    OMJState is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with OMJState; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+/**
+ * Class representing a  state machines ending state.
+ * There is no instance data associated with such a class therefore
+ *   there only needs to be a single instance of the end state.
+ * Creation date: (2/19/01 4:22:51 PM)
+ * @since 0.1
+ * @author :Don Stewart
+ * @version 0.1
+ * @stereotype singleton
+ */
+public final class EndState extends java.lang.Object implements IState, uk.me.jockmacmad.jstate.patterns.ISingleton {
+
+    /**
+     * Field storing a stringified version of the classname.
+     * @since 0.1
+     */
+    private static final java.lang.String NAME = ""com.objectmentors.state.EndState"";
+
+    /**
+     * Variable used to store the singleton instance of the EndState class.
+     *
+     * Uses the private constructor to create the instance on the loading this
+     * class.
+     * @since 0.1
+     */
+    private static final EndState SINGLETON = new EndState();
+
+    /**
+     * The actual method a client should call to get a
+     * reference to the single instance of the EndState object.
+     * Creation date: (2/20/01 11:05:10 AM)
+     * @return com.objectmentors.state.EndState
+     */
+    public static EndState getSingleton() {
+        return SINGLETON;
+    }
+
+    /**
+     *  Method to compare two IState objects.
+     * <p>
+     *  Returns true if both IState objects are instances of
+     *  <code>EndState</code>, otherwise returns false.
+     *  <p>
+     *  Uses the Apache Commons Lang
+     *   <code>EqualsBuilder.reflectionEquals(this, pIState);</code> function.
+     *  @since 0.1
+     *  @return boolean
+     *  @param pIState the State to compare against
+     *  the State to compare against
+     */
+    @Override
+    public boolean equals(final Object pIState) {
+        return EqualsBuilder.reflectionEquals(this, pIState);
+    }
+
+    /**
+     *  Builds the <code>hashCode</code> of this <code>Object</code>
+     *  using the Apache Commons Lang
+     *  <code>HashCodeBuilder.reflectionHashCode(this);</code> function.
+     * @return int the HashCode of this <code>Object</code>
+     */
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Field storing a stringified version of the classname.
+     * Creation date: (20/02/01 10:55:55 AM)
+     * @return java.lang.String
+     */
+    public java.lang.String getName() {
+        return NAME;
+    }
+
+    /**
+     * Returns this EndState object as a java.lang.Object.
+     * Used during reflection.
+     * Creation date: (2/26/01 10:49:49 AM)
+     * @return java.lang.Object
+     */
+    public java.lang.Object toObject() {
+        return (java.lang.Object) this;
+    }
+}
+","// EndState_1Test.java
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EndState}.
+* It contains ten unit test cases for the {@link EndState#toObject()} method.
+*/
+class EndState_1Test {","```java
+public class EndState_1Test {
+
+    @Test
+    void testEndStateToObjectNotNull() {
+        EndState endState = EndState.getSingleton();
+        assertNotNull(endState.toObject());
+    }
+
+    @Test
+    void testEndStateToObjectIsEndState() {
+        EndState endState = EndState.getSingleton();
+        assertEquals(EndState.class, endState.toObject().getClass());
+    }
+
+    @Test
+    void testEndStateToObjectSameInstance() {
+        EndState endState = EndState.getSingleton();
+        assertSame(endState, endState.toObject());
+    }
+
+    @Test
+    void testEndStateEqualsItself() {
+        EndState endState = EndState.getSingleton();
+        assertTrue(endState.equals(endState));
+    }
+
+    @Test
+    void testEndStateEqualsNull() {
+        EndState endState = EndState.getSingleton();
+        assertFalse(endState.equals(null));
+    }
+
+    @Test
+    void testEndStateEqualsDifferentObject() {
+        EndState endState = EndState.getSingleton();
+        assertFalse(endState.equals(new Object()));
+    }
+
+    @Test
+    void testEndStateHashCodeConsistent() {
+        EndState endState = EndState.getSingleton();
+        int hashCode1 = endState.hashCode();
+        int hashCode2 = endState.hashCode();
+        assertEquals(hashCode1, hashCode2);
+    }
+
+    @Test
+    void testEndStateHashCodeEquals() {
+        EndState endState1 = EndState.getSingleton();
+        EndState endState2 = EndState.getSingleton();
+        assertEquals(endState1.hashCode(), endState2.hashCode());
+    }
+
+    @Test
+    void testEndStateName() {
+        EndState endState = EndState.getSingleton();
+        assertEquals(""com.objectmentors.state.EndState"", endState.getName());
+    }
+}
+```
+```"
+chatcmpl-A5TjmmvzAiVgpaDukvJJpn5Tivry8,/EvoSuiteBenchmark/original/14_omjstate/src/main/java/uk/me/jockmacmad/jstate/state/StartState_0Test.java,5.104882717132568,stop,"// StartState.java
+/*
+    This code is (c) Don Stewart 2001.
+
+This file is part of OMJState.
+
+    OMJState is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+    OMJState is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with OMJState; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+/**
+ * Class representing a state machines staring state.
+ * There is no instance data associated with such a class therefore
+ *   there only needs to be a single instance of the start state.
+ * Creation date: (19/02/01 4:22:22 PM)
+ * @stereotype singleton
+ * @author :Don Stewart
+ * @version 0.1
+ * @since 0.1
+ */
+public final class StartState extends java.lang.Object implements IState, uk.me.jockmacmad.jstate.patterns.ISingleton {
+
+    /**
+     * Field storing a stringified version of the classname.
+     * @since 0.1
+     */
+    public static final java.lang.String NAME = ""com.objectmentors.state.StartState"";
+
+    /**
+     * Variable used to store the singleton instance of the StartState class.
+     *
+     * Uses the private constructor to create the instance on the loading this
+     * class.
+     * @since 0.1
+     */
+    private static final StartState SINGLETON = new StartState();
+
+    /**
+     * Private constructor, makes sure that there is no default constructor
+     * by which people can create a new instance of the StartState.
+     *
+     * Creation date: (2/20/01 11:12:56 AM)
+     * @since 0.1
+     * @see getSingleton()
+     */
+    private StartState() {
+        super();
+    }
+
+    /**
+     *  Method to compare two IState objects.
+     * <p>
+     *  Returns true if both IState objects are instances of
+     *  <code>StartState</code>, otherwise returns false.
+     *  <p>
+     *  Uses the Apache Commons Lang
+     *   <code>EqualsBuilder.reflectionEquals(this, pIState);</code> function.
+     *  @since 0.1
+     *  @return boolean
+     *  @param pIState the State to compare against
+     *  the State to compare against
+     */
+    @Override
+    public boolean equals(final Object pIState) {
+        return EqualsBuilder.reflectionEquals(this, pIState);
+    }
+
+    /**
+     *  Builds the <code>hashCode</code> of this <code>Object</code>
+     *  using the Apache Commons Lang
+     *  <code>HashCodeBuilder.reflectionHashCode(this);</code> function.
+     * @return int the HashCode of this <code>Object</code>
+     */
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Field storing a stringified version of the classname.
+     * Creation date: (2/20/01 10:55:55 AM)
+     * @return java.lang.String
+     */
+    @Override
+    public java.lang.String getName() {
+        return NAME;
+    }
+
+    /**
+     * The actual method a client should call to get a
+     * reference to the single instance of the StartState object.
+     * Creation date: (2/20/01 11:05:10 AM)
+     * @return com.objectmentors.state.StartState
+     */
+    public static StartState getSingleton() {
+        return SINGLETON;
+    }
+
+    /**
+     * Returns this StartState object as a java.lang.Object.
+     * Used during reflection.
+     * Creation date: (2/26/01 10:49:49 AM)
+     * @return java.lang.Object
+     */
+    public java.lang.Object toObject() {
+        return (java.lang.Object) this;
+    }
+}
+","// StartState_0Test.java
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link StartState}.
+* It contains ten unit test cases for the {@link StartState#getSingleton()} method.
+*/
+class StartState_0Test {","```java
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class StartState_0Test {
+
+    @Test
+    void testSingletonInstance() {
+        StartState instance1 = StartState.getSingleton();
+        StartState instance2 = StartState.getSingleton();
+        assertEquals(instance1, instance2, ""Singleton instances should be equal"");
+    }
+
+    @Test
+    void testSingletonReference() {
+        StartState instance1 = StartState.getSingleton();
+        StartState instance2 = StartState.getSingleton();
+        assertEquals(System.identityHashCode(instance1), System.identityHashCode(instance2), ""Singleton references should be the same"");
+    }
+
+    @Test
+    void testSingletonName() {
+        assertEquals(""com.objectmentors.state.StartState"", StartState.NAME, ""Singleton name should match"");
+    }
+
+    @Test
+    void testSingletonEquals() {
+        StartState instance1 = StartState.getSingleton();
+        StartState instance2 = StartState.getSingleton();
+        assertEquals(true, instance1.equals(instance2), ""Singleton instances should be equal"");
+    }
+
+    @Test
+    void testSingletonHashCode() {
+        StartState instance1 = StartState.getSingleton();
+        StartState instance2 = StartState.getSingleton();
+        assertEquals(instance1.hashCode(), instance2.hashCode(), ""Singleton hash codes should be equal"");
+    }
+
+    @Test
+    void testSingletonGetName() {
+        assertEquals(""com.objectmentors.state.StartState"", StartState.getSingleton().getName(), ""Singleton name should match"");
+    }
+
+    @Test
+    void testSingletonToObject() {
+        assertEquals(StartState.getSingleton(), StartState.getSingleton().toObject(), ""Singleton object should match"");
+    }
+
+    @Test
+    void testSingletonClass() {
+        assertEquals(StartState.class, StartState.getSingleton().getClass(), ""Singleton class should match"");
+    }
+
+    @Test
+    void testSingletonInstanceType() {
+        assertTrue(StartState.getSingleton() instanceof StartState, ""Singleton instance should be of type StartState"");
+    }
+}
+```
+"
+chatcmpl-A5TkpHuEarhzstW1OMWGMvUVHOKFU,/EvoSuiteBenchmark/original/14_omjstate/src/main/java/uk/me/jockmacmad/jstate/state/StartState_1Test.java,3.0744614601135254,stop,"// StartState.java
+/*
+    This code is (c) Don Stewart 2001.
+
+This file is part of OMJState.
+
+    OMJState is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+    OMJState is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with OMJState; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+/**
+ * Class representing a state machines staring state.
+ * There is no instance data associated with such a class therefore
+ *   there only needs to be a single instance of the start state.
+ * Creation date: (19/02/01 4:22:22 PM)
+ * @stereotype singleton
+ * @author :Don Stewart
+ * @version 0.1
+ * @since 0.1
+ */
+public final class StartState extends java.lang.Object implements IState, uk.me.jockmacmad.jstate.patterns.ISingleton {
+
+    /**
+     * Field storing a stringified version of the classname.
+     * @since 0.1
+     */
+    public static final java.lang.String NAME = ""com.objectmentors.state.StartState"";
+
+    /**
+     * Variable used to store the singleton instance of the StartState class.
+     *
+     * Uses the private constructor to create the instance on the loading this
+     * class.
+     * @since 0.1
+     */
+    private static final StartState SINGLETON = new StartState();
+
+    /**
+     * Private constructor, makes sure that there is no default constructor
+     * by which people can create a new instance of the StartState.
+     *
+     * Creation date: (2/20/01 11:12:56 AM)
+     * @since 0.1
+     * @see getSingleton()
+     */
+    private StartState() {
+        super();
+    }
+
+    /**
+     *  Method to compare two IState objects.
+     * <p>
+     *  Returns true if both IState objects are instances of
+     *  <code>StartState</code>, otherwise returns false.
+     *  <p>
+     *  Uses the Apache Commons Lang
+     *   <code>EqualsBuilder.reflectionEquals(this, pIState);</code> function.
+     *  @since 0.1
+     *  @return boolean
+     *  @param pIState the State to compare against
+     *  the State to compare against
+     */
+    @Override
+    public boolean equals(final Object pIState) {
+        return EqualsBuilder.reflectionEquals(this, pIState);
+    }
+
+    /**
+     *  Builds the <code>hashCode</code> of this <code>Object</code>
+     *  using the Apache Commons Lang
+     *  <code>HashCodeBuilder.reflectionHashCode(this);</code> function.
+     * @return int the HashCode of this <code>Object</code>
+     */
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Field storing a stringified version of the classname.
+     * Creation date: (2/20/01 10:55:55 AM)
+     * @return java.lang.String
+     */
+    @Override
+    public java.lang.String getName() {
+        return NAME;
+    }
+
+    /**
+     * The actual method a client should call to get a
+     * reference to the single instance of the StartState object.
+     * Creation date: (2/20/01 11:05:10 AM)
+     * @return com.objectmentors.state.StartState
+     */
+    public static StartState getSingleton() {
+        return SINGLETON;
+    }
+
+    /**
+     * Returns this StartState object as a java.lang.Object.
+     * Used during reflection.
+     * Creation date: (2/26/01 10:49:49 AM)
+     * @return java.lang.Object
+     */
+    public java.lang.Object toObject() {
+        return (java.lang.Object) this;
+    }
+}
+","// StartState_1Test.java
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link StartState}.
+* It contains ten unit test cases for the {@link StartState#toObject()} method.
+*/
+class StartState_1Test {","```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class StartState_1Test {
+
+    @Test
+    void testToObjectNotNull() {
+        StartState startState = StartState.getSingleton();
+        assertNotNull(startState.toObject());
+    }
+
+    @Test
+    void testToObjectSameInstance() {
+        StartState startState = StartState.getSingleton();
+        assertSame(startState, startState.toObject());
+    }
+
+    @Test
+    void testToObjectClassType() {
+        StartState startState = StartState.getSingleton();
+        assertEquals(StartState.class, startState.toObject().getClass());
+    }
+
+    @Test
+    void testToObjectEquals() {
+        StartState startState = StartState.getSingleton();
+        assertTrue(EqualsBuilder.reflectionEquals(startState, startState.toObject()));
+    }
+
+    @Test
+    void testToObjectHashCode() {
+        StartState startState = StartState.getSingleton();
+        assertEquals(HashCodeBuilder.reflectionHashCode(startState), startState.toObject().hashCode());
+    }
+
+    // Add more test cases as needed
+
+}
+```
+"

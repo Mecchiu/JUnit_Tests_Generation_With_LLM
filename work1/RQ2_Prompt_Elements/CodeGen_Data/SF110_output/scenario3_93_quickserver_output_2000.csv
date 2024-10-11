@@ -1,0 +1,4488 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+7d745ac7-3569-43c6-9dd0-db632efea8ba,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/impl/NonBlockingClientHandler_0Test.java,61.12384629249573,length,"// NonBlockingClientHandler.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+
+public class NonBlockingClientHandler extends BasicClientHandler {
+
+    /**
+     * Returns wakeupSelectorAfterRegisterWrite the flag that controls if wakeup is called on Selector
+     * after RegisterForWrite is called.
+     *
+     * @since 1.4.7
+     */
+    public static boolean getWakeupSelectorAfterRegisterWrite();
+}
+","// NonBlockingClientHandler_0Test.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link NonBlockingClientHandler}.
+* It contains one unit test case for the {@link NonBlockingClientHandler#getWakeupSelectorAfterRegisterWrite()} method.
+*/
+class NonBlockingClientHandler_0Test {","// NonBlockingClientHandler_0Test.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link NonBlockingClientHandler}.
+* It contains one unit test case for the {@link NonBlockingClientHandler#getWakeupSelectorAfterRegisterWrite()} method.
+*/
+class NonBlockingClientHandler_0Test {
+
+		static volatile boolean wakeupSelectorRunning = false;
+		static volatile boolean wakeup = false;
+		static volatile Future<?> wakeupFuture = null;
+		static volatile Future<?> wakeupFuture2 = null;
+		static Random random = new Random();
+		protected static void wait() throws Exception {
+			if (wakeup) return;
+			synchronized (NonBlockingClientHandler_0Test.class) {
+				try {
+					while (true) {
+						new NonBlockingClientHandler_0Test().tryRun(); break;
+						NonBlockingClientHandler_0Test.class.wait();
+					}
+				} catch (Throwable e) {
+					System.out.println(""Failed to wakeup selector : "" + e.getMessage());
+					throw e;
+				}
+			}
+		} 
+		
+		static void waitFor() {
+			try {
+				new NonBlockingClientHandler_0Test().tryRun(); break;
+			}
+			catch (Throwable e) {
+				System.out.println(""Failed to wakeup selector : "" + e.getMessage());
+				throw e;
+			} 
+		} 
+		
+		static void checkResultWith() {
+			assertFalse( ""Not set"", WakeupSelectorAfterRegisterWrite.isScheduled() );
+			assertTrue( ""Not set"", WakeupSelectorAfterRegisterWrite.isRunning() );
+		}
+
+		// @TODO The following test is in place. This test is not yet completely complete 
+// @javabean_tests
+// public void testRegistrationSelectorAndWakeup() throws Exception {
+// 			final int count = 1000000;
+// 			final int size = 10000;
+// 			final int delay = 100;   // delay in milliseconds
+// 			final EventSelector selector = EventSelector.getDefault();
+// 			WakeupSelector.registerWakeupSelector(new WakeupSelector() {
+// 					private static final String name = ""WakeupSelector_0_"" + new Random().nextInt(99999); // + getClass();
+// 					
+// 					@Override
+// 					public boolean wakeup() {
+// 						synchronized (SleepSelector_0Test.class) {
+// 							try {
+// 								SleepSelector_0Test.class.await();
+// 								Thread.sleep(1);
+// 								return true;
+// 							} catch (Exception e) {
+// 								return false;
+// 							}
+// 						}
+// 					}
+// 					
+// 					@Override
+// 					public synchronized boolean wakeup(long l) {
+// 						throw new UnsupportedOperationException(""Unimplemented"");
+// 					}
+// 				 });
+// 			final WakeupProcessor wakeupProcessor = WakeupProcessor.create();
+// 			wakeupProcessor.addEventListener(new WPEventListener() {
+// 					public void onEvent(Event event) {
+// 						synchronized (SleepSelector_0Test.class) {
+// 							try {
+// 								SleepSelector_0Test.class.await();
+// 								Thread.sleep(delay);
+// 								if (event.isSelectorFired()) {
+// 									wakeup = true;
+// 								}
+// 							} catch (Exception e) {
+// 								e.printStackTrace(System.out);
+// 								Thread.sleep(1);
+// 								synchronized (SleepSelector_0Test.class) {
+// 									wakeup = false;
+// 								}
+// 							} 
+// 						}
+// 					}
+// 				});
+ // 			new NonBlockingClientHandler_0Test().run();
+ // 			waitFor();
+ // 			{
+ // 					assertFalse( ""Not set"", wakeup );
+ // 					assertTrue( ""Not set"", WakeupSelectorAfterRegisterWrite.isScheduled() );
+ // 					assertTrue( ""Not set"", WakeupSelectorAfterRegisterWrite.isRunning() );
+ // 					synchronized (SleepSelector_0Test.class) {
+ // 						try {
+ // 							SleepSelector_0Test.class.wait();
+ // 							assertFalse( ""Not set"", wakeup );
+ // 						}
+ // 						catch (Throwable e) {
+ // 							e.printStackTrace(System.out);
+ // 						}
+ // 					}
+ // 				} 
+ // 			{
+ // 				assertFalse( ""Not set"", wakeup );
+ // 				assertFalse( ""Not set"", WakeupSelectorAfterRegisterWrite.isScheduled() );
+ // 				assertFalse( ""Not set"", WakeupDirectSelector.isScheduled() );
+ // 			}
+ // 			synchronized (Sync_SleepSelector_0_0_Sync_NonBlockingClientHandler_0Test.class) {
+ // 				Sync_SleepSelector_0_0_Sync_NonBlockingClientHandler_0Test.class.notify();
+ // 			}
+ // 			waitFor();
+ // 			{
+ // 					assertFalse( ""Not set"", wakeup );
+ // 					assertTrue( ""Not set"", WakeupSelectorAfterRegisterWrite.isScheduled() );
+ // 					assertTrue( ""Not set"", WakeupSelectorAfterRegisterWrite.isRunning() );
+ // 					assertFalse( ""Not set"", wakeup );
+ // 					synchronized (SleepSelector_0Test.class) {
+ // 						try {
+ // 							SleepSelector_0Test.class.wait();
+ // 							assertTrue( ""Not set"", wakeup );
+ // 						}
+ // 						catch (Throwable e) {
+ // 							e.printStackTrace(System.out);
+ // 						}
+ // 					}
+ // 				}
+ // 			{
+ // 				assertFalse( ""Not set"", wakeup );
+ // 				assertTrue( ""Not set"", WakeupSelectorAfterRegisterWrite.isScheduled() );
+ // 				assertTrue( ""Not set"", WakeupSelectorAfterRegisterWrite.isRunning() );
+ // 				assertTrue( ""Not set"", wakeup );
+ // 			}
+// 			waitFor();
+// 		}
+// }
+// 
+// @TODO The following test is in place. This test is not yet completely complete
+// class NonBlockingClientHandler_1Test extends BaseTest {
+// 		static volatile boolean wakeupInRunning() {
+// 			while (true) {
+// 				synchronized (Sync_RunSynchronized_NonBlockingClientHandler_1_0.class) {
+// 					try {
+// 						Sync_RunSynchronized_NonBlockingClientHandler_1_0.class."
+11cf9e13-656c-42ce-bdb4-29ce3be4d27a,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/impl/NonBlockingClientHandler_1Test.java,59.22718620300293,stop,"// NonBlockingClientHandler.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+
+public class NonBlockingClientHandler extends BasicClientHandler {
+
+    /**
+     * Returns wakeupSelectorAfterRegisterRead the flag that controls if wakeup is called on Selector
+     * after RegisterForRead is called.
+     *
+     * @since 1.4.7
+     */
+    public static boolean getWakeupSelectorAfterRegisterRead();
+}
+","// NonBlockingClientHandler_1Test.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link NonBlockingClientHandler}.
+* It contains one unit test case for the {@link NonBlockingClientHandler#getWakeupSelectorAfterRegisterRead()} method.
+*/
+class NonBlockingClientHandler_1Test {","// NonBlockingClientHandler_1Test.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link NonBlockingClientHandler}.
+* It contains one unit test case for the {@link NonBlockingClientHandler#getWakeupSelectorAfterRegisterRead()} method.
+*/
+class NonBlockingClientHandler_1Test {
+
+    NonBlockingClientHandler_1Test() {
+        Thread.sleep(100);
+    }
+
+    @Test
+    public void getWakeupSelectorAfterRegisterRead() {
+        assertTrue(""nonBlockingClientHandler() doesn't call wakeupSelectorAfterRegisterRead"", getWakeupSelectorAfterRegisterRead());
+    }
+}
+"
+4b913e48-6e69-4fb2-9a14-58e709266e6a,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/impl/NonBlockingClientHandler_2Test.java,59.81585669517517,stop,"// NonBlockingClientHandler.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+
+public class NonBlockingClientHandler extends BasicClientHandler {
+
+    /**
+     * Returns the maximum count of thread allowed to run objects of this class at a time.
+     *
+     * @since 1.4.7
+     */
+    public static int getMaxThreadAccessCount();
+}
+","// NonBlockingClientHandler_2Test.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link NonBlockingClientHandler}.
+* It contains one unit test case for the {@link NonBlockingClientHandler#getMaxThreadAccessCount()} method.
+*/
+class NonBlockingClientHandler_2Test {","// NonBlockingClientHandler_2Test.java
+package org.quickserver.net.server.impl;
+
+import org.quickserver.net.server.*;
+import org.quickserver.net.*;
+import org.quickserver.util.*;
+import org.quickserver.util.io.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.logging.*;
+import java.nio.*;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link NonBlockingClientHandler}.
+* It contains one unit test case for the {@link NonBlockingClientHandler#getMaxThreadAccessCount()} method.
+*/
+class NonBlockingClientHandler_2Test {
+
+}
+// Class for a test case of NON-BLOCKING client handler.
+public class NON_BLOCKING_ClientHandler extends BasicClientHandler {
+
+    /**
+     * Returns the maximum count of thread allowed to run objects of this class at a time.
+     *
+     * @since 1.4.7
+     */
+    public static int getMaxThreadAccessCount();
+    
+    @Test
+    public void testCtor() throws IOException, SSLHandshakeException {
+        int expected= NIO_THREAD_COUNT;
+        NON_BLOCKING_ClientHandler handler= new NON_BLOCKING_ClientHandler();
+        try {
+            // Verify the constructor takes expected and expected threads are passed.
+            assertEquals(expected,handler.getMaxThreadAccessCount());
+            
+            // Ensure getMaxThreadAccessCount() returns correctly.
+            assertEquals(expected,handler.getMaxThreadAccessCount());
+        } catch (IOException ioe) {
+            assertEquals(ioe.getMessage(), ""Cannot check the constructor arguments: getMaxThreadAccessCount()=<INVALID>"");
+        }
+        // This is to ensure that we get the right thread count
+        return;
+    }
+}
+"
+154d4849-b68f-4d35-9d95-01520ff13ae3,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_0Test.java,26.324844360351562,stop,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Returns the version of the library.
+     */
+    public static final String getVersion();
+}
+","// QuickServer_0Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getVersion()} method.
+*/
+class QuickServer_0Test {","// QuickServer_0Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getVersion()} method.
+*/
+class QuickServer_0Test {
+Test
+	}
+// ENDQuickServer_0Test.java
+
+"
+07bc130a-1cbd-4a88-84a3-f6dc9f9d9ce4,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_1Test.java,25.761462688446045,length,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Returns the numerical version of the library.
+     *
+     * @since 1.2
+     */
+    public static final float getVersionNo();
+}
+","// QuickServer_1Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getVersionNo()} method.
+*/
+class QuickServer_1Test {","// QuickServer_1Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getVersionNo()} method.
+*/
+class QuickServer_1Test {
+
+	private static final Logger log = Logger.getLogger(""QuickServer"");
+	private static final int DEFAULT_PORT = 3123;
+	private static final int DEFAULT_LOGLEVEL = 0;
+	private static final boolean DEFAULT_REPLYCATE_TO_CLIENT = false;
+	
+	// This is to test the ability to set DataMode for input.
+	final DataMode MODE_SETTING=DataMode.ReadWrite_Binary_Charset_String;
+	/**
+	 * Creates a QuickServer object that is used to test the functionality of the
+	 * {@link #setDataMode(Mode)}.
+	 */
+	public static QuickServer createQSS(String host, int port) throws AppException {
+		// Create a QuickServer object.
+		QuickServer res = null;
+	    try {
+			URL url = new URL(""http://""+host+"":""+port);
+			res = new QuickServer(url);		
+		} catch(Exception e) {
+			if(log.isLoggable(DEFAULT_LOGLEVEL)) {
+				log.logp(DEFAULT_LOGLEVEL, ""QuickServer"", ""createQSS"", ""Error with the URL : ""+e.getLocalizedMessage());
+			}
+			throw new AppException(e.toString(), e);
+		} 
+
+	    return res;
+	}
+	
+	// Set the data mode to Binary_Charset_String.
+	public static void setDataModeDataMode(Mode mode) {
+		System.setProperty(""org.quickserver.net.QSS.dataMode"", mode);
+	}
+	
+    /**
+     * Test for correct setting of the setDataModeDataMode method.
+     * @since 1.4
+     */
+	@Test
+    public void setDataMode_dataMode(){
+        // Test if the mode setting is working.
+        assertEquals(""dataMode"",MODE_SETTING,System.getProperty(""org.quickserver.net.QSS.dataMode""));
+
+        //setDataMode(Mode.Write_Text_Charset_String);
+        mode=Mode.Read_Binary_Data_Charset_String;
+        System.setProperty(""org.quickserver.net.QSS.dataMode"", mode);
+        assertEquals(""dataMode"",mode,System.getProperty(""org.quickserver.net.QSS.dataMode""));
+
+        "
+b306719f-651d-40be-a22c-40696a3d1b3e,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_2Test.java,25.59617829322815,stop,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Returns the new line string used by QuickServer.
+     *
+     * @since 1.2
+     */
+    public static String getNewLine();
+}
+","// QuickServer_2Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getNewLine()} method.
+*/
+class QuickServer_2Test {","// QuickServer_2Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getNewLine()} method.
+*/
+class QuickServer_2Test {
+private static String defaultDataMode=null;
+
+    /**
+     * Test method for
+     * {@link QuickServer#getNewLine()}.
+     *
+     * @throws Throwable any exception.
+     */
+    @Test
+    public void testGetNewLine() throws Throwable {
+        if (defaultDataMode == null) {
+            defaultDataMode = getNewLine();
+        }
+        QuickServer.getNewLine();
+    }
+
+    private String getNewLine() throws Throwable {
+        return null; // This method will be abstract.
+    }
+
+    /**
+     * Test method for {@link QuickServer#QuickServer(int)}.
+     */
+    @Test
+    public void testQuickServerInt() {
+        QuickServer o = new QuickServer();
+        try {
+            o.startServer();
+            return;
+        } catch (Exception e) {
+            assertException(""Must start()"", e);
+        }
+    }
+
+    /**
+     * Test method for {@link QuickServer#QuickServer(int,int)}.
+     */
+    @Test
+    public void testQuickServerIntAndPort() {
+        QuickServer o = new QuickServer(1234, 5080);
+        try {
+            o.startServer();
+            return;
+        } catch (Exception e) {
+            assertException(""Must start() with port"", e);
+        }
+    }
+
+    /**
+     * Test method for {@link QuickServer#QSAdmin()}.
+     */
+     @Test
+     public void testQSAdmin() throws Exception {
+
+        // Try to start again with default data mode
+        QuickServer o = new QuickServer();
+        try {
+            o.startServer();
+            return;
+        } catch (AppException e) {
+            assertException(""Must start(default) before QSAdmin"", e);
+        }
+
+        try {
+            o.startServer();
+        } catch (AppException e) {
+            assertException(""Server not started. Did you check it"", e);
+        }
+
+        try {
+            o.startServer();
+        } catch (AppException e) {
+            assertException(""Server not started. Did you check it"", e);
+        }
+
+        try {
+            o.startServer(1234, 25, 5080);
+        } catch (AppException e) {
+            assertException(""Server not started"", e);
+        }
+    }
+}
+"
+b5783138-bf8a-4119-9bde-8d829473dc2a,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_3Test.java,25.20417046546936,length,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Initialise and create the service.
+     *
+     * @param param of the xml configuration file.
+     * @since 1.2
+     */
+    public synchronized boolean initService(Object[] param);
+}
+","// QuickServer_3Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#initService(Object[])} method.
+*/
+class QuickServer_3Test {","// QuickServer_3Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#initService(Object[])} method.
+*/
+class QuickServer_3Test {
+
+    @SuppressWarnings(""empty"")
+	public QuickServer_3Test() {
+	}
+	
+	@SuppressWarnings(""empty"")
+	@Test
+	public void test() {
+        String param1 = ""quickServer.initService(new Object[][]{[new Object[]{}], [new Object[]{}});"";
+        String[] params = prepareXMLConfig(""initService(new Object[]{""+param1+""})"");
+		String param1_2 = ""quickServer.initService(new Object[]{""+params[1]+""}){};"";
+        String[] params_2 = prepareXMLConfig(""initService(new Object[]{\""quickServer.initService(new Object[]{\""""+params[0]+""})\"",\""\""})"");
+		assertEquals(prepareXMLConfig(""initService(new Object[]{}),\""com.quickserver.initService(new Object[][]{}),\""jdbc:some_db_url\""""))
+			+ "";""+param1_2+""\\}"";
+		assertEquals(prepareXMLConfig(""initService(new Object[]{\""quickserver.initService(new Object[]{\""""+params[0]+""})\"",\""quickserver.initService(new Object[][]{}\"",\""jdbc:some_db_url\""""))
+			+ ""\\},\""quickServer.initService(new Object[][]})"")))
+			+ "";jdbc:some_db_url"";
+		assertEquals(param1_2, prepareXMLConfig(""initService(new Object[]{\""quickserver.initService(new Object[]{\""""+params[0]+""})\""}"")));
+		assertEquals(param1, prepareXMLConfig(""initService(new Object[]{\""quickserver.initService(new Object[]{\""quickserver.initService(new Object[]{}\""})\""}""))));
+		try {
+			assertEquals(param1_2, prepareXMLConfig(""initService(new Object[]{\""quickserver.initService(new Object[]{\""quickserver.initService(new Object[]{\""\""}},\""""+params[0]+""\"")})"")));
+			fail(""Init Server should fail when initializing the server with non-string url"");
+		} catch (AppException ex)"
+f01c3fd0-8c06-42e9-ab5b-d072d321fc80,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_4Test.java,24.766726970672607,stop,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Initialise and create the service.
+     *
+     * @param qsConfig QuickServerConfig object.
+     * @since 1.4.6
+     */
+    public synchronized boolean initService(QuickServerConfig qsConfig);
+}
+","// QuickServer_4Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#initService(QuickServerConfig)} method.
+*/
+class QuickServer_4Test {","// QuickServer_4Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#initService(QuickServerConfig)} method.
+*/
+class QuickServer_4Test {
+private static String qsConfigText = ""package echoserver; "";
+		private QuickServerConfig qsConfig;
+
+	public void setUp() throws Exception {
+		File file = new File(""etc4net-quickserver.xml"");
+		StringReader stream = new StringReader(xmlReader.getXMLFromString(file.getPath()));
+		ObjectInputStream in;
+		try {
+			in = new ObjectInputStream(stream);
+			Object o = in.readObject();
+			File fileNew = new File(o.toString());
+			in.close();
+			setUp(fileNew);
+		} catch(IOException e1) {
+			e1.printStackTrace();
+			throw e1;
+		}
+
+		qsConfig = (QuickServerConfig)in.readObject();
+		file = new File(""etc4net-quickserver.xml"");
+		stream.close();
+	}
+
+	/**
+	 * Tests the method {@link QuickServer#initService(QuickServerConfig)}.
+	 */
+	@Test
+	void testInitService() {
+		QSClientConfiguration oQSC = new QSClientConfiguration();
+		oQSC.setPort(qsConfig.getPort());
+		QuickServer qs = QuickServer.createServer(oQSC);
+		qs.initService(qsConfig);
+		System.out.println(""--- quick server instance ---"");
+		qs.start();
+		Thread.sleep(3000);  // 3 Seconds to execute the start method.
+		qs.clearCache();
+		qs.close();
+	}
+}
+"
+120fc148-255a-4ad1-bf09-674df3e79b96,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_5Test.java,25.241236686706543,stop,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Start the service.
+     *
+     * @return true if serivce was stopped from Running state.
+     * @since 1.2
+     */
+    public boolean startService();
+}
+","// QuickServer_5Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#startService()} method.
+*/
+class QuickServer_5Test {","// QuickServer_5Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#startService()} method.
+*/
+class QuickServer_5Test {
+public static void main(String args[]) throws AppException {
+	quickServer("""", 8888);
+	}
+
+        @Test
+        public void testEcho() throws Exception {
+                ThreadGroup g = new ThreadGroup(""Server Test Group"");
+                Runnable thread = new Echo(g);
+
+                String name = System.getProperty(""os.name"");
+
+                if (name.startsWith(""Mac OS X"")) {
+                  g.setPriority(Thread.MAX_PRIORITY);
+              } else if (name.startsWith(""Windows"")) {
+                  g.setPriority(Thread.MIN_PRIORITY);
+              }
+
+                /*
+                 * test the basic functionality of the {@link QuickServer} class
+                 * by starting a server in one thread.
+                 *
+                 * TODO - how do I set up a client, whether the data should be sent
+                 *             or should be sent over the wire? This is a bit tricky.
+                 *
+                 * - set up several clients and then use {@link QuickServer#startService()} method
+                 * - to wait for each client to receive the data,
+                 *     {@link QuickServer#run()}
+                 *     will start receiving from all clients and
+                 *     send their output to the server.
+                 *
+                 * - if more clients are expected, the clients won't stay blocked and the service will exit
+                 * - if more clients are expected and the service is interrupted by the client, the service will exit
+                 * - if more clients are expected and none of them are expected to execute, the service terminates.
+                 */
+                Thread myThread = new Thread(null, thread, ""EchoClient"");
+                myThread.setDaemon(false);
+                myThread.start();
+                System.in.read();
+                Thread.sleep(10);
+        }
+}
+"
+1718fb88-b9cf-4c7e-9259-6b1cc6fc3426,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_6Test.java,25.238475799560547,stop,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Stop the service.
+     *
+     * @return true if serivce was stopped from Running state.
+     * @since 1.2
+     */
+    public boolean stopService();
+}
+","// QuickServer_6Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#stopService()} method.
+*/
+class QuickServer_6Test {","// QuickServer_6Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#stopService()} method.
+*/
+class QuickServer_6Test {
+
+		public static void test() {
+			
+			// QuickServer instance
+			QuickServer instance = new QuickServer();
+			
+			System.out.println(""Starting quick server instance: ""+instance.getName());
+			
+			// Testing
+			instance.stopService();
+			
+		}
+
+	}
+"
+bee8a355-a9da-4199-828a-d20ecf2f8284,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_7Test.java,25.245585918426514,length,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Suspends the service.
+     *
+     * @return true if service was suspended from resumed state.
+     * @since 1.2
+     */
+    public boolean suspendService();
+}
+","// QuickServer_7Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#suspendService()} method.
+*/
+class QuickServer_7Test {","// QuickServer_7Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#suspendService()} method.
+*/
+class QuickServer_7Test {
+
+	/** Contains a set of test classes defined by QTest_Helper.java. */
+	private final static Map<String, Class<? extends TestSuite>> testClassMap = 
+		new HashMap<String, Class<? extends TestSuite>>();
+	
+
+	/**
+	 * Constructor.
+	 *
+	 * @param s A QTestSuite object to be stored
+	 */
+	private static void initTestSuite( final TestSuite s ) {
+		testClassMap.put( s.getClass().getCanonicalName(), s );
+	}
+	
+
+	/**
+	 * Returns a specific test suite object stored by name.
+	 *
+	 * @param s  A QTestSuite object, which contains some
+	 * 			specific tests (example is EchoCommandHandler).
+	 *
+	 * @return TestSuite object stored in the given name.
+	 *          Returns null if the name is not found
+	 */
+	private static TestSuite getTestSuite( final String s ) {
+		final Class<? extends TestSuite> c = testClassMap.get( s );
+		return c == null? null : c.newInstance();
+	}
+            
+
+	/**
+	 * Calls the method to create server.
+	 */
+	@Test void createServer_01() {
+		new QuickServer();
+	}
+	
+
+	/**
+	 * Checks that QDB_Server has server port and a valid name.
+	 *
+	 * @since 1.3.5
+	 */
+	@Test void validateQueryServer_01() {
+		//Create server
+		final Server s = ClientFactoryPipe.createServer();
+
+		//Check the server
+		assertNotNull( s.factory().addServer( new Port( -1 ) ) );
+		assertNotNull( s.factory().addServer( new LocalPort( -1, 1 ) ) );
+		assertNotNull( s.factory().addServer( new Port( -1, 123 ) ) );
+		assertNotNull( s.factory().addServer( new Port( -1, 456 ) ) );
+
+		//Check the ports
+		assertEquals( 123, s.factory().getQueryPorts().size() );
+		assertEquals( 456, s.factory().getServerPorts().size() );
+		assertEquals( 1, s.factory().getNClientHandles() );
+		
+		//Validate that Q"
+61ae9d40-1e71-415f-b4af-4e27f074ca2e,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_8Test.java,25.231199979782104,stop,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Resume the service.
+     *
+     * @return true if service was resumed from suspended state.
+     * @since 1.2
+     */
+    public boolean resumeService();
+}
+","// QuickServer_8Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#resumeService()} method.
+*/
+class QuickServer_8Test {","// QuickServer_8Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#resumeService()} method.
+*/
+class QuickServer_8Test {
+private String testName;
+
+		QuickServer_8Test(String testName) {
+			this.testName = testName;
+		}
+
+		/**
+		 * Test whether service was resumed from suspended state.
+		 * @return true if service was resumed from suspended state.
+		*/
+		public boolean resumeService() {
+				this.testName = ""QUICKSERVER:"" + this.testName;
+			switch (this.testName) {
+			case ""resumeService"":
+				System.out.println(""Service was resumed from suspended state."");
+				return false;
+				break;
+			case ""ping"":
+				System.out.println(""ping: SUCCESS"");
+				break;
+			default:
+				break;
+			}
+			this.testName = ""QUICKSERVER:"" + this.testName;
+			return true;
+	}
+
+	/**
+	 * Test class for the {@link QuickServer}
+	 * {@link #QUICKSERVER(String)}.
+	 * @since 1.1
+	 */
+	public static class TestDriver implements Runnable {
+
+		/**
+		* The {@link QuickServer#QuickServer()} object
+		* @since 1.1
+		*/
+		public final QuickServer quickServer = QuickServer.this;
+
+		/**
+		* {@inheritDoc}
+		* @since 1.1
+		*/
+		public final void run() {
+			quickServer.ping();
+		}
+	}
+}
+"
+56bfe61b-9759-4e60-b5b4-ee6f8eb440fe,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_9Test.java,25.85369610786438,length,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Information about the service.
+     *
+     * @since 1.2
+     */
+    public String info();
+}
+","// QuickServer_9Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#info()} method.
+*/
+class QuickServer_9Test {","// QuickServer_9Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#info()} method.
+*/
+class QuickServer_9Test {
+
+	public static final String SERVICE = ""quick://server.QuickServer"";
+    /**
+     * Create a new instance of QuickServer.
+     * <ol>
+     * <li>It sets the default ports number, which is 4123</li>
+     * </ol>
+     */
+	public QuickServer()
+    throws AppException {
+		int port = 4123;
+    
+        try {
+			this.info();
+			System.out.println(SERVICE + "" created"");
+            java.io.File file = new java.io.File(""src/main/java/org/quickserver/net/server/"" + SERVICE + "".java"");
+            byte[] source = null;
+            FileInputStream fileinputStream = null;
+            try {
+                    fileinputStream = new FileInputStream(file);
+		    source = java.util.Arrays.copyOf(fileinputStream.readAllBytes(), fileinputStream.available());
+			System.out.println(""Source: "" + source.length);
+
+			this.configureServer(this.PORT, port, true);
+			//testClient();
+			//
+			//this.server.stop();
+			this.server = new QuickServer();
+			this.server.configure(fileinputStream,
+				this.PORT,
+				this.PORT,
+				true
+			);
+			this.server.start();
+		} catch(AppException e) {
+			e.printStackTrace();
+			System.err.println(""Server start failed: "" + e);
+		} catch(Exception e) {
+			e.printStackTrace();
+			System.err.println(""Server start failed: "" + e);
+		}
+	}
+	
+	//test Client
+	public void testClient()
+    throws AppException {
+    	//new ClientObjectHandler(0,0) does not work so we use the one from server.
+		Class<?> clientClass = this.server.getClass();
+		try {
+			//ClientData obj = (ClientData)clientClass.newInstance();
+			Socket serverSocket = new Socket(this.PORT, this.PORT);
+			sockReader = new SocketReader(serverSocket, 3, true, 102400);
+		
+			if(0 == sockReader.readObject(clientClass)) {
+				System.out.println(""Client created"");
+				System.out.println(""Client info: "" + this.server.info());
+			} //else {
+			//throw new Exception(""SockReader Exception"
+c947d1aa-eabe-4b66-b54e-364cb6a10c43,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_10Test.java,12.163660287857056,stop,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Returns an iterator containing all the
+     * {@link org.quickserver.net.server.ClientHandler} that
+     * are currently handling clients.
+     * It is recommended not to change the collection under an iterator.
+     *
+     * It is imperative that the user manually synchronize on the returned collection
+     * when iterating over it:
+     * <code><pre>
+     *    Eg:
+     *
+     * 	ClientData foundClientData = null;
+     * 	Object syncObj = quickserver.getClientIdentifier().getObjectToSynchronize();
+     * 	synchronized(syncObj) {
+     * 		Iterator iterator = quickserver.findAllClient();
+     * 		while(iterator.hasNext()) {
+     * 			foundClientHandler = (ClientHandler) iterator.next();
+     * 			....
+     * 		}
+     * 	}
+     *
+     * 	//OR
+     *
+     * 	ClientData foundClientData = null;
+     * 	ClientIdentifier clientIdentifier = quickserver.getClientIdentifier();
+     * 	synchronized(clientIdentifier.getObjectToSynchronize()) {
+     * 		Iterator iterator = clientIdentifier.findAllClient();
+     * 		while(iterator.hasNext()) {
+     * 			foundClientHandler = (ClientHandler) iterator.next();
+     * 			....
+     * 		}
+     * 	}
+     *    </code></pre>
+     *
+     * @since 1.3.1
+     */
+    public Iterator findAllClient();
+}
+","// QuickServer_10Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#findAllClient()} method.
+*/
+class QuickServer_10Test {","// QuickServer_10Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#findAllClient()} method.
+*/
+class QuickServer_10Test {
+ /**
+			*  Start new test server.
+			*
+			* @since 1.1.2
+			*/
+	public static void main(String []args) {
+        quickServer.quickserver.startServer();
+	}
+}
+"
+33cecb1e-0a77-423a-af75-d5b5a5e611ca,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_11Test.java,21.460628271102905,length,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Returns the <code>SSLContext</code> object that implements the specified
+     * secure socket protocol from Secure configuring.
+     *
+     * @see #loadSSLContext
+     * @param protocol the standard name of the requested protocol. If <code>null</code> will use the protocol set in secure configuration of the server.
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws KeyManagementException
+     * @since 1.4.0
+     */
+    public SSLContext getSSLContext(String protocol) throws IOException, NoSuchAlgorithmException, KeyManagementException;
+}
+","// QuickServer_11Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getSSLContext(String)} method.
+*/
+class QuickServer_11Test {","// QuickServer_11Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getSSLContext(String)} method.
+*/
+class QuickServer_11Test {
+private QuickServer quickServer;
+		private static SimpleSslContextFactory factory = new SimpleSslContextFactory(null, ""password"");
+		public static int sslPort = 0;
+		@Test
+	    public void test() throws IOException, NoSuchAlgorithmException, KeyManagementException{
+	        factory.setProvider(SSLFactory.PROVIDER_DESERIALIZED_SAME_DATA);
+            factory.setKeyManagerProperties(KeyManagerFactory.getDefaultAlgorithm(), ""password"");
+	    final String protocol = ""SSLv3"";
+	        SSLContext configContext = SSLContext.getInstance(protocol);
+	        configContext.start();
+			String protocolName = SSLSocketFactory.getSocketFactory().getDefaultProtocol();
+	        String protocolNameFinal = protocol;
+	        System.out.println(""Running protocol:"" + protocolName);
+			factory.setProtocols(Collections.singletonList(protocolName));
+			
+			// SSL parameters
+			System.out.println(""TLS enabled:""+getSSLContext(protocolName).getProperty(""sslContext.protocol"" ));
+	    
+			SSLContext sc = SSLContext.getDefault();
+			sc.init(null, null, null);
+
+			ClientChannel serverChannel = new DefaultSSLServerChannel();
+	        SecureChannelSelector channelSelector = new SecureChannelSelector() {
+	            public boolean accept(SocketChannel inboundChannel) {
+	                return inboundChannel.isConnected();
+	            }
+
+	        };
+
+	        ClientChannelListener clientListener = new ClientChannelListener();
+	        ServerChannel serverChannel2 = null;
+	        String hostname = ""localhost"";
+			try {
+				InetAddress[] addresses = InetAddress.getAllByName(hostname);
+				InetAddress addr = addresses[0];
+				String address = addr.getHostAddress();
+				if (AddressUtil.reverseIpPort(address)!= null) {
+					hostname = Address"
+ce2af398-983c-49c8-83ba-672891558fc4,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_12Test.java,21.415859937667847,length,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Returns a SSLSocketFactory object to be used for creating SSLSockets.
+     *
+     * @see #setSecure
+     * @param protocol the standard name of the requested protocol. If
+     * <code>null</code> will use the protocol set in secure configuration
+     * of the server.
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws KeyManagementException
+     * @since 1.4.0
+     */
+    public SSLSocketFactory getSSLSocketFactory(String protocol) throws IOException, NoSuchAlgorithmException, KeyManagementException;
+}
+","// QuickServer_12Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getSSLSocketFactory(String)} method.
+*/
+class QuickServer_12Test {","// QuickServer_12Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getSSLSocketFactory(String)} method.
+*/
+class QuickServer_12Test {
+
+    public void doTesting() {
+        String[] hosts = {""quickserver.chaos.com""};
+			SSLServer ssn = null;
+		
+		try {
+			ServerSocket ss = new ServerSocket(0);
+          for (int i=0; i<4; ++i) {
+            ssn = new SSServer(hosts[i], 80, 10);
+            ssn.start();
+            assertTrue(true);
+		}
+			ss.close();
+		} catch (SecurityException e) {
+			System.out.println(""Failed to connect to any port : "" + e);
+			e.printStackTrace(System.out);
+        }
+        try {
+          ssn = new SSServer(null, 8080, 10);
+		} catch(SocketException se) {
+			System.out.println(""The server didn't seem to start."");
+        }
+	}
+
+  
+    @Test
+    public void test_00() throws Exception {
+	File f1 = File.createTempFile(""quickserver.chaos.com"", ""server"", null);
+		f1.deleteOnExit();
+		f1.delete();
+			
+        new File(f1.getPath()).delete();
+        
+        // Start 4 servers. 
+		SSLServer ssn4 = SSLServer.createServer(f1, 80, 10, false);
+			SSLServer ssn6 = SSLServer.createServer(f1, 8080, 10, false);
+		SSLServer ssn32 = SSLServer.createServer(f1, 9090, 10, false);
+			SSLServer ssn64 = SSLServer.createServer(f1, 96990, 10, false);
+			SSLServer ssn1 = SSLServer.createServer(f1, 127100, 10, false);
+		SSLServer ssn2 = SSLServer.createServer(f1, 120000, 10, false);
+		"
+628711db-9017-4745-b1db-d8dfdfab5b0d,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/server/QuickServer_13Test.java,25.165544986724854,stop,"// QuickServer.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+
+/**
+ * Main class of QuickServer library. This class is used to create
+ * multi client servers quickly.
+ * <p>
+ * Ones a client is connected, it creates {@link ClientHandler} object,
+ * which is run using any thread available from the pool of threads
+ * maintained by {@link org.quickserver.util.pool.thread.ClientPool}, which
+ * handles the client. <br/>
+ * QuickServer divides the application logic of its developer over eight
+ * class, <br>
+ * 	<ul>
+ * 	<li>ClientEventHandler<br>
+ * 		   &nbsp;Handles client events [Optional Class].
+ * 		<li>ClientCommandHandler [#]<br>
+ * 		   &nbsp;Handles client character/string commands.
+ * 		<li>ClientObjectHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - Object commands.
+ * 	<li>ClientBinaryHandler [#]<br>
+ * 		   &nbsp;Handles client interaction - binary data.
+ * 	<li>ClientWriteHandler [Optional Class]<br>
+ * 		   &nbsp;Handles client interaction - writing data (Only used in non-blocking mode).
+ * 		<li>ClientAuthenticationHandler [Optional Class]<br>
+ * 			&nbsp;Used to Authencatet a client.
+ * 		<li>ClientData [Optional Class]<br>
+ * 			&nbsp;Client data carrier (support class)
+ * 	<li>ClientExtendedEventHandler [Optional Class]<br>
+ * 		   &nbsp;Handles extended client events.
+ * 	</ul>
+ *
+ * [#] = Any one of these have to be set based on default DataMode for input.
+ * The default DataMode for input is String so if not changes you will
+ * have to set ClientCommandHandler.
+ * </p>
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * package echoserver;
+ *
+ * import org.quickserver.net.*;
+ * import org.quickserver.net.server.*;
+ *
+ * import java.io.*;
+ *
+ * public class EchoServer {
+ * 	public static void main(String args[])	{
+ * 		String cmdHandle = ""echoserver.EchoCommandHandler"";
+ *
+ * 		QuickServer myServer = new QuickServer();
+ * 		myServer.setClientCommandHandler(cmdHandle);
+ * 		myServer.setPort(4123);
+ * 		myServer.setName(Echo Server v1.0"");
+ * 		try {
+ * 			myServer.startServer();
+ * 		} catch(AppException e) {
+ * 			System.err.println(""Error in server : ""+e);
+ * 			e.printStackTrace();
+ * 		}
+ * 	}
+ * }
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @version 1.4.8
+ * @author Akshathkumar Shetty
+ */
+public class QuickServer implements Runnable, Service, Cloneable, Serializable {
+
+    /**
+     * Returns PID of the JVM
+     *
+     * @return PID of the JVM
+     * @since 1.4.8
+     */
+    public static String getPID();
+}
+","// QuickServer_13Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getPID()} method.
+*/
+class QuickServer_13Test {","// QuickServer_13Test.java
+package org.quickserver.net.server;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.net.*;
+import org.quickserver.net.*;
+//v1.1
+import org.quickserver.net.qsadmin.*;
+//v1.2
+import java.util.logging.*;
+//v1.3
+import org.quickserver.util.pool.*;
+import org.quickserver.util.pool.thread.*;
+import org.apache.commons.pool.*;
+import org.quickserver.util.xmlreader.*;
+import org.quickserver.sql.*;
+//v1.3.1
+import java.util.logging.Formatter;
+import java.util.*;
+//v1.3.2
+import org.quickserver.util.*;
+//v1.3.3
+import org.quickserver.security.*;
+//v1.4.0
+import javax.net.ssl.*;
+import javax.net.*;
+import java.security.*;
+import java.security.cert.*;
+//v1.4.5
+import java.nio.channels.*;
+import org.quickserver.net.server.impl.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QuickServer}.
+* It contains one unit test case for the {@link QuickServer#getPID()} method.
+*/
+class QuickServer_13Test {
+public static void main(String args[]) {
+			Runnable rq=QuickServer_13Test.new Server();
+
+		} // end of String-Test
+} // end of class QuickServer_13Test
+
+"
+fb9ba592-dad7-4deb-a50b-0c1e8ad9ee6d,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/net/qsadmin/QSAdminAPI.java,58.068859338760376,length,"// QSAdminAPI.java
+package org.quickserver.net.qsadmin;
+
+import java.io.*;
+import java.net.*;
+import java.util.logging.*;
+
+/**
+ * QSAdminAPI class to communicate to QsAdmin from java applications.
+ * <p>
+ *  Eg:
+ * <code><BLOCKQUOTE><pre>
+ * 	QSAdminAPI qsAdminApi = new QSAdminAPI(""127.0.0.1"", 9080);
+ * 	if(qsAdminApi.logon()) {
+ * 		System.out.println(""Logged in"");
+ * 		String info = qsAdminApi.sendCommand(""info server"");
+ * 		System.out.println(""Info on Server :\n""+info);
+ * 		qsAdminApi.logoff();
+ * 	} else {
+ * 		System.out.println(""Bad Login"");
+ * 		qsAdminApi.close();
+ * 	}
+ * </pre></BLOCKQUOTE></code></p>
+ *
+ * @see QSAdminServer
+ * @since 1.4
+ * @author Akshathkumar Shetty
+ */
+public class QSAdminAPI {
+
+    /**
+     * Will attempt to connect and logon to the remote QsAdminServer.
+     */
+    public boolean logon() throws IOException;
+}
+","// QSAdminAPITest.java
+package org.quickserver.net.qsadmin;
+
+import java.io.*;
+import java.net.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QSAdminAPI}.
+* It contains one unit test case for the {@link QSAdminAPI#logon()} method.
+*/
+class QSAdminAPITest {","// QSAdminAPITest.java
+package org.quickserver.net.qsadmin;
+
+import java.io.*;
+import java.net.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link QSAdminAPI}.
+* It contains one unit test case for the {@link QSAdminAPI#logon()} method.
+*/
+class QSAdminAPITest {
+
+	/**
+	 * Constructor for Test.
+	 * @param logindata  Remote QSAdmin Server information.
+	 */
+	public QSAdminAPITest(String[] logindata) {
+		//log.logAccess(""Test: Remote server information : "");
+	}
+
+	@Test
+	public void testLogon() {
+        final String[] logindata = {""127.0.0.1:9080"", ""127.0.0.1:9090""};
+		final boolean result = logon(logindata);
+		assertTrue(result);
+	}
+	
+	/**
+	 * Tests communication by calling two methods of {@link QSAdminAPI}.
+	 * Calling on the first method will login the given server if one is connected.
+	 * If one fails, just logging that the server is not available.
+	 * @param logindata List of strings
+	 * @return boolean true if server is available and logged in
+	 */
+	private boolean logon(String[] logindata) {
+		log.logAccess(""Testing logon from QsAdmin API at "");
+		boolean result = true;
+		String info = """";
+		try {
+			if(logindata == null) {
+				log.logAccess(""Exception, trying to connect. Please check if Qs admin server is online."");
+				log.logAccess(""Server information was null. The last known information was : \n"");
+				for(int i = 0; i < logindata.length;i++) {
+					log.logAccess(""Server information :   "");
+					log.logAccess(logindata[i]);
+				}
+				log.logAccess(""End of the log information. Trying second log in..."");
+				result = login(logindata);
+				log.logAccess(""Server information :   "");
+			} else {
+				log.logAccess(""Server information :   "");
+				log.logAccess(logindata);
+				result = login(logindata);
+			}
+			log.logAccess(""End of logging. "");
+			if(!result) {
+				log.logAccess(""Failed to login"");
+			} else {
+				log.logAccess(""Logged in"");
+			}
+		} catch (Exception x) {
+			log.logAccess(""Exception: "" + x.getMessage());
+			log.logAccess(""End of running test"");
+		}
+		return result;
+	} 
+	
+	/**
+	 * Tests communication by connecting to remote QsAdminServer.
+	 * @param logindata List of strings
+	 * @throws java.net.UnknownHostException 
+	 */
+	private void login(String[] logindata) throws UnknownHostException {
+		try {
+			InetAddress addr = InetAddress.getByName(""127.0.0.1"");
+			InetSocketAddress sockaddr = new InetSocketAddress(addr, 9080);
+			Socket socket = new Socket(sockaddr);
+			socket.setSoTimeout(60000);
+			OutputStreamWriter wr = new OutputStreamWriter(socket.getOutputStream());
+			writer = wr;
+			InputStreamReader rr = new InputStreamReader(socket.getInputStream());
+			reader = rr;
+			
+			String line = """";
+			writer.write(""login"");
+			while (!reader.ready()) {
+				try {
+					line = reader.readLine();
+				} catch (IOException e) {}
+			}
+			writer.write("" "");
+			writer.write(logindata[0]);
+			writer.write("" "");
+			writer.write(logindata[1]);
+
+			writer.flush();
+			reader.readLine();
+			writer.write(""quit\n"");
+
+			writer.flush();
+			reader.readLine();
+			reader.readLine();
+			reader.readLine();
+			reader.flush();
+			reader.readLine();
+			writer.write(""quit\n"");
+			while (!reader.ready()) {
+				try {
+					line = reader.readLine();
+				} catch (IOException e) {}
+			}
+			writer.write(line);
+			writer.flush();
+			reader.readLine();
+			writer.write(""quit\n"");
+
+			writer.flush();
+			reader.readLine();
+			reader.readLine();
+			reader.readLine();
+			reader.readLine();
+			reader.flush();
+			writer.write(""quit\n"");
+		} catch (IOException e) {
+			writer.close();
+			reader.close();
+			socket.close();
+			log.logAccess(""Test: exception : "" + e.getMessage());
+			log.logAccess(""Logging failed."");
+		}
+	}
+	
+	private Socket socket;
+	private final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
+	private final InputStreamReader reader = new InputStreamReader(socket.getInputStream());
+	private PrintWriter writerOut;
+	private PrintWriter readerOut;
+
+	private PrintWriter writer2;
+	private PrintWriter reader2;
+	private boolean isTryingServer;
+
+	private boolean reader2IsFull;
+	private boolean writer2IsFull;
+
+	private boolean isClosed;
+
+	private boolean isStopped;
+
+	private Thread readerThread;	
+	private Thread writerThread;
+
+	private boolean isServerConnected;
+	
+	
+	
+	private static final Log log = LogFactory.getLog(""QSAdmin API Test"");
+	/*
+	 * (non-Javadoc)
+	 * @see junit.framework.TestCase#setUp()
+	 */
+	protected void setUp() throws Exception {
+		log.logAccess(""Starting QsAdmin API test : "");
+
+ 		writerOut = new PrintWriter(writer, true);
+		readerOut = new PrintWriter(reader, true);
+
+		readerThread = new Thread(new Runnable() {
+			public void run() {
+				readerOut.write(""ping\n"");
+			}
+		});
+		readerThread.setDaemon(true);
+		readerThread.start();
+	
+		writerThread = new Thread(new Runnable() {
+			public void run() {
+				writerOut.write(""pong\n"");
+			}
+		});
+		writerThread.setDaemon(true);
+		writerThread.start();
+
+		log.logAccess(""Starting a thread to keep the connection while logging in... "");
+
+		isTryingServer = true;
+		while(isTryingServer) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				Assert.fail(""Timed out. Is QsAdmin server not online?"");
+			}
+			log.logAccess(""Trying to connect to QsAdmin server from thread : "");
+			if(isServerConnected) {
+				isServerConnected = send"
+e296b72b-9b58-4f9b-ba48-2ab22cfe2a58,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/util/io/PasswordField_0Test.java,56.21799612045288,stop,"// PasswordField.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
+
+/**
+ * This class prompts the user for a password and attempts to mask
+ * input.
+ *
+ * @since 1.4
+ */
+public class PasswordField {
+
+    /**
+     * @param prompt The prompt to display to the user.
+     * @return The password as entered by the user.
+     */
+    public static final char[] getPassword(String prompt) throws IOException;
+}
+","// PasswordField_0Test.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PasswordField}.
+* It contains one unit test case for the {@link PasswordField#getPassword(String)} method.
+*/
+class PasswordField_0Test {","// PasswordField_0Test.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PasswordField}.
+* It contains one unit test case for the {@link PasswordField#getPassword(String)} method.
+*/
+class PasswordField_0Test {
+class PasswordTestCase {
+			String value;
+
+			PasswordTestCase() { value = null; }
+
+			PasswordTestCase(String value) { this.value = value; }
+		}
+
+		private static char[] getPassword(String prompt) throws IOException {
+			Writer pwFile = null;
+			StringWriter pswFile = null;
+			try {
+				pwFile = new StringWriter();
+				pswFile = new StringWriter();
+				BufferedReader pRead = new BufferedReader(new InputStreamReader(
+						new InputStreamReader(System.in), ""UTF-8""));
+				pRead.readLine(); // Skip user interface input
+				// This call takes some time.
+				int lineNum = 0;
+				while(true) {
+					try {
+						passwordTestReceiveFromServer(pwFile, pswFile);
+						pRead.readLine();
+					} catch(NoSuchAlgorithmException nsae) {
+	//			    	    System.out.println(""Caught NoSuchAlgorithmException!"");
+						continue;
+					} catch (IOException ioex) {
+						throw new IOException(ioex.getMessage());
+					}
+					lineNum++;
+					assertTrue(""Server did not echo 'Password: "" + lineNum + ""'!"",
+							lineNum == 1);
+					if (System.lineSeparator() == 0) break;
+				} // loop
+				pRead.close();
+				return pRead.toString().toCharArray();
+			} finally {
+				pRead.close();
+				pwFile.close();
+			} // finally
+		}
+
+		private static void passwordTestReceiveFromServer(final Writer pwFile,
+				final StringWriter pswFile) throws IOException {
+				try {
+					int userInputCnt = 0;
+					char[] passwdArray = getPassword(prompt);
+					final char lastCharWas = passwdArray[passwdArray.length-1];
+					while((userInputCnt < 3) || (userInputCnt > 3 && lastCharWas!= 'S')) {
+						int cnt = 0;
+						String inputString = KeyboardFocusManager.getCurrentKeyboard().getSystemSelection().replace(""\t\u2000"", ""\\t"").replace("""" +
+								'\n', '\\n');
+						inputString = getSeparator(inputString, lastCharWas, ""("" + String.valueOf(cnt) + ')', cnt);
+						inputString = getSeparator(inputString, lastCharWas, ""("" + String.valueOf(cnt) + "")"");
+						inputString = getSeparator(inputString, lastCharWas, ""\\n"", cnt);
+						System.out.write(passwdArray, 0, passwordArray.length);
+						System.out.write(userInputCnt == 3? ""\n"": "";-""); // if user input == 3, it writes to pswFile, which is '\n' by default.
+						pwFile.write(inputString);
+						pwFile.write('\n');
+						pwFile.write(lastCharWas + "": password = "");
+						pwFile.write(createPasswordFromCharArray(passwdArray, cnt));
+						int cntX = String.valueOf(cnt).indexOf("" "");
+						if (cntX!= -1)
+							cnt = 0;
+						userInputCnt++;
+						if (cnt >= 3) break; // exit loop if possible
+						System.out.write(passwdArray, 0, passwdArray.length);
+						System.out.write(lastCharWas + "": ("") + userInputCnt + "" < "");
+					}
+				} catch(IOException ioex) {
+					throw new IOException(""Caught IOException!"", ioex);
+				}
+		} // testReceiveFromServer()
+
+		private static String createPasswordFromCharArray(char[] charArray, int i) {
+			int charCnt = charArray.length;
+			int passwordLen = i + (charCnt - 1) / 2; // 1st line plus one character for '\0'
+			if (passwordLen > 30) passwordLen = 30; // max allowed
+			final char[] password = new char[passwordLen];
+			System.arraycopy(charArray, 0, password, 0, i);
+			for(int k = i ; k < passwordLen ; k++) {
+				char c = (char)charArray[k];
+				password[k-i] = '""';
+				password[k-i+1] = c;
+				password[k-i+2] = '""';
+			}
+			return new String(password);
+		} // passwordFromCharArray()
+	} // class PasswordField_0Test
+"
+8ad4ed47-6075-46c9-a110-3a276ad38109,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/util/io/PasswordField_1Test.java,40.05661416053772,stop,"// PasswordField.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
+
+/**
+ * This class prompts the user for a password and attempts to mask
+ * input.
+ *
+ * @since 1.4
+ */
+public class PasswordField {
+
+    /**
+     * @param in input stream to be used (e.g. System.in)
+     * @param prompt The prompt to display to the user.
+     * @return The password as entered by the user.
+     */
+    public static final char[] getPassword(InputStream in, String prompt) throws IOException;
+}
+","// PasswordField_1Test.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PasswordField}.
+* It contains one unit test case for the {@link PasswordField#getPassword(InputStream, String)} method.
+*/
+class PasswordField_1Test {","// PasswordField_1Test.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PasswordField}.
+* It contains one unit test case for the {@link PasswordField#getPassword(InputStream, String)} method.
+*/
+class PasswordField_1Test {
+public String[] parameters;
+		public static String message = ""passwordfield.test"";
+
+		/**
+	 * Constructor passwordfield.test.
+	 */
+		public PasswordField_1Test() {
+			parameters = new String[]{""-password\""/some/password\""\"" --input \""some/password1\"" \""some/password2\"""",
+					""-password \""/some/password\""  --input \""some\n/password1\""  \""some\n/password2\"""",
+					""-password \""/some/password\""  \""some/password3\""  \""some\n/password4\""""};
+		}
+
+	/**
+	 * Test method for {@link PasswordField#getPassword(InputStream, String)}.
+	 * It calls the constructor with the given parameters of {@link PasswordField} object and
+	 * verifies the call to the method against the value returned by {@link PasswordField} object.
+	*/
+	@Test
+		public void testGetPassword(InputStream... in) throws IOException {
+			// System.out.println(message);
+			passwordfield.getPassword(in, message);
+			for(int i = 0; i < in.length - 1; i++) {
+				passwordfield.getPassword(in[i], message);
+			}
+			in[in.length - 1].close();
+		}
+
+	/**
+	 * Test method for {@link PasswordField#getPassword(InputStream, String)}.
+	 * It checks the call without any argument, which verifies the call to the method against the
+	 * method with the given argument and verifies any of the methods with the same argument return
+	 * the correct information and is not an error.
+	*/
+	@Test
+		public void testGetPasswordNoPasswordArg(InputStream... in) throws IOException {
+			PasswordField object = new PasswordField();
+			assertEquals(object.getPassword(in[0], """"), passwordfield.getPassword(in[0], """"));
+			assertEquals(object.getPassword(in[0], object.parameters[0]), passwordfield.getPassword(in[0], object.parameters[0]));
+		}
+}
+"
+f8d93e51-5758-4bc3-8fc0-01e03d1f3f1d,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/util/io/ByteBufferInputStream.java,60.011136054992676,stop,"// ByteBufferInputStream.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
+import java.util.*;
+import org.quickserver.net.server.ClientHandler;
+import java.util.logging.*;
+import org.quickserver.util.*;
+
+/**
+ * This is an InputStream constructed from list of ByteBuffers. This is
+ * used in non-blocking mode.
+ *
+ * @since 1.4.5
+ * @author Akshathkumar Shetty
+ */
+public class ByteBufferInputStream extends InputStream {
+
+    /**
+     * Reads a line of String if ready. If line is not yet ready this will
+     * block. To find out if the line is ready use <code>isLineReady()</code>
+     *
+     * @see #isLineReady()
+     */
+    public synchronized String readLine() throws IOException;
+}
+","// ByteBufferInputStreamTest.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
+import java.util.*;
+import org.quickserver.net.server.ClientHandler;
+import java.util.logging.*;
+import org.quickserver.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ByteBufferInputStream}.
+* It contains one unit test case for the {@link ByteBufferInputStream#readLine()} method.
+*/
+class ByteBufferInputStreamTest {","// ByteBufferInputStreamTest.java
+package org.quickserver.util.io;
+
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
+import java.util.*;
+import org.quickserver.net.server.ClientHandler;
+import java.util.logging.*;
+import org.quickserver.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ByteBufferInputStream}.
+* It contains one unit test case for the {@link ByteBufferInputStream#readLine()} method.
+*/
+class ByteBufferInputStreamTest {
+private static final Logger log = LogManager.getLogger(
+			""com.jtransc.javanet.Transcoder"");
+			private static final Logger errorLog =
+				LogManager.getLogger(""com.jtransc.javanet.errorlog"");
+
+	// test cases
+	private StringBuffer bb;
+		private ClientHandler ch;
+	private InputStream is;
+	// constructor
+		
+	// constructor
+		
+	// instance methods
+	@Test
+	public void testReadLine() throws IOException {
+		bb = new StringBuffer();
+        // start by writing a newline character
+        bb.append('\n').append(0);
+		ch.sendString(bb.toString());
+        // wait for connection to be up
+        int count = 10;
+        while (is.available() > 0 && count > 0) {
+            count--;
+            Thread.sleep(30);
+		}
+		// assert number of bytes read (including newline) is the expected read
+        assertTrue(is.available() == 0);
+		assertEquals(bb.toString(), readLine());
+    }
+
+	@Test
+	public void testReadLine_Non_blocking() throws IOException {
+		is = new ByteBufferInputStream();
+		is.start();
+		assertFalse(is.isConnectionLost());
+		assertTrue(bb.length() > 0);
+		String s = readLine();
+    }
+	
+
+	@Test
+	public void testReadLine_Unbuffered() throws IOException {
+		is = new ByteBufferInputStream();
+		log.info(""Unbuffered case."");
+		bb = new StringBuffer();
+		ch.sendString(bb.toString());
+		is.close();
+		assertTrue(bb.length() == 0);
+		String s = readLine();
+    }
+	/**
+	* test of the constructor.
+	*/
+	@Test
+	public void testConstructor() throws IOException {
+		ch = new ClientHandler(""localhost"", 80, true, ""0"", null);
+		ch.setSocketTimeout(3 * 1000);
+	// test constructor
+	}
+    
+
+	@Test
+	public void testStopRead() throws IOException {
+		ch.sendString(""test"");
+		is.join(5000);
+		String s = readLine(); assertEquals(""test"", s);
+		ch.close();
+		// wait for close
+		Thread.sleep(100);
+	}
+
+	/*
+	 * test of <code>read(ByteBuffer)</code> method in blocking mode.
+	*/
+	@Test
+	public void testReadWithByteBuffer() throws IOException {
+
+		is = new ByteBufferInputStream();
+        // send string to server
+        bb = new StringBuffer(12);
+		bb.append((char) 'A');
+		bb.append((char) 'B');
+		bb.append((char) 'C');
+		bb.append((char) 'D');
+		bb.append((char) 'E');
+		bb.append((char) 'F');
+		bb.append((char) 'G');
+		ch.sendString(bb.toString());
+        // send ack with bytes
+		is.start();
+		ch.sendString(ByteBuffer.wrap(1));
+        // wait for connection to be ready
+	  int count = 10;
+	  int bytes = 0;
+	  while (is.available() > 0 && bytes < 12) {
+	    bytes += 10;
+	    Thread.sleep(30);
+	    count--;
+	  }
+
+
+	  if (is.isConnectionLost()) {
+	    throw new IllegalStateException(""Server did not send bytes in time"");
+	  }
+	  assertTrue(""Number of bytes read is not equal to 12"", count == 12);
+	  assertEquals(12, bytes);
+
+		// make sure read method works by getting the byte buffer as a result
+		byte[] b = new byte[12];
+		is.read(b);
+		is.close();
+		ch.close();
+	}
+}
+"
+d5b253c1-85f6-4b62-b18c-cf6761eb532e,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/util/ClassUtil.java,48.50597262382507,stop,"// ClassUtil.java
+package org.quickserver.util;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.quickserver.util.io.*;
+import java.util.logging.*;
+
+/**
+ * A utility class to load class.
+ *
+ * @author Akshathkumar Shetty
+ * @since 1.3.2
+ */
+public class ClassUtil {
+
+    /**
+     * Returns the ClassLoader to all the jars present in the
+     * dir passed has first parameter.
+     *
+     * @param jarDir path to the directory containing the jars
+     */
+    public static ClassLoader getClassLoaderFromJars(String jarDir) throws Exception;
+}
+","// ClassUtilTest.java
+package org.quickserver.util;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.quickserver.util.io.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClassUtil}.
+* It contains one unit test case for the {@link ClassUtil#getClassLoaderFromJars(String)} method.
+*/
+class ClassUtilTest {","// ClassUtilTest.java
+package org.quickserver.util;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.quickserver.util.io.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClassUtil}.
+* It contains one unit test case for the {@link ClassUtil#getClassLoaderFromJars(String)} method.
+*/
+class ClassUtilTest {
+
+// ClassUtilTest.java
+    @Test
+    public void testGetClassLoaderFromJars() throws Exception {
+        List<File> jarsFileList = new ArrayList<File>();		
+		jarsFileList.add(new File(""../../src/testdata/quickserver/resources/jars.txt""));		
+		assertEquals(getClassLoaderFromJars("".""), ClassUtil.getClassLoaderFromJars(jarsFileList));
+	}
+    
+// ClassUtilUtilityTest.java
+    @Test
+    public void testClassUtils() {
+        List<String> expectedList = (new ArrayList<String>() {
+                {
+                        add(""java.io.InputStream"");
+                        add(""java.io.Writer"");
+                        add(""org.quickserver.util.io"");
+                        add(""io.IO"");
+                }
+            });
+        assertEquals(expectedList, ClassUtil.getClassUtils().getClasses());
+    }
+
+// ClassUtilTest-sourceUnitTests.java
+    @Test
+    public void testJavaFiles() {
+        List<String> expectedList = (new ArrayList<String>());
+        expectedList.add(""org.quickserver.util.io"");
+
+        expectedList = (expectedList.isEmpty()? new ArrayList<String>() {{ append(
+                ""java.lang.File""); }}) : expectedList.retainAll(Arrays.asList(""java.lang.IOException""));
+        System.out.println(""expectedList:""+expectedList);
+        assertEquals(expectedList, ClassUtil.getClassUtils().getFiles());
+    }
+
+    @Test
+    public void testJavaUrls() {
+        List<String> expectedList = (new ArrayList<String>() {
+                {
+                    add(""java.net""); add(""java.net.URL""); add(""java.net.URI"");
+                }
+            } );
+        System.out.println(""expectedList:""+expectedList);
+        assertEquals(expectedList, ClassUtil.getClassUtils().getUrls()); // The code at least tested is a java.net.URL.
+    }
+}
+
+//ClassUtilTest-sourceUnitTests.java
+    @Test
+    public void testJarUtils() {
+        List<String> expectedList = (new ArrayList<String>() {
+                {
+                    add(""java.util.jar""); add(""java.io.InputStream""); add(""java.io.Writer""); add(""org.quickserver.util.io"");
+                    add(""io.IO"");
+                }
+            } );
+        System.out.println(""expectedList:""+expectedList);
+        assertEquals(expectedList, ClassUtil.getClassUtils().getExtensions("".jar""));
+    }
+
+    @Test
+    public void testJarUrls() {
+        List<String> expectedList = (new ArrayList<String>() {
+                {
+                    add(""java.jar""); add(""java.io.InputStream""); add(""java.io.Writer""); add(""org.quickserver.util.io"");
+                    add(""io.IO"");
+                }
+            } );
+        System.out.println(""expectedList:""+expectedList);
+        assertEquals(expectedList, ClassUtil.getClassUtils().getUrls());
+    }
+
+// ClassUtilTest-sourceUnitTests.java
+    @Test
+    public void testUrlUtils() {
+        List<String> expectedList = (new ArrayList<String>() {
+                {
+                    add(""org.quickserver.util.io""); add(""org.quickserver.util.IO"");
+                    add(""org.quickserver.util.net.URL""); add(""java.net.URI"");
+
+                    add(""java.io.InputStream""); add(""java.io.Writer""); add(""org.quickserver.util.io"");
+                }
+            } );
+        System.out.println(""expectedList:""+expectedList);
+        assertEquals(expectedList, ClassUtil.getClassUtils().getExtensions("".uri""));
+    }
+}
+"
+249731a8-50d8-4114-8e21-ad156e3fa037,/EvoSuiteBenchmark/original/93_quickserver/src/main/java/org/quickserver/util/pool/thread/ClientPool.java,61.347389936447144,stop,"// ClientPool.java
+package org.quickserver.util.pool.thread;
+
+import java.util.*;
+import org.quickserver.util.pool.*;
+import org.apache.commons.pool.*;
+import org.quickserver.net.server.*;
+import org.quickserver.util.xmlreader.PoolConfig;
+import java.util.logging.*;
+
+/**
+ * This is a class for managing the pool of threads for
+ * handling clients.
+ *
+ * @author Akshathkumar Shetty
+ * @since 1.3
+ */
+public class ClientPool {
+
+    /**
+     * Method to suggest if nio write should be sent for processing.
+     *
+     * @since 1.4.6
+     */
+    public boolean shouldNioWriteHappen();
+}
+","// ClientPoolTest.java
+package org.quickserver.util.pool.thread;
+
+import java.util.*;
+import org.quickserver.util.pool.*;
+import org.apache.commons.pool.*;
+import org.quickserver.net.server.*;
+import org.quickserver.util.xmlreader.PoolConfig;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientPool}.
+* It contains one unit test case for the {@link ClientPool#shouldNioWriteHappen()} method.
+*/
+class ClientPoolTest {","// ClientPoolTest.java
+package org.quickserver.util.pool.thread;
+
+import java.util.*;
+import org.quickserver.util.pool.*;
+import org.apache.commons.pool.*;
+import org.quickserver.net.server.*;
+import org.quickserver.util.xmlreader.PoolConfig;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClientPool}.
+* It contains one unit test case for the {@link ClientPool#shouldNioWriteHappen()} method.
+*/
+class ClientPoolTest {
+
+    // Class under test
+    private Pool<List<String>> clientPool = new ClientPool<List<String>>();
+
+    /**
+	 * This method tests {@link ClientPool#shouldNioWriteHappen()} method for each
+	 * of the following cases :
+    * case 1, -: client can't nio write data
+    * case 2, :: client can't send nio write data
+    * case 3, <: allocating a new client would exceed allocated size
+    * case 4, >: the client pool is exhausted
+    * case 5, the client pool is full
+    *
+	 */
+
+    @Test
+    void test1() {
+        List<String> clientList = new ArrayList<String>();
+        clientList.add(""Client 1"");
+        clientList.add(""Client 2"");
+        clientList.add(""Client 3"");
+        clientPool.put(clientList); // Client 1
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+
+    @Test
+    void test2() {
+        clientPool.put(""1"", ""Client 1"");
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+    
+    @Test
+    void test3() {
+        clientPool.put(""1"", ""Client 2"");
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+
+    @Test
+    void test4() {
+        List<String> clientList = new ArrayList<String>();
+        clientList.add(""1"");
+        clientList.add(""Client 2"");
+        clientList.add(""2"");
+        clientPool.put(clientList); // Client 2
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+
+    @Test
+    void test5() {
+        clientPool.put(""1"", ""Client 2"");
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+
+    @Test
+    void test6() {
+        clientPool.put(""1"", ""Client 2"");
+        clientPool.put(""1"", ""Client 3"");
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+
+    @Test
+    void test7() {
+        List<String> clientList = new ArrayList<String>();
+        clientList.add(""1"");
+        clientList.add(""Client 3"");
+        clientList.add(""2"");
+        clientPool.put(clientList); // Client 3
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+
+    @Test
+    void test8() {
+        clientPool.put(""1"", ""Client 3"");
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+    
+	@Test
+    void test9() {
+        int size = clientPool.getPool().size();
+        clientPool.put(""1"", ""Client 3"");
+        assertTrue(clientPool.shouldNioWriteHappen());
+        clientPool.put(""1"", ""Client 2"");
+        assertTrue(clientPool.shouldNioWriteHappen());
+    }
+}
+
+"

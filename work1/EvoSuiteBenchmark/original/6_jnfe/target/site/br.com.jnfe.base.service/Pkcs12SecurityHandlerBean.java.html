@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Pkcs12SecurityHandlerBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">br.com.jnfe.base.service</a> &gt; <span class="el_source">Pkcs12SecurityHandlerBean.java</span></div><h1>Pkcs12SecurityHandlerBean.java</h1><pre class="source lang-java linenums">/* Copyright 2005 I Serv Consultoria Empresarial Ltda.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package br.com.jnfe.base.service;
+
+import java.io.FileNotFoundException;
+import java.security.KeyStore;
+import java.security.KeyStore.PrivateKeyEntry;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.X509Certificate;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+
+/**
+ * Uma inst�ncia de &lt;code&gt;SecurityHandler&lt;/code&gt; que utiliza propriedades
+ * pr�-configuradas.
+ * 
+ * &lt;p&gt;
+ * A responsablidade deste bean � extrair o certificado e a chave particular de um 
+ * armaz�m tipo pkcs12 definido atrav�s de {@link #getLocation()} e repass�-los ao callback
+ * recebido na chamada do m�todo {@link #handle(Element, Element, SecurityCallBack)}.
+ * &lt;/p&gt;
+ * 
+ * @author Mauricio Fernandes de Castro
+ */
+public class Pkcs12SecurityHandlerBean extends AbstractSecurityHandlerBean {
+
+	/**
+	 * Construtor vazio.
+	 */
+<span class="nc" id="L48">	public Pkcs12SecurityHandlerBean() {</span>
+<span class="nc" id="L49">	}</span>
+
+	/**
+	 * Construtor.
+	 * 
+	 * @param alias
+	 * @param password
+	 */
+<span class="nc" id="L57">	public Pkcs12SecurityHandlerBean(String alias, String password) {</span>
+<span class="nc" id="L58">		this.alias = alias;</span>
+<span class="nc" id="L59">		this.password = password.toCharArray();</span>
+<span class="nc" id="L60">	}</span>
+
+	public void handle(Element sourceElement, Element elementToSign, SecurityCallBack action) {
+		try {
+<span class="nc" id="L64">			KeyStore.PrivateKeyEntry pkEntry = unlockPkEntry();</span>
+<span class="nc" id="L65">			PrivateKey privateKey = pkEntry.getPrivateKey(); //(PrivateKey) getKeyStore().getKey(alias, password);</span>
+<span class="nc" id="L66">			java.security.cert.Certificate certificate = pkEntry.getCertificate();</span>
+<span class="nc" id="L67">			action.doInSecurityContext(sourceElement, elementToSign, certificate, privateKey);</span>
+<span class="nc" id="L68">		} catch (Exception e) {</span>
+<span class="nc" id="L69">			throw new IllegalArgumentException(&quot;Imposs�vel recuperar credenciais&quot;, e);</span>
+<span class="nc" id="L70">		}</span>
+<span class="nc" id="L71">	}</span>
+	
+	/**
+	 * Conveniente para recuperar certificado.
+	 * 
+	 * @throws KeyStoreException 
+	 * @throws UnrecoverableEntryException 
+	 * @throws NoSuchAlgorithmException 
+	 */
+	public X509Certificate getCertificate() throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException {
+<span class="nc" id="L81">		return (X509Certificate) unlockPkEntry().getCertificate();</span>
+	}
+	
+	/**
+	 * Conveniente para desbloquear o chave particular.
+	 * 
+	 * @throws KeyStoreException 
+	 * @throws UnrecoverableEntryException 
+	 * @throws NoSuchAlgorithmException 
+	 */
+	private KeyStore.PrivateKeyEntry unlockPkEntry() throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException {
+<span class="nc" id="L92">		KeyStore keystore = getKeyStore();</span>
+<span class="nc" id="L93">		logger.debug(&quot;Pronto para recuperar a entrada {} no aramz�m '{}'.&quot;, keystore, alias);</span>
+<span class="nc" id="L94">		KeyStore.PrivateKeyEntry pkEntry = (PrivateKeyEntry) keystore.getEntry(alias, new KeyStore.PasswordProtection(password));</span>
+<span class="nc" id="L95">		logger.debug(&quot;Recuperada a entrada usando o alias: '{}'.&quot;, alias);</span>
+<span class="nc" id="L96">		return pkEntry;</span>
+	}
+	
+	/**
+	 * Assegura valores padr�o para apelido e senha antes de abrir o armaz�m.
+	 */
+	public void afterPropertiesSet() throws Exception {
+<span class="nc bnc" id="L103" title="All 4 branches missed.">		if (alias != null &amp;&amp; !alias.isEmpty()) {</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">			if (password != null &amp;&amp; password.length&gt;0) {</span>
+<span class="nc" id="L105">				loadKeyStore();</span>
+			}
+			else {
+<span class="nc" id="L108">				logger.warn(&quot;Senha n�o inicializada, armaz�m n�o ser� aberto agora.&quot;);</span>
+			}
+		}
+		else {
+<span class="nc" id="L112">			logger.warn(&quot;Alias (apelido) n�o inicializado, armaz�m n�o ser� aberto agora.&quot;);</span>
+		}
+<span class="nc" id="L114">	}</span>
+	
+	/**
+	 * Abre o armazem usando valores definidos pelas propriedades deste bean.
+	 * 
+	 */
+	public void loadKeyStore() {
+		try {
+<span class="nc" id="L122">			KeyStore ksKeys = KeyStore.getInstance(&quot;PKCS12&quot;);</span>
+<span class="nc" id="L123">			ksKeys.load(getLocation().getInputStream(), password);</span>
+<span class="nc" id="L124">			super.setKeyStore(ksKeys);</span>
+<span class="nc" id="L125">			logger.info(&quot;Aberto armaz�m {} localizado em {}.&quot;, ksKeys, getLocation());</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">			if (!getKeyStore().isKeyEntry(alias)) {</span>
+<span class="nc" id="L127">				logger.warn(&quot;N�o existe chave particular para o alias '{}' em {}.&quot;, alias, getLocation());</span>
+<span class="nc" id="L128">				throw new RuntimeException(&quot;N�o existe chave particular no armaz�m designado.&quot;);</span>
+			}
+<span class="nc" id="L130">		} catch (FileNotFoundException e) {</span>
+<span class="nc" id="L131">			logger.warn(&quot;Armaz�m n�o localizado em {}.&quot;, getLocation());</span>
+<span class="nc" id="L132">		} catch (Exception e) {</span>
+<span class="nc" id="L133">			logger.warn(&quot;Erro ao abrir armaz�m localizado em {}.&quot;, getLocation());</span>
+<span class="nc" id="L134">			throw new RuntimeException(&quot;Erro ao abrir armaz�m, &quot;, e);</span>
+<span class="nc" id="L135">		}</span>
+		
+<span class="nc" id="L137">	}</span>
+	
+	/**
+	 * Lan�a um erro na tentativa de estabelecer armaz�m sem que seja atrav�s das propriedades deste bean.
+	 */
+	@Override
+	public void setKeyStore(KeyStore keyStore) {
+<span class="nc" id="L144">		throw new IllegalArgumentException(&quot;Utilize alias, password e location para estabelecer um armaz�m.&quot;);</span>
+	}
+
+	private String alias;
+	private char[] password;
+
+	/**
+	 * Apelido dado � chave particular no armaz�m de clientes.
+	 * 
+	 * @param alias
+	 */
+	public void setAlias(String alias) {
+<span class="nc" id="L156">		this.alias = alias;</span>
+<span class="nc" id="L157">	}</span>
+
+	/**
+	 * Senha da chave particular no armaz�m de clientes.
+	 * 
+	 * @param alias
+	 */
+	public void setPassword(char[] password) {
+<span class="nc" id="L165">		this.password = password;</span>
+<span class="nc" id="L166">	}</span>
+
+<span class="nc" id="L168">	protected static final Logger logger = LoggerFactory.getLogger(Pkcs12SecurityHandlerBean.class);</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

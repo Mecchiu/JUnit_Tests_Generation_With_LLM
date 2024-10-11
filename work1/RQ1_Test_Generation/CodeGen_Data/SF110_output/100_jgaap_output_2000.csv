@@ -1,0 +1,813 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+7213a1af-52da-4bd2-be8e-47f6a267a772,/EvoSuiteBenchmark/original/100_jgaap/src/main/java/EventSet_2Test.java,57.17437028884888,stop,"// EventSet.java
+import java.util.Vector;
+import java.util.List;
+
+public class EventSet {
+
+    Vector<Event> events = new Vector<Event>();
+
+    private String author;
+
+    public String getAuthor() {
+        return author;
+    }
+
+    /**
+     * Sets the author of the current event set.
+     *  There should be a better way to pass authors through the
+     *  processing stages...
+     */
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    /**
+     * Creates a new, empty list of events*
+     */
+    public EventSet() {
+        this.events = new Vector<Event>();
+    }
+
+    /**
+     * Creates a new list of events given a previously created list of events*
+     */
+    public EventSet(List<Event> evts) {
+        this.events = new Vector<Event>(evts);
+    }
+
+    /**
+     * Returns a subset of events given a starting index of an event and the
+     *  number of events wanted in the returned list.
+     *  TODO: Array bounds checking, if length is longer than the size of the list
+     */
+    public EventSet subset(int start, int length) {
+        return new EventSet(events.subList(start, length));
+    }
+
+    /**
+     * Returns the event at a given index*
+     */
+    public Event eventAt(int index) {
+        return events.get(index);
+    }
+
+    /**
+     * Returns the total number of events in the set*
+     */
+    public int size() {
+        return events.size();
+    }
+
+    /**
+     * Returns the string representation of this event set, which is just a
+     *  comma separated list of each individual event
+     */
+    public String toString() {
+        String t = new String();
+        for (int i = 0; i < events.size(); i++) t += events.elementAt(i) + "", "";
+        return t;
+    }
+}
+","// EventSet_2Test.java
+
+
+import java.util.Vector;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EventSet}.
+* It contains one unit test case for the {@link EventSet#size()} method.
+*/
+class EventSet_2Test {","// EventSet_2Test.java
+
+
+import java.util.Vector;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EventSet}.
+* It contains one unit test case for the {@link EventSet#size()} method.
+*/
+class EventSet_2Test {
+public EventSet_2Test() {
+			}
+		@Test
+	    public void test() {
+	        
+	        assertEquals(""Size of sets should be correctly equal."", new Vector().size(), new EventSet().size());
+	    }
+}
+
+"
+937d9c7e-f496-4a15-8db1-0c939d891678,/EvoSuiteBenchmark/original/100_jgaap/src/main/java/DocumentSet_0Test.java,26.39580202102661,stop,"// DocumentSet.java
+/**
+ *  DocumentSet.java
+ *   Caleb Astey - 2007
+ */
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.*;
+
+/**
+ * A Document Set is a group of documents written by the same author.
+ *  This can be used to facilitate event sets that are larger than just
+ *  a single document, which may be more indicative of an author's
+ *  entire body of work.
+ */
+public class DocumentSet {
+
+    public Hashtable frequency;
+
+    Vector<Document> documents;
+
+    DocumentSet() {
+        documents = new Vector<Document>();
+    }
+
+    DocumentSet(Document d) {
+        documents = new Vector<Document>();
+        documents.add(d);
+    }
+
+    /**
+     * Registers a new document to the list of documents by a given author.
+     *  The document is appended on to the end of the list.
+     */
+    public void register(Document d) {
+        documents.add(d);
+    }
+
+    /**
+     * Number of documents currently registered in this set of documents*
+     */
+    public int documentCount() {
+        return documents.size();
+    }
+
+    /**
+     * Returns an individual indexed documement.  The index is given by the
+     *  order in which the documents were registered with the DocumentSet
+     */
+    public Document getDocument(int index) {
+        return documents.elementAt(index);
+    }
+
+    /**
+     * Calculates the frequency of individual characters within the entire
+     *  set of documents.  Each character is a key in a hashtable with the value
+     *  being the frequency of occurrance. This is legacy code rewritten and was
+     *  included for completeness.
+     */
+    public void characterFrequency() {
+        frequency = new Hashtable();
+        for (int i = 0; i < documents.size(); i++) {
+            Vector<Character> pt = documents.elementAt(i).getProcessedText();
+            for (int j = 0; j < documents.elementAt(i).getSize(); j++) {
+                char letter = pt.elementAt(j);
+                if (frequency.containsKey(letter)) {
+                    Integer t = (Integer) frequency.get(letter);
+                    int ti = t.intValue() + 1;
+                    frequency.put(letter, new Integer(ti));
+                } else
+                    frequency.put(letter, new Integer(1));
+            }
+        }
+    }
+
+    /**
+     * Calculates the frequency of full  words within the entire
+     *  set of documents.  Each word is a key in a hashtable with the value
+     *  being the frequency of occurrance. This is legacy code rewritten and was
+     *  included for completeness.
+     */
+    public void wordFrequency() {
+        frequency = new Hashtable();
+        for (int i = 0; i < documents.size(); i++) {
+            String stDoc = documents.elementAt(i).stringify();
+            StringTokenizer st = new StringTokenizer(stDoc, "" .,;:?!\"""");
+            while (st.hasMoreTokens()) {
+                String word = st.nextToken();
+                if (frequency.containsKey(word)) {
+                    Integer t = (Integer) frequency.get(word);
+                    int ti = t.intValue() + 1;
+                    frequency.put(word, new Integer(ti));
+                } else
+                    frequency.put(word, new Integer(1));
+            }
+        }
+    }
+
+    /**
+     * Returns the top most common words in the document with the rest
+     *  replaced with a placeholder.  This is also legacy code, rewritten,
+     *  generalized, and replaced from the old code.
+     *  Side Note:  This code should probably be moved to the EventSet class,
+     *  along with the frequency analysis classes.  This will allow character
+     *  and word frequencies to be generalized to event frequencies, by returning
+     *  the N most common events, replacing the rest with a generic event.
+     */
+    public void mostCommon(int n) {
+        Vector keys = new Vector();
+        Vector values = new Vector();
+        Vector<kvp> kvps = new Vector<kvp>();
+        Enumeration ekeys = frequency.keys();
+        while (ekeys.hasMoreElements()) {
+            Object temp = ekeys.nextElement();
+            kvps.add(new kvp(temp, (Integer) frequency.get(temp)));
+        }
+        Collections.sort(kvps);
+        Collections.reverse(kvps);
+        for (int i = 0; i < n; i++) System.out.println(kvps.elementAt(i));
+    }
+}
+
+/**
+ * kvp -> key value pair.  This is a specific
+ *  hashtable implementation for the frequency
+ *  analysis portions of DocumentSet.mostCommon()
+ */
+class kvp implements Comparable {
+
+    Object key;
+
+    int value;
+
+    public kvp(Object key, Integer value) {
+        this.key = key;
+        this.value = value.intValue();
+    }
+
+    public int compareTo(Object ol) {
+        if (this.value == ((kvp) ol).value)
+            return 0;
+        else if (this.value < ((kvp) ol).value)
+            return -1;
+        else
+            return 1;
+    }
+
+    public String toString() {
+        String t = new String();
+        t = value + "":\t"" + key;
+        return t;
+    }
+}
+","// DocumentSet_0Test.java
+
+
+/**
+ *  DocumentSet.java
+ *   Caleb Astey - 2007
+ */
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DocumentSet}.
+* It contains one unit test case for the {@link DocumentSet#documentCount()} method.
+*/
+class DocumentSet_0Test {","// DocumentSet_0Test.java
+
+
+/**
+ *  DocumentSet.java
+ *   Caleb Astey - 2007
+ */
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DocumentSet}.
+* It contains one unit test case for the {@link DocumentSet#documentCount()} method.
+*/
+class DocumentSet_0Test {
+// DocumentSet.java
+/**
+ *  DocumentSet.java
+ *   Caleb Astey - 2007
+ */
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.*;
+
+/**
+ * A Document Set is a group of documents written by the same author.
+ *  This can be used to facilitate event sets that are larger than just
+ *  a single document, which may be more indicative of an author's
+ *  entire body of work.
+ */
+public class DocumentSet {
+
+    public Hashtable frequency;
+
+    Vector<Document> documents;
+
+    DocumentSet() {
+        documents = new Vector<Document>();
+    }
+
+    DocumentSet(Document d) {
+        documents = new Vector<Document>();
+        documents.add(d);
+    }
+
+    /**
+     * Registers a new document to the list of documents by a given author.
+     *  The document is appended on to the end of the list.
+     */
+    public void register(Document d) {
+        documents.add(d);
+    }
+
+    /**
+     * Number of documents currently registered in this set of documents*
+     */
+    public int documentCount() {
+        return documents.size();
+    }
+
+    /**
+     * Returns an individual indexed documement.  The index is given by the
+     *  order in which the documents were registered with the DocumentSet
+     */
+    public Document getDocument(int index) {
+        return documents.elementAt(index);
+    }
+
+    /**
+     * Calculates the frequency of individual characters within the entire
+     *  set of documents.  Each character is a key in a hashtable with the value
+     *  being the frequency of occurrance. This is legacy code rewritten and was
+     *  included for completeness.
+     */
+    public void characterFrequency() {
+        frequency = new Hashtable();
+        for (int i = 0; i < documents.size(); i++) {
+            Vector<Character> pt = documents.elementAt(i).getProcessedText();
+            for (int j = 0; j < documents.elementAt(i).getSize(); j++) {
+                char letter = pt.elementAt(j);
+                if (frequency.containsKey(letter)) {
+                    Integer t = (Integer) frequency.get(letter);
+                    int ti = t.intValue() + 1;
+                    frequency.put(letter, new Integer(ti));
+                } else
+                    frequency.put(letter, new Integer(1));
+            }
+        }
+    }
+
+    /**
+     * Calculates the frequency of full  words within the entire
+     *  set of documents.  Each word is a key in a hashtable with the value
+     *  being the frequency of occurrance. This is legacy code rewritten and was
+     *  included for completeness.
+     */
+    public void wordFrequency() {
+        frequency = new Hashtable();
+        for (int i = 0; i < documents.size(); i++) {
+            String stDoc = documents.elementAt(i).stringify();
+            StringTokenizer st = new StringTokenizer(stDoc, "".,;:?!\"""");
+            while (st.hasMoreTokens()) {
+                String word = st.nextToken();
+                if (frequency.containsKey(word)) {
+                    Integer t = (Integer) frequency.get(word);
+                    int ti = t.intValue() + 1;
+                    frequency.put(word, new Integer(ti));
+                } else
+                    frequency.put(word, new Integer(1));
+            }
+        }
+    }
+
+    /**
+     * Returns the top most common words in the document with the rest
+     *  replaced with a placeholder.  This is also legacy code, rewritten,
+     *  generalized, and replaced from the old code.
+     *  Side Note:  This code should probably be moved to the EventSet class,
+     *  along with the frequency analysis classes.  This will allow character
+     *  and word frequencies to be generalized to event frequencies, by returning
+     *  the N most common events, replacing the rest with a generic event.
+     */
+    public void mostCommon(int n) {
+        Vector keys = new Vector();
+        Vector values = new Vector();
+        Vector<kvp> kvps = new Vector<kvp>();
+        Enumeration ekeys = frequency.keys();
+        while (ekeys.hasMoreElements()) {
+            Object temp = ekeys.nextElement();
+            kvps.add(new kvp(temp, (Integer) frequency.get(temp)));
+        }
+        Collections.sort(kvps);
+        Collections.reverse(kvps);
+        for (int i = 0; i < n; i++) System.out.println(kvps.elementAt(i));
+    }
+}
+
+/**
+ * kvp -> key value pair.  This is a specific
+ *  hashtable implementation for the frequency
+ *  analysis portions of DocumentSet.mostCommon()
+ */
+class kvp implements Comparable {
+
+    Object key;
+
+    int value;
+
+    public kvp(Object key, Integer value) {
+        this.key = key;
+        this.value = value.intValue();
+    }
+
+    public int compareTo(Object ol) {
+        if (this.value == ((kvp) ol).value)
+            return 0;
+        else if (this.value < ((kvp) ol).value)
+            return -1;
+        else
+            return 1;
+    }
+
+    public String toString() {
+        String t = new String();
+        t = value + "":\t"" + key;
+        return t;
+    }
+}
+
+// DocumentSet_0Test.java
+
+
+/**
+ *  DocumentSet.java
+ *   Caleb Astey - 2007
+ */
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DocumentSet}.
+* It contains one unit test case for the {@link DocumentSet#documentCount()} method.
+*/
+class DocumentSet_0Test {
+		/**
+		* The unit test case for documentSet.documentCount().
+		* It must be defined to the tests file for the
+		* current class.
+		*/
+		@Test
+	    public void test_0() {
+	        DocumentSet thisSet = new DocumentSet();
+	        System.out.println(""testing:  DocumentSet.documentCount() method of class ""+thisSet.getClass().getName());
+	        System.out.println(""test passed"");
+	    }
+
+}// DocumentSet_0Test.class
+
+"
+38235ebd-ee32-4150-9b88-fccdd5b2578a,/EvoSuiteBenchmark/original/100_jgaap/src/main/java/Document.java,34.43990516662598,stop,"// Document.java
+import java.io.*;
+import java.util.Vector;
+
+/**
+ *   Code for storing and processing individual documents of any type.
+ */
+public class Document {
+
+    private String author;
+
+    private String filename;
+
+    private char[] rawText;
+
+    private int size;
+
+    /**
+     * Contains current processed text*
+     */
+    public Vector<Character> procText;
+
+    /**
+     * Create and read in document with known text unknown author*
+     */
+    public Document(String filename) {
+        this.author = null;
+        this.filename = filename;
+        readText(filename);
+    }
+
+    /**
+     * Create and read in document with known text and known author*
+     */
+    public Document(String filename, String author) {
+        this.author = author;
+        this.filename = filename;
+        readText(filename);
+    }
+
+    /**
+     * Returns the full filename of the current document*
+     */
+    public String getFilename() {
+        return filename;
+    }
+
+    /**
+     * Sets the author of the current document*
+     */
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    /**
+     * Retrieves the author of the current document*
+     */
+    public String getAuthor() {
+        return author;
+    }
+
+    /**
+     * Returns the size of the document.  Size is determined by the
+     *  number of characters plus whitespace
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
+     * Returns text with preprocessing done.  Preprocessing can
+     *  include stripping whitespace or normalizin the case
+     */
+    public Vector<Character> getProcessedText() {
+        return procText;
+    }
+
+    /**
+     * Reads text from a local file.  Exceptions are not caught
+     *  by name.  Rather, all exceptions are handled through just
+     *  printing the error messgae to stdout.  This should
+     *  probably be changed for robustness.  The raw text of the
+     *  file is stored for quick access in an array.
+     */
+    public void readText(String filename) {
+        int c, ctr = 0;
+        try {
+            File input = new File(filename);
+            this.size = (int) input.length();
+            this.rawText = new char[size];
+            this.procText = new Vector<Character>();
+            FileInputStream fis = new FileInputStream(input);
+            while ((c = fis.read()) != -1) {
+                rawText[ctr++] = (char) c;
+                procText.add(new Character((char) c));
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public String toString() {
+        String t = new String();
+        t = ""Document: "" + filename + ""\n"";
+        t += ""Author:   "" + author + ""\n"";
+        return t;
+    }
+
+    public void print() {
+        for (Character c : procText) System.out.print(c);
+    }
+
+    /**
+     * Convert processed document into one really long string.
+     *  I'm not quite sure yet why this ever would need to be done.
+     */
+    public String stringify() {
+        String t = new String();
+        for (int i = 0; i < procText.size(); i++) t += (char) procText.elementAt(i);
+        return t;
+    }
+}
+","// DocumentTest.java
+
+
+import java.io.*;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Document}.
+* It contains one unit test case for the {@link Document#stringify()} method.
+*/
+class DocumentTest {","// DocumentTest.java
+
+
+import java.io.*;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Document}.
+* It contains one unit test case for the {@link Document#stringify()} method.
+*/
+class DocumentTest {
+// Document.java
+import java.io.*;
+import java.util.Vector;
+
+/**
+ *   Code for storing and processing individual documents of any type.
+ */
+public class Document {
+
+    private String author;
+
+    private String filename;
+
+    private char[] rawText;
+
+    private int size;
+
+    /**
+     * Contains current processed text*
+     */
+    public Vector<Character> procText;
+
+    /**
+     * Create and read in document with known text unknown author*
+     */
+    public Document(String filename) {
+        this.author = null;
+        this.filename = filename;
+        readText(filename);
+    }
+
+    /**
+     * Create and read in document with known text and known author*
+     */
+    public Document(String filename, String author) {
+        this.author = author;
+        this.filename = filename;
+        readText(filename);
+    }
+
+    /**
+     * Returns the full filename of the current document*
+     */
+    public String getFilename() {
+        return filename;
+    }
+
+    /**
+     * Sets the author of the current document*
+     */
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    /**
+     * Retrieves the author of the current document*
+     */
+    public String getAuthor() {
+        return author;
+    }
+
+    /**
+     * Returns the size of the document.  Size is determined by the
+     *  number of characters plus whitespace
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
+     * Returns text with preprocessing done.  Preprocessing can
+     *  include stripping whitespace or normalizin the case
+     */
+    public Vector<Character> getProcessedText() {
+        return procText;
+    }
+
+    /**
+     * Reads text from a local file.  Exceptions are not caught
+     *  by name.  Rather, all exceptions are handled through just
+     *  printing the error messgae to stdout.  This should
+     *  probably be changed for robustness.  The raw text of the
+     *  file is stored for quick access in an array.
+     */
+    public void readText(String filename) {
+        int c, ctr = 0;
+        try {
+            File input = new File(filename);
+            this.size = (int) input.length();
+            this.rawText = new char[size];
+            this.procText = new Vector<Character>();
+            FileInputStream fis = new FileInputStream(input);
+            while ((c = fis.read())!= -1) {
+                rawText[ctr++] = (char) c;
+                procText.add(new Character((char) c));
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public String toString() {
+        String t = new String();
+        t = ""Document: "" + filename + ""\n"";
+        t += ""Author:   "" + author + ""\n"";
+        return t;
+    }
+
+    public void print() {
+        for (Character c : procText) System.out.print(c);
+    }
+
+    /**
+     * Convert processed document into one really long string.
+     *  I'm not quite sure yet why this ever would need to be done.
+     */
+    public String stringify() {
+        String t = new String();
+        for (int i = 0; i < procText.size(); i++) t += (char) procText.elementAt(i);
+        return t;
+    }
+}
+
+// DocumentTest.java
+
+
+import java.io.*;
+import java.util.Vector;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Document}.
+* It contains one unit test case for the {@link Document#stringify()} method.
+*/
+class DocumentTest {
+		  
+    final private Document doc;
+    
+    final private StringWriter stringWriter;
+
+    public DocumentTest() {
+        this.doc = new Document(""Test.txt"");
+        this.stringWriter = new StringWriter();
+    }
+    
+    @Test
+    public void test() {
+        assertSame(doc.toString(), ""Text for document."");
+        assertSame(doc.stringify(), ""Text for document.\n"");
+
+		try {
+            System.out.println(""Opening temporary file for writing for reading.."");
+            FileInputStream fis = new FileInputStream(""Test.txt"");
+            Vector<Vector<Character>> procs = new Vector<Vector<Character>>();
+            int c, ctr = 0;
+            while ((c = fis.read())!= -1) {
+                procs.add(new Vector<Character>(new char[] {(char) c}));
+                ctr++;
+            }
+            F.Fclose(fis);
+            fis = new FileInputStream(""Test.txt"");
+            Pro.test(procs.elementAt(0), fis);
+
+            fis.close();
+        } catch (FileNotFoundException e) {
+            fail(""FileNotFoundException"");
+        } catch (IOException e) {
+            fail(""IOException"");
+        }
+    }
+    
+    public void testStringify () {
+        assertNotSame(doc.toString(), ""String for document."");
+        assertNotSame(doc.stringify(), ""String for document.\n"");
+
+        assertSame(doc.stringify(), doc.toString());
+    }
+    
+}"

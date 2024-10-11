@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `SearchableTextPane` class has a method `search(String, int)` that is not implemented. Additionally, the `SearchableTextPane_1Test` class is empty and does not contain any test cases. Please provide the complete code so I can assist you better.

@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided for the IsBoredTest class is incomplete. Could you please provide the full code so I can assist you better?

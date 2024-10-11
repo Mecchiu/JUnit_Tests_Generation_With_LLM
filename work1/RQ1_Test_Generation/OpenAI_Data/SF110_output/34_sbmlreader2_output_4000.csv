@@ -1,0 +1,1778 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wcG0yDsUZyckIiJXzlBTVUnVQe87,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLFilter_0Test.java,122.21838450431824,length,"// SBMLFilter.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+
+//import java.util.Properties;
+/**
+ * SBMLReader extends CyFileFilter for integration into the Cytoscape ImportHandler
+ * framework.
+ */
+public class SBMLFilter extends CyFileFilter {
+
+    /**
+     * XGMML Files are Graphs.
+     */
+    private static String fileNature = ImportHandler.GRAPH_NATURE;
+
+    /**
+     * File Extensions.
+     */
+    private static String[] fileExtensions = { ""xml"", ""sbml"" };
+
+    /**
+     * Filter Description.
+     */
+    private static String description = ""SBML files"";
+
+    /**
+     * Constructor.
+     */
+    public SBMLFilter() {
+        super(fileExtensions, description, fileNature);
+    }
+
+    /**
+     * Indicates which files the SBMLFilter accepts.
+     * <p/>
+     * This method will return true only if:
+     * <UL>
+     * <LI>File ends in .xml or .sbml;  and
+     * <LI>File headers includes the www.sbml.org namespace declaration.
+     * </UL>
+     *
+     * @param file File
+     * @return true or false.
+     */
+    public boolean accept(File file) {
+        String fileName = file.getName();
+        boolean firstPass = false;
+        //  First test:  file must end with one of the registered file extensions.
+        for (int i = 0; i < fileExtensions.length; i++) {
+            if (fileName.endsWith(fileExtensions[i])) {
+                firstPass = true;
+            }
+        }
+        if (firstPass) {
+            //  Second test:  file header must contain the biopax declaration
+            try {
+                String header = getHeader(file);
+                if (header.indexOf(""www.sbml.org"") > 0) {
+                    return true;
+                }
+            } catch (IOException e) {
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the appropirate GraphReader object.
+     * If the libsbml is not available use the old sbml library.
+     *
+     * @author Matthias Koenig
+     * @param fileName File Name.
+     * @return GraphReader Object.
+     */
+    public GraphReader getReader(String fileName) {
+        System.out.println(""Getting SBML reader ..."");
+        try {
+            // Test if libsbml library is available
+            System.loadLibrary(""sbmlj"");
+            /* Extra check to be sure we have access to libSBML: */
+            Class.forName(""org.sbml.libsbml.libsbml"");
+            // Use the libSBML based parser
+            System.out.println(""... using 'libsbml parser'"");
+            return new SBMLGraphReader2(fileName);
+        } catch (Exception e) {
+            // If any error occurs use the classic SBML Reader
+            return new SBMLGraphReader(fileName);
+        }
+    }
+}
+","// SBMLFilter_0Test.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#accept(File)} method.
+*/
+class SBMLFilter_0Test {","// SBMLFilter_0Test.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#accept(File)} method.
+*/
+class SBMLFilter_0Test {
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_0() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_1() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_2() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.txt"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_3() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml.gz"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_4() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml.gz"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_5() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.txt.gz"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_6() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml.zip"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_7() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml.zip"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_8() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.txt.zip"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_9() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml.bz2"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_10() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml.bz2"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_11() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.txt.bz2"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+}
+
+// SBMLFilter_1Test.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#accept(File)} method.
+*/
+class SBMLFilter_1Test {
+		
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_0() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_1() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_2() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.txt"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_3() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml.gz"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_4() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml.gz"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_5() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.txt.gz"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_6() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml.zip"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_7() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml.zip"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_8() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.txt.zip"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_9() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml.bz2"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_10() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml.bz2"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_File_11() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.txt.bz2"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = false;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+}
+
+// SBMLGraphReader.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.CyNetwork;
+import cytoscape.Cytoscape;
+import cytoscape.data.CyAttributes;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.data.readers.MetadataEntries;
+import cytoscape.data.readers.MetadataParser;
+import cytoscape.data.readers.MetadataParser.MetadataType;
+import cytoscape.data.readers.TextFileReader;
+import cytoscape.data.readers.TextJarReader;
+import cytoscape.data.readers.TextJarReader."
+cmpl-6wcHyReIVjjM5eMKxIq3hQYCIUMsp,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLFilter_1Test.java,120.37230968475342,length,"// SBMLFilter.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+
+//import java.util.Properties;
+/**
+ * SBMLReader extends CyFileFilter for integration into the Cytoscape ImportHandler
+ * framework.
+ */
+public class SBMLFilter extends CyFileFilter {
+
+    /**
+     * XGMML Files are Graphs.
+     */
+    private static String fileNature = ImportHandler.GRAPH_NATURE;
+
+    /**
+     * File Extensions.
+     */
+    private static String[] fileExtensions = { ""xml"", ""sbml"" };
+
+    /**
+     * Filter Description.
+     */
+    private static String description = ""SBML files"";
+
+    /**
+     * Constructor.
+     */
+    public SBMLFilter() {
+        super(fileExtensions, description, fileNature);
+    }
+
+    /**
+     * Indicates which files the SBMLFilter accepts.
+     * <p/>
+     * This method will return true only if:
+     * <UL>
+     * <LI>File ends in .xml or .sbml;  and
+     * <LI>File headers includes the www.sbml.org namespace declaration.
+     * </UL>
+     *
+     * @param file File
+     * @return true or false.
+     */
+    public boolean accept(File file) {
+        String fileName = file.getName();
+        boolean firstPass = false;
+        //  First test:  file must end with one of the registered file extensions.
+        for (int i = 0; i < fileExtensions.length; i++) {
+            if (fileName.endsWith(fileExtensions[i])) {
+                firstPass = true;
+            }
+        }
+        if (firstPass) {
+            //  Second test:  file header must contain the biopax declaration
+            try {
+                String header = getHeader(file);
+                if (header.indexOf(""www.sbml.org"") > 0) {
+                    return true;
+                }
+            } catch (IOException e) {
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the appropirate GraphReader object.
+     * If the libsbml is not available use the old sbml library.
+     *
+     * @author Matthias Koenig
+     * @param fileName File Name.
+     * @return GraphReader Object.
+     */
+    public GraphReader getReader(String fileName) {
+        System.out.println(""Getting SBML reader ..."");
+        try {
+            // Test if libsbml library is available
+            System.loadLibrary(""sbmlj"");
+            /* Extra check to be sure we have access to libSBML: */
+            Class.forName(""org.sbml.libsbml.libsbml"");
+            // Use the libSBML based parser
+            System.out.println(""... using 'libsbml parser'"");
+            return new SBMLGraphReader2(fileName);
+        } catch (Exception e) {
+            // If any error occurs use the classic SBML Reader
+            return new SBMLGraphReader(fileName);
+        }
+    }
+}
+","// SBMLFilter_1Test.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#getReader(String)} method.
+*/
+class SBMLFilter_1Test {","// SBMLFilter_1Test.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#getReader(String)} method.
+*/
+class SBMLFilter_1Test {
+
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader("""");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_1() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000012.xml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_2() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000012.sbml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_3() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000013.xml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_4() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000013.sbml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_5() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000014.xml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_6() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000014.sbml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_7() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000015.xml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_8() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000015.sbml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_9() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000016.xml"");
+		assertNotNull(result);
+	}
+	
+	/**
+	 * Test of getReader method, of class SBMLFilter.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	void testGetReader_10() throws Exception {
+		System.out.println(""getReader"");
+		SBMLFilter instance = new SBMLFilter();
+		GraphReader result = instance.getReader(""test/data/sbml/BIOMD0000000016.sbml"");
+		assertNotNull(result);
+	}
+	
+}
+
+// SBMLFilter_2Test.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#accept(java.io.File)} method.
+*/
+class SBMLFilter_2Test {
+		
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.xml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_1() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000012.sbml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_2() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000013.xml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_3() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000013.sbml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_4() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000014.xml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_5() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000014.sbml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_6() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000015.xml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_7() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000015.sbml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_8() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000016.xml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+	/**
+	 * Test of accept method, of class SBMLFilter.
+	 */
+	@Test
+	void testAccept_9() {
+		System.out.println(""accept"");
+		File file = new File(""test/data/sbml/BIOMD0000000016.sbml"");
+		SBMLFilter instance = new SBMLFilter();
+		boolean expResult = true;
+		boolean result = instance.accept(file);
+		assertEquals(expResult, result);
+	}
+	
+}
+
+// SBMLGraphReader.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.CyNetwork;
+import cytoscape.Cytoscape;
+import cytoscape.data.CyAttributes;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.data.readers.TextFileReader;
+import cytoscape.data.readers.TextJarReader;
+import cytoscape.data.readers.TextJarReader.JarEntryReader;
+import cytoscape.data.readers.TextJarReader.JarInputStreamReader;
+import cytoscape.data.readers.TextJarReader.URLJarReader;
+import cytoscape.data.readers.TextJarReader.URLReader;
+import cytoscape.data.readers.TextJarReader.ZipEntryReader;
+import cytoscape.data.readers.TextJarReader.ZipInputStreamReader;
+import cytoscape.data.readers.TextJarReader.ZipURLReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLJarReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLJarReader.ZipInputStreamURLJarEntryReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLReader.ZipInputStreamURLJarReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLReader.ZipInputStreamURLJarReader.ZipInputStreamURLJarEntryReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLReader.ZipInputStreamURLReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLReader.ZipInputStreamURLReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLReader.ZipInputStreamURLReader.ZipInputStreamURLJarReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader.ZipInputStreamURLReader.ZipInputStreamURLReader.ZipInputStreamURLReader.ZipInputStreamURLJarReader.ZipInputStreamURLJarEntryReader;
+import cytoscape.data.readers.TextJarReader.ZipURLStreamReader"
+cmpl-6wcJuccyPs4znLIIKeU4JxqCiddjA,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLVisualStyleFactory.java,152.0298216342926,length,"// SBMLVisualStyleFactory.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.*;
+import cytoscape.visual.*;
+import cytoscape.visual.calculators.*;
+import cytoscape.visual.mappings.*;
+import java.awt.Color;
+
+/**
+ * VisualStyleFactory.java
+ * This class defines the visualstyle in Cytoscape for the SBMLReader plugin.
+ *
+ * @author W.P.A. Ligtenberg, Eindhoven University of Technology
+ */
+public class SBMLVisualStyleFactory {
+
+    /**
+     */
+    public static final String SBMLReader_VS = ""SBMLReader Style"";
+
+    /**
+     */
+    public static final String NODE_TYPE_ATT = ""sbml type"";
+
+    /**
+     */
+    public static final String EDGE_TYPE_ATT = ""interaction"";
+
+    /**
+     *  DOCUMENT ME!
+     *
+     * @param network DOCUMENT ME!
+     *
+     * @return  DOCUMENT ME!
+     */
+    public static VisualStyle createVisualStyle(CyNetwork network) {
+        VisualMappingManager vmManager = Cytoscape.getVisualMappingManager();
+        NodeAppearanceCalculator nodeAppCalc = new NodeAppearanceCalculator();
+        EdgeAppearanceCalculator edgeAppCalc = new EdgeAppearanceCalculator();
+        CalculatorCatalog calculatorCatalog = vmManager.getCalculatorCatalog();
+        // ------------------------------ Set node shapes ---------------------------//
+        DiscreteMapping disMapping = new DiscreteMapping(NodeShape.RECT, ObjectMapping.NODE_MAPPING);
+        disMapping.setControllingAttributeName(NODE_TYPE_ATT, network, false);
+        disMapping.putMapValue(""species"", NodeShape.DIAMOND);
+        disMapping.putMapValue(""reaction"", NodeShape.ELLIPSE);
+        Calculator shapeCalculator = new BasicCalculator(""SBMLReader Shape Calculator"", disMapping, VisualPropertyType.NODE_SHAPE);
+        nodeAppCalc.setCalculator(shapeCalculator);
+        // ------------------------------ Set the label ------------------------------//
+        // Display the value for geneName as a label
+        String cName = ""sbml name"";
+        Calculator nlc = calculatorCatalog.getCalculator(VisualPropertyType.NODE_LABEL, cName);
+        if (nlc == null) {
+            PassThroughMapping m = new PassThroughMapping(new String(), cName);
+            nlc = new BasicCalculator(cName, m, VisualPropertyType.NODE_LABEL);
+        }
+        nodeAppCalc.setCalculator(nlc);
+        //--------------------- Set the size of the nodes --------------------------//
+        //Discrete mapping on nodeType
+        Double speciesNodeSize = new Double(30);
+        Double reactionNodeSize = new Double(30);
+        DiscreteMapping sizeMapping = new DiscreteMapping(reactionNodeSize, ObjectMapping.NODE_MAPPING);
+        sizeMapping.setControllingAttributeName(NODE_TYPE_ATT, network, false);
+        sizeMapping.putMapValue(""species"", speciesNodeSize);
+        sizeMapping.putMapValue(""reaction"", reactionNodeSize);
+        Calculator sizeCalculator = new BasicCalculator(""SBMLReader Size Calculator"", sizeMapping, VisualPropertyType.NODE_SIZE);
+        nodeAppCalc.setCalculator(sizeCalculator);
+        nodeAppCalc.setNodeSizeLocked(true);
+        // ------------------------------ Set edge arrow shape ---------------------------//
+        DiscreteMapping arrowMapping = new DiscreteMapping(ArrowShape.DELTA, ObjectMapping.NODE_MAPPING);
+        arrowMapping.setControllingAttributeName(EDGE_TYPE_ATT, network, false);
+        arrowMapping.putMapValue(""reaction-product"", ArrowShape.ARROW);
+        arrowMapping.putMapValue(""reaction-reactant"", ArrowShape.NONE);
+        arrowMapping.putMapValue(""reaction-modifier"", ArrowShape.CIRCLE);
+        Calculator edgeArrowCalculator = new BasicCalculator(""SBMLReader Edge Arrow Calculator"", arrowMapping, VisualPropertyType.EDGE_SRCARROW_SHAPE);
+        edgeAppCalc.setCalculator(edgeArrowCalculator);
+        // ------------------------------ Set edge colour ---------------------------//
+        DiscreteMapping edgeColorMapping = new DiscreteMapping(Color.BLACK, ObjectMapping.NODE_MAPPING);
+        edgeColorMapping.setControllingAttributeName(EDGE_TYPE_ATT, network, false);
+        edgeColorMapping.putMapValue(""reaction-product"", Color.GREEN);
+        edgeColorMapping.putMapValue(""reaction-reactant"", Color.RED);
+        edgeColorMapping.putMapValue(""reaction-modifier"", Color.BLACK);
+        Calculator edgeColorCalculator = new BasicCalculator(""SBMLReader Edge Color Calculator"", edgeColorMapping, VisualPropertyType.EDGE_COLOR);
+        edgeAppCalc.setCalculator(edgeColorCalculator);
+        //------------------------- Create a visual style -------------------------------//
+        GlobalAppearanceCalculator gac = vmManager.getVisualStyle().getGlobalAppearanceCalculator();
+        VisualStyle visualStyle = new VisualStyle(SBMLReader_VS, nodeAppCalc, edgeAppCalc, gac);
+        return visualStyle;
+    }
+}
+","// SBMLVisualStyleFactoryTest.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.*;
+import cytoscape.visual.*;
+import cytoscape.visual.calculators.*;
+import cytoscape.visual.mappings.*;
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLVisualStyleFactory}.
+* It contains ten unit test cases for the {@link SBMLVisualStyleFactory#createVisualStyle(CyNetwork)} method.
+*/
+class SBMLVisualStyleFactoryTest {","// SBMLVisualStyleFactoryTest.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.*;
+import cytoscape.visual.*;
+import cytoscape.visual.calculators.*;
+import cytoscape.visual.mappings.*;
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLVisualStyleFactory}.
+* It contains ten unit test cases for the {@link SBMLVisualStyleFactory#createVisualStyle(CyNetwork)} method.
+*/
+class SBMLVisualStyleFactoryTest {
+
+	/**
+	 * Test of createVisualStyle method, of class SBMLVisualStyleFactory.
+	 */
+	@Test
+	void testCreateVisualStyle() {
+		System.out.println(""createVisualStyle"");
+		CyNetwork network = null;
+		VisualStyle result = SBMLVisualStyleFactory.createVisualStyle(network);
+		assertNotNull(result);
+	}
+	
+}
+
+// SBMLReader.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.*;
+import cytoscape.data.*;
+import cytoscape.data.readers.*;
+import cytoscape.plugin.*;
+import cytoscape.util.*;
+import cytoscape.view.*;
+import cytoscape.visual.*;
+import cytoscape.visual.calculators.*;
+import cytoscape.visual.mappings.*;
+import giny.model.*;
+import giny.view.*;
+import java.awt.Color;
+import java.io.*;
+import java.util.*;
+import javax.swing.JOptionPane;
+import javax.xml.stream.*;
+import org.sbml.jsbml.*;
+
+/**
+ * SBMLReader.java
+ * This class reads SBML files and creates a CyNetwork.
+ *
+ * @author W.P.A. Ligtenberg, Eindhoven University of Technology
+ */
+public class SBMLReader implements CytoscapePlugin {
+
+    /**
+     *  DOCUMENT ME!
+     *
+     * @param args DOCUMENT ME!
+     */
+    public static void main(String[] args) {
+        SBMLReader reader = new SBMLReader();
+        reader.readFile(args[0]);
+    }
+
+    /**
+     *  DOCUMENT ME!
+     */
+    public SBMLReader() {
+        Cytoscape.getDesktop().getCyMenus().addCytoscapeAction(new SBMLReaderAction());
+    }
+
+    /**
+     *  DOCUMENT ME!
+     *
+     * @param fileName DOCUMENT ME!
+     */
+    public void readFile(String fileName) {
+        try {
+            // Create a new SBML document
+            SBMLDocument doc = new SBMLDocument(2, 4);
+            // Read the file
+            XMLInputStream xis = new XMLInputStream(new FileInputStream(fileName), false);
+            doc = doc.readSBML(xis);
+            // Create a new CyNetwork
+            CyNetwork network = Cytoscape.createNetwork(fileName);
+            // Create a new CyAttributes
+            CyAttributes nodeAttributes = Cytoscape.getNodeAttributes();
+            CyAttributes edgeAttributes = Cytoscape.getEdgeAttributes();
+            // Create a new SBMLVisualStyleFactory
+            SBMLVisualStyleFactory visualStyleFactory = new SBMLVisualStyleFactory();
+            // Create a new VisualStyle
+            VisualStyle visualStyle = visualStyleFactory.createVisualStyle(network);
+            // Add the VisualStyle to the VisualMappingManager
+            Cytoscape.getVisualMappingManager().setVisualStyle(visualStyle);
+            // Get the model
+            Model model = doc.getModel();
+            // Get the listOfSpecies
+            ListOf<Species> listOfSpecies = model.getListOfSpecies();
+            // Get the listOfReactions
+            ListOf<Reaction> listOfReactions = model.getListOfReactions();
+            // Create a new HashMap
+            HashMap<String, Node> nodeMap = new HashMap<String, Node>();
+            // Create a new HashMap
+            HashMap<String, Edge> edgeMap = new HashMap<String, Edge>();
+            // Create a new HashMap
+            HashMap<String, String> speciesMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesNameMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionNameMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierNameMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productNameMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantNameMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesCompartmentMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionCompartmentMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierCompartmentMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productCompartmentMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantCompartmentMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesInitialAmountMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionInitialAmountMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierInitialAmountMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productInitialAmountMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantInitialAmountMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesInitialConcentrationMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionInitialConcentrationMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierInitialConcentrationMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productInitialConcentrationMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantInitialConcentrationMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesSubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionSubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierSubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productSubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantSubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesSpatialSizeUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionSpatialSizeUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierSpatialSizeUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productSpatialSizeUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantSpatialSizeUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesConversionFactorMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionConversionFactorMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierConversionFactorMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productConversionFactorMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantConversionFactorMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesBoundaryConditionMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionBoundaryConditionMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierBoundaryConditionMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productBoundaryConditionMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantBoundaryConditionMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesChargeMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionChargeMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierChargeMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productChargeMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantChargeMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesConstantMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionConstantMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierConstantMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productConstantMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantConstantMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesHasOnlySubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionHasOnlySubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierHasOnlySubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productHasOnlySubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantHasOnlySubstanceUnitsMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesIdentityMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionIdentityMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierIdentityMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productIdentityMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantIdentityMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesMetaIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionMetaIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierMetaIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productMetaIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantMetaIdMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesNotesMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionNotesMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierNotesMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> productNotesMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactantNotesMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> speciesAnnotationMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> reactionAnnotationMap = new HashMap<String, String>();
+            // Create a new HashMap
+            HashMap<String, String> modifierAnnotationMap = new"

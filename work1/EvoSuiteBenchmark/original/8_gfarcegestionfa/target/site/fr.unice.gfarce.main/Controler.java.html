@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Controler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">fr.unice.gfarce.main</a> &gt; <span class="el_source">Controler.java</span></div><h1>Controler.java</h1><pre class="source lang-java linenums">package fr.unice.gfarce.main;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Collection;
+import jxl.write.WriteException;
+import jxl.write.biff.RowsExceededException;
+import fr.unice.gfarce.dao.DaoFactory;
+import fr.unice.gfarce.dao.DaoFactory.TypeFabrique;
+import fr.unice.gfarce.dao.DaoFactoryException;
+import fr.unice.gfarce.dao.FormationDao;
+import fr.unice.gfarce.dao.IdentiteDao;
+import fr.unice.gfarce.identity.Candidat;
+import fr.unice.gfarce.identity.Formation;
+import fr.unice.gfarce.identity.Identite;
+import fr.unice.gfarce.identity.Identite.TypeIdentite;
+import fr.unice.gfarce.identity.RespFormation;
+import fr.unice.gfarce.interGraph.FenetreChoix;
+import fr.unice.gfarce.xls.WritingXLS;
+
+/**
+ * Fait la liaison entre l'interface graphique et le moteur de l'application
+ * Rend comprehensible les requetes de l'interface graphique pour les bases de
+ * donnees
+ * @author scarankle
+ *
+ */
+public class Controler {
+
+	DaoFactory df;
+	IdentiteDao idao;
+	FormationDao fdao;
+	Candidat[] tabcand;
+	String formationName;
+	TypeFabrique tf;
+	/**
+	 * Constructeur initialisant les dao et le type de la base
+	 * @param tf type de la base
+	 * @throws DaoFactoryException
+	 */
+<span class="nc" id="L42">	public Controler() throws DaoFactoryException{</span>
+<span class="nc" id="L43">		FenetreChoix chFen = new FenetreChoix(this);</span>
+<span class="nc" id="L44">		chFen.setVisible(true);		</span>
+<span class="nc" id="L45">	}</span>
+
+	public void setTypeDataBase(String type) throws DaoFactoryException{
+<span class="nc bnc" id="L48" title="All 2 branches missed.">		if(type.equals(&quot;db4o&quot;)){</span>
+<span class="nc" id="L49">			bdChoice(TypeFabrique.DB4O);</span>
+		}
+<span class="nc bnc" id="L51" title="All 2 branches missed.">		if(type.equals(&quot;oracle&quot;)){</span>
+<span class="nc" id="L52">			bdChoice(TypeFabrique.ORACLE);</span>
+		}
+<span class="nc" id="L54">	}</span>
+
+	public void launchDatabase() throws IOException{
+		
+<span class="nc" id="L58">		idao = df.getIdentiteDao();</span>
+<span class="nc" id="L59">		fdao = df.getFormationDao();</span>
+<span class="nc" id="L60">		tabcand=null;</span>
+<span class="nc" id="L61">		formationName =&quot;&quot;;</span>
+<span class="nc" id="L62">	}</span>
+
+	/**
+	 * 
+	 */
+	private void bdChoice(TypeFabrique tfab) throws DaoFactoryException{
+<span class="nc" id="L68">		DaoFactory.setTypeDao(tfab);</span>
+<span class="nc" id="L69">		df=DaoFactory.getDaoFactory();</span>
+<span class="nc" id="L70">	}</span>
+
+	/**
+	 * Cree un candidat ou un responsable de formation et l'insert dans la base
+	 * @param nom
+	 * @param prenom
+	 * @param sex
+	 * @param email
+	 * @param type
+	 * @param date_naissance
+	 * @param diplome
+	 * @param photo
+	 * @param nationalite
+	 * @param telephone
+	 * @param bourse
+	 * @param acceptation
+	 * @param formation
+	 * @throws IOException 
+	 * @return le candidat ou le responsable de formation
+	 */
+	public Identite createIdentite(String nom,String prenom,String sex, String email, TypeIdentite type,String date_naissance,String diplome,String photo,String nationalite,String telephone,int bourse,int acceptation,String formation) throws IOException{
+<span class="nc" id="L91">		Identite iden=null;</span>
+<span class="nc bnc" id="L92" title="All 3 branches missed.">		switch(type){</span>
+		case CANDIDAT:
+<span class="nc" id="L94">			Calendar c= creerCalendar(date_naissance);</span>
+<span class="nc" id="L95">			String[] forma = formation.split(&quot;\\.&quot;);</span>
+<span class="nc" id="L96">			Formation[] form = fdao.findFormation(forma[0],creerCalendar(forma[1]));</span>
+<span class="nc" id="L97">			iden = new Candidat(nom, prenom, sex, email,type,c, diplome, photo, nationalite,bourse,acceptation,form[0]);</span>
+<span class="nc" id="L98">			idao.insert(iden, forma[0], creerCalendar(forma[1]));</span>
+<span class="nc" id="L99">			break;</span>
+		case FORMATEUR:
+<span class="nc" id="L101">			iden = new RespFormation(nom,prenom,sex,email,type,telephone);		</span>
+<span class="nc" id="L102">			idao.insert(iden,null,null);</span>
+<span class="nc" id="L103">			break;</span>
+		default:
+<span class="nc" id="L105">			System.err.println(&quot;gros probleme&quot;);</span>
+		}
+<span class="nc" id="L107">		return iden;</span>
+	}
+
+	/**
+	 * cree un calendar a partir d'une string date de la forme dd/mm/yyyy
+	 * @param date
+	 * @return
+	 */
+	private Calendar creerCalendar(String date){
+<span class="nc" id="L116">		Calendar c = Calendar.getInstance();</span>
+<span class="nc" id="L117">		String[] d = date.split(&quot;/&quot;);</span>
+<span class="nc" id="L118">		c.set(Integer.parseInt(d[2]),Integer.parseInt(d[1]),Integer.parseInt(d[0]));</span>
+<span class="nc" id="L119">		return c;</span>
+	}
+
+	/**
+	 * cree une formation et l'enregistre dans la base 
+	 * @param titre
+	 * @param date_limite
+	 * @param montant
+	 * @param responsable
+	 * @return
+	 */
+	public Formation createFormation(String titre,String date_limite,int montant,String responsable){
+<span class="nc" id="L131">		Calendar c = creerCalendar(date_limite);</span>
+<span class="nc" id="L132">		String[] respF = responsable.split(&quot; &quot;);</span>
+<span class="nc" id="L133">		RespFormation rf = idao.findRespForm(respF[0],respF[1],null,null)[0];</span>
+<span class="nc" id="L134">		Formation f = new Formation(titre,c,montant,rf);</span>
+<span class="nc" id="L135">		fdao.insert(f, respF[0], respF[1]);		</span>
+<span class="nc" id="L136">		return f;</span>
+
+	}
+	/**
+	 * Cherche des candidats dans la base
+	 * @param nom
+	 * @param prenom
+	 * @return un tableau contenant les candidats
+	 */
+	public Candidat[] findCandidat(String nom,String prenom){
+<span class="nc" id="L146">		return idao.findCandidat(nom, prenom,null,null);</span>
+	}
+
+	/**
+	 * Cherche des responsables de formation dans la base
+	 * @param nom
+	 * @param prenom
+	 * @return un tableau contenant les responsables de formation
+	 */
+	public RespFormation[] findRespForm(String nom,String prenom){
+<span class="nc" id="L156">		return idao.findRespForm(nom,prenom,null,null);</span>
+	}
+
+	/**
+	 * Cherche des formations dans la base
+	 * @param name
+	 * @param date
+	 * @return un tableau contenant les formations
+	 */
+	public Formation[] findFormation(String name,String date){
+<span class="nc" id="L166">		Calendar c=null;</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">		if(date!=null){</span>
+<span class="nc" id="L168">			c = creerCalendar(date);</span>
+		}
+<span class="nc" id="L170">		return fdao.findFormation(name,c);</span>
+	}
+
+	/**
+	 * Retourne toutes les formations
+	 * @return un tableau contenant toutes les formations
+	 */
+	public Formation[] findAllFormation(){
+<span class="nc" id="L178">		return fdao.findFormation(null,null);</span>
+	}
+
+	/**
+	 * Retourne tous les Candidats d'une formation donnee
+	 * @param formation
+	 * @param date
+	 * @return tableau contenant tous les etudiants d'une formation donnee
+	 */
+	public Candidat[] findCandidatInFormation(String formation, String date){
+<span class="nc" id="L188">		Calendar c = creerCalendar(date);</span>
+<span class="nc" id="L189">		Formation[] form = fdao.findFormation(formation,c);</span>
+<span class="nc" id="L190">		Collection&lt;Candidat&gt; cand = form[0].getCandidat();</span>
+<span class="nc" id="L191">		this.tabcand = new Candidat[cand.size()];</span>
+<span class="nc" id="L192">		this.tabcand = cand.toArray(this.tabcand);</span>
+<span class="nc" id="L193">		return tabcand;		</span>
+	}
+
+	/**
+	 * Exporte sous forme de fichier excel les candidats d'une formation
+	 * @throws RowsExceededException
+	 * @throws WriteException
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	public void exportExcel(String form) throws RowsExceededException, WriteException, IOException, ParseException{
+<span class="nc bnc" id="L204" title="All 2 branches missed.">		if(form != null){</span>
+<span class="nc" id="L205">			String[] f = form.split(&quot;\\.&quot;);</span>
+<span class="nc" id="L206">			this.tabcand = findCandidatInFormation(f[0],f[1]);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">			if(this.tabcand == null){</span>
+<span class="nc" id="L208">				System.err.println(&quot;erreur tabcand null&quot;);</span>
+			}
+
+			else{
+<span class="nc" id="L212">				WritingXLS w = new WritingXLS();</span>
+<span class="nc" id="L213">				w.exportXLS(this.tabcand,formationName+&quot;gfarce&quot;);</span>
+			}
+		}
+<span class="nc" id="L216">	}</span>
+
+	/**
+	 * Fait un update d'un candidat
+	 * @param nom
+	 * @param prenom
+	 * @param sex
+	 * @param email
+	 * @param date_naissance
+	 * @param diplome
+	 * @param photo
+	 * @param nationalite
+	 * @param bourse
+	 * @param acceptation
+	 * @param formation
+	 * @throws Exception 
+	 */
+	public void updateCandidat(String nom,String prenom,String sex, String email,String date_naissance,String diplome,byte[] photo,String nationalite,int bourse,String acceptation,String formation) throws Exception{
+<span class="nc" id="L234">		Candidat[] cand=idao.findCandidat(nom, prenom, null, null);</span>
+<span class="nc" id="L235">		Calendar c = creerCalendar(date_naissance);</span>
+<span class="nc" id="L236">		cand[0].setSex(sex);</span>
+<span class="nc" id="L237">		cand[0].setEmail(email);</span>
+<span class="nc" id="L238">		cand[0].setDate_naissance(c);</span>
+<span class="nc" id="L239">		cand[0].setBource(bourse);</span>
+<span class="nc" id="L240">		cand[0].setNationalite(nationalite);</span>
+<span class="nc" id="L241">		String[] forma = formation.split(&quot;\\.&quot;);</span>
+<span class="nc" id="L242">		Formation[] form = fdao.findFormation(forma[0],creerCalendar(forma[1]));</span>
+<span class="nc" id="L243">		cand[0].setFormation(form[0]);</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">		if(acceptation.equals(&quot;ok&quot;)){</span>
+<span class="nc" id="L245">			cand[0].setAcceptation(1);</span>
+		}
+		else{
+<span class="nc" id="L248">			cand[0].setAcceptation(0);</span>
+		}
+<span class="nc" id="L250">		idao.update(cand[0]);</span>
+<span class="nc" id="L251">	}</span>
+
+	/**
+	 * Fait un update d'un responsable
+	 * @param nom
+	 * @param prenom
+	 * @param sex
+	 * @param email
+	 * @param telephone
+	 * @throws Exception 
+	 */
+	public void updateResponsable(String nom,String prenom,String sex,String email,String telephone) throws Exception{
+<span class="nc" id="L263">		RespFormation[] rf = idao.findRespForm(nom, prenom,null,null);</span>
+<span class="nc" id="L264">		rf[0].setSex(sex);</span>
+<span class="nc" id="L265">		rf[0].setTelephone(telephone);</span>
+<span class="nc" id="L266">		rf[0].setEmail(email);</span>
+<span class="nc" id="L267">		idao.update(rf[0]);</span>
+<span class="nc" id="L268">	}</span>
+
+	/**
+	 * Fait un update d'une formation
+	 * @param titre
+	 * @param date_limite
+	 * @param montant
+	 * @param responsable
+	 */
+	public void updateFormation(String titre,String date_limite,int montant,String responsable){
+<span class="nc" id="L278">		Formation[] f = fdao.findFormation(titre,creerCalendar(date_limite));</span>
+<span class="nc" id="L279">		f[0].setDate_limite_candidature(creerCalendar(date_limite));</span>
+<span class="nc" id="L280">		f[0].setMontant_inscription(montant);</span>
+<span class="nc" id="L281">		String[] resp = responsable.split(&quot; &quot;);</span>
+<span class="nc" id="L282">		RespFormation[] rf = idao.findRespForm(resp[0],resp[1],null,null);</span>
+<span class="nc" id="L283">		f[0].setResponsable(rf[0]);</span>
+<span class="nc" id="L284">		fdao.update(f[0]);</span>
+<span class="nc" id="L285">	}</span>
+
+	/**
+	 * Enleve un candidat ou un responsable de formation de la base
+	 * @param nom
+	 * @param prenom
+	 */
+	public void deleteIdentite(String nom,String prenom,TypeIdentite type){
+<span class="nc bnc" id="L293" title="All 2 branches missed.">		if(type == TypeIdentite.FORMATEUR){</span>
+<span class="nc" id="L294">			RespFormation ident= idao.findRespForm(nom, prenom,null,null)[0];</span>
+<span class="nc" id="L295">			idao.delete(ident);</span>
+		}
+<span class="nc bnc" id="L297" title="All 2 branches missed.">		if(type== TypeIdentite.CANDIDAT){</span>
+<span class="nc" id="L298">			Candidat ident = idao.findCandidat(nom, prenom, null,null)[0];</span>
+<span class="nc" id="L299">			idao.delete(ident);</span>
+		}
+<span class="nc" id="L301">	}</span>
+
+	/**
+	 * Enleve une formation de la base
+	 * @param nom
+	 * @param date
+	 */
+	public void deleteFormation(String nom,String date){
+<span class="nc" id="L309">		Formation form = fdao.findFormation(nom, creerCalendar(date))[0];</span>
+<span class="nc" id="L310">		fdao.delete(form);</span>
+<span class="nc" id="L311">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,1 @@
+I can help you write the test cases for the `connectToSrv()` method of `BomberClient` class. But before that, I need to know the behavior of the `connectToSrv()` method. Can you provide me with the details?

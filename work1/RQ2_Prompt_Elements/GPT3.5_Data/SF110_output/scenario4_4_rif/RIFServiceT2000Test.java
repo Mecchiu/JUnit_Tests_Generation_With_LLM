@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `RIFService` has an incomplete method `invoke` and there is no implementation for the `RIFServiceTest` class. Can you please provide the complete code so that I can assist you better?

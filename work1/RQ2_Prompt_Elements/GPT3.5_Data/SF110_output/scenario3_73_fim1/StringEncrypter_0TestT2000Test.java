@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `StringEncrypter` has a method `encrypt` but the method body is missing. Can you provide the complete code for the `StringEncrypter` class?

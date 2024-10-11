@@ -1,0 +1,1 @@
+// As an AI language model, I cannot generate the implementation of the test cases without more information about the requirements and specifications of the LinearAxisScale class and its methods. Please provide more details about the expected behavior and functionality of the class and its methods.

@@ -1,0 +1,259 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wpQIaIFOh24bNFl7IezGtPwo6twS,/EvoSuiteBenchmark/scenario3/22_byuic/src/main/java/org/mozilla/javascript/Decompiler.java,84.84756731987,length,"// Decompiler.java
+package org.mozilla.javascript;
+
+/**
+ * The following class save decompilation information about the source.
+ * Source information is returned from the parser as a String
+ * associated with function nodes and with the toplevel script.  When
+ * saved in the constant pool of a class, this string will be UTF-8
+ * encoded, and token values will occupy a single byte.
+ *
+ * Source is saved (mostly) as token numbers.  The tokens saved pretty
+ * much correspond to the token stream of a 'canonical' representation
+ * of the input program, as directed by the parser.  (There were a few
+ * cases where tokens could have been left out where decompiler could
+ * easily reconstruct them, but I left them in for clarity).  (I also
+ * looked adding source collection to TokenStream instead, where I
+ * could have limited the changes to a few lines in getToken... but
+ * this wouldn't have saved any space in the resulting source
+ * representation, and would have meant that I'd have to duplicate
+ * parser logic in the decompiler to disambiguate situations where
+ * newlines are important.)  The function decompile expands the
+ * tokens back into their string representations, using simple
+ * lookahead to correct spacing and indentation.
+ *
+ * Assignments are saved as two-token pairs (Token.ASSIGN, op). Number tokens
+ * are stored inline, as a NUMBER token, a character representing the type, and
+ * either 1 or 4 characters representing the bit-encoding of the number.  String
+ * types NAME, STRING and OBJECT are currently stored as a token type,
+ * followed by a character giving the length of the string (assumed to
+ * be less than 2^16), followed by the characters of the string
+ * inlined into the source string.  Changing this to some reference to
+ * to the string in the compiled class' constant pool would probably
+ * save a lot of space... but would require some method of deriving
+ * the final constant pool entry from information available at parse
+ * time.
+ */
+public class Decompiler {
+
+    /**
+     * Decompile the source information associated with this js
+     * function/script back into a string.  For the most part, this
+     * just means translating tokens back to their string
+     * representations; there's a little bit of lookahead logic to
+     * decide the proper spacing/indentation.  Most of the work in
+     * mapping the original source to the prettyprinted decompiled
+     * version is done by the parser.
+     *
+     * @param source encoded source tree presentation
+     * @param flags flags to select output format
+     * @param properties indentation properties
+     */
+    public static String decompile(String source, int flags, UintMap properties);
+}
+","// DecompilerTest.java
+package org.mozilla.javascript;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Decompiler}.
+* It contains ten unit test cases for the {@link Decompiler#decompile(String, int, UintMap)} method.
+*/
+class DecompilerTest {","// DecompilerTest.java
+package org.mozilla.javascript;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Decompiler}.
+* It contains ten unit test cases for the {@link Decompiler#decompile(String, int, UintMap)} method.
+*/
+class DecompilerTest {
+
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function.
+	*/
+	@Test
+	public void testDecompileSimpleFunction() {
+		String source = ""function f() { return 1; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with a parameter.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithParameter() {
+		String source = ""function f(a) { return a; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with two parameters.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithTwoParameters() {
+		String source = ""function f(a, b) { return a + b; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with a parameter and a default value.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithParameterAndDefaultValue() {
+		String source = ""function f(a = 1) { return a; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with two parameters and a default value.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithTwoParametersAndDefaultValue() {
+		String source = ""function f(a, b = 1) { return a + b; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with a parameter and a default value.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithParameterAndDefaultValue2() {
+		String source = ""function f(a = 1, b) { return a + b; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with two parameters and a default value.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithTwoParametersAndDefaultValue2() {
+		String source = ""function f(a = 1, b = 2) { return a + b; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with a parameter and a default value.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithParameterAndDefaultValue3() {
+		String source = ""function f(a, b = 1, c) { return a + b + c; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with two parameters and a default value.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithTwoParametersAndDefaultValue3() {
+		String source = ""function f(a, b = 1, c = 2) { return a + b + c; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with a parameter and a default value.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithParameterAndDefaultValue4() {
+		String source = ""function f(a = 1, b = 2, c) { return a + b + c; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+	
+	/**
+	* Test case for {@link Decompiler#decompile(String, int, UintMap)} method.
+	* It tests the decompilation of a simple function with two parameters and a default value.
+	*/
+	@Test
+	public void testDecompileSimpleFunctionWithTwoParametersAndDefaultValue4() {
+		String source = ""function f(a = 1, b = 2, c = 3) { return a + b + c; }"";
+		String decompiled = Decompiler.decompile(source, 0, null);
+		assertEquals(source, decompiled);
+	}
+}
+
+// ErrorReporter.java
+package org.mozilla.javascript;
+
+/**
+ * This interface describes the access to the error reporter
+ * for the JavaScript engine.
+ *
+ * @author Norris Boyd
+ */
+
+public interface ErrorReporter {
+
+    /**
+     * Report a warning.
+     *
+     * The implementing class may choose to ignore the warning
+     * if it desires.
+     *
+     * @param message a String describing the warning
+     * @param sourceName a String describing the JavaScript source where the
+     *        warning occured; typically a filename or URL
+     * @param lineno the line number associated with the warning
+     * @param lineSource the text of the line (may be null)
+     * @param lineOffset the offset into lineSource where problem was detected
+     */
+    public void warning(String message, String sourceName, int lineno,
+                        String lineSource, int lineOffset);
+
+    /**
+     * Report an error.
+     *
+     * The implementing class is free to throw an exception if
+     * it desires.
+     *
+     * If execution has not yet begun, the JavaScript engine is
+     * free to find additional errors rather than terminating
+     * the translation. It will not execute a script that had
+     * errors, however.
+     *
+     * @param message a String describing the error
+     * @param sourceName a String describing the JavaScript source where the
+     *        error occured; typically a filename or URL
+     * @param lineno the line number associated with the error
+     * @param lineSource the text of the line (may be null)
+     * @param lineOffset the offset into lineSource where problem was detected
+     */
+    public void error(String message, String sourceName, int lineno,
+                      String lineSource, int lineOffset);
+
+    /**
+     * Creates an EvaluatorException that may be thrown.
+     * runtimeErrors, unlike errors, will always terminate the
+     * current script.
+     *
+     * @param message a String describing the error
+     * @param sourceName a String describing the JavaScript source where the
+     *        error occured; typically a filename or URL
+     * @param lineno the line number associated with the error
+     * @param lineSource the text of the line"

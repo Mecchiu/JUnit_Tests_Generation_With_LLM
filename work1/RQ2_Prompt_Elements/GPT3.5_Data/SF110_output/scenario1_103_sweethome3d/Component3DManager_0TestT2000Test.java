@@ -1,0 +1,1 @@
+// As the code provided is incomplete and missing the implementation of the getInstance() method, I cannot provide a test class for it. Please provide the complete implementation of the getInstance() method so that I can assist you in writing the test class.

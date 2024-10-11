@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `RIFService` class has a method `invoke` that takes three parameters and returns a `String`. However, the method body is missing. Additionally, the `RIFServiceTest` class is missing its test cases. Could you please provide the complete code so I can assist you better?

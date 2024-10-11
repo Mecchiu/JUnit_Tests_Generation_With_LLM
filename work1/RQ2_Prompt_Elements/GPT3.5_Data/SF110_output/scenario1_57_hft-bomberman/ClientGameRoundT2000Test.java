@@ -1,0 +1,1 @@
+I can help you with writing the test cases for the `ClientGameRound` class. However, the code you provided is incomplete and contains some errors. Can you please provide the complete and error-free code for the `ClientGameRound` class?

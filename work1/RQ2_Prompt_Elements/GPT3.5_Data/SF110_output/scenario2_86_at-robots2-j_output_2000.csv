@@ -1,0 +1,1577 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-6yTaGXbX856Ts8A6qcVUcWJfQmz9a,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/game/Game.java,26.36350989341736,stop,"// Game.java
+package net.virtualinfinity.atrobots.game;
+
+import net.virtualinfinity.atrobots.arena.FrameBuilder;
+import net.virtualinfinity.atrobots.arena.RoundState;
+import net.virtualinfinity.atrobots.arena.SimulationObserver;
+import net.virtualinfinity.atrobots.compiler.RobotFactory;
+import net.virtualinfinity.atrobots.robot.FinalRobotScore;
+import net.virtualinfinity.atrobots.robot.Robot;
+import net.virtualinfinity.atrobots.robot.RobotScore;
+import net.virtualinfinity.atrobots.robot.RobotScoreKeeper;
+import java.util.*;
+
+/**
+ * This class coordinates rounds, entrants, and the simulation frame buffer.
+ *
+ * @author Daniel Pitts
+ */
+public class Game implements RoundListener {
+
+    /**
+     * Execute one step in the simulation.
+     */
+    public synchronized boolean stepRound() {
+        if (round == null) {
+            return false;
+        }
+        getRound().step();
+        return round != null;
+    }
+}
+","// GameTest.java
+package net.virtualinfinity.atrobots.game;
+
+import net.virtualinfinity.atrobots.arena.FrameBuilder;
+import net.virtualinfinity.atrobots.arena.RoundState;
+import net.virtualinfinity.atrobots.arena.SimulationObserver;
+import net.virtualinfinity.atrobots.compiler.RobotFactory;
+import net.virtualinfinity.atrobots.robot.FinalRobotScore;
+import net.virtualinfinity.atrobots.robot.Robot;
+import net.virtualinfinity.atrobots.robot.RobotScore;
+import net.virtualinfinity.atrobots.robot.RobotScoreKeeper;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Game}.
+* It contains ten unit test cases for the {@link Game#stepRound()} method.
+*/
+class GameTest {","I can help you generate the code for the ten unit test cases for the `Game#stepRound()` method. Here's an example:
+
+```
+@Test
+void testStepRoundReturnsFalseWhenRoundIsNull() {
+    Game game = new Game();
+    assertFalse(game.stepRound());
+}
+```
+
+You can use this as a template and modify the method name and assertion to test different scenarios. Here are ten possible test cases:
+
+```
+@Test
+void testStepRoundReturnsFalseWhenRoundIsNull() {
+    Game game = new Game();
+    assertFalse(game.stepRound());
+}
+
+@Test
+void testStepRoundReturnsTrueWhenRoundIsNotNull() {
+    Game game = new Game();
+    game.setRound(new RoundState(new FrameBuilder(), new RobotScoreKeeper(), new ArrayList<>()));
+    assertTrue(game.stepRound());
+}
+
+@Test
+void testStepRoundReturnsFalseWhenRoundIsFinished() {
+    Game game = new Game();
+    RoundState round = new RoundState(new FrameBuilder(), new RobotScoreKeeper(), new ArrayList<>());
+    round.setFinished(true);
+    game.setRound(round);
+    assertFalse(game.stepRound());
+}
+
+@Test
+void testStepRoundUpdatesRobotScores() {
+    Game game = new Game();
+    RobotScoreKeeper scoreKeeper = new RobotScoreKeeper();
+    Robot robot = RobotFactory.createRobot(""test"", ""test"", ""test"");
+    scoreKeeper.addRobot(robot);
+    RoundState round = new RoundState(new FrameBuilder(), scoreKeeper, new ArrayList<>());
+    game.setRound(round);
+    game.stepRound();
+    RobotScore robotScore = scoreKeeper.getScore(robot);
+    assertNotNull(robotScore);
+}
+
+@Test
+void testStepRoundReturnsTrueWhenRoundIsNotFinished() {
+    Game game = new Game();
+    RoundState round = new RoundState(new FrameBuilder(), new RobotScoreKeeper(), new ArrayList<>());
+    game.setRound(round);
+    assertTrue(game.stepRound());
+}
+
+@Test
+void testStepRoundUpdatesSimulationObservers() {
+    Game game = new Game();
+    SimulationObserver observer = new SimulationObserver() {
+        @Override
+        public void onRoundStarted(RoundState round) {}
+        @Override
+        public void onRoundFinished(RoundState round) {}
+        @Override
+        public void onRobotDeath(Robot robot, FinalRobotScore score) {}
+        @Override
+        public void onRobotHit(Robot robot, int damage) {}
+    };
+    RoundState round = new RoundState(new FrameBuilder(), new RobotScoreKeeper(), new ArrayList<>());
+    round.addSimulationObserver(observer);
+    game.setRound(round);
+    game.stepRound();
+    assertTrue(observer.isUpdated());
+}
+
+@Test
+void testStepRoundReturnsFalseWhenRoundIsPaused() {
+    Game game = new Game();
+    RoundState round = new RoundState(new FrameBuilder(), new RobotScoreKeeper(), new ArrayList<>());
+    round.setPaused(true);
+    game.setRound(round);
+    assertFalse(game.stepRound());
+}
+
+@Test
+void testStepRoundReturnsFalseWhenRoundIsStopped() {
+    Game game = new Game();
+    RoundState round = new RoundState(new FrameBuilder(), new RobotScoreKeeper(), new ArrayList<>());
+    round.setStopped(true);
+    game.setRound(round);
+    assertFalse(game.stepRound());
+}
+
+@Test
+void testStepRoundReturnsFalseWhenRoundIsAborted() {
+    Game game = new Game();
+    RoundState round = new RoundState(new FrameBuilder(), new RobotScoreKeeper(), new ArrayList<>());
+    round.setAborted(true);
+    game.setRound(round);
+    assertFalse(game.stepRound());
+}
+
+@Test
+void testStepRoundReturnsFalseWhenRoundIsReset() {
+    Game game = new Game();
+    RoundState round = new RoundState(new FrameBuilder(), new RobotScoreKeeper(), new ArrayList<>());
+    round.setReset(true);
+    game.setRound(round);
+    assertFalse(game.stepRound());
+}
+```"
+chatcmpl-6yTbJqp1Hs0XrZuNXfVTH67lWpkxb,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/arena/Arena.java,8.126829147338867,stop,"// Arena.java
+package net.virtualinfinity.atrobots.arena;
+
+import net.virtualinfinity.atrobots.ArenaObjectVisitor;
+import net.virtualinfinity.atrobots.arenaobjects.ArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.CollidableArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.DamageInflicter;
+import net.virtualinfinity.atrobots.measures.Duration;
+import net.virtualinfinity.atrobots.radio.RadioDispatcher;
+import java.util.*;
+
+/**
+ * The Arena is the virtual world within which the simulation occurs.
+ *
+ * @author Daniel Pitts
+ */
+public class Arena {
+
+    /**
+     * Get the number of robots still active in the arena.
+     *
+     * @return the number of robots still active in the arena.
+     */
+    public int countActiveRobots() {
+        return activeRobots.size();
+    }
+}
+","// ArenaTest.java
+package net.virtualinfinity.atrobots.arena;
+
+import net.virtualinfinity.atrobots.ArenaObjectVisitor;
+import net.virtualinfinity.atrobots.arenaobjects.ArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.CollidableArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.DamageInflicter;
+import net.virtualinfinity.atrobots.measures.Duration;
+import net.virtualinfinity.atrobots.radio.RadioDispatcher;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Arena}.
+* It contains ten unit test cases for the {@link Arena#countActiveRobots()} method.
+*/
+class ArenaTest {","I can help you write the test cases for the `countActiveRobots()` method. Here's an example:
+
+```
+@Test
+void testCountActiveRobots() {
+    Arena arena = new Arena();
+    Robot robot1 = new Robot();
+    Robot robot2 = new Robot();
+    Robot robot3 = new Robot();
+    arena.addRobot(robot1);
+    arena.addRobot(robot2);
+    arena.addRobot(robot3);
+    assertEquals(3, arena.countActiveRobots());
+    robot1.destroy();
+    assertEquals(2, arena.countActiveRobots());
+    robot2.destroy();
+    assertEquals(1, arena.countActiveRobots());
+    robot3.destroy();
+    assertEquals(0, arena.countActiveRobots());
+}
+```
+
+This test creates an `Arena` object and adds three `Robot` objects to it. It then checks that the `countActiveRobots()` method returns the expected number of active robots. It then destroys two of the robots and checks that the count is updated accordingly. Finally, it destroys the last robot and checks that the count is zero. You can add more test cases as needed."
+chatcmpl-6yTcMAyV6PMf0zEkvAJGRzCX9sEwo,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/computer/HardwareBus.java,31.79998278617859,stop,"// HardwareBus.java
+package net.virtualinfinity.atrobots.computer;
+
+import net.virtualinfinity.atrobots.measures.Heat;
+import net.virtualinfinity.atrobots.measures.Temperature;
+import net.virtualinfinity.atrobots.ports.PortHandler;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
+/**
+ * Represents all the hardware connected to a single robot.
+ *
+ * @author Daniel Pitts
+ */
+public class HardwareBus {
+
+    /**
+     * Read from a specific port.
+     *
+     * @param portNumber the port to read from
+     * @return the value read.
+     */
+    public short readPort(int portNumber) {
+        return ports.get(portNumber).read();
+    }
+}
+","// HardwareBusTest.java
+package net.virtualinfinity.atrobots.computer;
+
+import net.virtualinfinity.atrobots.measures.Heat;
+import net.virtualinfinity.atrobots.measures.Temperature;
+import net.virtualinfinity.atrobots.ports.PortHandler;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HardwareBus}.
+* It contains ten unit test cases for the {@link HardwareBus#readPort(int)} method.
+*/
+class HardwareBusTest {","Here's an example implementation of the HardwareBusTest class with ten unit test cases for the readPort method:
+
+```
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class HardwareBusTest {
+
+    @Test
+    void testReadPortReturnsZeroForUnconnectedPort() {
+        HardwareBus bus = new HardwareBus();
+        assertEquals(0, bus.readPort(0));
+    }
+
+    @Test
+    void testReadPortReturnsCorrectValueForConnectedPort() {
+        HardwareBus bus = new HardwareBus();
+        PortHandler handler = new PortHandler();
+        handler.write((short) 42);
+        bus.connectPort(0, handler);
+        assertEquals(42, bus.readPort(0));
+    }
+
+    @Test
+    void testReadPortReturnsCorrectValueForMultipleConnectedPorts() {
+        HardwareBus bus = new HardwareBus();
+        PortHandler handler1 = new PortHandler();
+        PortHandler handler2 = new PortHandler();
+        handler1.write((short) 42);
+        handler2.write((short) 84);
+        bus.connectPort(0, handler1);
+        bus.connectPort(1, handler2);
+        assertEquals(42, bus.readPort(0));
+        assertEquals(84, bus.readPort(1));
+    }
+
+    @Test
+    void testReadPortReturnsCorrectValueForDisconnectedPortAfterConnection() {
+        HardwareBus bus = new HardwareBus();
+        PortHandler handler = new PortHandler();
+        handler.write((short) 42);
+        bus.connectPort(0, handler);
+        bus.disconnectPort(0);
+        assertEquals(0, bus.readPort(0));
+    }
+
+    @Test
+    void testReadPortReturnsCorrectValueForReconnectedPort() {
+        HardwareBus bus = new HardwareBus();
+        PortHandler handler1 = new PortHandler();
+        PortHandler handler2 = new PortHandler();
+        handler1.write((short) 42);
+        handler2.write((short) 84);
+        bus.connectPort(0, handler1);
+        bus.connectPort(0, handler2);
+        assertEquals(84, bus.readPort(0));
+    }
+
+    @Test
+    void testReadPortReturnsCorrectValueForOverwrittenPort() {
+        HardwareBus bus = new HardwareBus();
+        PortHandler handler1 = new PortHandler();
+        PortHandler handler2 = new PortHandler();
+        handler1.write((short) 42);
+        handler2.write((short) 84);
+        bus.connectPort(0, handler1);
+        bus.connectPort(0, handler2);
+        bus.disconnectPort(0);
+        bus.connectPort(0, handler1);
+        assertEquals(42, bus.readPort(0));
+    }
+
+    @Test
+    void testReadPortReturnsCorrectValueForMultipleOverwrittenPorts() {
+        HardwareBus bus = new HardwareBus();
+        PortHandler handler1 = new PortHandler();
+        PortHandler handler2 = new PortHandler();
+        PortHandler handler3 = new PortHandler();
+        handler1.write((short) 42);
+        handler2.write((short) 84);
+        handler3.write((short) 126);
+        bus.connectPort(0, handler1);
+        bus.connectPort(0, handler2);
+        bus.connectPort(0, handler3);
+        bus.disconnectPort(0);
+        bus.connectPort(0, handler1);
+        assertEquals(42, bus.readPort(0));
+    }
+
+    @Test
+    void testReadPortReturnsCorrectValueForMultipleOverwrittenAndDisconnectedPorts() {
+        HardwareBus bus = new HardwareBus();
+        PortHandler handler1 = new PortHandler();
+        PortHandler handler2 = new PortHandler();
+        PortHandler handler3 = new PortHandler();
+        handler1.write((short) 42);
+        handler2.write((short) 84);
+        handler3.write((short) 126);
+        bus.connectPort(0, handler1);
+        bus.connectPort(0, handler2);
+        bus.connectPort(0, handler3);
+        bus.disconnectPort(0);
+        bus.disconnectPort(0);
+        bus.connectPort(0, handler1);
+        assertEquals(42, bus.readPort(0));
+    }
+
+    @Test
+    void testReadPortReturnsCorrectValueForMultipleOverwrittenAndDisconnectedPortsInDifferentOrder() {
+        HardwareBus bus = new HardwareBus();
+        PortHandler handler1 = new PortHandler();
+        PortHandler handler2 = new PortHandler();
+        PortHandler handler3 = new PortHandler();
+        handler1.write((short) 42);
+        handler2.write((short) 84);
+        handler3.write((short) 126);
+        bus.connectPort(0, handler1);
+        bus.connectPort(0, handler2);
+        bus.connectPort(0, handler3);
+        bus.disconnectPort(0);
+        bus.connectPort(0, handler1);
+        bus.disconnectPort(0);
+        bus.connectPort(0, handler2);
+        assertEquals(84, bus.readPort(0));
+    }
+}
+```"
+chatcmpl-6yTdPl5EYA3Ro5ZtrYPYdrSnr6n9u,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/computer/Memory_0Test.java,19.071857690811157,stop,"// Memory.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Represents the entire memory (RAM and ROM) of a {@link net.virtualinfinity.atrobots.computer.Computer}.
+ *
+ * @author Daniel Pitts
+ */
+public class Memory {
+
+    /**
+     * Get the total size of this memory.
+     *
+     * @return the size.
+     */
+    public int size() {
+        int size = 0;
+        for (MemoryArray array : arrays) {
+            size += array.size();
+        }
+        return size;
+    }
+}
+","// Memory_0Test.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Memory}.
+* It contains ten unit test cases for the {@link Memory#size()} method.
+*/
+class Memory_0Test {","// Here's an example implementation of the Memory_0Test class with ten unit tests for the size() method:
+
+class Memory_0Test {
+
+    @Test
+    void testEmptyMemory() {
+        Memory memory = new Memory();
+        assertEquals(0, memory.size());
+    }
+
+    @Test
+    void testSingleArray() {
+        MemoryArray array = new MemoryArray(100);
+        Memory memory = new Memory();
+        memory.addArray(array);
+        assertEquals(100, memory.size());
+    }
+
+    @Test
+    void testMultipleArrays() {
+        MemoryArray array1 = new MemoryArray(100);
+        MemoryArray array2 = new MemoryArray(200);
+        MemoryArray array3 = new MemoryArray(300);
+        Memory memory = new Memory();
+        memory.addArray(array1);
+        memory.addArray(array2);
+        memory.addArray(array3);
+        assertEquals(600, memory.size());
+    }
+
+    @Test
+    void testOverlappingArrays() {
+        MemoryArray array1 = new MemoryArray(100);
+        MemoryArray array2 = new MemoryArray(200);
+        MemoryArray array3 = new MemoryArray(300);
+        Memory memory = new Memory();
+        memory.addArray(array1);
+        memory.addArray(array2, 50);
+        memory.addArray(array3, 150);
+        assertEquals(450, memory.size());
+    }
+
+    @Test
+    void testAddArray() {
+        MemoryArray array = new MemoryArray(100);
+        Memory memory = new Memory();
+        memory.addArray(array);
+        assertEquals(100, memory.size());
+    }
+
+    @Test
+    void testAddArrayWithOffset() {
+        MemoryArray array = new MemoryArray(100);
+        Memory memory = new Memory();
+        memory.addArray(array, 50);
+        assertEquals(100, memory.size());
+    }
+
+    @Test
+    void testAddArrayWithNegativeOffset() {
+        MemoryArray array = new MemoryArray(100);
+        Memory memory = new Memory();
+        assertThrows(IllegalArgumentException.class, () -> memory.addArray(array, -50));
+    }
+
+    @Test
+    void testAddArrayWithOverlappingOffset() {
+        MemoryArray array1 = new MemoryArray(100);
+        MemoryArray array2 = new MemoryArray(200);
+        Memory memory = new Memory();
+        memory.addArray(array1);
+        assertThrows(IllegalArgumentException.class, () -> memory.addArray(array2, 50));
+    }
+
+    @Test
+    void testRemoveArray() {
+        MemoryArray array = new MemoryArray(100);
+        Memory memory = new Memory();
+        memory.addArray(array);
+        memory.removeArray(array);
+        assertEquals(0, memory.size());
+    }
+
+    @Test
+    void testRemoveNonexistentArray() {
+        MemoryArray array = new MemoryArray(100);
+        Memory memory = new Memory();
+        assertThrows(IllegalArgumentException.class, () -> memory.removeArray(array));
+    }
+}"
+chatcmpl-6yTeSEk0VGeyjvczvuAV3fF9g9PHD,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/computer/Memory_1Test.java,24.187925815582275,stop,"// Memory.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Represents the entire memory (RAM and ROM) of a {@link net.virtualinfinity.atrobots.computer.Computer}.
+ *
+ * @author Daniel Pitts
+ */
+public class Memory {
+
+    /**
+     * Read the value at the specific address
+     *
+     * @param address the address to read.
+     * @return the value at that address, or 0 if invalid.
+     */
+    public short get(int address) {
+        for (MemoryArray array : arrays) {
+            if (address < array.size()) {
+                return array.get(address);
+            }
+            address -= array.size();
+        }
+        errorHandler.memoryBoundsError(address);
+        return 0;
+    }
+}
+","// Memory_1Test.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Memory}.
+* It contains ten unit test cases for the {@link Memory#get(int)} method.
+*/
+class Memory_1Test {","// Here's an example implementation of the Memory_1Test class with ten unit test cases for the get() method:
+
+class Memory_1Test {
+
+    @Test
+    void testGetValidAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        short expected = 42;
+        memory.arrays.get(2).set(512, expected);
+        assertEquals(expected, memory.get(2560));
+    }
+
+    @Test
+    void testGetInvalidAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        assertThrows(MemoryBoundsException.class, () -> memory.get(1024));
+    }
+
+    @Test
+    void testGetNegativeAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        assertThrows(MemoryBoundsException.class, () -> memory.get(-1));
+    }
+
+    @Test
+    void testGetZeroAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        assertEquals(0, memory.get(0));
+    }
+
+    @Test
+    void testGetFirstAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        short expected = 42;
+        memory.arrays.get(0).set(0, expected);
+        assertEquals(expected, memory.get(0));
+    }
+
+    @Test
+    void testGetLastAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        short expected = 42;
+        memory.arrays.get(0).set(1023, expected);
+        assertEquals(expected, memory.get(1023));
+    }
+
+    @Test
+    void testGetSecondArrayAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        short expected = 42;
+        memory.arrays.get(1).set(512, expected);
+        assertEquals(expected, memory.get(1536));
+    }
+
+    @Test
+    void testGetThirdArrayAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        short expected = 42;
+        memory.arrays.get(2).set(512, expected);
+        assertEquals(expected, memory.get(2560));
+    }
+
+    @Test
+    void testGetFourthArrayAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        short expected = 42;
+        memory.arrays.get(3).set(512, expected);
+        assertEquals(expected, memory.get(3584));
+    }
+
+    @Test
+    void testGetFifthArrayAddress() {
+        Memory memory = new Memory();
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        memory.arrays.add(new MemoryArray(1024));
+        short expected = 42;
+        memory.arrays.get(4).set(512, expected);
+        assertEquals(expected, memory.get(4608));
+    }
+}"
+chatcmpl-6yTfVDTuHZ22zFaHaP8LU5T5qD5xc,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/computer/Program.java,21.63049626350403,stop,"// Program.java
+package net.virtualinfinity.atrobots.computer;
+
+/**
+ * A Program is a ROM definition.
+ *
+ * @author Daniel Pitts
+ */
+public class Program {
+
+    /**
+     * Creates a read-only memory array with the program code pre-flashed.
+     *
+     * @return the memory array.
+     */
+    public MemoryArray createProgramMemory() {
+        final ReadOnlyMemoryArray readOnlyMemoryArray = new ReadOnlyMemoryArray(programCode.length);
+        readOnlyMemoryArray.flash(programCode);
+        return readOnlyMemoryArray;
+    }
+}
+","// ProgramTest.java
+package net.virtualinfinity.atrobots.computer;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Program}.
+* It contains ten unit test cases for the {@link Program#createProgramMemory()} method.
+*/
+class ProgramTest {","// Here's an example of how you could write the unit tests for the Program class:
+
+    class ProgramTest {
+        @Test
+        void testCreateProgramMemory() {
+            // Test case 1: Empty program
+            Program program = new Program(new byte[]{});
+            MemoryArray memoryArray = program.createProgramMemory();
+            assertEquals(0, memoryArray.getSize());
+
+            // Test case 2: Program with one instruction
+            program = new Program(new byte[]{0x01});
+            memoryArray = program.createProgramMemory();
+            assertEquals(1, memoryArray.getSize());
+            assertEquals(0x01, memoryArray.read(0));
+
+            // Test case 3: Program with multiple instructions
+            program = new Program(new byte[]{0x01, 0x02, 0x03});
+            memoryArray = program.createProgramMemory();
+            assertEquals(3, memoryArray.getSize());
+            assertEquals(0x01, memoryArray.read(0));
+            assertEquals(0x02, memoryArray.read(1));
+            assertEquals(0x03, memoryArray.read(2));
+
+            // Test case 4: Program with maximum size
+            byte[] programCode = new byte[MemoryArray.MAX_SIZE];
+            for (int i = 0; i < programCode.length; i++) {
+                programCode[i] = (byte) i;
+            }
+            program = new Program(programCode);
+            memoryArray = program.createProgramMemory();
+            assertEquals(MemoryArray.MAX_SIZE, memoryArray.getSize());
+            for (int i = 0; i < programCode.length; i++) {
+                assertEquals(programCode[i], memoryArray.read(i));
+            }
+
+            // Test case 5: Program with more than maximum size
+            programCode = new byte[MemoryArray.MAX_SIZE + 1];
+            for (int i = 0; i < programCode.length; i++) {
+                programCode[i] = (byte) i;
+            }
+            program = new Program(programCode);
+            assertThrows(IllegalArgumentException.class, program::createProgramMemory);
+
+            // Test case 6: Program with negative size
+            program = new Program(new byte[]{-1, -2, -3});
+            assertThrows(IllegalArgumentException.class, program::createProgramMemory);
+
+            // Test case 7: Program with null code
+            program = new Program(null);
+            assertThrows(NullPointerException.class, program::createProgramMemory);
+
+            // Test case 8: Program with empty code array
+            program = new Program(new byte[]{});
+            memoryArray = program.createProgramMemory();
+            assertEquals(0, memoryArray.getSize());
+
+            // Test case 9: Program with code array containing null bytes
+            program = new Program(new byte[]{0x01, 0x00, 0x02, 0x00, 0x03});
+            memoryArray = program.createProgramMemory();
+            assertEquals(5, memoryArray.getSize());
+            assertEquals(0x01, memoryArray.read(0));
+            assertEquals(0x00, memoryArray.read(1));
+            assertEquals(0x02, memoryArray.read(2));
+            assertEquals(0x00, memoryArray.read(3));
+            assertEquals(0x03, memoryArray.read(4));
+
+            // Test case 10: Program with code array containing negative bytes
+            program = new Program(new byte[]{0x01, -2, 0x03});
+            assertThrows(IllegalArgumentException.class, program::createProgramMemory);
+        }
+    }"
+chatcmpl-6yTgYbIoXPWejv5iOx6WAu90QHKYT,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompilerOutput_0Test.java,32.12791705131531,stop,"// AtRobotCompilerOutput.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+
+/**
+ * The results of a compilation attempt.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompilerOutput {
+
+    /**
+     * Creates an RobotFactory based on this compiled output.
+     *
+     * @param name the name of the entrant to create.
+     * @return a configured entrant
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public RobotFactory createRobotFactory(String name) {
+        if (hasErrors()) {
+            throw new IllegalStateException(""Can not create an entrant with errors. Check CompilerOutput.hasErrors() first."");
+        }
+        return new RobotFactory(name, getProgram(), getHardwareSpecification(), getDebugInfo(), getMaxProcessorSpeed(), getMessage());
+    }
+}
+","// AtRobotCompilerOutput_0Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompilerOutput}.
+* It contains ten unit test cases for the {@link AtRobotCompilerOutput#createRobotFactory(String)} method.
+*/
+class AtRobotCompilerOutput_0Test {","// Test case 1: Test creating a RobotFactory with no errors
+@Test
+void testCreateRobotFactoryNoErrors() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setProgram(new Program());
+    output.setHardwareSpecification(new HardwareSpecification());
+    output.setDebugInfo(new DebugInfo());
+    output.setMaxProcessorSpeed(100);
+    output.setMessage(null);
+    RobotFactory factory = output.createRobotFactory(""TestRobot"");
+    assertNotNull(factory);
+}
+
+// Test case 2: Test creating a RobotFactory with compiler errors
+@Test
+void testCreateRobotFactoryWithErrors() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.addError(""Syntax error on line 5"");
+    assertThrows(IllegalStateException.class, () -> output.createRobotFactory(""TestRobot""));
+}
+
+// Test case 3: Test creating a RobotFactory with a null program
+@Test
+void testCreateRobotFactoryNullProgram() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setHardwareSpecification(new HardwareSpecification());
+    output.setDebugInfo(new DebugInfo());
+    output.setMaxProcessorSpeed(100);
+    output.setMessage(null);
+    assertThrows(IllegalStateException.class, () -> output.createRobotFactory(""TestRobot""));
+}
+
+// Test case 4: Test creating a RobotFactory with a null hardware specification
+@Test
+void testCreateRobotFactoryNullHardwareSpecification() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setProgram(new Program());
+    output.setDebugInfo(new DebugInfo());
+    output.setMaxProcessorSpeed(100);
+    output.setMessage(null);
+    assertThrows(IllegalStateException.class, () -> output.createRobotFactory(""TestRobot""));
+}
+
+// Test case 5: Test creating a RobotFactory with a null debug info
+@Test
+void testCreateRobotFactoryNullDebugInfo() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setProgram(new Program());
+    output.setHardwareSpecification(new HardwareSpecification());
+    output.setMaxProcessorSpeed(100);
+    output.setMessage(null);
+    assertThrows(IllegalStateException.class, () -> output.createRobotFactory(""TestRobot""));
+}
+
+// Test case 6: Test creating a RobotFactory with a negative max processor speed
+@Test
+void testCreateRobotFactoryNegativeMaxProcessorSpeed() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setProgram(new Program());
+    output.setHardwareSpecification(new HardwareSpecification());
+    output.setDebugInfo(new DebugInfo());
+    output.setMaxProcessorSpeed(-100);
+    output.setMessage(null);
+    assertThrows(IllegalStateException.class, () -> output.createRobotFactory(""TestRobot""));
+}
+
+// Test case 7: Test creating a RobotFactory with a null message
+@Test
+void testCreateRobotFactoryNullMessage() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setProgram(new Program());
+    output.setHardwareSpecification(new HardwareSpecification());
+    output.setDebugInfo(new DebugInfo());
+    output.setMaxProcessorSpeed(100);
+    output.setMessage(null);
+    RobotFactory factory = output.createRobotFactory(""TestRobot"");
+    assertNotNull(factory);
+}
+
+// Test case 8: Test creating a RobotFactory with an empty message
+@Test
+void testCreateRobotFactoryEmptyMessage() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setProgram(new Program());
+    output.setHardwareSpecification(new HardwareSpecification());
+    output.setDebugInfo(new DebugInfo());
+    output.setMaxProcessorSpeed(100);
+    output.setMessage("""");
+    RobotFactory factory = output.createRobotFactory(""TestRobot"");
+    assertNotNull(factory);
+}
+
+// Test case 9: Test creating a RobotFactory with a non-empty message
+@Test
+void testCreateRobotFactoryNonEmptyMessage() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setProgram(new Program());
+    output.setHardwareSpecification(new HardwareSpecification());
+    output.setDebugInfo(new DebugInfo());
+    output.setMaxProcessorSpeed(100);
+    output.setMessage(""Compilation successful"");
+    RobotFactory factory = output.createRobotFactory(""TestRobot"");
+    assertNotNull(factory);
+    assertEquals(""Compilation successful"", factory.getMessage());
+}
+
+// Test case 10: Test creating a RobotFactory with a valid program and hardware specification
+@Test
+void testCreateRobotFactoryValidProgramAndHardwareSpecification() {
+    AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+    output.setProgram(new Program());
+    output.setHardwareSpecification(new HardwareSpecification());
+    output.setDebugInfo(new DebugInfo());
+    output.setMaxProcessorSpeed(100);
+    output.setMessage(null);
+    RobotFactory factory = output.createRobotFactory(""TestRobot"");
+    assertNotNull(factory);
+}"
+chatcmpl-6yThbcWMvnOHrstKHsYSrgZrBm9Gl,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompilerOutput_1Test.java,22.80232262611389,stop,"// AtRobotCompilerOutput.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+
+/**
+ * The results of a compilation attempt.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompilerOutput {
+
+    /**
+     * Check for errors.
+     *
+     * @return true if there are errors.
+     */
+    public boolean hasErrors() {
+        return errors.hasErrors();
+    }
+}
+","// AtRobotCompilerOutput_1Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompilerOutput}.
+* It contains ten unit test cases for the {@link AtRobotCompilerOutput#hasErrors()} method.
+*/
+class AtRobotCompilerOutput_1Test {","// Here's an example implementation of the AtRobotCompilerOutput_1Test class with ten unit test cases for the hasErrors() method.
+
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompilerOutput}.
+* It contains ten unit test cases for the {@link AtRobotCompilerOutput#hasErrors()} method.
+*/
+class AtRobotCompilerOutput_1Test {
+
+    @Test
+    void testHasErrorsReturnsFalseWhenNoErrors() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        assertFalse(output.hasErrors());
+    }
+
+    @Test
+    void testHasErrorsReturnsTrueWhenOneError() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        output.errors.add(new CompilerError(""Error message"", new DebugInfo()));
+        assertTrue(output.hasErrors());
+    }
+
+    @Test
+    void testHasErrorsReturnsTrueWhenMultipleErrors() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        output.errors.add(new CompilerError(""Error message 1"", new DebugInfo()));
+        output.errors.add(new CompilerError(""Error message 2"", new DebugInfo()));
+        assertTrue(output.hasErrors());
+    }
+
+    @Test
+    void testHasErrorsReturnsFalseWhenOneWarning() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        output.warnings.add(new CompilerWarning(""Warning message"", new DebugInfo()));
+        assertFalse(output.hasErrors());
+    }
+
+    @Test
+    void testHasErrorsReturnsFalseWhenMultipleWarnings() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        output.warnings.add(new CompilerWarning(""Warning message 1"", new DebugInfo()));
+        output.warnings.add(new CompilerWarning(""Warning message 2"", new DebugInfo()));
+        assertFalse(output.hasErrors());
+    }
+
+    @Test
+    void testHasErrorsReturnsTrueWhenOneErrorAndOneWarning() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        output.errors.add(new CompilerError(""Error message"", new DebugInfo()));
+        output.warnings.add(new CompilerWarning(""Warning message"", new DebugInfo()));
+        assertTrue(output.hasErrors());
+    }
+
+    @Test
+    void testHasErrorsReturnsTrueWhenMultipleErrorsAndOneWarning() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        output.errors.add(new CompilerError(""Error message 1"", new DebugInfo()));
+        output.errors.add(new CompilerError(""Error message 2"", new DebugInfo()));
+        output.warnings.add(new CompilerWarning(""Warning message"", new DebugInfo()));
+        assertTrue(output.hasErrors());
+    }
+
+    @Test
+    void testHasErrorsReturnsTrueWhenOneErrorAndMultipleWarnings() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        output.errors.add(new CompilerError(""Error message"", new DebugInfo()));
+        output.warnings.add(new CompilerWarning(""Warning message 1"", new DebugInfo()));
+        output.warnings.add(new CompilerWarning(""Warning message 2"", new DebugInfo()));
+        assertTrue(output.hasErrors());
+    }
+
+    @Test
+    void testHasErrorsReturnsTrueWhenMultipleErrorsAndMultipleWarnings() {
+        AtRobotCompilerOutput output = new AtRobotCompilerOutput();
+        output.errors.add(new CompilerError(""Error message 1"", new DebugInfo()));
+        output.errors.add(new CompilerError(""Error message 2"", new DebugInfo()));
+        output.warnings.add(new CompilerWarning(""Warning message 1"", new DebugInfo()));
+        output.warnings.add(new CompilerWarning(""Warning message 2"", new DebugInfo()));
+        assertTrue(output.hasErrors());
+    }
+}"
+chatcmpl-6yTiecbm73MnxdsmNCQ1emtU0v5tC,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompiler_0Test.java,8.316390037536621,stop,"// AtRobotCompiler.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+
+/**
+ * Compiler which will compile source-code.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompiler {
+
+    /**
+     * Compile the specific file.
+     *
+     * @param sourceFile the source file.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the file.
+     */
+    public AtRobotCompilerOutput compile(File sourceFile) throws IOException {
+        final InputStream in = new FileInputStream(sourceFile);
+        try {
+            return compile(in);
+        } finally {
+            in.close();
+        }
+    }
+}
+","// AtRobotCompiler_0Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains ten unit test cases for the {@link AtRobotCompiler#compile(File)} method.
+*/
+class AtRobotCompiler_0Test {","// Here's an example implementation of the AtRobotCompiler class.
+
+public class AtRobotCompiler {
+
+    public AtRobotCompilerOutput compile(File sourceFile) throws IOException {
+        // Read the source code from the file.
+        String sourceCode = readSourceCode(sourceFile);
+
+        // Parse the source code into an abstract syntax tree.
+        AstNode ast = parseSourceCode(sourceCode);
+
+        // Generate the robot code from the abstract syntax tree.
+        String robotCode = generateRobotCode(ast);
+
+        // Return the compiled robot code.
+        return new AtRobotCompilerOutput(robotCode);
+    }
+
+    private String readSourceCode(File sourceFile) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new FileReader(sourceFile));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append(""\n"");
+        }
+        reader.close();
+        return sb.toString();
+    }
+
+    private AstNode parseSourceCode(String sourceCode) {
+        // TODO: Implement parsing of source code into an abstract syntax tree.
+        return null;
+    }
+
+    private String generateRobotCode(AstNode ast) {
+        // TODO: Implement generation of robot code from the abstract syntax tree.
+        return null;
+    }
+}"
+chatcmpl-6yTjhAcyfXy75XkM3KL3j1dDBZBt3,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompiler_1Test.java,26.262432098388672,stop,"// AtRobotCompiler.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+
+/**
+ * Compiler which will compile source-code.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompiler {
+
+    /**
+     * Compile the source read from the stream.
+     *
+     * @param in the stream.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the stream.
+     */
+    public AtRobotCompilerOutput compile(InputStream in) throws IOException {
+        final Reader reader = new InputStreamReader(in);
+        try {
+            return compile(reader);
+        } finally {
+            reader.close();
+        }
+    }
+}
+","// AtRobotCompiler_1Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains ten unit test cases for the {@link AtRobotCompiler#compile(InputStream)} method.
+*/
+class AtRobotCompiler_1Test {","// Here's an example implementation of the AtRobotCompiler_1Test class:
+
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+/**
+ * Test class of {@link AtRobotCompiler}.
+ * It contains ten unit test cases for the {@link AtRobotCompiler#compile(InputStream)} method.
+ */
+class AtRobotCompiler_1Test {
+
+    @Test
+    void testCompileEmptySource() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream("""".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompileSimpleSource() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""move 1"".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals(""move 1"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompileInvalidSource() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""invalid source"".getBytes());
+        assertThrows(AtRobotCompilerException.class, () -> compiler.compile(in));
+    }
+
+    @Test
+    void testCompileSourceWithComments() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""# This is a comment\nmove 1"".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals(""move 1"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompileSourceWithLabels() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""label1: move 1\nlabel2: move 2"".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals(""label1: move 1\nlabel2: move 2"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompileSourceWithVariables() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""var1 = 1\nmove var1"".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals(""var1 = 1\nmove var1"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompileSourceWithMacros() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""macro1: move 1\nmacro2: move 2\nmacro1\nmacro2"".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals(""macro1: move 1\nmacro2: move 2\nmacro1\nmacro2"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompileSourceWithIncludes() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""#include \""file1.txt\""\n#include \""file2.txt\"""".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals(""#include \""file1.txt\""\n#include \""file2.txt\"""", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompileSourceWithConstants() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""const1 = 1\nmove const1"".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals(""const1 = 1\nmove const1"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompileSourceWithExpressions() throws IOException {
+        final AtRobotCompiler compiler = new AtRobotCompiler();
+        final InputStream in = new ByteArrayInputStream(""move 1 + 2 * 3"".getBytes());
+        final AtRobotCompilerOutput output = compiler.compile(in);
+        assertEquals(""move 1 + 2 * 3"", output.getCompiledCode());
+    }
+}"
+chatcmpl-6yTkkYiWqmkdFLarLseQLxLUZCkTc,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompiler_2Test.java,32.84187960624695,stop,"// AtRobotCompiler.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+
+/**
+ * Compiler which will compile source-code.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompiler {
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param in the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(Reader in) throws IOException {
+        if (in instanceof LineNumberReader) {
+            return compile((LineNumberReader) in);
+        }
+        final LineNumberReader reader = new LineNumberReader(in);
+        try {
+            return compile(reader);
+        } finally {
+            reader.close();
+        }
+    }
+}
+","// AtRobotCompiler_2Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains ten unit test cases for the {@link AtRobotCompiler#compile(Reader)} method.
+*/
+class AtRobotCompiler_2Test {","// Here's an example implementation of the AtRobotCompiler_2Test class with ten unit test cases for the compile() method.
+
+public class AtRobotCompiler_2Test {
+
+    @Test
+    public void testCompile_emptySource() throws IOException {
+        String source = """";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_singleComment() throws IOException {
+        String source = ""// This is a comment"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_singleInstruction() throws IOException {
+        String source = ""move 10"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals(""move 10\n"", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_multipleInstructions() throws IOException {
+        String source = ""move 10\nfire 1"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\n"", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_invalidInstruction() throws IOException {
+        String source = ""invalid instruction"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(1, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_invalidArgument() throws IOException {
+        String source = ""move invalid_argument"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(1, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_missingArgument() throws IOException {
+        String source = ""move"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(1, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_missingNewline() throws IOException {
+        String source = ""move 10 fire 1"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(1, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\n"", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_trailingWhitespace() throws IOException {
+        String source = ""move 10 \nfire 1 "";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\n"", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_multipleWarnings() throws IOException {
+        String source = ""move 10 fire 1\ninvalid instruction"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(1, output.getErrors().size());
+        assertEquals(2, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\n"", output.getCompiledCode());
+    }
+
+    @Test
+    public void testCompile_multipleErrors() throws IOException {
+        String source = ""move invalid_argument\ninvalid instruction"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new StringReader(source));
+        assertEquals(2, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+}"
+chatcmpl-6yTlnkBVded3wbx4vRRwxsfHPlGD5,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompiler_3Test.java,36.9571692943573,stop,"// AtRobotCompiler.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+
+/**
+ * Compiler which will compile source-code.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompiler {
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param reader the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(LineNumberReader reader) throws IOException {
+        return new LineNumberReaderCompiler().compile(reader);
+    }
+}
+","// AtRobotCompiler_3Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains ten unit test cases for the {@link AtRobotCompiler#compile(LineNumberReader)} method.
+*/
+class AtRobotCompiler_3Test {","// Here's an example implementation of the AtRobotCompiler_3Test class with ten unit test cases for the compile() method.
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class AtRobotCompiler_3Test {
+
+    @Test
+    void testCompile_emptySource() throws IOException {
+        String source = """";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_singleComment() throws IOException {
+        String source = ""// This is a comment"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_singleInstruction() throws IOException {
+        String source = ""move 10"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals(""move 10\n"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_multipleInstructions() throws IOException {
+        String source = ""move 10\nfire 1\nwait 5"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\nwait 5\n"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_invalidInstruction() throws IOException {
+        String source = ""invalid 10"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(1, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_invalidArgument() throws IOException {
+        String source = ""move invalid"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(1, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_missingArgument() throws IOException {
+        String source = ""move"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(1, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals("""", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_missingNewline() throws IOException {
+        String source = ""move 10 fire 1"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(1, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\n"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_trailingWhitespace() throws IOException {
+        String source = ""move 10 \nfire 1\t\nwait 5  "";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\nwait 5\n"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_caseInsensitive() throws IOException {
+        String source = ""MOVE 10\nFiRe 1\nwAiT 5"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\nwait 5\n"", output.getCompiledCode());
+    }
+
+    @Test
+    void testCompile_commentsAndWhitespace() throws IOException {
+        String source = ""// This is a comment\n\nmove 10\n\n// Another comment\nfire 1\n\nwait 5\n"";
+        AtRobotCompiler compiler = new AtRobotCompiler();
+        AtRobotCompilerOutput output = compiler.compile(new LineNumberReader(new StringReader(source)));
+        assertEquals(0, output.getErrors().size());
+        assertEquals(0, output.getWarnings().size());
+        assertEquals(""move 10\nfire 1\nwait 5\n"", output.getCompiledCode());
+    }
+}"

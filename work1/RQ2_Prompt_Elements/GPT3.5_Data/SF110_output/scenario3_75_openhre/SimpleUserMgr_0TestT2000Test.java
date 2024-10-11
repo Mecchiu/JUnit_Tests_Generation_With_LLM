@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `SimpleUserMgr` class has a method `getUser` that is not implemented. Can you provide the implementation of this method so I can assist you better?

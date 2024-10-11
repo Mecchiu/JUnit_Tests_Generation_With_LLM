@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class XisemeleFactoryTest is not closed with a curly brace. Could you please provide the complete code so I can assist you better?

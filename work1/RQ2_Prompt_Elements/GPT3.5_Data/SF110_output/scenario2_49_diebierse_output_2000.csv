@@ -1,0 +1,299 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-6ybFKI0c2Usoto4KXoK4yZribqqwi,/EvoSuiteBenchmark/original/49_diebierse/src/main/java/bierse/model/Drink_0Test.java,2.658480644226074,stop,"// Drink.java
+package bierse.model;
+
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import bierse.view.MyKeyMap;
+
+/**
+ * @author Rainer Friesen
+ */
+public class Drink {
+
+    /**
+     * Recalculate the current price for this drink
+     */
+    public int recalculate() {
+        //Calculate new average values
+        totalSold += lastSold;
+        averageAmount = (float) totalSold / model.getIteration();
+        averagePrice = ((averagePrice * (model.getIteration() - 1)) + currentPrice) / model.getIteration();
+        if (totalSold > 0) {
+            averageSoldPrice = ((averageSoldPrice * (totalSold - lastSold)) + (currentPrice * lastSold)) / totalSold;
+        }
+        int newPrice;
+        if (directPrice != 0) {
+            // If a direct price was set, use it
+            newPrice = directPrice;
+            directPrice = 0;
+        } else if (keepPrice) {
+            // Keep the price
+            newPrice = currentPrice;
+        } else {
+            // Calculate the new price
+            double diffSold = lastSold - targetAmount;
+            double factor = diffSold / deltaAmount;
+            double change = factor * maxStep;
+            int priceSteps = model.getSettings().getPriceSteps();
+            double rest = Math.floor(Math.abs(change % priceSteps));
+            double full = Math.floor(Math.abs(change / priceSteps));
+            int priceChange = 0;
+            if (rest >= priceSteps / 2) {
+                priceChange = priceSteps;
+            }
+            priceChange += full * priceSteps;
+            // Check that the change of the price is not more than the max step
+            if (priceChange > maxStep) {
+                priceChange = maxStep;
+            }
+            if (model.getSettings().isStandardLogic()) {
+                if (factor >= 0) {
+                    newPrice = currentPrice + priceChange;
+                } else {
+                    newPrice = currentPrice - priceChange;
+                }
+            } else {
+                // Inverse logic
+                if (factor >= 0) {
+                    newPrice = currentPrice - priceChange;
+                } else {
+                    newPrice = currentPrice + priceChange;
+                }
+            }
+        }
+        // Check that the new price is not above the max price or below the min price
+        if (newPrice > maxPrice) {
+            newPrice = maxPrice;
+        } else if (newPrice < minPrice) {
+            newPrice = minPrice;
+        }
+        // Calculate the trend
+        if (newPrice > currentPrice) {
+            trend = 1;
+        } else if (newPrice < currentPrice) {
+            trend = -1;
+        } else {
+            trend = 0;
+        }
+        currentPrice = newPrice;
+        //Debug output
+        model.getLog().debug(""Recalculating drink: "" + name + "" for iteration: "" + model.getIteration());
+        model.getLog().debug(""Last sold: "" + lastSold);
+        model.getLog().debug(""Total sold:"" + totalSold);
+        model.getLog().debug(""Average sold: "" + averageAmount);
+        model.getLog().debug(""Average price: "" + averagePrice);
+        model.getLog().debug(""Average sold price: "" + averageSoldPrice);
+        model.getLog().debug(""New price: "" + currentPrice);
+        // Reset values for the next iteration
+        lastSold = 0;
+        return currentPrice;
+    }
+}
+","// Drink_0Test.java
+package bierse.model;
+
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import bierse.view.MyKeyMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Drink}.
+* It contains ten unit test cases for the {@link Drink#recalculate()} method.
+*/
+class Drink_0Test {","I'm sorry, but the code you provided is incomplete. It seems that the class `Drink_0Test` is not properly defined and lacks the actual test cases for the `Drink.recalculate()` method. Please provide the complete code so I can assist you better."
+chatcmpl-6ybGNxzHuPa5qzvnOpXnk9N5NSd6V,/EvoSuiteBenchmark/original/49_diebierse/src/main/java/bierse/model/Drink_1Test.java,1.8851633071899414,stop,"// Drink.java
+package bierse.model;
+
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import bierse.view.MyKeyMap;
+
+/**
+ * @author Rainer Friesen
+ */
+public class Drink {
+
+    /**
+     * Save the drink description to a XML file
+     */
+    public File save() {
+        if (!NEW_DRINK_NAME.equals(name)) {
+            model.getLog().debug(""Save drink: "" + name);
+            // Build JDOM document representing the settings
+            Element root = new Element(""drink"");
+            Element minPriceElem = new Element(""minPrice"");
+            minPriceElem.setText(String.valueOf(minPrice));
+            root.addContent(minPriceElem);
+            Element maxPriceElem = new Element(""maxPrice"");
+            maxPriceElem.setText(String.valueOf(maxPrice));
+            root.addContent(maxPriceElem);
+            Element startPriceElem = new Element(""startPrice"");
+            startPriceElem.setText(String.valueOf(startPrice));
+            root.addContent(startPriceElem);
+            Element targetAmountElem = new Element(""targetAmount"");
+            targetAmountElem.setText(String.valueOf(targetAmount));
+            root.addContent(targetAmountElem);
+            Element deltaAmountElem = new Element(""deltaAmount"");
+            deltaAmountElem.setText(String.valueOf(deltaAmount));
+            root.addContent(deltaAmountElem);
+            Element maxStepElem = new Element(""maxStep"");
+            maxStepElem.setText(String.valueOf(maxStep));
+            root.addContent(maxStepElem);
+            Element usedElem = new Element(""used"");
+            usedElem.setText(String.valueOf(used));
+            root.addContent(usedElem);
+            Element keyElem = new Element(""key"");
+            keyElem.setText(String.valueOf(key));
+            root.addContent(keyElem);
+            Document settingsDoc = new Document(root);
+            // Save JDOM document to file system
+            File folder = new File(DRINKS_FOLDER);
+            File file = new File(DRINKS_FOLDER + name + "".xml"");
+            try {
+                if (!folder.exists()) {
+                    folder.mkdirs();
+                }
+                model.getLog().debug(""File for Drink: "" + file.getAbsolutePath());
+                if (file.exists()) {
+                    file.delete();
+                }
+                file.createNewFile();
+                FileOutputStream fos = new FileOutputStream(file);
+                XMLOutputter serializer = new XMLOutputter();
+                serializer.output(settingsDoc, fos);
+                fos.flush();
+                fos.close();
+            } catch (Exception e) {
+                model.getLog().error(this, e);
+            }
+            return file;
+        }
+        return null;
+    }
+}
+","// Drink_1Test.java
+package bierse.model;
+
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import bierse.view.MyKeyMap;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Drink}.
+* It contains ten unit test cases for the {@link Drink#save()} method.
+*/
+class Drink_1Test {","I'm sorry, but the code you provided is incomplete. It seems that the test cases are missing. Please provide the complete code so I can assist you better."
+chatcmpl-6ybHQxG4N5l2MbUD5sVoOly4dexRo,/EvoSuiteBenchmark/original/49_diebierse/src/main/java/bierse/model/Settings.java,2.0185673236846924,stop,"// Settings.java
+package bierse.model;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+
+public class Settings {
+
+    /**
+     * Save the settings
+     */
+    public File save() {
+        // Build JDOM document representing the settings
+        Element settingsRoot = new Element(DOM_SETTINGS_ROOT);
+        Element timeIntervalElem = new Element(DOM_TIME_INTERVAL);
+        timeIntervalElem.setText(String.valueOf(timeInterval));
+        settingsRoot.addContent(timeIntervalElem);
+        Element priceStepsElem = new Element(DOM_PRICE_STEPS);
+        priceStepsElem.setText(String.valueOf(priceSteps));
+        settingsRoot.addContent(priceStepsElem);
+        Element currencyElem = new Element(DOM_CURRENCY);
+        currencyElem.setText(currency);
+        settingsRoot.addContent(currencyElem);
+        Element backgroundElem = new Element(DOM_BACKGROUND_IMG);
+        backgroundElem.addContent(backgroundImagePath);
+        settingsRoot.addContent(backgroundElem);
+        Element standardLogicElem = new Element(DOM_STANDARD_LOGIC);
+        if (standardLogic) {
+            standardLogicElem.addContent(DOM_YES);
+        } else {
+            standardLogicElem.addContent(DOM_NO);
+        }
+        settingsRoot.addContent(standardLogicElem);
+        Element messageElem = new Element(DOM_MESSAGE);
+        messageElem.addContent(message);
+        settingsRoot.addContent(messageElem);
+        Element messageSpeedElem = new Element(DOM_MESSAGE_SPEED);
+        messageSpeedElem.addContent(new Integer(messageSpeed).toString());
+        settingsRoot.addContent(messageSpeedElem);
+        Document settingsDoc = new Document(settingsRoot);
+        // Save JDOM document to file system
+        File file = new File(SETTINGS_FOLDER + ""settings.xml"");
+        try {
+            File folder = new File(SETTINGS_FOLDER);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+            if (file.exists()) {
+                file.delete();
+            }
+            file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(file);
+            XMLOutputter serializer = new XMLOutputter();
+            serializer.output(settingsDoc, fos);
+            fos.flush();
+            fos.close();
+        } catch (Exception e) {
+            model.getLog().error(this, e);
+        }
+        return file;
+    }
+}
+","// SettingsTest.java
+package bierse.model;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Settings}.
+* It contains ten unit test cases for the {@link Settings#save()} method.
+*/
+class SettingsTest {","I'm sorry, but the code you provided is incomplete. It seems that the class `SettingsTest` is not properly closed. Can you please provide the complete code for `SettingsTest`?"

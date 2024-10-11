@@ -1,0 +1,65 @@
+// ConvertTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Convert}.
+* It contains ten unit test cases for the {@link Convert#init()} method.
+*/
+class ConvertTest {
+
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns true when the transcode.log file contains an error.
+	*/
+	@Test
+	void testInit_1() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = "test";
+		convert.m_GUI.menuChkThread = false;
+		convert.m_GUI.ErrorCheck = true;
+		convert.m_GUI.MessageBox = true;
+		convert.m_GUI.SaveStackTrace = true;
+		convert.m_GUI.Transcode = true;
+		convert.m_GUI.Mplex = true;
+		convert.m_GUI.Mkvmerge = true;
+		convert.m_GUI.Mkvmerge_GUI = true;
+		convert.m_GUI.Mkvmerge_GUI_exe = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent = "test";
+		convert.m_GUI.Mkvmerge_GUI_exe_path_file_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_getParent_get

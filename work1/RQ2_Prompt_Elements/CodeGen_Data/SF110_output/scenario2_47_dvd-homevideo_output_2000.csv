@@ -1,0 +1,2600 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+304d9d9c-7145-4845-9f8e-1dad69c94ffe,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Burn.java,28.453617095947266,length,"// Burn.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+/**
+ * @author Shane Santner
+ * This class burns the DVD file structure previously created by
+ * dvd-author to a DVD disc.
+ */
+public class Burn {
+
+    /**
+     * Optionally burn to DVD when complete and no errors, uses growisofs
+     *
+     * @param DVD_GUI This is the GUI object used to control the form
+     * return   A boolean to determine if an error occurred in the function
+     */
+    public boolean BurnToDVD(GUI DVD_GUI) {
+        /* Update growisofs command with the correct paths */
+        m_growisofs = m_growisofs.replaceAll(""temp"", DVD_GUI.strOutputDir);
+        /* 
+         * Burn object always gets created, so m_Burn will not always be true,
+         * must be checked. 
+         */
+        if (m_Burn == true) {
+            try {
+                /* Create the growisofs process which actually burns the DVD */
+                Process p = Runtime.getRuntime().exec(m_growisofs);
+                /* Instantiate input and output readers for dvd-author streams */
+                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader err_in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.log""));
+                BufferedWriter err_out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.err""));
+                String line;
+                /* We will miss the error without this delay */
+                Thread.sleep(50);
+                /* 
+                 * Check for the case where the necessary dependencies are not
+                 * installed, but the user tries to run dvd-homevideo anyway
+                 */
+                if (err_in.ready()) {
+                    line = err_in.readLine();
+                    if (line.equals(""/bin/sh: growisofs: command not found"")) {
+                        DVD_GUI.MessageBox(""Could not locate growisofs in your path."" + ""\nPlease install all necessary dependencies"" + ""\nand rerun dvd-homevideo."", 0);
+                        /* Close all open streams */
+                        in.close();
+                        out.close();
+                        err_in.close();
+                        err_out.close();
+                        /* Indicate that there was an error */
+                        return true;
+                    } else {
+                        DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                        out.write(line);
+                        out.newLine();
+                    }
+                }
+                out.write(""burn.log--->dvd-homevideo"");
+                out.newLine();
+                /* Write the output to the txtAreaOutput user display */
+                while ((line = in.readLine()) != null) {
+                    DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                    out.write(line);
+                    out.newLine();
+                }
+                /*
+                 * close() throws an IOException
+                 */
+                in.close();
+                out.close();
+                err_in.close();
+                err_out.close();
+                /*
+                 * p.waitFor() throws an InterruptedException
+                 */
+                p.waitFor();
+            } catch (IOException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""dvd-homevideo thread was interrupted\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (NullPointerException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Error executing Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (IllegalArgumentException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Illegal argument sent to Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (Exception ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Unknown Error occurred\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            }
+        }
+        if (m_Burn)
+            return DVD_GUI.ErrorCheck(DVD_GUI.strOutputDir + ""/log/burn.log"");
+        return false;
+    }
+}
+","// BurnTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Burn}.
+* It contains one unit test case for the {@link Burn#BurnToDVD(GUI)} method.
+*/
+class BurnTest {","// BurnTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Burn}.
+* It contains one unit test case for the {@link Burn#BurnToDVD(GUI)} method.
+*/
+class BurnTest {
+// Burn.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+/**
+ * @author Shane Santner
+ * This class burns the DVD file structure previously created by
+ * dvd-author to a DVD disc.
+ */
+public class Burn {
+
+    /**
+     * Optionally burn to DVD when complete and no errors, uses growisofs
+     *
+     * @param DVD_GUI This is the GUI object used to control the form
+     * return   A boolean to determine if an error occurred in the function
+     */
+    public boolean BurnToDVD(GUI DVD_GUI) {
+        /* Update growisofs command with the correct paths */
+        m_growisofs = m_growisofs.replaceAll(""temp"", DVD_GUI.strOutputDir);
+        /* 
+         * Burn object always gets created, so m_Burn will not always be true,
+         * must be checked. 
+         */
+        if (m_Burn == true) {
+            try {
+                /* Create the growisofs process which actually burns the DVD */
+                Process p = Runtime.getRuntime().exec(m_growisofs);
+                /* Instantiate input and output readers for dvd-author streams */
+                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader err_in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.log""));
+                BufferedWriter err_out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.err""));
+                String line;
+                /* We will miss the error without this delay */
+                Thread.sleep(50);
+                /* 
+                 * Check for the case where the necessary dependencies are not
+                 * installed, but the user tries to run dvd-homevideo anyway
+                 */
+                if (err_in.ready()) {
+                    line = err_in.readLine();
+                    if (line.equals(""/bin/sh: growisofs: command not found"")) {
+                        DVD_GUI.MessageBox(""Could not locate growisofs in your path."" + ""\nPlease install all necessary dependencies"" + ""\nand rerun dvd-homevideo."", 0);
+                        /* Close all open streams */
+                        in.close();
+                        out.close();
+                        err_in.close();
+                        err_out.close();
+                        /* Indicate that there was an error */
+                        return true;
+                    } else {
+                        DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                        out.write(line);
+                        out.newLine();
+                    }
+                }
+                out.write(""burn.log--->dvd-homevideo"");
+                out.newLine();
+                /* Write the output to the txtAreaOutput user display */
+                while ((line = in.readLine())!= null) {
+                    DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                    out.write(line);
+                    out.newLine();
+                }
+                /*
+                 * close() throws an IOException
+                 */
+                in.close();
+                out.close();
+                err_in.close();
+                err_out.close();
+                /*
+                 * p.waitFor() throws an InterruptedException
+                 */
+                p.waitFor();
+            } catch (IOException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""dvd-homevideo thread was interrupted\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (NullPointerException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Error executing Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (IllegalArgumentException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Illegal argument sent to Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (Exception ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Unknown Error occurred\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            }
+        }
+        if (m_Burn)
+            return DVD_GUI.ErrorCheck(DVD_GUI.strOutputDir + ""/log/burn.log"");
+        return false;
+    }
+}
+
+// BurnTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Burn}.
+* It contains one unit test case for the {@link Burn#BurnToDVD(GUI)} method.
+*/
+class BurnTest {
+		static final int NUM_MEMFILLS = 10000;
+		static final int NUM_GENS = 500000;
+		private static GUI.GUI_STATE g_State = new GUI.GUI_STATE();
+		private int m_Gen = 0;
+		private Buffer_V_D DVD = new Buffer_V_D(new String[] {""/bin/sh"", ""dvd-author""}, NUM_MEMFILLS, NUM_GENS);
+		
+		/**
+		* This method runs the burn to DVD process repeatedly to ensure that the
+		* result is as expected.
+		*/
+		public void burn() {
+
+			/* 
+				Initialize Burn object
+			*/
+			m_Burn = new Burn(GUI.GUI_CONTEXT_PANE, DVD);
+
+			/*
+			 * Burn object has state
+			 */
+			g_State.reset();
+
+			/* 
+				Initialize burn and start it as follows
+			*/
+			g_State.m_NumV_D = getNumV_D();
+			g_State.m_Gen = generate().toString();
+			g_State.start();
+
+			/*
+			 * Burn object has finished starting, so wait for burner to
+			 * fire
+			 */
+			m_Burn.runCheck();
+
+			/*
+			 * Burn object has finish running and finished, so we're finished
+			 * with Burn object
+			 */
+			burn.finish();
+			burn.close();
+
+			/*
+			 * Check for expected output
+			*/
+			assertEquals(g_State.m_Output[0], DVD_TEXT_MEM, DVD_TEXT);
+			assertEquals(g_State.m_Output[1], (g_State.reset.increment() * g_State.m_NumV_D));
+
+		}
+		
+		/*
+		 * This method cleans the GUI object and reinitializes it for the next run
+		 */
+		public void clear() {
+			GUI.GUI_CONTEXT_PANE.close();
+			
+			/*
+				Start and terminate the burn process
+			*/
+			m_Burn = new Burn(GUI.GUI_CONTEXT_PANE, DVD);
+			m_Burn.start();
+			m_Burn.runCheck();
+		}
+		
+		
+		/**
+		* This method reads the file size from the burn output and returns
+		* the number of bytes to be transferred.
+		*/
+		public int getNumV_D() {
+			String line;
+			BufferedReader out;
+			String output = g_State.m_Output[2];
+			int return_numBytes = 0;
+			
+			/* 
+				Open burn output and seek to the end 
+			*/
+			out = new BufferedReader(
+				new InputStreamReader(new FileInputStream"
+58a043f9-ec98-4df4-9a89-3bb1c18f5f70,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Menu_0Test.java,53.92495656013489,length,"// Menu.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class creates a background menu for a DVD.  The user
+ * can specify a background picture and audio to use for the
+ * menu, or a default background can also be used.  The user
+ * also has the option of specifying unique titles for each
+ * chapter of the DVD.  If nothing is specified then the title
+ * of the DVD will be used followed by an underscore and increasing
+ * integer for each video clip.
+ *
+ * TODO - Can I use streams on dvd-menu?  Really need to standardize
+ *        how I use streams across the board for all classes.
+ */
+public class Menu implements Runnable {
+
+    /**
+     * Used to instantiate a new thread and to perform error checking.
+     *
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean init() {
+        /* Create and start the new thread */
+        m_Thread = new Thread(this);
+        m_Thread.start();
+        try {
+            m_Thread.join();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        /* 
+         * If an error occurred while executing DV_Capture then m_Error will be set
+         * to true.  Also check the log file for any evidence of an error.
+         */
+        return (m_Error || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/dvd-menu.log""));
+    }
+}
+","// Menu_0Test.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains one unit test case for the {@link Menu#init()} method.
+*/
+class Menu_0Test {","// Menu_0Test.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains one unit test case for the {@link Menu#init()} method.
+*/
+class Menu_0Test {
+
+	/**
+	* Test of getInputFileName method, of class Menu.
+	*/
+	@Test
+	public void testGetInputFileName() {
+		assertTrue(Menu.getInputFileName()!= """");
+	}
+
+	/**
+	* Test of getDVDLog method, of class Menu.
+	*/
+	@Test
+	public void testGetDVDLog() {
+		assertTrue(Menu.getDVDLog()!= """");
+	}
+
+	/**
+	* Test of getHelp method, of class Menu.
+	*/
+	@Test
+	public void testGetHelp() {
+		assertTrue(Menu.getHelp()!= """");
+	}
+
+	/**
+	* Test of getMenuName method, of class Menu.
+	*/
+	@Test
+	public void testGetMenuName() {
+		assertTrue(Menu.getMenuName()!= """");
+	}
+
+	/**
+	* Test of getMenuPath method, of class Menu.
+	*/
+	@Test
+	public void testGetMenuPath() {
+		assertTrue(Menu.getMenuPath()!= """");
+	}
+
+	/**
+	* Test of getMenuTitle method, of class Menu.
+	*/
+	@Test
+	public void testGetMenuTitle() {
+		assertTrue(Menu.getMenuTitle()!= """");
+	}
+
+	/**
+	* Test of isValidMenuName method, of class Menu.
+	*/
+	@Test
+	public void testIsValidMenuName() {
+		assertTrue(Menu.isValidMenuName(""menu"")==true);
+	}
+
+	/**
+	* Test of isValidMenuPath method, of class Menu.
+	*/
+	@Test
+	public void testIsValidMenuPath() {
+		assertTrue(Menu.isValidMenuPath(""menu"")==true);
+	}
+
+	/**
+	* Test of isValidMenuTitle method, of class Menu.
+	*/
+	@Test
+	public void testIsValidMenuTitle() {
+		assertTrue(Menu.isValidMenuTitle(""menu"")==true);
+	}
+
+	/**
+	* Test of addMenuItem method, of class Menu.
+	*/
+	@Test
+	public void testAddMenuItem() {
+		String title, subTitle;
+		String[] input;
+		File dir = new File(""."");
+		String dirStr = dir.getName();
+		
+		input = new String[1];
+		dirStr = dirStr.substring(dirStr.indexOf(""."") + 1);
+		System.out.println(""Testing the directory string = ""+dirStr);
+		String menuName = dirStr+""/""+menuName;
+		input[0] = menuName;
+		
+		try {
+			System.out.println(""Testing creating menu item of ""+input[0]);
+			Menu_0Test.menu = Menu.getMenu(input);
+			Menu_0Test.menu.addMenuItem(
+				""menu_item1_2"",
+				""item1_2_title"",
+				input[0]);
+
+			if (Menu_0Test.menu == null) {
+				assertTrue(false);
+			}
+
+			/* Search for the menu with this name */
+			Menu_0Test.menu.searchMenu();
+			/* Find Menu_0Test.menu and check that title is unique */
+			Menu_0Test.Menu_0.firstItem();
+			Menu_0Test.Menu_0.firstItem().setTitle(""menu_item1_1"");
+			Menu_0Test.Menu_0.firstItem().setTitle(""menu_item1_2"");
+
+			title = Menu_0Test.menu.getTitle();
+			subTitle = Menu_0Test.menu.getSubTitle();
+
+			assertTrue((title.compareTo(Menu_0Test.menu.getTitle())==0) &&
+			(subTitle.compareTo(Menu_0Test.menu.getSubTitle())==0));
+		} catch (FileNotFoundException ex) {
+			ex.printStackTrace();
+		}
+
+		
+	}
+
+	/**
+	* Test of findMenuItem method, of class Menu.
+	*/
+	@Test
+	public void testFindMenuItem() {
+		String title, subTitle;
+		String input;
+		File dir = new File(""."");
+		String dirStr = dir.getName();
+		String inputStr = ""menu_item1_2"";
+		inputStr = inputStr.substring(inputStr.indexOf(""."") + 1);
+		String pathStr = directoryToFilename(dirStr);
+		
+		File menuItemDir = new File(dirStr);
+		String menuItemFilename = directoryToFilename(menuItemDir);
+		File menuItemPath = new File(pathStr);
+		
+		File menuFile = Menu.getMenu(inputStr);
+		File titleFile = Menu_0Test.menu.getTitleFile();
+		
+		/* Test if the menu Item is the specified menuItem */
+		int menuItemIndex = Menu_0Test.menu.findMenuItem(menuItemFilename);
+			
+
+		assertEquals(menuItemIndex,
+			InputStreamReader.readInt(new BufferedReader(new InputStreamReader(new FileInputStream(menuItemPath), ""UTF-8""))));
+
+		/* Test if the title is present in the menuItem */
+			
+		if (titleFile.exists()) {
+			/* Try to read the title (will fail for non UTF-8 input) */
+			input = InputStreamReader.readUTF(new BufferedReader(
+					new InputStreamReader(new FileInputStream(titleFile), ""UTF-8"")));
+			
+			title = menuItemDir.getName().concat(""/""+input);
+			subTitle = menuItemDir.getName().concat(""/""+menuItemFilename);
+				
+			assertTrue(Menu_0Test.menu.findMenuItem(subTitle)+
+				"" is not associated with this menu item ""+
+				""but is ""+titleFile);
+		} else {
+			assertTrue(menuItemDir.exists());
+		}
+	}
+
+	/**
+	* Test of findSubtitle method, of class Menu.
+	"
+d5ce697e-c12b-45a3-8aca-5ea98d0e2461,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Menu_1Test.java,19.12403416633606,length,"// Menu.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class creates a background menu for a DVD.  The user
+ * can specify a background picture and audio to use for the
+ * menu, or a default background can also be used.  The user
+ * also has the option of specifying unique titles for each
+ * chapter of the DVD.  If nothing is specified then the title
+ * of the DVD will be used followed by an underscore and increasing
+ * integer for each video clip.
+ *
+ * TODO - Can I use streams on dvd-menu?  Really need to standardize
+ *        how I use streams across the board for all classes.
+ */
+public class Menu implements Runnable {
+
+    /**
+     * Creates the xml file to pass to dvdauthor
+     *
+     * @param m_GUI This is the GUI object used to control the form
+     */
+    public boolean createXML() {
+        File xmlFile = new File(m_GUI.strOutputDir + ""/vmgm.xml"");
+        File ListDir = new File(m_GUI.strOutputDir);
+        /* 
+         * Need to find all vob files, but don't want to include menu.vob
+         * which was created by dvd-menu.
+         */
+        FilenameFilter filter = new FilenameFilter() {
+
+            boolean ret_val = true;
+
+            public boolean accept(File dir, String name) {
+                if (name.endsWith(""vob"")) {
+                    if (!name.equals(""menu.vob""))
+                        ret_val = true;
+                    else
+                        ret_val = false;
+                } else
+                    ret_val = false;
+                return ret_val;
+            }
+        };
+        video_files = ListDir.list(filter);
+        /* Write the xml file.  It's not pretty, but it works. */
+        int i;
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(xmlFile));
+            writer.write(""<dvdauthor dest=\"""" + m_GUI.strOutputDir + ""/DVD/\"" jumppad=\""0\"">"");
+            writer.newLine();
+            writer.write(""\t<vmgm>"");
+            writer.newLine();
+            writer.write(""\t\t<menus>"");
+            writer.newLine();
+            writer.write(""\t\t\t<pgc entry=\""title\"" >"");
+            writer.newLine();
+            writer.write(""\t\t\t\t<vob file=\"""" + m_GUI.strOutputDir + ""/menu.vob\"" pause=\""inf\"" />"");
+            writer.newLine();
+            if (titles[0] == null) {
+                for (i = 1; i <= video_files.length; i++) {
+                    writer.write(""\t\t\t\t<button>jump title "" + i + "";</button>"");
+                    writer.newLine();
+                }
+            } else {
+                for (i = 1; i < titles.length; i++) {
+                    if (!titles[i - 1].equals(""BLANK"") && !titles[i - 1].equals(""DONE"")) {
+                        writer.write(""\t\t\t\t<button>jump title "" + i + "";</button>"");
+                        writer.newLine();
+                    } else if (titles[i - 1].equals(""DONE""))
+                        break;
+                }
+            }
+            writer.write(""\t\t\t\t<post> jump vmgm menu 1; </post>"");
+            writer.newLine();
+            writer.write(""\t\t\t</pgc>"");
+            writer.newLine();
+            writer.write(""\t\t</menus>"");
+            writer.newLine();
+            writer.write(""\t</vmgm>"");
+            writer.newLine();
+            writer.write(""\t<titleset>"");
+            writer.newLine();
+            writer.write(""\t<titles>"");
+            writer.newLine();
+            for (i = 1; i < video_files.length; i++) {
+                writer.write(""\t\t<pgc>"");
+                writer.newLine();
+                writer.write(""\t\t\t<vob file=\"""" + video_files[i - 1] + ""\"" />"");
+                writer.newLine();
+                writer.write(""\t\t\t<post>jump title "" + (i + 1) + "";</post>"");
+                writer.newLine();
+                writer.write(""\t\t</pgc>"");
+                writer.newLine();
+            }
+            writer.write(""\t\t<pgc>"");
+            writer.newLine();
+            writer.write(""\t\t\t<vob file=\"""" + video_files[i - 1] + ""\"" />"");
+            writer.newLine();
+            writer.write(""\t\t\t<post>call vmgm menu 1;</post>"");
+            writer.newLine();
+            writer.write(""\t\t</pgc>"");
+            writer.newLine();
+            writer.write(""\t</titles>"");
+            writer.newLine();
+            writer.write(""\t</titleset>"");
+            writer.newLine();
+            writer.write(""</dvdauthor>"");
+            writer.newLine();
+            writer.close();
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+            m_GUI.MessageBox(baseErr + ""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        /* Shouldn't expect to see any errors from this method call. */
+        return false;
+    }
+}
+","// Menu_1Test.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains one unit test case for the {@link Menu#createXML()} method.
+*/
+class Menu_1Test {","// Menu_1Test.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains one unit test case for the {@link Menu#createXML()} method.
+*/
+class Menu_1Test {
+// Menu.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class creates a background menu for a DVD.  The user
+ * can specify a background picture and audio to use for the
+ * menu, or a default background can also be used.  The user
+ * also has the option of specifying unique titles for each
+ * chapter of the DVD.  If nothing is specified then the title
+ * of the DVD will be used followed by an underscore and increasing
+ * integer for each video clip.
+ *
+ * TODO - Can I use streams on dvd-menu?  Really need to standardize
+ *        how I use streams across the board for all classes.
+ */
+public class Menu implements Runnable {
+
+    /**
+     * Creates the xml file to pass to dvdauthor
+     *
+     * @param m_GUI This is the GUI object used to control the form
+     */
+    public boolean createXML() {
+        File xmlFile = new File(m_GUI.strOutputDir + ""/vmgm.xml"");
+        File ListDir = new File(m_GUI.strOutputDir);
+        /* 
+         * Need to find all vob files, but don't want to include menu.vob
+         * which was created by dvd-menu.
+         */
+        FilenameFilter filter = new FilenameFilter() {
+
+            boolean ret_val = true;
+
+            public boolean accept(File dir, String name) {
+                if (name.endsWith(""vob"")) {
+                    if (!name.equals(""menu.vob""))
+                        ret_val = true;
+                    else
+                        ret_val = false;
+                } else
+                    ret_val = false;
+                return ret_val;
+            }
+        };
+        video_files = ListDir.list(filter);
+        /* Write the xml file.  It's not pretty, but it works. */
+        int i;
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(xmlFile));
+            writer.write(""<dvdauthor dest=\"""" + m_GUI.strOutputDir + ""/DVD/\"" jumppad=\""0\"">"");
+            writer.newLine();
+            writer.write(""\t<vmgm>"");
+            writer.newLine();
+            writer.write(""\t\t<menus>"");
+            writer.newLine();
+            writer.write(""\t\t\t<pgc entry=\""title\"" >"");
+            writer.newLine();
+            writer.write(""\t\t\t\t<vob file=\"""" + m_GUI.strOutputDir + ""/menu.vob\"" pause=\""inf\"" />"");
+            writer.newLine();
+            if (titles[0] == null) {
+                for (i = 1; i <= video_files.length; i++) {
+                    writer.write(""\t\t\t\t<button>jump title "" + i + "";</button>"");
+                    writer.newLine();
+                }
+            } else {
+                for (i = 1; i < titles.length; i++) {
+                    if (!titles[i - 1].equals(""BLANK"") &&!titles[i - 1].equals(""DONE"")) {
+                        writer.write(""\t\t\t\t<button>jump title "" + i + "";</button>"");
+                        writer.newLine();
+                    } else if (titles[i - 1].equals(""DONE""))
+                        break;
+                }
+            }
+            writer.write(""\t\t\t\t<post> jump vmgm menu 1; </post>"");
+            writer.newLine();
+            writer.write(""\t\t\t</pgc>"");
+            writer.newLine();
+            writer.write(""\t\t</menus>"");
+            writer.newLine();
+            writer.write(""\t</vmgm>"");
+            writer.newLine();
+            writer.write(""\t<titleset>"");
+            writer.newLine();
+            writer.write(""\t<titles>"");
+            writer.newLine();
+            for (i = 1; i < video_files.length; i++) {
+                writer.write(""\t\t<pgc>"");
+                writer.newLine();
+                writer.write(""\t\t\t<vob file=\"""" + video_files[i - 1] + ""\"" />"");
+                writer.newLine();
+                writer.write(""\t\t\t<post>jump title "" + (i + 1) + "";</post>"");
+                writer.newLine();
+                writer.write(""\t\t</pgc>"");
+                writer.newLine();
+            }
+            writer.write(""\t\t<pgc>"");
+            writer.newLine();
+            writer.write(""\t\t\t<vob file=\"""" + video_files[i - 1] + ""\"" />"");
+            writer.newLine();
+            writer.write(""\t\t\t<post>call vmgm menu 1;</post>"");
+            writer.newLine();
+            writer.write(""\t\t</pgc>"");
+            writer.newLine();
+            writer.write(""\t</titles>"");
+            writer.newLine();
+            writer.write(""\t</titleset>"");
+            writer.newLine();
+            writer.write(""</dvdauthor>"");
+            writer.newLine();
+            writer.close();
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+            m_GUI.MessageBox(baseErr + ""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        /* Shouldn't expect to see any errors from this method call. */
+        return false;
+    }
+}
+
+// Menu_1Test.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains one unit test case for the {@link Menu#createXML()} method.
+*/
+class Menu_1Test {
+		
+	/**Test 1.1.1 of vmgm menu 1*/
+    @Test
+	public void test1_1_1 () throws Exception {
+		Menu m_GUI = new Menu();
+		m_GUI.addMenuItem(baseErr + ""nothing"", ""menu.vob"", false);
+        m_GUI.addMenuItem(baseErr + ""nothing.vob"", ""menu.vob"", false);
+        BufferedReader br = new BufferedReader (new FileReader (new File (m_GUI.strOutputDir + ""/menu1.vob"")));
+        String str_line;
+        do{
+            str_line = br.readLine();
+        }while(str_line==null);
+        str_line = br.readLine();
+        str_line = br.readLine();
+        str_line = br.readLine();
+        if (str_line.equals("""")) {
+        	br.close();
+        }
+        //assertEquals(""menu.vob is not showing"", 0, 0);
+
+
+		String a_STR = """"; 
+        boolean b_true = ((new Menu_1Test()).menu (m_GUI, ""menu1.vob"", false)).get ();
+        boolean b_false = ((new Menu_1Test()).menu (m_GUI, ""menu1.vob.avi"", false)).get ();
+
+        if (b_true &&!b_false) {
+            m_GUI.MessageBox (""Click to exit"", 0);
+            return;
+        }
+        else {
+            if (b_true)
+                assertEquals(""menu.vob is showing"", 1, 1);
+            else
+                assertEquals"
+d3623fed-9550-46e3-a110-3390dcf47aa3,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Author.java,5.185129404067993,length,"// Author.java
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+
+/**
+ * @author Shane Santner
+ * This class create the DVD filesystem that will be burned
+ * to disc.
+ *
+ * TODO - Need to handle input, output and error streams
+ *        more appropriatly.
+ */
+public class Author {
+
+    /**
+     * Create a DVD filestructure necessary to play in dvd player using dvdauthor
+     *
+     * @param DVD_GUI This is the GUI object used to control the form
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean CreateDVDFileStructure(GUI DVD_GUI) {
+        try {
+            /* 
+             * Set progress bar to 50% since we have completed dvd-menu.
+             * In the future would like a better way to track progress, this
+             * is not very precise.
+             */
+            DVD_GUI.prgAuthor.setValue(50);
+            DVD_GUI.lblAuthorProg.setText(""50%"");
+            /* Build up the dvdauthor_cmd string and execute dvd-author */
+            String[] dvdauthor_cmd = { ""/bin/sh"", ""-c"", m_dvdauthor };
+            /*
+             * exec(...) throws IOException, NullPointerException and
+             *                  IllegalArgumentException.
+             */
+            Process p = Runtime.getRuntime().exec(dvdauthor_cmd, null, new File(DVD_GUI.strOutputDir));
+            try {
+                /* Instantiate input and output readers for dvd-author streams */
+                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader err_in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/dvdauthor.log""));
+                BufferedWriter err_out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/dvdauthor.err""));
+                String line;
+                /* 
+                 * Check for the case where the necessary dependencies are not
+                 * installed, but the user tries to run dvd-homevideo anyway
+                 */
+                if (err_in.ready()) {
+                    line = err_in.readLine();
+                    if (line.equals(""/bin/sh: dvdauthor: command not found"")) {
+                        DVD_GUI.MessageBox(""Could not locate dvdauthor in your path."" + ""\nPlease install all necessary dependencies"" + ""\nand rerun dvd-homevideo."", 0);
+                        /* Close all open streams */
+                        in.close();
+                        out.close();
+                        err_in.close();
+                        err_out.close();
+                        /* Indicate that there was an error */
+                        return true;
+                    }
+                }
+                /*
+                 * Lets look for indications of problems and display these to the user
+                 * through the txtAreaOutput interface.
+                 */
+                StringTokenizer st;
+                /*
+                 * err_in.readLine() throws an IOException
+                 */
+                while ((line = err_in.readLine()) != null) {
+                    st = new StringTokenizer(line, "":"");
+                    if (st.hasMoreTokens()) {
+                        /*
+                         * st.nextToken() throws NoSuchElementException
+                         */
+                        if (!st.nextToken().equals(""WARN"")) {
+                            DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                            DVD_GUI.txtAreaOutput.setCaretPosition(DVD_GUI.txtAreaOutput.getDocument().getLength());
+                            out.write(line);
+                            out.newLine();
+                        }
+                    }
+                }
+                /*
+                 * close() throws an IOException
+                 */
+                in.close();
+                out.close();
+                err_in.close();
+                err_out.close();
+                /*
+                 * p.waitFor() throws an InterruptedException
+                 */
+                p.waitFor();
+            } catch (IOException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (NoSuchElementException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Looked for a token that didn't exist\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""dvd-homevideo thread was interrupted\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            }
+            /* Set progress bar to 100% and disable it */
+            DVD_GUI.prgAuthor.setIndeterminate(false);
+            DVD_GUI.prgAuthor.setValue(100);
+            DVD_GUI.lblAuthorProg.setText(""100%"");
+            DVD_GUI.lblAuthor.setEnabled(false);
+            DVD_GUI.lblAuthorProg.setEnabled(false);
+            DVD_GUI.prgAuthor.setEnabled(false);
+            /* Put in a slight delay to ensure author.log closes */
+            Thread.sleep(2000);
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (NullPointerException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Error executing Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (IllegalArgumentException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Illegal argument sent to Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (Exception ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Unknown Error occurred\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        /* Look for any indication of an error in the author log file */
+        return DVD_GUI.ErrorCheck(DVD_GUI.strOutputDir + ""/log/dvdauthor.log"");
+    }
+}
+","// AuthorTest.java
+
+
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Author}.
+* It contains one unit test case for the {@link Author#CreateDVDFileStructure(GUI)} method.
+*/
+class AuthorTest {","// AuthorTest.java
+
+
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Author}.
+* It contains one unit test case for the {@link Author#CreateDVDFileStructure(GUI)} method.
+*/
+class AuthorTest {
+// Author.java
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+
+/**
+ * @author Shane Santner
+ * This class create the DVD filesystem that will be burned
+ * to disc.
+ *
+ * TODO - Need to handle input, output and error streams
+ *        more appropriatly.
+ */
+public class Author {
+
+    /**
+     * Create a DVD filestructure necessary to play in dvd player using dvdauthor
+     *
+     * @param DVD_GUI This is the GUI object used to control the form
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean CreateDVDFileStructure(GUI DVD_GUI) {
+        try {
+            /* 
+             * Set progress bar to 50% since we have completed dvd-menu.
+             * In the future would like a better way to track progress, this
+             * is not very precise.
+             */
+            DVD_GUI.prgAuthor.setValue(50);
+            DVD_GUI.lblAuthorProg.setText(""50%"");
+            /* Build up the dvdauthor_cmd string and execute dvd-author */
+            String[] dvdauthor_cmd = { ""/bin/sh"", ""-c"", m_dvdauthor };
+            /*
+             * exec(...) throws IOException, NullPointerException and
+             *                  IllegalArgumentException.
+             */
+            Process p = Runtime.getRuntime().exec(dvdauthor_cmd, null, new File(DVD_GUI.strOutputDir));
+            try {
+                /* Instantiate input and output readers for dvd-author streams */
+                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader err_in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/dvdauthor.log""));
+                BufferedWriter err_out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/dvdauthor.err""));
+                String line;
+                /* 
+                 * Check for the case where the necessary dependencies are not
+                 * installed, but the user tries to run dvd-homevideo anyway
+                 */
+                if (err_in.ready()) {
+                    line = err_in.readLine();
+                    if (line.equals(""/bin/sh: dvdauthor: command not found"")) {
+                        DVD_GUI.MessageBox(""Could not locate dvdauthor in your path."" + ""\nPlease install all necessary dependencies"" + ""\nand rerun dvd-homevideo."", 0);
+                        /* Close all open streams */
+                        in.close();
+                        out.close();
+                        err_in.close();
+                        err_out.close();
+                        /* Indicate that there was an error */
+                        return true;
+                    }
+                }
+                /*
+                 * Lets look for indications of problems and display these to the user
+                 * through the txtAreaOutput interface.
+                 */
+                StringTokenizer st;
+                /*
+                 * err_in.readLine() throws an IOException
+                 */
+                while ((line = err_in.readLine())!= null) {
+                    st = new StringTokenizer(line, "":"");
+                    if (st.hasMoreTokens()) {
+                        /*
+                         * st.nextToken() throws NoSuchElementException
+                         */
+                        if (!st.nextToken().equals(""WARN"")) {
+                            DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                            DVD_GUI.txtAreaOutput.setCaretPosition(DVD_GUI.txtAreaOutput.getDocument().getLength());
+                            out.write(line);
+                            out.newLine();
+                        }
+                    }
+                }
+                /*
+                 * close() throws an IOException
+                 */
+                in.close();
+                out.close();
+                err_in.close();
+                err_out.close();
+                /*
+                 * p.waitFor() throws an InterruptedException
+                 */
+                p.waitFor();
+            } catch (IOException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (NoSuchElementException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Looked for a token that didn't exist\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""dvd-homevideo thread was interrupted\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            }
+            /* Set progress bar to 100% and disable it */
+            DVD_GUI.prgAuthor.setIndeterminate(false);
+            DVD_GUI.prgAuthor.setValue(100);
+            DVD_GUI.lblAuthorProg.setText(""100%"");
+            DVD_GUI.lblAuthor.setEnabled(false);
+            DVD_GUI.lblAuthorProg.setEnabled(false);
+            DVD_GUI.prgAuthor.setEnabled(false);
+            /* Put in a slight delay to ensure author.log closes */
+            Thread.sleep(2000);
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (NullPointerException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Error executing Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (IllegalArgumentException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Illegal argument sent to Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (Exception ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Unknown Error occurred\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        /* Look for any indication of an error in the author log file */
+        return DVD_GUI.ErrorCheck(DVD_GUI.strOutputDir + ""/log/dvdauthor.log"");
+    }
+}
+
+// AuthorTest.java
+
+
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Author}.
+* It contains one unit test case for the {@link Author#CreateDVDFileStructure(GUI)} method.
+*/
+class AuthorTest {
+		// A simple test class in which all the functionalities are tested and the value can be checked if the test fails
+	@Test
+	void dvdauthor_ok() {
+		/* Just a valid file with random data */
+		String"
+a5d3e437-fbc8-43b5-8672-956541dfcdad,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Capture.java,53.708904504776,length,"// Capture.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.swing.JOptionPane;
+
+/**
+ * @author Shane Santner
+ * The Capture class utilizes dvgrab to capture audio and video
+ * data from a dv camcorder.  It captures for the amount of time
+ * specified by the user.
+ *
+ * TODO - Is there a way to get the camcorder time from dvgrab?
+ *        This would be a more accurate way of determining when
+ *        to stop the camcorder.  Also need to handle input, output
+ *        and error streams more appropriatly.
+ */
+public class Capture implements Runnable {
+
+    /**
+     * Used to instantiate a new thread and to perform error checking.
+     *
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean init() {
+        if (m_GUI.menuChkThread.isSelected()) {
+            /* Create and start the new thread */
+            m_Thread = new Thread(this);
+            /* Increase priority so we don't drop frames */
+            m_Thread.setPriority(10);
+            m_Thread.start();
+            /* Need to fix this */
+            return false;
+        } else {
+            DV_Capture();
+            return (m_Error | m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/dvgrab.log""));
+        }
+        /* 
+         * If an error occurred while executing DV_Capture then m_Error will be set
+         * to true.  Also check the log file for any evidence of an error.
+         */
+    }
+}
+","// CaptureTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.swing.JOptionPane;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Capture}.
+* It contains one unit test case for the {@link Capture#init()} method.
+*/
+class CaptureTest {","// CaptureTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.swing.JOptionPane;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Capture}.
+* It contains one unit test case for the {@link Capture#init()} method.
+*/
+class CaptureTest {
+
+    final Capture m_TestCam = new Capture();
+
+    /**
+     * A unit test case for Capture.
+     *
+     */
+    @Test
+    public void test() throws Exception {
+        File dir = new File(System.getProperty(""user.dir"")+""/../../log/"");
+        File camera = new File(dir,""m_capture"");
+
+        // Set the up and down button states based on the state of the button press
+        boolean up = true;
+        boolean down = false;
+
+        JOptionPane.showMessageDialog (null, ""Start capture..."");
+
+        String strLine = null;
+        InputStreamReader srr = null;
+        BufferedReader br = null;
+
+        if (!m_TestCam.init()) {
+            System.exit(1);
+        }
+        boolean res;
+        BufferedWriter fw = new BufferedWriter(new FileWriter(camera,""y""));
+        fw.write(""start capture 1"");
+        fw.flush();
+
+        /* start capturing a file or a directory */
+        if (m_GUI.CheckFile()) {
+            return;
+        }
+
+        /* CheckFile was not able to figure out where the output dir should go for a file */
+        if (m_GUI.menuChkFile.isSelected() && m_TestCam.init()) {
+            DV_Capture();
+            fw.write(""end capture 1"");
+            fw.flush();
+            return;
+        }
+
+
+        /* capture a directory */
+        if (m_GUI.menuChkDir.isSelected() && m_TestCam.init()) {
+            DV_Capture();
+            fw.write(""end capture 1"");
+            fw.flush();
+            return;
+        }
+        
+        // Set up the default test file as the default video mode
+        m_FilePath = camera;
+        m_FileType = FileType.VIDEO;
+
+        // The function name to call will be in the form of file1.txt
+        JOptionPane.showMessageDialog(null, ""Start capture..."");
+
+        System.out.println(""Sending File Name to testCam"");
+        File f0 = new File(dir,""m_capture/"");
+        f0.createNewFile();
+        File f = new File(f0,""testCam.txt"");
+        f.createNewFile();
+
+        String str = ""Capture File:\t"" + f0.toString();
+        DV_Capture();
+        fw.write(str);
+        fw.write(""end capture"");
+        fw.write(""\n"");
+        DV_ErrorCheck(null);
+        fw.write(""Capture File: "" + camera.toString());
+        fw.flush();
+
+        JOptionPane.showMessageDialog(null, ""End Capture"");
+        fw.close();
+
+        JOptionPane.showMessageDialog(null, ""Captured!"");
+        m_TestCam.uninit();
+        System.err.println(m_TestCam); 
+        if (m_GUI.menuChkDir.isSelected()) {
+            m_FilePath = new File(dir,""dvgrab/"");
+        }
+        fileCreated();
+    }
+
+    /**
+     * Initialize the GUI to be used once this class is loaded in.
+     *
+     */
+    public void preCreate(){
+        m_GUI = new GUI(m_TestCam);
+        m_Thread = new Thread(m_TestCam);
+        m_Thread.start();
+        System.err.println(m_Thread);
+        /*
+         * In this case the gui is created once, not for each frame,
+         * because the gui is created when the frame is added to the frame.
+         * This means that the gui is created when the first frame is added.
+         * This is a hack, but it doesn't really matter.  It only makes one
+         * gui per frame that it works upon for the duration of the frame.  
+         * It isn't necessary to do this!
+         */
+        JOptionPane.showMessageDialog(null, ""Initialize GUI"");
+       
+    }
+
+    public void fileCreated(){
+        BufferedReader br = null;
+        System.err.println(""Reading File Name:"");
+        int pos = m_TestCam.readFile(strLine);
+        System.err.print(""Line was null ("" + pos + ""): "");
+
+        /* Check to see if the line contains the characters */
+        if (pos == -1) {
+            JOptionPane.showMessageDialog(null, ""No Frame Name for File."");
+   
+        } 
+
+        br = new BufferedReader(new InputStreamReader(m_TestCam.getInputStream()));
+
+        String s;
+        
+        while ((s=br.readLine())!=null){
+            s = s.trim();
+
+            /* Replace multiple spaces with a single space and put the backslash
+             * since there might be more spaces on this line.  This does not give
+             * an error, but this does do the test. */
+            StringTokenizer st = new StringTokenizer(s,"" "");
+            s = """";
+
+            while(st.hasMoreTokens()){
+                s = s + st.nextToken();
+            }
+
+            File file = new File(m_FilePath,s);
+            if (file.exists()){
+                System.err.println(""Frame Name found in testCam : "" + file.getName()+"": ""+file.getName());
+            } else {
+                System.err.println(""No frame name found in testCam : ""+file.getName());
+            }
+            
+        }
+    }
+
+    public void DV_Capture() throws IOException {
+        m_guiCreate = true;
+        preCreate();
+        m_TestCam.writeFile(m_FilePath); 
+
+    } 
+
+    public void DV_ErrCheck(String outputDir) throws IOException {
+            m_guiCreate = true;
+            preCreate();
+               /* Create the output directory if it does not already exist */
+            FileOutputStream fo = null;
+            FileOutputStream fos = null;
+            FileOutputStream ffos = null;
+            File"
+27a1d0b5-f18a-48d8-ab61-e06983dd0144,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/GUI_0Test.java,52.062933921813965,stop,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    /**
+     * On startup, checks to ensure that the raw1394 module is loaded.
+     * This module is only needed to capture audio and video from the
+     * dv camcorder.
+     * return   A boolean indicating if the module is present
+     */
+    public boolean checkForModules() {
+        try {
+            String line;
+            String modules = ""cat /proc/modules | grep raw1394"";
+            String[] module_cmd = { ""/bin/sh"", ""-c"", modules };
+            Process p = Runtime.getRuntime().exec(module_cmd);
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            line = in.readLine();
+            p.waitFor();
+            if (line == null)
+                return false;
+            else
+                return true;
+        } catch (Exception ioe) {
+            /* If we have made it here then the module is not loaded */
+            return false;
+        }
+    }
+}
+","// GUI_0Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains one unit test case for the {@link GUI#checkForModules()} method.
+*/
+class GUI_0Test {","// GUI_0Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains one unit test case for the {@link GUI#checkForModules()} method.
+*/
+class GUI_0Test {
+
+    /**
+     * Inits the test.
+     * @throws IOException exception causing test setup in the {@link #init(File,boolean)} method
+     * @throws FileNotFoundException exception causing test setup in the {@link #init(File,boolean)} method
+     */
+    @Test
+    public void init() throws IOException, FileNotFoundException {
+        init_();
+    }
+    
+    
+    /**
+     * Inits the test for the specific <code>file</code> argument.
+     * @param file the input file
+     * @param isInitial if <code>true</code> indicates that the test will start with
+     *<code>file</code> in directory <code>dir</code> cleared out of the current 
+     * test directory.
+     * @throws IOException if no module is available.
+     */
+    private void init_() throws IOException {
+//System.out.println(""Initing..."");
+        // Ensure the modules directory is created
+        File dir = new File(""/dvd/raw1394"");
+        if (dir.exists())
+            (new File(""/dvd/raw1394"", ""modules"")).delete();
+        
+    
+        // create the modules directory
+        File modules_dir = new File(""./dvd/raw1394"");
+        if (!modules_dir.exists())
+            modules_dir.mkdir();
+        
+        File filter_ = new File(""./dvd/raw1394"", ""modules/javac.java"");
+
+    
+        // Open the specified file.
+        // If the file doesn't exist or the extension for.java doesn't match the.java extension this will throw an exception.
+        File f = new File(new File(dir, ""raw1394"") + File.separator + ""modules"", ""javac.java"");
+	
+        if (f.exists() &&!f.getName().endsWith("".java""))
+            throw new Exception(""Expected raw1394 module name to end with.java"");
+  
+        FileFilter module_filter = new FileFilter() {
+                public boolean accept(File aFile) {
+                    return aFile.getName().endsWith("".java"");
+                }};
+       
+	//create a java file which contains a java file with an exception which is thrown in the call to setSource()
+	FileWriter f_write = null;
+	try {
+            f_write = new FileWriter(""/dvd/raw1394"", false);
+        } 
+        catch (IOException e) {
+            
+        }
+       
+	try {
+	    f_write.write(""Module name""+File.separator+""javac.java"");
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+	try {
+	    f_write.write(""module "" + f.getName() + "" "" + f.getName() + "";\n"");
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+        try {
+            inputFile(""/dvd/raw1394"", f.getName());
+        } catch (FileNotFoundException e) {
+            throw new IOException(""Error opening raw1394 module file"");
+        }
+        
+        f.delete();
+        
+        //setSource(""/dvd/raw1394/javac.class"");
+        
+        try {
+            f_write.close();
+        } catch (IOException e) {
+        }
+        
+        //checkForModules();
+    }
+    
+    
+    // --------------------------------------------------------
+    // Class specific operations.
+    // --------------------------------------------------------
+    
+    
+    /**
+     * Load the modules as specified in <code>modules</code> file in the specified dir.
+     * @param dir dir where to set the modules.
+     * @param isInitial if <code>true</code> indicates that the modules will be loaded first
+     */
+    public void loadMdModule(File dir, boolean isInitial) throws IOException {
+        String s;
+        File modules0 = new File(""/dvd/raw1394"");
+		FileFilter filter = new FileFilter() {
+			public boolean accept(File aFile) {
+                return aFile.getName().endsWith("".java"");
+			}};
+        f_write = new FileWriter(""/dvd/raw1394"", false);
+        outputFile(""/dvd/raw1394"", modules0.getName()+File.separator+""javac.java"");
+        f_write.write(File.separator + ""module "" + modules0.getName() + "";\n"");
+        f_write.write(""module "" + modules0.getName() + "";\n"");        
+        
+        f_write.close();
+        
+        StringBuilder modules0Str = new StringBuilder();
+        for (int i = 0; i < modules0Str.length(); i++)
+        {
+            s = modules0.getName().substring(0, modules0.getName().length() - 1) + "" "";
+            modules0Str.append(s);
+            
+        }
+				if (isInitial) {
+            modules0Str = modules0Str.replace(""modules"",""../raw1394/videod/"");
+        }
+				
+        try {
+            inputFile(""/dvd/raw1394"", modules0Str.toString());
+        } catch (FileNotFoundException e) {
+        }
+        modules0.delete();
+    }
+}"
+a436808c-bc1c-4451-8141-d44c92d64007,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/GUI_1Test.java,55.945594787597656,length,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    /**
+     * Displays a message box with the supplied text and yes/no options
+     *
+     * @param message The message to display in the box
+     */
+    public int MessageBox(String message) {
+        return JOptionPane.showConfirmDialog(null, message, ""dvd-homevideo"", JOptionPane.YES_NO_OPTION);
+    }
+}
+","// GUI_1Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains one unit test case for the {@link GUI#MessageBox(String)} method.
+*/
+class GUI_1Test {","// GUI_1Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains one unit test case for the {@link GUI#MessageBox(String)} method.
+*/
+class GUI_1Test {
+ /**
+		 * @param message the message in which a textbox should be display
+		 * @param args the parameters for the textbox
+		 */
+    public static String[] args = new String[] { ""foo"", ""bar"" };
+
+
+
+	/**
+	 * @param args command line arguments
+	 */
+	public GUI_1Test(String[] args) {
+	}
+
+	/**
+	* Test method for {@link GUI#GUI(java.lang.String)}.
+     *
+	*/
+	@Test
+	public void testGUI(){
+	}
+	
+	/**
+	 * Test method for {@link GUI#startGUI(String)}.
+     *
+	*/
+	@Test
+	public void testStartGUI(){
+	}
+
+	/**
+	 * Test method for {@link GUI#getFileName(int)}.
+     *
+	*/
+	@Test
+	public void testGetFileName(){
+		String[] args = { ""/foo/bar"" };
+	}
+	
+	/**
+		* Test method for {@link GUI#moveUpFile(String)}.
+	*
+	*/
+	@Test
+	public void testMoveUpFile(){
+	}
+	
+	/**
+	 * Test method for {@link GUI#moveDownFile(String)}.
+	*
+	*/
+	@Test
+	public void testMoveDownFile(){
+	}
+	
+	/**
+	 * Test method for {@link GUI#deleteFile(String)}.
+	*
+	*/
+	@Test
+	public void testDeleteFile(){
+	}
+	
+	/**
+	 * Test method for {@link GUI#getFileDir(int)}.
+	*
+	*/
+	@Test
+	public void testGetFileDir(){
+	}
+	
+	/**
+	 * Test method for {@link GUI#isFileOk(String)}.
+	*
+	*/
+	@Test
+	public void testIsFileOk(){
+	}
+	
+	/**
+	 * Test method for {@link GUI#moveFileUp(String)}.
+    *
+    */
+	@Test
+	public void testMoveFileUp(){
+	}
+	
+	/**
+	* Test method for {@link GUI#moveFileDown(String)}.
+    *
+    */
+	@Test
+	public void testMoveFileDown(){
+	}
+	
+	/**
+	 * Test method for {@link GUI#createNewFile(String)}.
+	*
+	*/
+	@Test
+	public void testCreateNewFile(){
+	}
+	
+	/**
+	* Test method for {@link GUI#getFileDir(String)}.
+	*
+	*/
+	@Test
+	public void testGetFileDir():{}
+	
+	/**
+	* Test method for {@link GUI#deleteFile(String)}.
+	*
+	*/
+	@Test
+	public void testDeleteFile():{}
+	
+	/**
+	* Test method for {@link GUI#deleteFile(String)}.
+	*/
+	@Test(expected=FileNotFoundException.class)
+	public void testDeleteFile_error(){
+		GUI_1Test.deleteFile(""/foo/bar"");
+	}
+	
+	/**
+	* Test method for {@link GUI#createNewFile(String)}.
+	*/
+	public void testCreateNewFile_error(){
+		GUI_1Test.createNewFile(""/foo/bar"");
+	}
+	
+	/**
+	* Test method for {@link GUI#getFileDir(String)}.
+	*/
+	public void testGetFileDir():{}
+	
+	/**
+	* Test method for {@link GUI#deleteFile(String)}.
+	*/
+	public void testDeleteFile():{}
+	
+	@Override
+	public void run(){
+		String[] cmdArgs = {};
+		newFileArgs = new String[] {};
+		testString = ""Hello world!\n"";
+	}
+  
+  protected String newFileArgs[] = {};
+  protected String testString = """";
+	private String[] newFileArgs = { ""foo"", ""bar"", ""bar"", ""baz"", ""quux"" };
+	private String testString = ""Hello world!\n"";
+	private String[] testStringArgs[] = { ""foo"", ""bar"", ""bar"", ""baz"", ""quux"" };
+	
+  
+    // Test methods
+    
+    /**
+     * Test method for {@link GUI#getFileDir(String)}.
+     *
+     */
+    public void testGetFileDir():{}
+    /**
+     * Test method for {@link GUI#moveFileUp(String)}.
+     *
+     */
+    public void testMoveFileUp():{}
+    /**
+     * Test method for {@link GUI#moveFileDown(String)}.
+     *
+     */
+    public void testMoveFileDown():{}
+    /**
+     * Test method for {@link GUI#moveFileUp(String)}.
+     */
+    public void testMoveFileUp(){
+    }
+    /**
+     * Test method for {@link GUI#moveFileDown(String)}.
+     */
+    public void testMoveFileDown(){
+    }
+
+    
+    public File[] getFileArgs(){
+    	return null;
+    }
+
+    
+    public String getTestString(){
+    	return testString;
+    }
+
+    
+    public static String newTextArgs[] = {};
+    public static String testTextArgs[] = { ""bazzer"" };
+
+
+    private String[] newTestArgs = {};
+    private String testText = ""Hello world!\n"";
+
+
+    private File[] newFileArgs = { null };
+    private String testFile = ""/foo/bar/test.sav"";
+
+
+    /**
+	 * Test method for {@link GUI#isFileOk(String)}.
+	 *
+	*/
+	@Test
+	public void testIsFileOk():{}
+	
+	/**
+	* Test method for {@link GUI#deleteFile(String)}.
+	*
+	*/
+	@Test(expected=FileNotFoundException.class)
+	public void testDeleteFile_error(){
+		GUI_1Test.deleteFile(""/foo/bar/test_file_test"");
+	}
+	
+	/**
+	* Test method for {@link GUI#deleteFile(String)}.
+	*/
+	@Test(expected=MessageBox.ConfirmDeleteDialog.class)
+	public void testDeleteFile_error():{}
+	
+	/**
+	* Test method for {@link GUI#move"
+7e44364c-67fe-463d-9edc-9a09bbc8dafc,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/GUI_2Test.java,37.87253761291504,stop,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    /**
+     * Check dvd-homevideo for runtime errors
+     *
+     * @param fileName This is a log file to parse through, looking for
+     *                      the keyword ""Error""
+     * @return A boolean indicating if an error was found
+     */
+    public boolean ErrorCheck(String fileName) {
+        String line;
+        StringTokenizer st;
+        String testToken;
+        boolean error = false;
+        /*
+         * Need to parse through the supplies file and look for any
+         * instances of the words 'error' or 'broken'.  If found, this
+         * is treated as a run-time error of one of the dependent programs
+         * that dvd-homevideo relies on.
+         */
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(fileName));
+            while ((line = in.readLine()) != null) {
+                /* Check for a specific burn error */
+                if (line.equals("":-( /dev/dvd: media is not recognized as recordable DVD: 9"")) {
+                    MessageBox(""Non-recoverable error occurred."" + ""\nClass Name: "" + new Exception().getStackTrace()[1].getClassName() + ""\nMethod Name: "" + new Exception().getStackTrace()[1].getMethodName() + ""\nError was: "" + line, 0);
+                    return true;
+                }
+                /*
+                 * Need to catch all instances of 'error' or 'broken'.  This
+                 * includes cases such as:
+                 * **Error:
+                 * error~
+                 * Broken pipe
+                 * etc, etc, etc.  We need to catch ALL instances.
+                 */
+                st = new StringTokenizer(line, ""*,;:'-~\t "");
+                while (st.hasMoreTokens()) {
+                    testToken = st.nextToken();
+                    if (// ||
+                    testToken.equalsIgnoreCase(""Error"")) //testToken.equalsIgnoreCase(""Broken""))
+                    {
+                        MessageBox(""Non-recoverable error occurred."" + ""\nClass Name: "" + new Exception().getStackTrace()[1].getClassName() + ""\nMethod Name: "" + new Exception().getStackTrace()[1].getMethodName() + ""\nError was: "" + line, 0);
+                        error = true;
+                    }
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            SaveStackTrace.printTrace(strOutputDir, ex);
+            MessageBox(""Can not find "" + fileName + ""\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(strOutputDir, ex);
+            MessageBox(""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        return error;
+    }
+}
+","// GUI_2Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains one unit test case for the {@link GUI#ErrorCheck(String)} method.
+*/
+class GUI_2Test {","// GUI_2Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains one unit test case for the {@link GUI#ErrorCheck(String)} method.
+*/
+class GUI_2Test {
+// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    /**
+     * Check dvd-homevideo for runtime errors
+     *
+     * @param fileName This is a log file to parse through, looking for
+     *                      the keyword ""Error""
+     * @return A boolean indicating if an error was found
+     */
+    public boolean ErrorCheck(String fileName) {
+        String line;
+        StringTokenizer st;
+        String testToken;
+        boolean error = false;
+        /*
+         * Need to parse through the supplies file and look for any
+         * instances of the words 'error' or 'broken'.  If found, this
+         * is treated as a run-time error of one of the dependent programs
+         * that dvd-homevideo relies on.
+         */
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(fileName));
+            while ((line = in.readLine())!= null) {
+                /* Check for a specific burn error */
+                if (line.equals("":-( /dev/dvd: media is not recognized as recordable DVD: 9"")) {
+                    MessageBox(""Non-recoverable error occurred."" + ""\nClass Name: "" + new Exception().getStackTrace()[1].getClassName() + ""\nMethod Name: "" + new Exception().getStackTrace()[1].getMethodName() + ""\nError was: "" + line, 0);
+                    return true;
+                }
+                /*
+                 * Need to catch all instances of 'error' or 'broken'.  This
+                 * includes cases such as:
+                 * **Error:
+                 * error~
+                 * Broken pipe
+                 * etc, etc, etc.  We need to catch ALL instances.
+                 */
+                st = new StringTokenizer(line, ""*,;:'-~\t "");
+                while (st.hasMoreTokens()) {
+                    testToken = st.nextToken();
+                    if (// ||
+                    testToken.equalsIgnoreCase(""Error"")) //testToken.equalsIgnoreCase(""Broken""))
+                    {
+                        MessageBox(""Non-recoverable error occurred."" + ""\nClass Name: "" + new Exception().getStackTrace()[1].getClassName() + ""\nMethod Name: "" + new Exception().getStackTrace()[1].getMethodName() + ""\nError was: "" + line, 0);
+                        error = true;
+                    }
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            SaveStackTrace.printTrace(strOutputDir, ex);
+            MessageBox(""Can not find "" + fileName + ""\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(strOutputDir, ex);
+            MessageBox(""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        return error;
+    }
+}
+
+// GUI_2Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains one unit test case for the {@link GUI#ErrorCheck(String)} method.
+*/
+class GUI_2Test {
+		
+	/**
+	* Test method of {@link GUI_2Test#testErrorCheck(String)}
+	*/
+	@Test	
+	@TestOfConcurrent
+	void testErrorCheckString() {
+		/*
+		* Need to catch all instances of 'error' or 'broken'.  This includes cases such as:
+		* **Error:
+		* error~
+		* Broken pipe
+		* etc, etc, etc, etc.  We need to catch ALL instances.
+		*/
+		String fileName = ""testString"";
+		String fileName2 = ""testString2"";
+		int num = 0;
+		Message msg;
+		for (int i = 0; i < 10000; i++) {
+			try {
+				BufferedReader in = new BufferedReader(new FileReader(fileName));
+				while ((msg = in.readLine())!= null) {
+					assertNotNull(msg);
+					if (// ||
+					msg.equalsIgnoreCase(""Error"") ||
+					msg.equalsIgnoreCase(""Broken"")) {
+
+//                    System.out.println(msg);
+						JOptionPane.showMessageDialog(null, msg);
+					}
+//                    msg = null;
+				} //end-for
+				num++;
+				continue;
+			} catch (IOException ex) {
+				saveStackTrace(num, ex);
+				continue;
+			}
+		}
+	} 
+	
+}
+"
+7c2ccd97-bbeb-4f84-b7ef-bce7a294ce1a,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Convert.java,50.88659453392029,stop,"// Convert.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class is used to transcode the video captured
+ * from the digital camcorder into mpeg4, the DVD compatible
+ * format.  It explicitly calls the transcode command
+ * after meticulously preparing the options that can be passed
+ * to transcode.
+ *
+ * TODO - Break mplex out into its own class.
+ *        Figure out how to calculate remaining time even if
+ *        video was not captured from the camcorder during the
+ *        current session.
+ *        Need to handle input, output and error streams
+ *        more appropriatly.
+ */
+public class Convert implements Runnable {
+
+    /**
+     * Used to instantiate a new thread and to perform error checking.
+     *
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean init() {
+        if (m_GUI.menuChkThread.isSelected()) {
+            m_Thread = new Thread(this);
+            m_Thread.start();
+            try {
+                m_Thread.join();
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+                m_GUI.MessageBox(m_BaseErr + ""Could not join Convert.java thread\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                m_Error = true;
+            }
+        } else
+            Transcode();
+        /* 
+         * Check transcode.log and mplex.log for any sign of an error.
+         * If either file contains an error then return an error.  Also
+         * check m_Error to see if it was set while executing the 
+         * Transcode method.
+         */
+        return (m_Error || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/transcode.log"") || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/mplex.log""));
+    }
+}
+","// ConvertTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Convert}.
+* It contains one unit test case for the {@link Convert#init()} method.
+*/
+class ConvertTest {","// ConvertTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Convert}.
+* It contains one unit test case for the {@link Convert#init()} method.
+*/
+class ConvertTest {
+
+    private volatile boolean m_Error = false;
+    private volatile boolean m_GUI;
+    public final static String m_BaseOutputDir = ""/data/mplex"";
+    public final static String m_BASE_ERR_LOG = ""/mplex/log/baseerr.log"";
+    public final static String m_BASE_ERR_MPLEX = ""/mplex/log/baseerr.mplex"";
+    public final static String m_MUX_LOG = ""/data/mplex/log/mux.log"";
+    public final static String m_MUX_MPLEX = ""/data/mplex/log/mux.mplex"";
+    final public static String m_FNAME = ""TestMainFile.avi"";
+    final public static String m_DEFAULTSOURCESTART = ""TestFile.avi"";
+    final public static String[] m_DEFAULTDEFAULTSOURCES = new String[] {m_DEFAULTSOURCESTART};
+    final public static String[][] m_STRINGS = new String[][] {
+        new String[] {""#define A"", ""0""},
+        new String[] {""$A"", """"},
+        new String[] {""xmplex"", ""2""},
+        new String[] {""1"", ""4""},
+        new String[] {""y"", ""1""},
+    };
+    public final static int m_DEFAULTSOURCESTARTINDEX = 0;
+    public final static String m_FILENAME = ""TestFile.avi"";
+        
+    public ConvertTest() {
+    	m_GUI = true;
+    }
+    
+    @Test
+    public void TransCodeTest () throws NumberFormatException {
+        m_MessageLogger.printMsg(""TransCodeTest"", String.valueOf(m_Error));
+        m_Console = System.out;
+        System.setOut(new NullOutputStream());
+        m_Transcode = new Convert();
+        m_Transcode.init();
+        TranscodeProcess p = new TranscodeProcess();
+        p.init();
+        assertTrue(""Could not start TransCodeProcess for ""+m_BASE_ERR_LOG+"".  It appears that the error is: ""+m_Error, p.start());
+        assertTrue(""Could not start TransCodeProcess for ""+m_BASE_ERR_MPLEX+"".  It appears that the error is: ""+m_Error, p.start());
+        p.start();
+        setTranscodeOption();
+    }
+	
+    @Test
+    public void TestFile () throws NumberFormatException {
+    	if (m_TranscodeFile.getText().compareTo (m_DEFAULTSOURCES[m_DEFAULTSOURCESTARTINDEX])!= 0) {
+    		throw (new NumberFormatException (""The base input file does not start with the correct suffix : ""+
+    				m_TranscodeFile.getText().substring(m_TranscodeFile.getText().lastIndexOf(""."")+1)));
+    	}
+    	m_Console = System.out;
+        m_MessageLogger.printMsg(""TestFile"", String.valueOf(m_Error));
+        m_Console = System.out;
+        System.setOut(new NullOutputStream());
+        m_Transcode = new Convert();
+
+        m_Transcode.init();
+
+	    File f = new File(m_TranscodeFile.getText());
+
+	    m_Transcode.prepare();
+
+        f.delete();
+    	f = new File(m_BASE_OUTPUTDIR + ""/"" + m_BASE_ERR_MPLX + m_MUX_LOG + "".mp4"");
+        InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
+        OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(f));
+        BufferedWriter bw = new BufferedWriter(osw);
+
+        String s = null;
+        for (int i=0; s == null && i<m_STRINGS.length-1; i++) {
+            s = m_STRINGS[i][m_STRINGS.length-1].toLowerCase ();
+            bw.write(s);
+        }
+
+        bw.close();
+
+        bw = new BufferedWriter(new FileWriter(f));
+        bw.write(""file=""+f.getAbsolutePath()+"" transcoded to  \""""+m_MUX_MPLEX+""\"""");
+        for (int i=0; i<m_STRINGS.length-1; i++) {
+            bw.write(m_STRINGS[i][m_STRINGS.length-1])+""\r\n"";
+        }
+        bw.close();
+
+        File transcode = new File(""transcode"");
+        osw = new OutputStreamWriter(new FileOutputStream(transcode));
+        bw = new BufferedWriter(osw);
+        System.setOut(new NullOutputStream());
+
+        try {
+            m_Transcode.exec(""transcode"");
+        } catch (IOException ex) {
+            IOException ex1 = new IOException(""Error executing ""+m_Transcode);
+            throw ex1;
+        }
+        bw.close();
+
+        m_MessageLogger.printMsg(""TestFile"", String.valueOf(m_TranscodeFile.getText()));
+        m_Console = System.out;
+    }
+
+    private void setTranscodeOption() {
+        m_TranscodeFile.setText(""transcode"");
+    }
+}
+
+
+
+
+"

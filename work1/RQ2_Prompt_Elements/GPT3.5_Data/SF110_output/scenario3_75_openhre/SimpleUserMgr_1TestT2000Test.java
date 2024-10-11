@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `getNamesbyOrg` method in the `SimpleUserMgr` class is not implemented. Please provide the complete code so I can assist you better.

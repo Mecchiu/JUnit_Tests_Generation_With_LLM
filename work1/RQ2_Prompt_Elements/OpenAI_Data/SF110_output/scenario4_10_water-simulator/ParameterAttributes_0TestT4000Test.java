@@ -1,0 +1,22 @@
+// ParameterAttributes_0Test.java
+package simulator.util;
+
+import java.io.Serializable;
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ParameterAttributes}.
+* It contains ten unit test cases for the {@link ParameterAttributes#valueFor(int)} method.
+*/
+class ParameterAttributes_0Test {
+
+	private Logger log = Logger.getLogger(ParameterAttributes_0Test.class);
+	
+	/**
+	 * Test case for {@link ParameterAttributes#valueFor(int)} method.
+	 * Test case for the following specification:
+	 * 
+	 * <pre>
+	 * 																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																									

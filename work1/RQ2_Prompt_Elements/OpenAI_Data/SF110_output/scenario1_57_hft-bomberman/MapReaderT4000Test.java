@@ -1,0 +1,369 @@
+// MapReaderTest.java
+package common;
+
+import org.apache.log4j.Logger;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.awt.Point;
+import javax.xml.xpath.*;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapReader}.
+* It contains ten unit test cases for the {@link MapReader#getXMLValue(Node, String)} method.
+*/
+class MapReaderTest {
+
+		private static final Logger logger = Logger.getLogger(MapReaderTest.class);
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@name";
+				String expected = "test";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue2() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@width";
+				String expected = "10";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue3() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@height";
+				String expected = "10";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue4() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@tilewidth";
+				String expected = "32";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue5() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@tileheight";
+				String expected = "32";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue6() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@version";
+				String expected = "1.0";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue7() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@orientation";
+				String expected = "orthogonal";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue8() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@renderorder";
+				String expected = "right-down";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue9() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@nextobjectid";
+				String expected = "1";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue10() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/tileset/@firstgid";
+				String expected = "1";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+}
+
+// MapReaderTest.java
+package common;
+
+import org.apache.log4j.Logger;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.awt.Point;
+import javax.xml.xpath.*;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapReader}.
+* It contains ten unit test cases for the {@link MapReader#getXMLValue(Node, String)} method.
+*/
+class MapReaderTest {
+		
+		private static final Logger logger = Logger.getLogger(MapReaderTest.class);
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@name";
+				String expected = "test";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue2() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@width";
+				String expected = "10";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue3() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@height";
+				String expected = "10";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue4() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@tilewidth";
+				String expected = "32";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue5() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@tileheight";
+				String expected = "32";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue6() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@version";
+				String expected = "1.0";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue7() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@orientation";
+				String expected = "orthogonal";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue8() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@renderorder";
+				String expected = "right-down";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue9() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@nextobjectid";
+				String expected = "1";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue10() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/tileset/@firstgid";
+				String expected = "1";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+}
+
+// MapReaderTest.java
+package common;
+
+import org.apache.log4j.Logger;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.awt.Point;
+import javax.xml.xpath.*;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link MapReader}.
+* It contains ten unit test cases for the {@link MapReader#getXMLValue(Node, String)} method.
+*/
+class MapReaderTest {
+		
+		private static final Logger logger = Logger.getLogger(MapReaderTest.class);
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@name";
+				String expected = "test";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue2() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@width";
+				String expected = "10";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue3() {
+				MapReader mapReader = new MapReader();
+				String XMLPath = "//map/@height";
+				String expected = "10";
+				String actual = mapReader.getXMLValue(node, XMLPath);
+				assertEquals(expected, actual);
+		}
+		
+		/**
+		* Test case for {@link MapReader#getXMLValue(Node, String)} method.
+		* It tests if the method returns the correct value for a given XML-path.
+		*/
+		@Test
+		void testGetXMLValue4() {
+				MapReader mapReader = new MapReader();
+				String XML

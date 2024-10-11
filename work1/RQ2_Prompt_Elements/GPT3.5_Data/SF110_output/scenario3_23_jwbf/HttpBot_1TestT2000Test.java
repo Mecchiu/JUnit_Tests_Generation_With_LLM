@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `performAction` method in the `HttpBot` class is not properly defined. Can you please provide the complete code for the `HttpBot` class and the `performAction` method?

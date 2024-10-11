@@ -1,0 +1,676 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-6yYToRTACNyBkQBjHEKNAvNNVu5rS,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/servlet/HTMLOutputStream.java,34.52091646194458,stop,"// HTMLOutputStream.java
+package bible.servlet;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.net.*;
+
+/**
+ * A container for output streams with its own buffers
+ *
+ * @author Luke Samaha
+ */
+public class HTMLOutputStream {
+
+    public HTMLOutputStream(HttpServletResponse response) throws IOException {
+    }
+
+    public void print(String str);
+
+    public void print(int n);
+
+    public void println(String str);
+
+    public void println(int n);
+
+    public void flush() throws IOException;
+
+    public int getSize();
+
+    public PrintWriter getPW();
+
+    /**
+     * @author James Stauffer
+     * @return String the contents of the buffer.
+     */
+    public String reset();
+
+    public String toString();
+
+    //  Private instance variables
+    private HttpServletResponse response = null;
+
+    private boolean binary = false;
+
+    private ByteArrayOutputStream baos = null;
+
+    private PrintWriter pw = null;
+}
+","// HTMLOutputStreamTest.java
+package bible.servlet;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.net.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HTMLOutputStream}.
+* It contains ten unit test cases for the {@link HTMLOutputStream#reset()} method.
+*/
+class HTMLOutputStreamTest {","// Test case 1: Test if reset() method returns an empty string when buffer is empty
+@Test
+public void testResetEmptyBuffer() {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    String result = outputStream.reset();
+    assertEquals("""", result);
+}
+
+// Test case 2: Test if reset() method returns the contents of the buffer when it is not empty
+@Test
+public void testResetNonEmptyBuffer() {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    outputStream.print(""Hello"");
+    outputStream.print(""World"");
+    String result = outputStream.reset();
+    assertEquals(""HelloWorld"", result);
+}
+
+// Test case 3: Test if reset() method clears the buffer after returning its contents
+@Test
+public void testResetClearsBuffer() {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    outputStream.print(""Hello"");
+    outputStream.print(""World"");
+    outputStream.reset();
+    String result = outputStream.reset();
+    assertEquals("""", result);
+}
+
+// Test case 4: Test if getSize() method returns 0 when buffer is empty
+@Test
+public void testGetSizeEmptyBuffer() {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    int size = outputStream.getSize();
+    assertEquals(0, size);
+}
+
+// Test case 5: Test if getSize() method returns the correct size of the buffer when it is not empty
+@Test
+public void testGetSizeNonEmptyBuffer() {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    outputStream.print(""Hello"");
+    outputStream.print(""World"");
+    int size = outputStream.getSize();
+    assertEquals(10, size);
+}
+
+// Test case 6: Test if getPW() method returns a PrintWriter object
+@Test
+public void testGetPW() {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    PrintWriter pw = outputStream.getPW();
+    assertNotNull(pw);
+}
+
+// Test case 7: Test if flush() method throws IOException when buffer is empty
+@Test
+public void testFlushEmptyBuffer() {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    assertThrows(IOException.class, () -> outputStream.flush());
+}
+
+// Test case 8: Test if flush() method writes the contents of the buffer to the response
+@Test
+public void testFlushNonEmptyBuffer() throws IOException {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    outputStream.print(""Hello"");
+    outputStream.print(""World"");
+    outputStream.flush();
+    assertEquals(""HelloWorld"", response.getContentAsString());
+}
+
+// Test case 9: Test if toString() method returns the contents of the buffer
+@Test
+public void testToString() {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    outputStream.print(""Hello"");
+    outputStream.print(""World"");
+    String result = outputStream.toString();
+    assertEquals(""HelloWorld"", result);
+}
+
+// Test case 10: Test if HTMLOutputStream constructor initializes instance variables correctly
+@Test
+public void testConstructor() throws IOException {
+    HttpServletResponse response = new MockHttpServletResponse();
+    HTMLOutputStream outputStream = new HTMLOutputStream(response);
+    assertNotNull(outputStream);
+    assertNotNull(outputStream.getPW());
+    assertEquals(0, outputStream.getSize());
+}"
+chatcmpl-6yYUrmVHBMXFqHBBDjueAakuOPEIK,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/util/Queue_0Test.java,30.432082414627075,stop,"// Queue.java
+package bible.util;
+
+import java.util.*;
+
+/**
+ * Queue is a storage class to link together <b>Node</b> objects which are
+ * stored in a first in first out storage system.
+ *
+ * @see Node
+ * @version 1.0
+ * @author LaMoine Zielieke, James Stauffer
+ */
+public class Queue {
+
+    public final static int NO_MAXIMUM = -1;
+
+    /**
+     * number of items in this list
+     */
+    private int numItems;
+
+    private int maxNumItems;
+
+    private int maxCapacity;
+
+    /**
+     * first Node in list
+     */
+    private Node first;
+
+    /**
+     * last Node in list
+     */
+    private Node last;
+
+    /**
+     * Constructor creating an empty Queue.  All variables are set to zero
+     * or null.
+     */
+    public Queue() {
+    }
+
+    /**
+     * Constructor creating an empty Queue.  All variables are set to zero
+     * or null.
+     */
+    public Queue(int capacity) {
+    }
+
+    /**
+     * See if the queue is empty.
+     * @return     <code>true</code> if Queue is empty;
+     *             <code>false</code> otherwise.
+     */
+    public boolean isEmpty();
+
+    /**
+     * Insert an object into the end of the queue
+     *
+     * @param someObject  the Object to store
+     */
+    public void enqueue(Object someObject);
+
+    /**
+     * Remove an object from the front of the Queue
+     *
+     * @return       Object if Queue is not empty
+     *               otherwise print message to dos window
+     * @see GameQuestion
+     */
+    public synchronized Object dequeue();
+
+    /**
+     *  Removes all nodes where Node.value.equals(object).
+     */
+    public synchronized int remove(Object object);
+
+    /**
+     *  Moves element to back of que.
+     */
+    public synchronized void refreshElement(Object object);
+
+    /**
+     * See how many items are in the queue.
+     *
+     * @return integer value of number of items in queue
+     */
+    public int getNumberItems();
+
+    /**
+     * The peak number of items in the Queue.
+     *
+     * @return peak number of items in queue
+     */
+    public int getPeakNumberItems();
+
+    /**
+     * The Queue is stepped through one node at a time and the
+     * QuestionNumber is inserted into a Vector.This action copies
+     * unused question numbers from queue into temp vector.
+     *
+     * @return   Vector of unused question numbers. In this way when
+     *           a new vector of randomized numbers is created the nunbers
+     *           already in the queue will not be duplicated.  If number
+     *           396 is in the queue we do not want 396 to appear in the
+     *           new randomized vector.  This method is only called in
+     *           <b>DataBase</b>
+     * @see      Database#load
+     * @see      GameQuestion
+     */
+    public Vector getObjects();
+
+    /**
+     *  Returns true if the first should be removed.
+     */
+    public boolean maxCapacityExceeded();
+
+    public String toString();
+
+    /**
+     * Node objects hold the Object to be stored and the next node in our linked list.
+     * In this way we can access the next node in our <b>Queue</b>.
+     *
+     * @version   2.0
+     * @author    LaMoine Zielieke
+     */
+    class Node {
+
+        /**
+         * The next Node in the chain.
+         */
+        Node next;
+
+        /**
+         * The Object this node stores.
+         */
+        Object value;
+
+        /**
+         * @param  obj   the Object to be inserted into the node.
+         */
+        public Node(Object obj) {
+            value = obj;
+        }
+    }
+}
+","// Queue_0Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains ten unit test cases for the {@link Queue#dequeue()} method.
+*/
+class Queue_0Test {","// Test case 1: Test dequeue on an empty queue
+@Test
+public void testDequeueEmptyQueue() {
+    Queue queue = new Queue();
+    assertNull(queue.dequeue());
+}
+
+// Test case 2: Test dequeue on a queue with one item
+@Test
+public void testDequeueOneItem() {
+    Queue queue = new Queue();
+    queue.enqueue(""item"");
+    assertEquals(""item"", queue.dequeue());
+    assertTrue(queue.isEmpty());
+}
+
+// Test case 3: Test dequeue on a queue with multiple items
+@Test
+public void testDequeueMultipleItems() {
+    Queue queue = new Queue();
+    queue.enqueue(""item1"");
+    queue.enqueue(""item2"");
+    queue.enqueue(""item3"");
+    assertEquals(""item1"", queue.dequeue());
+    assertEquals(""item2"", queue.dequeue());
+    assertEquals(""item3"", queue.dequeue());
+    assertTrue(queue.isEmpty());
+}
+
+// Test case 4: Test dequeue on a queue with a maximum capacity
+@Test
+public void testDequeueWithMaxCapacity() {
+    Queue queue = new Queue(2);
+    queue.enqueue(""item1"");
+    queue.enqueue(""item2"");
+    queue.enqueue(""item3"");
+    assertEquals(""item1"", queue.dequeue());
+    assertEquals(""item2"", queue.dequeue());
+    assertTrue(queue.isEmpty());
+}
+
+// Test case 5: Test dequeue on a synchronized queue
+@Test
+public void testDequeueSynchronized() {
+    Queue queue = new Queue();
+    queue.enqueue(""item1"");
+    queue.enqueue(""item2"");
+    queue.enqueue(""item3"");
+    Thread t1 = new Thread(() -> {
+        synchronized(queue) {
+            assertEquals(""item1"", queue.dequeue());
+        }
+    });
+    Thread t2 = new Thread(() -> {
+        synchronized(queue) {
+            assertEquals(""item2"", queue.dequeue());
+        }
+    });
+    t1.start();
+    t2.start();
+    queue.dequeue();
+}
+
+// Test case 6: Test remove method on an empty queue
+@Test
+public void testRemoveEmptyQueue() {
+    Queue queue = new Queue();
+    assertEquals(0, queue.remove(""item""));
+}
+
+// Test case 7: Test remove method on a queue with one item
+@Test
+public void testRemoveOneItem() {
+    Queue queue = new Queue();
+    queue.enqueue(""item"");
+    assertEquals(1, queue.remove(""item""));
+    assertTrue(queue.isEmpty());
+}
+
+// Test case 8: Test remove method on a queue with multiple items
+@Test
+public void testRemoveMultipleItems() {
+    Queue queue = new Queue();
+    queue.enqueue(""item1"");
+    queue.enqueue(""item2"");
+    queue.enqueue(""item3"");
+    assertEquals(2, queue.remove(""item2""));
+    assertEquals(""item1"", queue.dequeue());
+    assertEquals(""item3"", queue.dequeue());
+    assertTrue(queue.isEmpty());
+}
+
+// Test case 9: Test refreshElement method on an empty queue
+@Test
+public void testRefreshElementEmptyQueue() {
+    Queue queue = new Queue();
+    queue.refreshElement(""item"");
+    assertTrue(queue.isEmpty());
+}
+
+// Test case 10: Test refreshElement method on a queue with multiple items
+@Test
+public void testRefreshElementMultipleItems() {
+    Queue queue = new Queue();
+    queue.enqueue(""item1"");
+    queue.enqueue(""item2"");
+    queue.enqueue(""item3"");
+    queue.refreshElement(""item2"");
+    assertEquals(""item1"", queue.dequeue());
+    assertEquals(""item3"", queue.dequeue());
+    assertEquals(""item2"", queue.dequeue());
+    assertTrue(queue.isEmpty());
+}
+}"
+chatcmpl-6yYVuLWjeZDpkIC2g55BWD8x3pg8j,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/util/Queue_1Test.java,25.56097388267517,stop,"// Queue.java
+package bible.util;
+
+import java.util.*;
+
+/**
+ * Queue is a storage class to link together <b>Node</b> objects which are
+ * stored in a first in first out storage system.
+ *
+ * @see Node
+ * @version 1.0
+ * @author LaMoine Zielieke, James Stauffer
+ */
+public class Queue {
+
+    public final static int NO_MAXIMUM = -1;
+
+    /**
+     * number of items in this list
+     */
+    private int numItems;
+
+    private int maxNumItems;
+
+    private int maxCapacity;
+
+    /**
+     * first Node in list
+     */
+    private Node first;
+
+    /**
+     * last Node in list
+     */
+    private Node last;
+
+    /**
+     * Constructor creating an empty Queue.  All variables are set to zero
+     * or null.
+     */
+    public Queue() {
+    }
+
+    /**
+     * Constructor creating an empty Queue.  All variables are set to zero
+     * or null.
+     */
+    public Queue(int capacity) {
+    }
+
+    /**
+     * See if the queue is empty.
+     * @return     <code>true</code> if Queue is empty;
+     *             <code>false</code> otherwise.
+     */
+    public boolean isEmpty();
+
+    /**
+     * Insert an object into the end of the queue
+     *
+     * @param someObject  the Object to store
+     */
+    public void enqueue(Object someObject);
+
+    /**
+     * Remove an object from the front of the Queue
+     *
+     * @return       Object if Queue is not empty
+     *               otherwise print message to dos window
+     * @see GameQuestion
+     */
+    public synchronized Object dequeue();
+
+    /**
+     *  Removes all nodes where Node.value.equals(object).
+     */
+    public synchronized int remove(Object object);
+
+    /**
+     *  Moves element to back of que.
+     */
+    public synchronized void refreshElement(Object object);
+
+    /**
+     * See how many items are in the queue.
+     *
+     * @return integer value of number of items in queue
+     */
+    public int getNumberItems();
+
+    /**
+     * The peak number of items in the Queue.
+     *
+     * @return peak number of items in queue
+     */
+    public int getPeakNumberItems();
+
+    /**
+     * The Queue is stepped through one node at a time and the
+     * QuestionNumber is inserted into a Vector.This action copies
+     * unused question numbers from queue into temp vector.
+     *
+     * @return   Vector of unused question numbers. In this way when
+     *           a new vector of randomized numbers is created the nunbers
+     *           already in the queue will not be duplicated.  If number
+     *           396 is in the queue we do not want 396 to appear in the
+     *           new randomized vector.  This method is only called in
+     *           <b>DataBase</b>
+     * @see      Database#load
+     * @see      GameQuestion
+     */
+    public Vector getObjects();
+
+    /**
+     *  Returns true if the first should be removed.
+     */
+    public boolean maxCapacityExceeded();
+
+    public String toString();
+
+    /**
+     * Node objects hold the Object to be stored and the next node in our linked list.
+     * In this way we can access the next node in our <b>Queue</b>.
+     *
+     * @version   2.0
+     * @author    LaMoine Zielieke
+     */
+    class Node {
+
+        /**
+         * The next Node in the chain.
+         */
+        Node next;
+
+        /**
+         * The Object this node stores.
+         */
+        Object value;
+
+        /**
+         * @param  obj   the Object to be inserted into the node.
+         */
+        public Node(Object obj) {
+            value = obj;
+        }
+    }
+}
+","// Queue_1Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains ten unit test cases for the {@link Queue#maxCapacityExceeded()} method.
+*/
+class Queue_1Test {","// Test case for Queue.maxCapacityExceeded() method
+class Queue_1Test {
+    
+    // Test case 1: Test when maxCapacity is NO_MAXIMUM
+    @Test
+    void testMaxCapacityExceeded_NoMaximum() {
+        Queue queue = new Queue();
+        assertFalse(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 2: Test when maxCapacity is greater than number of items in queue
+    @Test
+    void testMaxCapacityExceeded_LessThanMax() {
+        Queue queue = new Queue(5);
+        queue.enqueue(""item1"");
+        queue.enqueue(""item2"");
+        assertFalse(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 3: Test when maxCapacity is equal to number of items in queue
+    @Test
+    void testMaxCapacityExceeded_EqualToMax() {
+        Queue queue = new Queue(2);
+        queue.enqueue(""item1"");
+        queue.enqueue(""item2"");
+        assertTrue(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 4: Test when maxCapacity is less than number of items in queue
+    @Test
+    void testMaxCapacityExceeded_GreaterThanMax() {
+        Queue queue = new Queue(2);
+        queue.enqueue(""item1"");
+        queue.enqueue(""item2"");
+        queue.enqueue(""item3"");
+        assertTrue(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 5: Test when maxCapacity is zero
+    @Test
+    void testMaxCapacityExceeded_Zero() {
+        Queue queue = new Queue(0);
+        assertTrue(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 6: Test when queue is empty
+    @Test
+    void testMaxCapacityExceeded_EmptyQueue() {
+        Queue queue = new Queue(5);
+        assertFalse(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 7: Test when maxCapacity is negative
+    @Test
+    void testMaxCapacityExceeded_Negative() {
+        Queue queue = new Queue(-5);
+        assertFalse(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 8: Test when maxCapacity is greater than Integer.MAX_VALUE
+    @Test
+    void testMaxCapacityExceeded_MaxValue() {
+        Queue queue = new Queue(Integer.MAX_VALUE + 1);
+        assertFalse(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 9: Test when maxCapacity is equal to Integer.MAX_VALUE
+    @Test
+    void testMaxCapacityExceeded_EqualToMaxValue() {
+        Queue queue = new Queue(Integer.MAX_VALUE);
+        queue.enqueue(""item1"");
+        assertFalse(queue.maxCapacityExceeded());
+    }
+    
+    // Test case 10: Test when maxCapacity is less than Integer.MAX_VALUE
+    @Test
+    void testMaxCapacityExceeded_LessThanMaxValue() {
+        Queue queue = new Queue(Integer.MAX_VALUE - 1);
+        queue.enqueue(""item1"");
+        assertFalse(queue.maxCapacityExceeded());
+    }
+}"

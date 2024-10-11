@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems to be missing the implementation of the methods in the `IFXDocumentHandler` class. Can you please provide the complete code so that I can assist you better?

@@ -1,0 +1,2909 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wzNsUuZXNMf7e101gIRA4nffN4XP,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/Author.java,161.74516797065735,length,"// Author.java
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+
+/**
+ * @author Shane Santner
+ * This class create the DVD filesystem that will be burned
+ * to disc.
+ *
+ * TODO - Need to handle input, output and error streams
+ *        more appropriatly.
+ */
+public class Author {
+
+    public boolean CreateDVDFileStructure(GUI DVD_GUI) {
+        try {
+            /* 
+             * Set progress bar to 50% since we have completed dvd-menu.
+             * In the future would like a better way to track progress, this
+             * is not very precise.
+             */
+            DVD_GUI.prgAuthor.setValue(50);
+            DVD_GUI.lblAuthorProg.setText(""50%"");
+            /* Build up the dvdauthor_cmd string and execute dvd-author */
+            String[] dvdauthor_cmd = { ""/bin/sh"", ""-c"", m_dvdauthor };
+            /*
+             * exec(...) throws IOException, NullPointerException and
+             *                  IllegalArgumentException.
+             */
+            Process p = Runtime.getRuntime().exec(dvdauthor_cmd, null, new File(DVD_GUI.strOutputDir));
+            try {
+                /* Instantiate input and output readers for dvd-author streams */
+                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader err_in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/dvdauthor.log""));
+                BufferedWriter err_out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/dvdauthor.err""));
+                String line;
+                /* 
+                 * Check for the case where the necessary dependencies are not
+                 * installed, but the user tries to run dvd-homevideo anyway
+                 */
+                if (err_in.ready()) {
+                    line = err_in.readLine();
+                    if (line.equals(""/bin/sh: dvdauthor: command not found"")) {
+                        DVD_GUI.MessageBox(""Could not locate dvdauthor in your path."" + ""\nPlease install all necessary dependencies"" + ""\nand rerun dvd-homevideo."", 0);
+                        /* Close all open streams */
+                        in.close();
+                        out.close();
+                        err_in.close();
+                        err_out.close();
+                        /* Indicate that there was an error */
+                        return true;
+                    }
+                }
+                /*
+                 * Lets look for indications of problems and display these to the user
+                 * through the txtAreaOutput interface.
+                 */
+                StringTokenizer st;
+                /*
+                 * err_in.readLine() throws an IOException
+                 */
+                while ((line = err_in.readLine()) != null) {
+                    st = new StringTokenizer(line, "":"");
+                    if (st.hasMoreTokens()) {
+                        /*
+                         * st.nextToken() throws NoSuchElementException
+                         */
+                        if (!st.nextToken().equals(""WARN"")) {
+                            DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                            DVD_GUI.txtAreaOutput.setCaretPosition(DVD_GUI.txtAreaOutput.getDocument().getLength());
+                            out.write(line);
+                            out.newLine();
+                        }
+                    }
+                }
+                /*
+                 * close() throws an IOException
+                 */
+                in.close();
+                out.close();
+                err_in.close();
+                err_out.close();
+                /*
+                 * p.waitFor() throws an InterruptedException
+                 */
+                p.waitFor();
+            } catch (IOException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (NoSuchElementException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Looked for a token that didn't exist\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""dvd-homevideo thread was interrupted\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            }
+            /* Set progress bar to 100% and disable it */
+            DVD_GUI.prgAuthor.setIndeterminate(false);
+            DVD_GUI.prgAuthor.setValue(100);
+            DVD_GUI.lblAuthorProg.setText(""100%"");
+            DVD_GUI.lblAuthor.setEnabled(false);
+            DVD_GUI.lblAuthorProg.setEnabled(false);
+            DVD_GUI.prgAuthor.setEnabled(false);
+            /* Put in a slight delay to ensure author.log closes */
+            Thread.sleep(2000);
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (NullPointerException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Error executing Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (IllegalArgumentException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Illegal argument sent to Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (Exception ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Unknown Error occurred\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        /* Look for any indication of an error in the author log file */
+        return DVD_GUI.ErrorCheck(DVD_GUI.strOutputDir + ""/log/dvdauthor.log"");
+    }
+}
+","// AuthorTest.java
+
+
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Author}.
+* It contains ten unit test cases for the {@link Author#CreateDVDFileStructure(GUI)} method.
+*/
+class AuthorTest {","// AuthorTest.java
+
+
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Author}.
+* It contains ten unit test cases for the {@link Author#CreateDVDFileStructure(GUI)} method.
+*/
+class AuthorTest {
+
+	/**
+	* Test case for {@link Author#CreateDVDFileStructure(GUI)} method.
+	* It tests the case where the dvdauthor command is not found.
+	*/
+	@Test
+	void testCreateDVDFileStructure_dvdauthor_not_found() {
+		Author author = new Author();
+		GUI DVD_GUI = new GUI();
+		DVD_GUI.strOutputDir = ""test_output"";
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\\"", ""/"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("" "", ""\\ "");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""("", ""\\("");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("")"", ""\\)"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""'"", ""\\'"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("";"", ""\\;"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""!"", ""\\!"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""*"", ""\\*"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""?"", ""\\?"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""["", ""\\["");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""]"", ""\\]"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""{"", ""\\{"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""}"", ""\\}"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""|"", ""\\|"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""`"", ""\\`"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\"""", ""\\\"""");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""<"", ""\\<"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("">"", ""\\>"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""#"", ""\\#"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""~"", ""\\~"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""%"", ""\\%"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""@"", ""\\@"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""^"", ""\\^"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""+"", ""\\+"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""="", ""\\="");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("","", ""\\,"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""."", ""\\."");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""/"", ""\\/"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""-"", ""\\-"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""_"", ""\\_"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\\"", ""\\\\"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("" "", ""\\ "");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""("", ""\\("");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("")"", ""\\)"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""'"", ""\\'"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("";"", ""\\;"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""!"", ""\\!"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""*"", ""\\*"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""?"", ""\\?"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""["", ""\\["");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""]"", ""\\]"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""{"", ""\\{"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""}"", ""\\}"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""|"", ""\\|"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""`"", ""\\`"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\"""", ""\\\"""");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""<"", ""\\<"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("">"", ""\\>"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""#"", ""\\#"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""~"", ""\\~"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""%"", ""\\%"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""@"", ""\\@"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""^"", ""\\^"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""+"", ""\\+"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""="", ""\\="");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("","", ""\\,"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""."", ""\\."");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""/"", ""\\/"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""-"", ""\\-"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""_"", ""\\_"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\\"", ""\\\\"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("" "", ""\\ "");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""("", ""\\("");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("")"", ""\\)"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""'"", ""\\'"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("";"", ""\\;"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""!"", ""\\!"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""*"", ""\\*"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""?"", ""\\?"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""["", ""\\["");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""]"", ""\\]"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""{"", ""\\{"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""}"", ""\\}"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""|"", ""\\|"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""`"", ""\\`"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\"""", ""\\\"""");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""<"", ""\\<"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("">"", ""\\>"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""#"", ""\\#"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""~"", ""\\~"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""%"", ""\\%"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""@"", ""\\@"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""^"", ""\\^"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""+"", ""\\+"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""="", ""\\="");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("","", ""\\,"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""."", ""\\."");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""/"", ""\\/"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""-"", ""\\-"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""_"", ""\\_"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\\"", ""\\\\"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("" "", ""\\ "");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""("", ""\\("");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("")"", ""\\)"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""'"", ""\\'"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("";"", ""\\;"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""!"", ""\\!"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""*"", ""\\*"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""?"", ""\\?"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""["", ""\\["");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""]"", ""\\]"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""{"", ""\\{"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""}"", ""\\}"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""|"", ""\\|"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""`"", ""\\`"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\"""", ""\\\"""");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""<"", ""\\<"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("">"", ""\\>"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""#"", ""\\#"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""~"", ""\\~"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""%"", ""\\%"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""@"", ""\\@"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""^"", ""\\^"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""+"", ""\\+"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""="", ""\\="");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("","", ""\\,"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""."", ""\\."");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""/"", ""\\/"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""-"", ""\\-"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""_"", ""\\_"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""\\"", ""\\\\"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("" "", ""\\ "");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""("", ""\\("");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("")"", ""\\)"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""'"", ""\\'"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace("";"", ""\\;"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""&"", ""\\&"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""$"", ""\\$"");
+		DVD_GUI.strOutputDir = DVD_GUI.strOutputDir.replace(""!"", ""\\!"");"
+cmpl-6wzQUPEhkmweF5xOjJYr4OKKoOLxO,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/Burn.java,118.55507612228394,length,"// Burn.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+/**
+ * @author Shane Santner
+ * This class burns the DVD file structure previously created by
+ * dvd-author to a DVD disc.
+ */
+public class Burn {
+
+    public boolean BurnToDVD(GUI DVD_GUI) {
+        /* Update growisofs command with the correct paths */
+        m_growisofs = m_growisofs.replaceAll(""temp"", DVD_GUI.strOutputDir);
+        /* 
+         * Burn object always gets created, so m_Burn will not always be true,
+         * must be checked. 
+         */
+        if (m_Burn == true) {
+            try {
+                /* Create the growisofs process which actually burns the DVD */
+                Process p = Runtime.getRuntime().exec(m_growisofs);
+                /* Instantiate input and output readers for dvd-author streams */
+                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader err_in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.log""));
+                BufferedWriter err_out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.err""));
+                String line;
+                /* We will miss the error without this delay */
+                Thread.sleep(50);
+                /* 
+                 * Check for the case where the necessary dependencies are not
+                 * installed, but the user tries to run dvd-homevideo anyway
+                 */
+                if (err_in.ready()) {
+                    line = err_in.readLine();
+                    if (line.equals(""/bin/sh: growisofs: command not found"")) {
+                        DVD_GUI.MessageBox(""Could not locate growisofs in your path."" + ""\nPlease install all necessary dependencies"" + ""\nand rerun dvd-homevideo."", 0);
+                        /* Close all open streams */
+                        in.close();
+                        out.close();
+                        err_in.close();
+                        err_out.close();
+                        /* Indicate that there was an error */
+                        return true;
+                    } else {
+                        DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                        out.write(line);
+                        out.newLine();
+                    }
+                }
+                out.write(""burn.log--->dvd-homevideo"");
+                out.newLine();
+                /* Write the output to the txtAreaOutput user display */
+                while ((line = in.readLine()) != null) {
+                    DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                    out.write(line);
+                    out.newLine();
+                }
+                /*
+                 * close() throws an IOException
+                 */
+                in.close();
+                out.close();
+                err_in.close();
+                err_out.close();
+                /*
+                 * p.waitFor() throws an InterruptedException
+                 */
+                p.waitFor();
+            } catch (IOException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""dvd-homevideo thread was interrupted\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (NullPointerException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Error executing Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (IllegalArgumentException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Illegal argument sent to Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (Exception ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Unknown Error occurred\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            }
+        }
+        if (m_Burn)
+            return DVD_GUI.ErrorCheck(DVD_GUI.strOutputDir + ""/log/burn.log"");
+        return false;
+    }
+}
+","// BurnTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Burn}.
+* It contains ten unit test cases for the {@link Burn#BurnToDVD(GUI)} method.
+*/
+class BurnTest {","// BurnTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Burn}.
+* It contains ten unit test cases for the {@link Burn#BurnToDVD(GUI)} method.
+*/
+class BurnTest {
+
+	/**
+	* Test case for {@link Burn#BurnToDVD(GUI)} method.
+	* This test case checks if the method returns true when the burn command is executed.
+	*/
+	@Test
+	void testBurnToDVD() {
+		Burn burn = new Burn();
+		GUI dvd_gui = new GUI();
+		dvd_gui.strOutputDir = ""temp"";
+		assertTrue(burn.BurnToDVD(dvd_gui));
+	}
+}
+
+// DVD_GUI.java
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.DefaultCaret;
+
+/**
+ * @author Shane Santner
+ * This class creates the GUI for dvd-homevideo.
+ */
+public class GUI extends JFrame implements ActionListener {
+
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/*
+     * Declare all GUI components
+     */
+    JMenuBar m_MenuBar;
+    JMenu m_MenuFile;
+    JMenu m_MenuHelp;
+    JMenuItem m_MenuItemExit;
+    JMenuItem m_MenuItemAbout;
+    JMenuItem m_MenuItemHelp;
+    JPanel m_PanelMain;
+    JPanel m_PanelInput;
+    JPanel m_PanelOutput;
+    JPanel m_PanelButtons;
+    JPanel m_PanelOutputOptions;
+    JPanel m_PanelOutputOptions2;
+    JPanel m_PanelOutputOptions3;
+    JPanel m_PanelOutputOptions4;
+    JPanel m_PanelOutputOptions5;
+    JPanel m_PanelOutputOptions6;
+    JPanel m_PanelOutputOptions7;
+    JPanel m_PanelOutputOptions8;
+    JPanel m_PanelOutputOptions9;
+    JPanel m_PanelOutputOptions10;
+    JPanel m_PanelOutputOptions11;
+    JPanel m_PanelOutputOptions12;
+    JPanel m_PanelOutputOptions13;
+    JPanel m_PanelOutputOptions14;
+    JPanel m_PanelOutputOptions15;
+    JPanel m_PanelOutputOptions16;
+    JPanel m_PanelOutputOptions17;
+    JPanel m_PanelOutputOptions18;
+    JPanel m_PanelOutputOptions19;
+    JPanel m_PanelOutputOptions20;
+    JPanel m_PanelOutputOptions21;
+    JPanel m_PanelOutputOptions22;
+    JPanel m_PanelOutputOptions23;
+    JPanel m_PanelOutputOptions24;
+    JPanel m_PanelOutputOptions25;
+    JPanel m_PanelOutputOptions26;
+    JPanel m_PanelOutputOptions27;
+    JPanel m_PanelOutputOptions28;
+    JPanel m_PanelOutputOptions29;
+    JPanel m_PanelOutputOptions30;
+    JPanel m_PanelOutputOptions31;
+    JPanel m_PanelOutputOptions32;
+    JPanel m_PanelOutputOptions33;
+    JPanel m_PanelOutputOptions34;
+    JPanel m_PanelOutputOptions35;
+    JPanel m_PanelOutputOptions36;
+    JPanel m_PanelOutputOptions37;
+    JPanel m_PanelOutputOptions38;
+    JPanel m_PanelOutputOptions39;
+    JPanel m_PanelOutputOptions40;
+    JPanel m_PanelOutputOptions41;
+    JPanel m_PanelOutputOptions42;
+    JPanel m_PanelOutputOptions43;
+    JPanel m_PanelOutputOptions44;
+    JPanel m_PanelOutputOptions45;
+    JPanel m_PanelOutputOptions46;
+    JPanel m_PanelOutputOptions47;
+    JPanel m_PanelOutputOptions48;
+    JPanel m_PanelOutputOptions49;
+    JPanel m_PanelOutputOptions50;
+    JPanel m_PanelOutputOptions51;
+    JPanel m_PanelOutputOptions52;
+    JPanel m_PanelOutputOptions53;
+    JPanel m_PanelOutputOptions54;
+    JPanel m_PanelOutputOptions55;
+    JPanel m_PanelOutputOptions56;
+    JPanel m_PanelOutputOptions57;
+    JPanel m_PanelOutputOptions58;
+    JPanel m_PanelOutputOptions59;
+    JPanel m_PanelOutputOptions60;
+    JPanel m_PanelOutputOptions61;
+    JPanel m_PanelOutputOptions62;
+    JPanel m_PanelOutputOptions63;
+    JPanel m_PanelOutputOptions64;
+    JPanel m_PanelOutputOptions65;
+    JPanel m_PanelOutputOptions66;
+    JPanel m_PanelOutputOptions67;
+    JPanel m_PanelOutputOptions68;
+    JPanel m_PanelOutputOptions69;
+    JPanel m_PanelOutputOptions70;
+    JPanel m_PanelOutputOptions71;
+    JPanel m_PanelOutputOptions72;
+    JPanel m_PanelOutputOptions73;
+    JPanel m_PanelOutputOptions74;
+    JPanel m_PanelOutputOptions75;
+    JPanel m_PanelOutputOptions76;
+    JPanel m_PanelOutputOptions77;
+    JPanel m_PanelOutputOptions78;
+    JPanel m_PanelOutputOptions79;
+    JPanel m_PanelOutputOptions80;
+    JPanel m_PanelOutputOptions81;
+    JPanel m_PanelOutputOptions82;
+    JPanel m_PanelOutputOptions83;
+    JPanel m_PanelOutputOptions84;
+    JPanel m_PanelOutputOptions85;
+    JPanel m_PanelOutputOptions86;
+    JPanel m_PanelOutputOptions87;
+    JPanel m_PanelOutputOptions88;
+    JPanel m_PanelOutputOptions89;
+    JPanel m_PanelOutputOptions90;
+    JPanel m_PanelOutputOptions91;
+    JPanel m_PanelOutputOptions92;
+    JPanel m_PanelOutputOptions93;
+    JPanel m_PanelOutputOptions94;
+    JPanel m_PanelOutputOptions95;
+    JPanel m_PanelOutputOptions96;
+    JPanel m_PanelOutputOptions97;
+    JPanel m_PanelOutputOptions98;
+    JPanel m_PanelOutputOptions99;
+    JPanel m_PanelOutputOptions100;
+    JPanel m_PanelOutputOptions101;
+    JPanel m_PanelOutputOptions102;
+    JPanel m_PanelOutputOptions103;
+    JPanel m_PanelOutputOptions104;
+    JPanel m_PanelOutputOptions105;
+    JPanel m_PanelOutputOptions106;
+    JPanel m_PanelOutputOptions107;
+    JPanel m_PanelOutputOptions108;
+    JPanel m_PanelOutputOptions109;
+    JPanel m_PanelOutputOptions110;
+    JPanel m_PanelOutputOptions111;
+    JPanel m_PanelOutputOptions112;
+    JPanel m_PanelOutputOptions113;
+    JPanel m_PanelOutputOptions114;
+    JPanel m_PanelOutputOptions115;
+    JPanel m_PanelOutputOptions116;
+    JPanel m_PanelOutputOptions117;
+    JPanel m_PanelOutputOptions118;
+    JPanel m_PanelOutputOptions119;
+    JPanel m_PanelOutputOptions120;
+    JPanel m_PanelOutputOptions121;
+    JPanel m_PanelOutputOptions122;
+    JPanel m_PanelOutputOptions123;
+    JPanel m_PanelOutputOptions124;
+    JPanel m_PanelOutputOptions125;
+    JPanel m_PanelOutputOptions126;
+    JPanel m_PanelOutputOptions127;
+    JPanel m_PanelOutputOptions128;
+    JPanel m_PanelOutputOptions129;
+    JPanel m_PanelOutputOptions130;
+    JPanel m_PanelOutputOptions131;
+    JPanel m_PanelOutputOptions132;
+    JPanel m_PanelOutputOptions133;
+    JPanel m_PanelOutputOptions134;
+    JPanel m_PanelOutputOptions135;
+    JPanel m_PanelOutputOptions136;
+    JPanel m_PanelOutputOptions137;
+    JPanel m_PanelOutputOptions138;
+    JPanel m_PanelOutputOptions139;
+    JPanel m_PanelOutputOptions140;
+    JPanel m_PanelOutputOptions141;
+    JPanel m_PanelOutputOptions142;
+    JPanel m_PanelOutputOptions143;
+    JPanel m_PanelOutputOptions144;
+    JPanel m_PanelOutputOptions145;
+    JPanel m_PanelOutputOptions146;
+    JPanel m_PanelOutputOptions147;
+    JPanel m_PanelOutputOptions148;
+    JPanel m_PanelOutputOptions149;
+    JPanel m_PanelOutputOptions150;
+    JPanel m_PanelOutputOptions151;
+    JPanel m_PanelOutputOptions152;
+    JPanel m_PanelOutputOptions153;
+    JPanel m_PanelOutputOptions154;
+    JPanel m_PanelOutputOptions155;
+    JPanel m_PanelOutputOptions156;
+    JPanel m_PanelOutputOptions157;
+    JPanel m_PanelOutputOptions158;
+    JPanel m_PanelOutputOptions159;
+    JPanel m_PanelOutputOptions160;
+    JPanel m_PanelOutputOptions161;
+    JPanel m_PanelOutputOptions162;
+    JPanel m_PanelOutputOptions163;
+    JPanel m_PanelOutputOptions164;
+    JPanel m_PanelOutputOptions165;
+    JPanel m_PanelOutputOptions166;
+    JPanel m_PanelOutputOptions167;
+    JPanel m_PanelOutputOptions168;
+    JPanel m_PanelOutputOptions169;
+    JPanel m_PanelOutputOptions170;
+    JPanel m_PanelOutputOptions171;
+    JPanel m_PanelOutputOptions172;
+    JPanel m_PanelOutputOptions173;
+    JPanel m_PanelOutputOptions174;
+    JPanel m_PanelOutputOptions175;
+    JPanel m_PanelOutputOptions176;
+    JPanel m_PanelOutputOptions177;
+    JPanel m_PanelOutputOptions178;
+    JPanel m_PanelOutputOptions179;
+    JPanel m_PanelOutputOptions180;
+    JPanel m_PanelOutputOptions181;
+    JPanel m_PanelOutputOptions182;
+    JPanel m_PanelOutputOptions183;
+    JPanel m_PanelOutputOptions184;
+    JPanel m_PanelOutputOptions185;
+    JPanel m_PanelOutputOptions186;
+    JPanel m_PanelOutputOptions187;
+    JPanel m_PanelOutputOptions188;
+    JPanel m_PanelOutputOptions189;
+    JPanel m_PanelOutputOptions190;
+    JPanel m_PanelOutputOptions191;
+    JPanel m_PanelOutputOptions192;
+    JPanel m_PanelOutputOptions193;
+    JPanel m_PanelOutputOptions194;
+    JPanel m_PanelOutputOptions195;
+    JPanel m_PanelOutputOptions196;
+    JPanel m_PanelOutputOptions197;
+    JPanel m_PanelOutputOptions198;
+    JPanel m_PanelOutputOptions199;
+    JPanel m_PanelOutputOptions200;
+    JPanel m_PanelOutputOptions201;
+    JPanel m_PanelOutputOptions202;
+    JPanel m_PanelOutputOptions203;
+    JPanel m_PanelOutputOptions204;
+    JPanel m_PanelOutputOptions205;
+    JPanel m_PanelOutputOptions206;
+    JPanel m_PanelOutputOptions207;
+    JPanel m_PanelOutputOptions208;
+    JPanel m_PanelOutputOptions209;
+    JPanel m_PanelOutputOptions210;
+    JPanel m_PanelOutputOptions211;
+    JPanel m_PanelOutputOptions212;
+    JPanel m_PanelOutputOptions213;
+    JPanel m_PanelOutputOptions214;
+    JPanel m_PanelOutputOptions215;
+    JPanel m_PanelOutputOptions216;
+    JPanel m_PanelOutputOptions217;
+    JPanel m_PanelOutputOptions218;
+    JPanel m_PanelOutputOptions219;
+    JPanel m_PanelOutputOptions220;
+    JPanel m_PanelOutputOptions221;
+    JPanel m_PanelOutputOptions222;
+    JPanel m_PanelOutputOptions223;
+    JPanel m_PanelOutputOptions224;
+    JPanel m_PanelOutputOptions225;
+    JPanel m_PanelOutputOptions226;
+    JPanel m_PanelOutputOptions227;
+    JPanel m_PanelOutputOptions228;
+    JPanel m_PanelOutputOptions229;
+    JPanel m_PanelOutputOptions230;
+    JPanel m_PanelOutputOptions231;
+    JPanel m_PanelOutputOptions232;
+    JPanel m_PanelOutputOptions233;
+    JPanel m_PanelOutputOptions234;
+    JPanel m_PanelOutputOptions235;
+    JPanel m_PanelOutputOptions236;
+    JPanel m_PanelOutputOptions237;
+    JPanel m_PanelOutputOptions238;
+    JPanel m_PanelOutputOptions239;
+    JPanel m_PanelOutputOptions240;
+    JPanel m_PanelOutputOptions241;
+    JPanel m_PanelOutputOptions242;
+    JPanel m_PanelOutputOptions243;
+    JPanel m_PanelOutputOptions244;
+    JPanel m_PanelOutputOptions245;
+    JPanel m_PanelOutputOptions246;
+    JPanel m_PanelOutputOptions247;
+    JPanel m_PanelOutputOptions248;
+    JPanel m_PanelOutputOptions249;
+    JPanel m_PanelOutputOptions250;
+    JPanel m_PanelOutputOptions251;
+    JPanel m_PanelOutputOptions252;
+    JPanel m_PanelOutputOptions253;
+    JPanel m_PanelOutputOptions254;
+    JPanel m_PanelOutputOptions255;
+    JPanel m_PanelOutputOptions256;
+    JPanel m_PanelOutputOptions257;
+    JPanel m_PanelOutputOptions258;
+    JPanel m_PanelOutputOptions259;
+    JPanel m_PanelOutputOptions260;
+    JPanel m_PanelOutputOptions261;
+    JPanel m_PanelOutputOptions262;
+    JPanel m_PanelOutputOptions263;
+    JPanel m_PanelOutputOptions264;
+    JPanel m_PanelOutputOptions265;
+    JPanel m_PanelOutputOptions266;
+    JPanel m_PanelOutputOptions267;
+    JPanel m_PanelOutputOptions268;
+    JPanel m_PanelOutputOptions269;
+    JPanel m_PanelOutputOptions270;
+    JPanel m_PanelOutputOptions271;
+    JPanel m_PanelOutputOptions272;
+    JPanel m_PanelOutputOptions273;
+    JPanel m_PanelOutputOptions274;
+    JPanel m_PanelOutputOptions275;
+    JPanel m_PanelOutputOptions276;
+    JPanel m_PanelOutputOptions277;
+    JPanel m_PanelOutputOptions278;
+    JPanel m_PanelOutputOptions279;
+    JPanel m_PanelOutputOptions280;
+    JPanel m_PanelOutputOptions281;
+    JPanel m_PanelOutputOptions282;
+    JPanel m_PanelOutputOptions283;
+    JPanel m"
+cmpl-6wzSOa0DzxBxE09qqXT0kb0o0vz5j,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/Capture.java,21.304176568984985,stop,"// Capture.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.swing.JOptionPane;
+
+/**
+ * @author Shane Santner
+ * The Capture class utilizes dvgrab to capture audio and video
+ * data from a dv camcorder.  It captures for the amount of time
+ * specified by the user.
+ *
+ * TODO - Is there a way to get the camcorder time from dvgrab?
+ *        This would be a more accurate way of determining when
+ *        to stop the camcorder.  Also need to handle input, output
+ *        and error streams more appropriatly.
+ */
+public class Capture implements Runnable {
+
+    public boolean init() {
+        if (m_GUI.menuChkThread.isSelected()) {
+            /* Create and start the new thread */
+            m_Thread = new Thread(this);
+            /* Increase priority so we don't drop frames */
+            m_Thread.setPriority(10);
+            m_Thread.start();
+            /* Need to fix this */
+            return false;
+        } else {
+            DV_Capture();
+            return (m_Error | m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/dvgrab.log""));
+        }
+        /* 
+         * If an error occurred while executing DV_Capture then m_Error will be set
+         * to true.  Also check the log file for any evidence of an error.
+         */
+    }
+}
+","// CaptureTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.swing.JOptionPane;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Capture}.
+* It contains ten unit test cases for the {@link Capture#init()} method.
+*/
+class CaptureTest {","// CaptureTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.swing.JOptionPane;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Capture}.
+* It contains ten unit test cases for the {@link Capture#init()} method.
+*/
+class CaptureTest {
+
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns true when the
+	* {@link Capture#m_Error} variable is set to true.
+	*/
+	@Test
+	void testInit_1() {
+		Capture capture = new Capture();
+		capture.m_Error = true;
+		assertTrue(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns true when the
+	* {@link Capture#m_Error} variable is set to false.
+	*/
+	@Test
+	void testInit_2() {
+		Capture capture = new Capture();
+		capture.m_Error = false;
+		assertTrue(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns false when the
+	* {@link Capture#m_Error} variable is set to false.
+	*/
+	@Test
+	void testInit_3() {
+		Capture capture = new Capture();
+		capture.m_Error = false;
+		assertFalse(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns false when the
+	* {@link Capture#m_Error} variable is set to true.
+	*/
+	@Test
+	void testInit_4() {
+		Capture capture = new Capture();
+		capture.m_Error = true;
+		assertFalse(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns true when the
+	* {@link Capture#m_Error} variable is set to false.
+	*/
+	@Test
+	void testInit_5() {
+		Capture capture = new Capture();
+		capture.m_Error = false;
+		assertTrue(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns true when the
+	* {@link Capture#m_Error} variable is set to true.
+	*/
+	@Test
+	void testInit_6() {
+		Capture capture = new Capture();
+		capture.m_Error = true;
+		assertTrue(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns false when the
+	* {@link Capture#m_Error} variable is set to false.
+	*/
+	@Test
+	void testInit_7() {
+		Capture capture = new Capture();
+		capture.m_Error = false;
+		assertFalse(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns false when the
+	* {@link Capture#m_Error} variable is set to true.
+	*/
+	@Test
+	void testInit_8() {
+		Capture capture = new Capture();
+		capture.m_Error = true;
+		assertFalse(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns true when the
+	* {@link Capture#m_Error} variable is set to false.
+	*/
+	@Test
+	void testInit_9() {
+		Capture capture = new Capture();
+		capture.m_Error = false;
+		assertTrue(capture.init());
+	}
+	
+	/**
+	* Test case for the {@link Capture#init()} method.
+	* This test case checks if the {@link Capture#init()} method returns true when the
+	* {@link Capture#m_Error} variable is set to true.
+	*/
+	@Test
+	void testInit_10() {
+		Capture capture = new Capture();
+		capture.m_Error = true;
+		assertTrue(capture.init());
+	}
+}"
+cmpl-6wzTizqPbkZEVF7Rwflap9VNJPLWv,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/Convert.java,135.17749786376953,length,"// Convert.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class is used to transcode the video captured
+ * from the digital camcorder into mpeg4, the DVD compatible
+ * format.  It explicitly calls the transcode command
+ * after meticulously preparing the options that can be passed
+ * to transcode.
+ *
+ * TODO - Break mplex out into its own class.
+ *        Figure out how to calculate remaining time even if
+ *        video was not captured from the camcorder during the
+ *        current session.
+ *        Need to handle input, output and error streams
+ *        more appropriatly.
+ */
+public class Convert implements Runnable {
+
+    public boolean init() {
+        if (m_GUI.menuChkThread.isSelected()) {
+            m_Thread = new Thread(this);
+            m_Thread.start();
+            try {
+                m_Thread.join();
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+                m_GUI.MessageBox(m_BaseErr + ""Could not join Convert.java thread\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                m_Error = true;
+            }
+        } else
+            Transcode();
+        /* 
+         * Check transcode.log and mplex.log for any sign of an error.
+         * If either file contains an error then return an error.  Also
+         * check m_Error to see if it was set while executing the 
+         * Transcode method.
+         */
+        return (m_Error || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/transcode.log"") || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/mplex.log""));
+    }
+}
+","// ConvertTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Convert}.
+* It contains ten unit test cases for the {@link Convert#init()} method.
+*/
+class ConvertTest {","// ConvertTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Convert}.
+* It contains ten unit test cases for the {@link Convert#init()} method.
+*/
+class ConvertTest {
+
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns true when the transcode.log file contains an error.
+	*/
+	@Test
+	void testInit1() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			return true;
+		};
+		assertTrue(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns true when the mplex.log file contains an error.
+	*/
+	@Test
+	void testInit2() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			if (file.equals(""test/log/transcode.log""))
+				return false;
+			else
+				return true;
+		};
+		assertTrue(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns true when the m_Error variable is set to true.
+	*/
+	@Test
+	void testInit3() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			return false;
+		};
+		convert.m_Error = true;
+		assertTrue(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns false when the transcode.log file does not contain an error.
+	*/
+	@Test
+	void testInit4() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			return false;
+		};
+		assertFalse(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns false when the mplex.log file does not contain an error.
+	*/
+	@Test
+	void testInit5() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			if (file.equals(""test/log/transcode.log""))
+				return false;
+			else
+				return true;
+		};
+		assertFalse(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns false when the m_Error variable is set to false.
+	*/
+	@Test
+	void testInit6() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			return false;
+		};
+		convert.m_Error = false;
+		assertFalse(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns true when the transcode.log file contains an error and the mplex.log file does not contain an error.
+	*/
+	@Test
+	void testInit7() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			if (file.equals(""test/log/transcode.log""))
+				return true;
+			else
+				return false;
+		};
+		assertTrue(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns true when the mplex.log file contains an error and the transcode.log file does not contain an error.
+	*/
+	@Test
+	void testInit8() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			if (file.equals(""test/log/transcode.log""))
+				return false;
+			else
+				return true;
+		};
+		assertTrue(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns true when the transcode.log file contains an error and the m_Error variable is set to true.
+	*/
+	@Test
+	void testInit9() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			if (file.equals(""test/log/transcode.log""))
+				return true;
+			else
+				return false;
+		};
+		convert.m_Error = true;
+		assertTrue(convert.init());
+	}
+	
+	/**
+	* Test case for {@link Convert#init()} method.
+	* This test case checks if the method returns true when the mplex.log file contains an error and the m_Error variable is set to true.
+	*/
+	@Test
+	void testInit10() {
+		Convert convert = new Convert();
+		convert.m_GUI.strOutputDir = ""test"";
+		convert.m_GUI.menuChkThread = new JCheckBox();
+		convert.m_GUI.menuChkThread.setSelected(false);
+		convert.m_GUI.ErrorCheck = (String file) -> {
+			if (file.equals(""test/log/transcode.log""))
+				return false;
+			else
+				return true;
+		};
+		convert.m_Error = true;
+		assertTrue(convert.init());
+	}
+}
+
+// DVD.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class is used to create the DVD image.  It
+ * explicitly calls the mkisofs command after meticulously
+ * preparing the options that can be passed to mkisofs.
+ *
+ * TODO - Break mkisofs out into its own class.
+ *        Figure out how to calculate remaining time even if
+ *        video was not captured from the camcorder during the
+ *        current session.
+ *        Need to handle input, output and error streams
+ *        more appropriatly.
+ */
+public class DVD implements Runnable {
+
+    public boolean init() {
+        if (m_GUI.menuChkThread.isSelected()) {
+            m_Thread = new Thread(this);
+            m_Thread.start();
+            try {
+                m_Thread.join();
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+                m_GUI.MessageBox(m_BaseErr + ""Could not join DVD.java thread\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                m_Error = true;
+            }
+        } else
+            MakeISO();
+        /* 
+         * Check mkisofs.log for any sign of an error.
+         * If the file contains an error then return an error.  Also
+         * check m_Error to see if it was set while executing the 
+         * MakeISO method.
+         */
+        return (m_Error || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/mkisofs.log""));
+    }
+}
+
+// DVDTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DVD}.
+* It contains two unit test cases for the {@link DVD#init()} method.
+*/
+class DVDTest {
+		
+	/**
+	* Test case for {@link DVD#init()} method.
+	* This test case checks if the method returns true when the mkisofs.log file contains an error.
+	*/
+	@Test
+	void testInit1() {
+		DVD dvd = new DVD();
+		dvd.m_GUI.strOutputDir = ""test"";
+		dvd.m_GUI.menuChkThread = new JCheckBox();
+		dvd.m_GUI.menuChkThread.setSelected(false);
+		dvd.m_GUI.ErrorCheck = (String file) -> {
+			return true;
+		};
+		assertTrue(dvd.init());
+	}
+	
+	/**
+	* Test case for {@link DVD#init()} method.
+	* This test case checks if the method returns true when the m_Error variable is set to true.
+	*/
+	@Test
+	void testInit2() {
+		DVD dvd = new DVD();
+		dvd.m_GUI.strOutputDir = ""test"";
+		dvd.m_GUI.menuChkThread = new JCheckBox();
+		dvd.m_GUI.menuChkThread.setSelected(false);
+		dvd.m_GUI.ErrorCheck = (String file) -> {
+			return false;
+		};
+		dvd.m_Error = true;
+		assertTrue(dvd.init());
+	}
+	
+	/**
+	* Test case for {@link DVD#init()} method.
+	* This test case checks if the method returns false when the mkisofs.log file does not contain an error.
+	*/
+	@Test
+	void testInit3() {
+		DVD dvd = new DVD();
+		dvd.m_GUI.strOutputDir = ""test"";
+		dvd.m_GUI.menuChkThread = new JCheckBox();
+		dvd.m_GUI.menuChkThread.setSelected(false);
+		dvd.m_GUI.ErrorCheck = (String file) -> {
+			return false;
+		};
+		assertFalse(dvd.init());
+	}
+	
+	/**
+	* Test case for {@link DVD#init()} method.
+	* This test case checks if the method returns false when the m_Error variable is set to false.
+	*/
+	@Test
+	void testInit4() {
+		DVD dvd = new DVD();
+		dvd.m_GUI.strOutputDir = ""test"";
+		dvd.m_GUI.menuChkThread = new JCheckBox();
+		dvd.m_GUI.menuChkThread.setSelected(false);
+		dvd.m_GUI.ErrorCheck = (String file) -> {
+			return false;
+		};
+		dvd.m_Error = false;
+		assertFalse(dvd.init());
+	}
+}
+
+// ErrorCheck.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class is used to check the log files for any
+ * sign of an error.  It is called by the other classes
+ * to determine if an error has occured.
+ */
+public class ErrorCheck {
+
+    public boolean init(String strFile) {
+        boolean bError = false;
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(strFile)));
+            String strLine;
+            while ((strLine = in.readLine()) != null) {
+                if (strLine.indexOf(""ERROR"") != -1) {
+                    bError = true;
+                    break;
+                }
+            }
+            in.close();
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+            m_GUI.MessageBox(m_BaseErr + ""Could not open "" + strFile + ""\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            bError = true;
+        }
+        return bError;
+    }
+}
+
+// ErrorCheckTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ErrorCheck}.
+* It contains two unit test cases for the {@link ErrorCheck#init(String)} method.
+*/
+class ErrorCheckTest {
+		
+	/**
+	* Test case for {@link ErrorCheck#init(String)} method.
+	* This test case checks if the method returns true when the file contains an error.
+	*/
+	@Test
+	void testInit1() {
+		ErrorCheck errorCheck = new ErrorCheck();
+		assertTrue(errorCheck.init(""test/log/test.log""));
+	}
+	
+	/**
+	* Test case for {@link ErrorCheck#init(String)} method.
+	* This test case checks if the"
+cmpl-6wzVmAIQzshIXkiwumxMZxa1iAorQ,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/GUI0.java,39.86633253097534,stop,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    public boolean checkForModules() {
+        try {
+            String line;
+            String modules = ""cat /proc/modules | grep raw1394"";
+            String[] module_cmd = { ""/bin/sh"", ""-c"", modules };
+            Process p = Runtime.getRuntime().exec(module_cmd);
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            line = in.readLine();
+            p.waitFor();
+            if (line == null)
+                return false;
+            else
+                return true;
+        } catch (Exception ioe) {
+            /* If we have made it here then the module is not loaded */
+            return false;
+        }
+    }
+}
+","// GUITest.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#checkForModules()} method.
+*/
+class GUITest {","// GUITest.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#checkForModules()} method.
+*/
+class GUITest {
+
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns true when the module is loaded.
+	*/
+	@Test
+	void testCheckForModules_1() {
+		GUI gui = new GUI();
+		assertTrue(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns false when the module is not loaded.
+	*/
+	@Test
+	void testCheckForModules_2() {
+		GUI gui = new GUI();
+		assertFalse(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns true when the module is loaded.
+	*/
+	@Test
+	void testCheckForModules_3() {
+		GUI gui = new GUI();
+		assertTrue(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns false when the module is not loaded.
+	*/
+	@Test
+	void testCheckForModules_4() {
+		GUI gui = new GUI();
+		assertFalse(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns true when the module is loaded.
+	*/
+	@Test
+	void testCheckForModules_5() {
+		GUI gui = new GUI();
+		assertTrue(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns false when the module is not loaded.
+	*/
+	@Test
+	void testCheckForModules_6() {
+		GUI gui = new GUI();
+		assertFalse(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns true when the module is loaded.
+	*/
+	@Test
+	void testCheckForModules_7() {
+		GUI gui = new GUI();
+		assertTrue(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns false when the module is not loaded.
+	*/
+	@Test
+	void testCheckForModules_8() {
+		GUI gui = new GUI();
+		assertFalse(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns true when the module is loaded.
+	*/
+	@Test
+	void testCheckForModules_9() {
+		GUI gui = new GUI();
+		assertTrue(gui.checkForModules());
+	}
+	
+	/**
+	* Test case for {@link GUI#checkForModules()} method.
+	* This test case checks if the method returns false when the module is not loaded.
+	*/
+	@Test
+	void testCheckForModules_10() {
+		GUI gui = new GUI();
+		assertFalse(gui.checkForModules());
+	}
+}"
+cmpl-6wzWfQCH1Swqhm7MdEcN76KNn8FsA,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/GUI1.java,35.18468952178955,,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    public int MessageBox(String message) {
+        return JOptionPane.showConfirmDialog(null, message, ""dvd-homevideo"", JOptionPane.YES_NO_OPTION);
+    }
+}
+","// GUITest.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#MessageBox(String)} method.
+*/
+class GUITest {","// GUITest.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#MessageBox(String)} method.
+*/
+class GUITest {
+
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(0, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid2() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(1, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid3() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(2, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid4() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(3, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid5() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(4, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid6() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(5, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid7() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(6, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid8() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(7, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid9() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(8, result);
+	}
+	
+	/**
+	* Test case for {@link GUI#MessageBox(String)} method.
+	* This test case tests the {@link GUI#MessageBox(String)} method with a valid input.
+	*/
+	@Test
+	void testMessageBoxValid10() {
+		GUI gui = new GUI();
+		int result = gui.MessageBox(""Test"");
+		assertEquals(9, result);
+	}
+}"
+cmpl-6wzXim0dawqPk9nChUcd3FtLgKnif,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/GUI2.java,106.00146079063416,length,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    public boolean ErrorCheck(String fileName) {
+        String line;
+        StringTokenizer st;
+        String testToken;
+        boolean error = false;
+        /*
+         * Need to parse through the supplies file and look for any
+         * instances of the words 'error' or 'broken'.  If found, this
+         * is treated as a run-time error of one of the dependent programs
+         * that dvd-homevideo relies on.
+         */
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(fileName));
+            while ((line = in.readLine()) != null) {
+                /* Check for a specific burn error */
+                if (line.equals("":-( /dev/dvd: media is not recognized as recordable DVD: 9"")) {
+                    MessageBox(""Non-recoverable error occurred."" + ""\nClass Name: "" + new Exception().getStackTrace()[1].getClassName() + ""\nMethod Name: "" + new Exception().getStackTrace()[1].getMethodName() + ""\nError was: "" + line, 0);
+                    return true;
+                }
+                /*
+                 * Need to catch all instances of 'error' or 'broken'.  This
+                 * includes cases such as:
+                 * **Error:
+                 * error~
+                 * Broken pipe
+                 * etc, etc, etc.  We need to catch ALL instances.
+                 */
+                st = new StringTokenizer(line, ""*,;:'-~\t "");
+                while (st.hasMoreTokens()) {
+                    testToken = st.nextToken();
+                    if (// ||
+                    //testToken.equalsIgnoreCase(""Broken""))
+                    testToken.equalsIgnoreCase(""Error"")) {
+                        MessageBox(""Non-recoverable error occurred."" + ""\nClass Name: "" + new Exception().getStackTrace()[1].getClassName() + ""\nMethod Name: "" + new Exception().getStackTrace()[1].getMethodName() + ""\nError was: "" + line, 0);
+                        error = true;
+                    }
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            SaveStackTrace.printTrace(strOutputDir, ex);
+            MessageBox(""Can not find "" + fileName + ""\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(strOutputDir, ex);
+            MessageBox(""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        return error;
+    }
+}
+","// GUITest.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#ErrorCheck(String)} method.
+*/
+class GUITest {","// GUITest.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#ErrorCheck(String)} method.
+*/
+class GUITest {
+
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"".
+	*/
+	@Test
+	void testErrorCheck_Error() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""error"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""Error"".
+	*/
+	@Test
+	void testErrorCheck_Error_Capital() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Capital.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""Error"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a space before it.
+	*/
+	@Test
+	void testErrorCheck_Error_Space() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Space.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write("" error"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a space after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Space_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Space_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""error "");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a space before and after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Space_Before_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Space_Before_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write("" error "");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a tab before it.
+	*/
+	@Test
+	void testErrorCheck_Error_Tab() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Tab.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""\terror"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a tab after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Tab_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Tab_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""error\t"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a tab before and after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Tab_Before_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Tab_Before_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""\terror\t"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a comma before it.
+	*/
+	@Test
+	void testErrorCheck_Error_Comma() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Comma.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write("",error"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a comma after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Comma_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Comma_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""error,"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a comma before and after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Comma_Before_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Comma_Before_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write("",error,"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a semicolon before it.
+	*/
+	@Test
+	void testErrorCheck_Error_Semicolon() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Semicolon.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write("";error"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a semicolon after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Semicolon_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Semicolon_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""error;"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a semicolon before and after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Semicolon_Before_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Semicolon_Before_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write("";error;"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a colon before it.
+	*/
+	@Test
+	void testErrorCheck_Error_Colon() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Colon.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write("":error"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a colon after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Colon_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Colon_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""error:"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a colon before and after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Colon_Before_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Colon_Before_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write("":error:"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a hyphen before it.
+	*/
+	@Test
+	void testErrorCheck_Error_Hyphen() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Hyphen.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""-error"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a hyphen after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Hyphen_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Hyphen_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""error-"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a hyphen before and after it.
+	*/
+	@Test
+	void testErrorCheck_Error_Hyphen_Before_After() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Hyphen_Before_After.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""-error-"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+	* This test case checks if the method returns true when the file contains the word ""error"" with a tilde before it.
+	*/
+	@Test
+	void testErrorCheck_Error_Tilde() {
+		GUI gui = new GUI();
+		String fileName = ""testErrorCheck_Error_Tilde.txt"";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+			out.write(""~error"");
+			out.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(gui.ErrorCheck(fileName));
+	}
+	
+	/**
+	* Test case for {@link GUI#ErrorCheck(String)} method.
+"
+cmpl-6wzZQTnVH5RbyXGjxKl7lmXmd4OjK,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/Menu0.java,36.860130071640015,stop,"// Menu.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class creates a background menu for a DVD.  The user
+ * can specify a background picture and audio to use for the
+ * menu, or a default background can also be used.  The user
+ * also has the option of specifying unique titles for each
+ * chapter of the DVD.  If nothing is specified then the title
+ * of the DVD will be used followed by an underscore and increasing
+ * integer for each video clip.
+ *
+ * TODO - Can I use streams on dvd-menu?  Really need to standardize
+ *        how I use streams across the board for all classes.
+ */
+public class Menu implements Runnable {
+
+    public boolean init() {
+        /* Create and start the new thread */
+        m_Thread = new Thread(this);
+        m_Thread.start();
+        try {
+            m_Thread.join();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        /* 
+         * If an error occurred while executing DV_Capture then m_Error will be set
+         * to true.  Also check the log file for any evidence of an error.
+         */
+        return (m_Error || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/dvd-menu.log""));
+    }
+}
+","// MenuTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains ten unit test cases for the {@link Menu#init()} method.
+*/
+class MenuTest {","// MenuTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains ten unit test cases for the {@link Menu#init()} method.
+*/
+class MenuTest {
+
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns true when the
+	* {@link Menu#m_Error} variable is set to true.
+	*/
+	@Test
+	void testInit_1() {
+		Menu menu = new Menu();
+		menu.m_Error = true;
+		assertTrue(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns true when the
+	* {@link Menu#m_GUI} variable is set to null.
+	*/
+	@Test
+	void testInit_2() {
+		Menu menu = new Menu();
+		menu.m_GUI = null;
+		assertTrue(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns true when the
+	* {@link Menu#m_Thread} variable is set to null.
+	*/
+	@Test
+	void testInit_3() {
+		Menu menu = new Menu();
+		menu.m_Thread = null;
+		assertTrue(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns true when the
+	* {@link Menu#m_Thread} variable is set to null and the {@link Menu#m_Error} variable is set to true.
+	*/
+	@Test
+	void testInit_4() {
+		Menu menu = new Menu();
+		menu.m_Thread = null;
+		menu.m_Error = true;
+		assertTrue(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns true when the
+	* {@link Menu#m_Thread} variable is set to null and the {@link Menu#m_GUI} variable is set to null.
+	*/
+	@Test
+	void testInit_5() {
+		Menu menu = new Menu();
+		menu.m_Thread = null;
+		menu.m_GUI = null;
+		assertTrue(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns true when the
+	* {@link Menu#m_Error} variable is set to true and the {@link Menu#m_GUI} variable is set to null.
+	*/
+	@Test
+	void testInit_6() {
+		Menu menu = new Menu();
+		menu.m_Error = true;
+		menu.m_GUI = null;
+		assertTrue(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns true when the
+	* {@link Menu#m_Error} variable is set to true, the {@link Menu#m_GUI} variable is set to null,
+	* and the {@link Menu#m_Thread} variable is set to null.
+	*/
+	@Test
+	void testInit_7() {
+		Menu menu = new Menu();
+		menu.m_Error = true;
+		menu.m_GUI = null;
+		menu.m_Thread = null;
+		assertTrue(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns false when the
+	* {@link Menu#m_Error} variable is set to false.
+	*/
+	@Test
+	void testInit_8() {
+		Menu menu = new Menu();
+		menu.m_Error = false;
+		assertFalse(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns false when the
+	* {@link Menu#m_GUI} variable is not set to null.
+	*/
+	@Test
+	void testInit_9() {
+		Menu menu = new Menu();
+		menu.m_GUI = new GUI();
+		assertFalse(menu.init());
+	}
+	
+	/**
+	* Test case for {@link Menu#init()} method.
+	* This test case checks if the {@link Menu#init()} method returns false when the
+	* {@link Menu#m_Thread} variable is not set to null.
+	*/
+	@Test
+	void testInit_10() {
+		Menu menu = new Menu();
+		menu.m_Thread = new Thread();
+		assertFalse(menu.init());
+	}
+}"
+cmpl-6wzaUBaZse3AAn8k2mlU2hXlPz6ji,/EvoSuiteBenchmark/scenario1/47_dvd-homevideo/src/main/java/Menu1.java,36.003172874450684,stop,"// Menu.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class creates a background menu for a DVD.  The user
+ * can specify a background picture and audio to use for the
+ * menu, or a default background can also be used.  The user
+ * also has the option of specifying unique titles for each
+ * chapter of the DVD.  If nothing is specified then the title
+ * of the DVD will be used followed by an underscore and increasing
+ * integer for each video clip.
+ *
+ * TODO - Can I use streams on dvd-menu?  Really need to standardize
+ *        how I use streams across the board for all classes.
+ */
+public class Menu implements Runnable {
+
+    public boolean createXML() {
+        File xmlFile = new File(m_GUI.strOutputDir + ""/vmgm.xml"");
+        File ListDir = new File(m_GUI.strOutputDir);
+        /* 
+         * Need to find all vob files, but don't want to include menu.vob
+         * which was created by dvd-menu.
+         */
+        FilenameFilter filter = new FilenameFilter() {
+
+            boolean ret_val = true;
+
+            public boolean accept(File dir, String name) {
+                if (name.endsWith(""vob"")) {
+                    if (!name.equals(""menu.vob""))
+                        ret_val = true;
+                    else
+                        ret_val = false;
+                } else
+                    ret_val = false;
+                return ret_val;
+            }
+        };
+        video_files = ListDir.list(filter);
+        /* Write the xml file.  It's not pretty, but it works. */
+        int i;
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(xmlFile));
+            writer.write(""<dvdauthor dest=\"""" + m_GUI.strOutputDir + ""/DVD/\"" jumppad=\""0\"">"");
+            writer.newLine();
+            writer.write(""\t<vmgm>"");
+            writer.newLine();
+            writer.write(""\t\t<menus>"");
+            writer.newLine();
+            writer.write(""\t\t\t<pgc entry=\""title\"" >"");
+            writer.newLine();
+            writer.write(""\t\t\t\t<vob file=\"""" + m_GUI.strOutputDir + ""/menu.vob\"" pause=\""inf\"" />"");
+            writer.newLine();
+            if (titles[0] == null) {
+                for (i = 1; i <= video_files.length; i++) {
+                    writer.write(""\t\t\t\t<button>jump title "" + i + "";</button>"");
+                    writer.newLine();
+                }
+            } else {
+                for (i = 1; i < titles.length; i++) {
+                    if (!titles[i - 1].equals(""BLANK"") && !titles[i - 1].equals(""DONE"")) {
+                        writer.write(""\t\t\t\t<button>jump title "" + i + "";</button>"");
+                        writer.newLine();
+                    } else if (titles[i - 1].equals(""DONE""))
+                        break;
+                }
+            }
+            writer.write(""\t\t\t\t<post> jump vmgm menu 1; </post>"");
+            writer.newLine();
+            writer.write(""\t\t\t</pgc>"");
+            writer.newLine();
+            writer.write(""\t\t</menus>"");
+            writer.newLine();
+            writer.write(""\t</vmgm>"");
+            writer.newLine();
+            writer.write(""\t<titleset>"");
+            writer.newLine();
+            writer.write(""\t<titles>"");
+            writer.newLine();
+            for (i = 1; i < video_files.length; i++) {
+                writer.write(""\t\t<pgc>"");
+                writer.newLine();
+                writer.write(""\t\t\t<vob file=\"""" + video_files[i - 1] + ""\"" />"");
+                writer.newLine();
+                writer.write(""\t\t\t<post>jump title "" + (i + 1) + "";</post>"");
+                writer.newLine();
+                writer.write(""\t\t</pgc>"");
+                writer.newLine();
+            }
+            writer.write(""\t\t<pgc>"");
+            writer.newLine();
+            writer.write(""\t\t\t<vob file=\"""" + video_files[i - 1] + ""\"" />"");
+            writer.newLine();
+            writer.write(""\t\t\t<post>call vmgm menu 1;</post>"");
+            writer.newLine();
+            writer.write(""\t\t</pgc>"");
+            writer.newLine();
+            writer.write(""\t</titles>"");
+            writer.newLine();
+            writer.write(""\t</titleset>"");
+            writer.newLine();
+            writer.write(""</dvdauthor>"");
+            writer.newLine();
+            writer.close();
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+            m_GUI.MessageBox(baseErr + ""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        /* Shouldn't expect to see any errors from this method call. */
+        return false;
+    }
+}
+","// MenuTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains ten unit test cases for the {@link Menu#createXML()} method.
+*/
+class MenuTest {","// MenuTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains ten unit test cases for the {@link Menu#createXML()} method.
+*/
+class MenuTest {
+
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_1() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_2() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_3() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_4() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_5() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_6() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_7() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_8() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_9() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+		
+		/**
+		* Test case for {@link Menu#createXML()} method.
+		* This test case checks if the method returns true when the file is not found.
+		*/
+		@Test
+		void testCreateXML_10() {
+				Menu menu = new Menu();
+				menu.m_GUI.strOutputDir = """";
+				assertTrue(menu.createXML());
+		}
+}"

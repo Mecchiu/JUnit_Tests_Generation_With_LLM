@@ -1,0 +1,1249 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wrSSYGvuePbERq7XAIYT1RfV5YiZ,/EvoSuiteBenchmark/scenario1/84_ifx-framework/src/main/java/org/sourceforge/ifx/tools/JavaSource0.java,1.9184777736663818,stop,"// JavaSource.java
+package org.sourceforge.ifx.tools;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+
+/**
+ * This class provides an abstraction to collect information about a
+ * generated Java class file. Its toString() method will produce a String
+ * that can be written using a Writer object to persistent store.
+ *
+ * @author Sujit Pal (spal@users.sourceforge.net)
+ * @version $Revision: 1.5 $
+ */
+public class JavaSource {
+
+    public boolean hasInterface() {
+        return (this.getInterface() != null);
+    }
+}
+","// JavaSourceTest.java
+package org.sourceforge.ifx.tools;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JavaSource}.
+* It contains ten unit test cases for the {@link JavaSource#hasInterface()} method.
+*/
+class JavaSourceTest {","// JavaSourceTest.java
+package org.sourceforge.ifx.tools;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JavaSource}.
+* It contains ten unit test cases for the {@link JavaSource#hasInterface()} method.
+*/
+class JavaSourceTest {
+
+	@Test
+	void testHasInterface() {
+		JavaSource javaSource = new JavaSource();
+		assertFalse(javaSource.hasInterface());
+	}
+}"
+cmpl-6wrTVfhnpej0Hp8Oh2sVFWbB3GbUP,/EvoSuiteBenchmark/scenario1/84_ifx-framework/src/main/java/org/sourceforge/ifx/tools/JavaSource1.java,1.2235157489776611,stop,"// JavaSource.java
+package org.sourceforge.ifx.tools;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+
+/**
+ * This class provides an abstraction to collect information about a
+ * generated Java class file. Its toString() method will produce a String
+ * that can be written using a Writer object to persistent store.
+ *
+ * @author Sujit Pal (spal@users.sourceforge.net)
+ * @version $Revision: 1.5 $
+ */
+public class JavaSource {
+
+    public boolean hasSuperClass() {
+        return (this.getSuperClass() != null);
+    }
+}
+","// JavaSourceTest.java
+package org.sourceforge.ifx.tools;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JavaSource}.
+* It contains ten unit test cases for the {@link JavaSource#hasSuperClass()} method.
+*/
+class JavaSourceTest {","// JavaSourceTest.java
+package org.sourceforge.ifx.tools;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JavaSource}.
+* It contains ten unit test cases for the {@link JavaSource#hasSuperClass()} method.
+*/
+class JavaSourceTest {
+
+	@Test
+	void testHasSuperClass() {
+		JavaSource javaSource = new JavaSource();
+		assertFalse(javaSource.hasSuperClass());
+	}
+}"
+cmpl-6wrUYtvfkUWZD0QCDZhRXlO34QzmA,/EvoSuiteBenchmark/scenario1/84_ifx-framework/src/main/java/org/sourceforge/ifx/utils/IFXDecoder.java,67.81990718841553,length,"// IFXDecoder.java
+package org.sourceforge.ifx.utils;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Iterator;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXString;
+import org.sourceforge.ifx.basetypes.IBaseType;
+import org.jdom.Element;
+
+/**
+ * Decodes an IFX XML String to its equivalent Framework bean.
+ *
+ * @author Sujit Pal (spal@users.sourceforge.net)
+ * @version $Revision: 1.3 $
+ */
+public class IFXDecoder {
+
+    public IFXObject decode(Element element) throws IFXException {
+        try {
+            String id = element.getAttributeValue(""Id"");
+            String beanClassName = getBeanClassName(element);
+            IFXObject obj = (IFXObject) Class.forName(beanClassName).newInstance();
+            List children = element.getChildren();
+            if (children.size() == 0) {
+                String text = element.getText();
+                if (text != null && text.trim().length() > 0) {
+                    if (!(obj instanceof IBaseType)) {
+                        throw new IFXException(""Leaf node not an instance of IBaseType: "" + obj.getClass().getName());
+                    } else {
+                        ((IBaseType) obj).setString(text);
+                        return obj;
+                    }
+                } else {
+                    // return the empty object
+                    return obj;
+                }
+            } else {
+                Iterator childIter = children.iterator();
+                while (childIter.hasNext()) {
+                    Element childElement = (Element) childIter.next();
+                    IFXObject childObj = decode(childElement);
+                    // run corresponding accessor method to see if the
+                    // result is an array
+                    Method accessorMethod = getAccessor(obj, childElement);
+                    Object retValObj = accessorMethod.invoke(obj, null);
+                    boolean isArray = accessorMethod.getReturnType().isArray();
+                    // then get the mutator method and invoke it
+                    Method mutatorMethod = getMutator(obj, childElement);
+                    if (isArray) {
+                        // if result is an array, build a new array with
+                        // size = returned array size + 1, and stuff this
+                        // object at the end of the array
+                        IFXObject[] childObjs = null;
+                        if (retValObj != null) {
+                            int oldLen = Array.getLength(retValObj);
+                            childObjs = (IFXObject[]) Array.newInstance(childObj.getClass(), new int[] { oldLen + 1 });
+                            IFXObject[] retValObjs = (IFXObject[]) retValObj;
+                            System.arraycopy(retValObj, 0, childObjs, 0, oldLen);
+                            childObjs[oldLen] = childObj;
+                        } else {
+                            childObjs = (IFXObject[]) Array.newInstance(childObj.getClass(), new int[] { 1 });
+                            childObjs[0] = childObj;
+                        }
+                        mutatorMethod.invoke(obj, new Object[] { childObjs });
+                    } else {
+                        mutatorMethod.invoke(obj, new Object[] { childObj });
+                    }
+                }
+                // if Id attribute is specified, populate it
+                if (id != null) {
+                    Method mutatorMethod = getMutator(obj, ""Id"");
+                    IFXString idObj = new IFXString();
+                    idObj.setString(id);
+                    mutatorMethod.invoke(obj, new Object[] { idObj });
+                }
+                return obj;
+            }
+        } catch (Exception e) {
+            throw new IFXException(""Error decoding "" + element.getName(), e);
+        }
+    }
+}
+","// IFXDecoderTest.java
+package org.sourceforge.ifx.utils;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Iterator;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXString;
+import org.sourceforge.ifx.basetypes.IBaseType;
+import org.jdom.Element;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXDecoder}.
+* It contains ten unit test cases for the {@link IFXDecoder#decode(Element)} method.
+*/
+class IFXDecoderTest {","// IFXDecoderTest.java
+package org.sourceforge.ifx.utils;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Iterator;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXString;
+import org.sourceforge.ifx.basetypes.IBaseType;
+import org.jdom.Element;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXDecoder}.
+* It contains ten unit test cases for the {@link IFXDecoder#decode(Element)} method.
+*/
+class IFXDecoderTest {
+
+	/**
+	* Test case for {@link IFXDecoder#decode(Element)} method.
+	* It tests the decoding of an IFX XML String to its equivalent Framework bean.
+	*/
+	@Test
+	void testDecode() throws IFXException {
+		IFXDecoder decoder = new IFXDecoder();
+		IFXObject obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-1.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-2.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-3.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-4.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-5.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-6.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-7.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-8.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-9.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-10.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+	}
+	
+	/**
+	* Test case for {@link IFXDecoder#decode(Element)} method.
+	* It tests the decoding of an IFX XML String to its equivalent Framework bean.
+	*/
+	@Test
+	void testDecode2() throws IFXException {
+		IFXDecoder decoder = new IFXDecoder();
+		IFXObject obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-11.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-12.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-13.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-14.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-15.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-16.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-17.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-18.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-19.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-20.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+	}
+	
+	/**
+	* Test case for {@link IFXDecoder#decode(Element)} method.
+	* It tests the decoding of an IFX XML String to its equivalent Framework bean.
+	*/
+	@Test
+	void testDecode3() throws IFXException {
+		IFXDecoder decoder = new IFXDecoder();
+		IFXObject obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-21.xml""));
+		assertEquals(""org.sourceforge.ifx.basetypes.IFXString"", obj.getClass().getName());
+		assertEquals(""Hello World"", ((IFXString) obj).getString());
+		obj = decoder.decode(IFXDecoderTest.getElement(""ifx-test-22.xml""));
+		assertEquals(""org.sourceforge.ifx"
+cmpl-6wrVeGmmri6HmYg956tP01xUwRbPn,/EvoSuiteBenchmark/scenario1/84_ifx-framework/src/main/java/org/sourceforge/ifx/utils/IFXDocumentHandler0.java,50.800292015075684,length,"// IFXDocumentHandler.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+
+/**
+ * The IFXDocumentHandler provides methods for formatting and validating
+ * IFX XML Documents.
+ *
+ * @author Sujit Pal (spal@users.sourceforge.net)
+ * @version $Revision: 1.2 $
+ */
+public class IFXDocumentHandler {
+
+    public static Document build(IFXObject obj, String namespacePrefix, String namespaceURI) throws IFXException {
+        IFXEncoder encoder = null;
+        if (namespaceURI != null) {
+            encoder = new IFXEncoder(namespacePrefix, namespaceURI);
+        } else {
+            encoder = new IFXEncoder();
+        }
+        Element element = encoder.encode(obj);
+        Document doc = new Document(element);
+        return doc;
+    }
+}
+","// IFXDocumentHandlerTest.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXDocumentHandler}.
+* It contains ten unit test cases for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+*/
+class IFXDocumentHandlerTest {","// IFXDocumentHandlerTest.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXDocumentHandler}.
+* It contains ten unit test cases for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+*/
+class IFXDocumentHandlerTest {
+
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is null.
+	*/
+	@Test
+	void testBuild_1() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, null, null);
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is not null.
+	*/
+	@Test
+	void testBuild_2() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, ""ifx"", ""http://www.ifxforum.org/ifx/"");
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+		assertEquals(""http://www.ifxforum.org/ifx/"", doc.getRootElement().getNamespaceURI());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is not null and the namespace prefix is null.
+	*/
+	@Test
+	void testBuild_3() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, null, ""http://www.ifxforum.org/ifx/"");
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+		assertEquals(""http://www.ifxforum.org/ifx/"", doc.getRootElement().getNamespaceURI());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is not null and the namespace prefix is not null.
+	*/
+	@Test
+	void testBuild_4() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, ""ifx"", ""http://www.ifxforum.org/ifx/"");
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+		assertEquals(""http://www.ifxforum.org/ifx/"", doc.getRootElement().getNamespaceURI());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is not null and the namespace prefix is not null.
+	*/
+	@Test
+	void testBuild_5() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, ""ifx"", ""http://www.ifxforum.org/ifx/"");
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+		assertEquals(""http://www.ifxforum.org/ifx/"", doc.getRootElement().getNamespaceURI());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is not null and the namespace prefix is not null.
+	*/
+	@Test
+	void testBuild_6() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, ""ifx"", ""http://www.ifxforum.org/ifx/"");
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+		assertEquals(""http://www.ifxforum.org/ifx/"", doc.getRootElement().getNamespaceURI());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is not null and the namespace prefix is not null.
+	*/
+	@Test
+	void testBuild_7() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, ""ifx"", ""http://www.ifxforum.org/ifx/"");
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+		assertEquals(""http://www.ifxforum.org/ifx/"", doc.getRootElement().getNamespaceURI());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is not null and the namespace prefix is not null.
+	*/
+	@Test
+	void testBuild_8() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, ""ifx"", ""http://www.ifxforum.org/ifx/"");
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+		assertEquals(""http://www.ifxforum.org/ifx/"", doc.getRootElement().getNamespaceURI());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace URI is not null and the namespace prefix is not null.
+	*/
+	@Test
+	void testBuild_9() throws IFXException {
+		IFXObject obj = new IFXObject();
+		obj.setName(""TestObject"");
+		obj.setValue(""TestValue"");
+		Document doc = IFXDocumentHandler.build(obj, ""ifx"", ""http://www.ifxforum.org/ifx/"");
+		assertNotNull(doc);
+		assertEquals(""TestObject"", doc.getRootElement().getName());
+		assertEquals(""TestValue"", doc.getRootElement().getText());
+		assertEquals(""http://www.ifxforum.org/ifx/"", doc.getRootElement().getNamespaceURI());
+	}
+	
+	/**
+	* Test case for the {@link IFXDocumentHandler#build(IFXObject, String, String)} method.
+	* It tests the case when the namespace"
+cmpl-6wrWhnJ7suxrilycRJ99f0PNmKaeW,/EvoSuiteBenchmark/scenario1/84_ifx-framework/src/main/java/org/sourceforge/ifx/utils/IFXDocumentHandler1.java,77.78534007072449,length,"// IFXDocumentHandler.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+
+/**
+ * The IFXDocumentHandler provides methods for formatting and validating
+ * IFX XML Documents.
+ *
+ * @author Sujit Pal (spal@users.sourceforge.net)
+ * @version $Revision: 1.2 $
+ */
+public class IFXDocumentHandler {
+
+    public static IFXObject parse(Document doc) throws IFXException {
+        Element element = doc.getRootElement();
+        IFXDecoder decoder = new IFXDecoder();
+        return decoder.decode(element);
+    }
+}
+","// IFXDocumentHandlerTest.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXDocumentHandler}.
+* It contains ten unit test cases for the {@link IFXDocumentHandler#parse(Document)} method.
+*/
+class IFXDocumentHandlerTest {","// IFXDocumentHandlerTest.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXDocumentHandler}.
+* It contains ten unit test cases for the {@link IFXDocumentHandler#parse(Document)} method.
+*/
+class IFXDocumentHandlerTest {
+
+		@Test
+		void testParse() throws IFXException {
+				IFXObject ifxObject = IFXDocumentHandler.parse(getDocument(""/ifx/ifx-1.0.xml""));
+				assertNotNull(ifxObject);
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+				assertEquals(""1.0"", ifxObject.getVersion());
+		}
+		
+		private Document getDocument(String resource) throws IFXException {
+				InputStream is = getClass().getResourceAsStream(resource);
+				SAXBuilder builder = new SAXBuilder();
+				try {
+						return builder.build(is);
+				} catch (Exception ex) {
+						throw new IFXException(ex);
+				}
+		}
+}
+
+// IFXDecoder.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXString;
+import org.sourceforge.ifx.basetypes.IFXDateTime;
+import org.sourceforge.ifx.basetypes.IFXBoolean;
+import org.sourceforge.ifx.basetypes.IFXDecimal;
+import org.sourceforge.ifx.basetypes.IFXLong;
+import org.sourceforge.ifx.basetypes.IFXInt;
+import org.sourceforge.ifx.basetypes.IFXShort;
+import org.sourceforge.ifx.basetypes.IFXByte;
+import org.sourceforge.ifx.basetypes.IFXBinary;
+import org.sourceforge.ifx.basetypes.IFXObjectList;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IF"
+cmpl-6wrXwAXcaekHaVHTOhU0ItojswuHd,/EvoSuiteBenchmark/scenario1/84_ifx-framework/src/main/java/org/sourceforge/ifx/utils/IFXDocumentHandler2.java,73.56423473358154,length,"// IFXDocumentHandler.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+
+/**
+ * The IFXDocumentHandler provides methods for formatting and validating
+ * IFX XML Documents.
+ *
+ * @author Sujit Pal (spal@users.sourceforge.net)
+ * @version $Revision: 1.2 $
+ */
+public class IFXDocumentHandler {
+
+    public static Document read(InputStream istream, boolean validate, Map validationProperties) throws IFXException {
+        SAXBuilder builder = null;
+        if (validate) {
+            builder = new SAXBuilder(""org.apache.xerces.parsers.SAXParser"", true);
+            builder.setFeature(""http://apache.org/xml/features/validation/schema"", true);
+            if (validationProperties != null) {
+                Iterator propIter = validationProperties.keySet().iterator();
+                StringBuffer buf = new StringBuffer();
+                int i = 0;
+                while (propIter.hasNext()) {
+                    String key = (String) propIter.next();
+                    String value = (String) validationProperties.get(key);
+                    if (i > 0) {
+                        buf.append("" "");
+                    }
+                    buf.append(key).append("" "").append(value);
+                    i++;
+                }
+                builder.setProperty(""http://apache.org/xml/properties/schema/external-schemaLocation"", buf.toString());
+            }
+        } else {
+            builder = new SAXBuilder();
+        }
+        Document doc = null;
+        try {
+            doc = builder.build(istream);
+        } catch (Exception e) {
+            throw new IFXException(""Error reading Document"", e);
+        }
+        return doc;
+    }
+}
+","// IFXDocumentHandlerTest.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXDocumentHandler}.
+* It contains ten unit test cases for the {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+*/
+class IFXDocumentHandlerTest {","// IFXDocumentHandlerTest.java
+package org.sourceforge.ifx.utils;
+
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Iterator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXDocumentHandler}.
+* It contains ten unit test cases for the {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+*/
+class IFXDocumentHandlerTest {
+
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with a valid IFX document.
+	*/
+	@Test
+	void testReadValidIFXDocument() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-valid.xml"");
+		Document doc = IFXDocumentHandler.read(istream, true, null);
+		assertNotNull(doc);
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with a valid IFX document and a valid schema location.
+	*/
+	@Test
+	void testReadValidIFXDocumentWithValidSchemaLocation() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-valid.xml"");
+		Map validationProperties = new java.util.HashMap();
+		validationProperties.put(""http://www.ifxforum.org/ifx/2.1/ifx.xsd"", ""http://www.ifxforum.org/ifx/2.1/ifx.xsd"");
+		Document doc = IFXDocumentHandler.read(istream, true, validationProperties);
+		assertNotNull(doc);
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with a valid IFX document and an invalid schema location.
+	*/
+	@Test
+	void testReadValidIFXDocumentWithInvalidSchemaLocation() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-valid.xml"");
+		Map validationProperties = new java.util.HashMap();
+		validationProperties.put(""http://www.ifxforum.org/ifx/2.1/ifx.xsd"", ""http://www.ifxforum.org/ifx/2.1/ifx-invalid.xsd"");
+		assertThrows(IFXException.class, () -> {
+			IFXDocumentHandler.read(istream, true, validationProperties);
+		});
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with a valid IFX document and a valid schema location.
+	*/
+	@Test
+	void testReadValidIFXDocumentWithValidSchemaLocationAndNoValidation() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-valid.xml"");
+		Map validationProperties = new java.util.HashMap();
+		validationProperties.put(""http://www.ifxforum.org/ifx/2.1/ifx.xsd"", ""http://www.ifxforum.org/ifx/2.1/ifx.xsd"");
+		Document doc = IFXDocumentHandler.read(istream, false, validationProperties);
+		assertNotNull(doc);
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with a valid IFX document and an invalid schema location.
+	*/
+	@Test
+	void testReadValidIFXDocumentWithInvalidSchemaLocationAndNoValidation() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-valid.xml"");
+		Map validationProperties = new java.util.HashMap();
+		validationProperties.put(""http://www.ifxforum.org/ifx/2.1/ifx.xsd"", ""http://www.ifxforum.org/ifx/2.1/ifx-invalid.xsd"");
+		Document doc = IFXDocumentHandler.read(istream, false, validationProperties);
+		assertNotNull(doc);
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with a valid IFX document and a valid schema location.
+	*/
+	@Test
+	void testReadValidIFXDocumentWithValidSchemaLocationAndNoValidationProperties() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-valid.xml"");
+		Document doc = IFXDocumentHandler.read(istream, true, null);
+		assertNotNull(doc);
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with a valid IFX document and an invalid schema location.
+	*/
+	@Test
+	void testReadValidIFXDocumentWithInvalidSchemaLocationAndNoValidationProperties() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-valid.xml"");
+		assertThrows(IFXException.class, () -> {
+			IFXDocumentHandler.read(istream, true, null);
+		});
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with an invalid IFX document.
+	*/
+	@Test
+	void testReadInvalidIFXDocument() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-invalid.xml"");
+		assertThrows(IFXException.class, () -> {
+			IFXDocumentHandler.read(istream, true, null);
+		});
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with an invalid IFX document and a valid schema location.
+	*/
+	@Test
+	void testReadInvalidIFXDocumentWithValidSchemaLocation() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-invalid.xml"");
+		Map validationProperties = new java.util.HashMap();
+		validationProperties.put(""http://www.ifxforum.org/ifx/2.1/ifx.xsd"", ""http://www.ifxforum.org/ifx/2.1/ifx.xsd"");
+		assertThrows(IFXException.class, () -> {
+			IFXDocumentHandler.read(istream, true, validationProperties);
+		});
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with an invalid IFX document and an invalid schema location.
+	*/
+	@Test
+	void testReadInvalidIFXDocumentWithInvalidSchemaLocation() throws IFXException {
+		InputStream istream = getClass().getResourceAsStream(""/org/sourceforge/ifx/utils/ifx-invalid.xml"");
+		Map validationProperties = new java.util.HashMap();
+		validationProperties.put(""http://www.ifxforum.org/ifx/2.1/ifx.xsd"", ""http://www.ifxforum.org/ifx/2.1/ifx-invalid.xsd"");
+		assertThrows(IFXException.class, () -> {
+			IFXDocumentHandler.read(istream, true, validationProperties);
+		});
+	}
+	
+	/**
+	* Test case for {@link IFXDocumentHandler#read(InputStream, boolean, Map)} method.
+	* It tests the method with an invalid IFX document and a valid schema location.
+	*/
+	@Test
+	void testReadInvalidIFXDocument"
+cmpl-6wrZ8uozp46oJ8oURDyVn38kWqx4p,/EvoSuiteBenchmark/scenario1/84_ifx-framework/src/main/java/org/sourceforge/ifx/utils/IFXEncoder.java,77.79490733146667,length,"// IFXEncoder.java
+package org.sourceforge.ifx.utils;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.io.Writer;
+import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IBaseType;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.output.XMLOutputter;
+import org.jdom.input.SAXBuilder;
+
+/**
+ * Encodes an IFXObject to its equivalent IFX XML Element.
+ *
+ * @author Sujit Pal (spal@users.sourceforge.net)
+ * @version $Revision: 1.2 $
+ */
+public class IFXEncoder {
+
+    public Element encode(IFXObject obj) throws IFXException {
+        try {
+            Element element = new Element(getElementName(obj), namespace);
+            List accessorList = getAccessors(obj);
+            Iterator accessorIter = accessorList.iterator();
+            while (accessorIter.hasNext()) {
+                Method accessorMethod = (Method) accessorIter.next();
+                if (accessorMethod.getName().equals(""getClass"")) {
+                    continue;
+                }
+                Object retValObj = accessorMethod.invoke(obj, null);
+                if (retValObj == null) {
+                    continue;
+                }
+                IFXObject[] retVals = new IFXObject[1];
+                if (retValObj.getClass().isArray()) {
+                    retVals = (IFXObject[]) retValObj;
+                } else {
+                    retVals[0] = (IFXObject) retValObj;
+                }
+                for (int i = 0; i < retVals.length; i++) {
+                    IFXObject retVal = retVals[i];
+                    if (retVal instanceof IBaseType) {
+                        String value = ((IBaseType) retVal).getString();
+                        if (accessorMethod.getName().equals(""getId"")) {
+                            element.setAttribute(""Id"", value);
+                        } else {
+                            Element baseElement = new Element(getElementName(retVal), namespace);
+                            baseElement.setText(value);
+                            element.addContent(baseElement);
+                        }
+                    } else {
+                        element.addContent(encode(retVal));
+                    }
+                }
+            }
+            return element;
+        } catch (Exception e) {
+            throw new IFXException(""Error encoding "" + obj.getClass().getName(), e);
+        }
+    }
+}
+","// IFXEncoderTest.java
+package org.sourceforge.ifx.utils;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.io.Writer;
+import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IBaseType;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.output.XMLOutputter;
+import org.jdom.input.SAXBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXEncoder}.
+* It contains ten unit test cases for the {@link IFXEncoder#encode(IFXObject)} method.
+*/
+class IFXEncoderTest {","// IFXEncoderTest.java
+package org.sourceforge.ifx.utils;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.io.Writer;
+import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
+import org.sourceforge.ifx.basetypes.IFXObject;
+import org.sourceforge.ifx.basetypes.IBaseType;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.output.XMLOutputter;
+import org.jdom.input.SAXBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link IFXEncoder}.
+* It contains ten unit test cases for the {@link IFXEncoder#encode(IFXObject)} method.
+*/
+class IFXEncoderTest {
+
+		/**
+		* Test case for {@link IFXEncoder#encode(IFXObject)} method.
+		* It tests the encoding of a simple IFXObject.
+		*/
+		@Test
+		public void testEncodeSimpleIFXObject() throws Exception {
+				IFXEncoder encoder = new IFXEncoder();
+				IFXObject obj = new IFXObject();
+				obj.setId(""12345"");
+				Element element = encoder.encode(obj);
+				assertEquals(""IFXObject"", element.getName());
+				assertEquals(""12345"", element.getAttributeValue(""Id""));
+		}
+		
+		/**
+		* Test case for {@link IFXEncoder#encode(IFXObject)} method.
+		* It tests the encoding of a simple IFXObject with a single IBaseType.
+		*/
+		@Test
+		public void testEncodeSimpleIFXObjectWithIBaseType() throws Exception {
+				IFXEncoder encoder = new IFXEncoder();
+				IFXObject obj = new IFXObject();
+				obj.setId(""12345"");
+				obj.setName(""Sujit"");
+				Element element = encoder.encode(obj);
+				assertEquals(""IFXObject"", element.getName());
+				assertEquals(""12345"", element.getAttributeValue(""Id""));
+				Element nameElement = element.getChild(""Name"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertEquals(""Sujit"", nameElement.getText());
+		}
+		
+		/**
+		* Test case for {@link IFXEncoder#encode(IFXObject)} method.
+		* It tests the encoding of a simple IFXObject with a single IBaseType.
+		*/
+		@Test
+		public void testEncodeSimpleIFXObjectWithIBaseTypeArray() throws Exception {
+				IFXEncoder encoder = new IFXEncoder();
+				IFXObject obj = new IFXObject();
+				obj.setId(""12345"");
+				obj.setName(new String[] {""Sujit"", ""Pal""});
+				Element element = encoder.encode(obj);
+				assertEquals(""IFXObject"", element.getName());
+				assertEquals(""12345"", element.getAttributeValue(""Id""));
+				Element nameElement = element.getChild(""Name"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertEquals(""Sujit"", nameElement.getText());
+				nameElement = element.getChild(""Name"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertEquals(""Pal"", nameElement.getText());
+		}
+		
+		/**
+		* Test case for {@link IFXEncoder#encode(IFXObject)} method.
+		* It tests the encoding of a simple IFXObject with a single IBaseType.
+		*/
+		@Test
+		public void testEncodeSimpleIFXObjectWithIFXObject() throws Exception {
+				IFXEncoder encoder = new IFXEncoder();
+				IFXObject obj = new IFXObject();
+				obj.setId(""12345"");
+				obj.setName(""Sujit"");
+				obj.setAddress(new Address());
+				Element element = encoder.encode(obj);
+				assertEquals(""IFXObject"", element.getName());
+				assertEquals(""12345"", element.getAttributeValue(""Id""));
+				Element nameElement = element.getChild(""Name"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertEquals(""Sujit"", nameElement.getText());
+				Element addressElement = element.getChild(""Address"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertNotNull(addressElement);
+		}
+		
+		/**
+		* Test case for {@link IFXEncoder#encode(IFXObject)} method.
+		* It tests the encoding of a simple IFXObject with a single IBaseType.
+		*/
+		@Test
+		public void testEncodeSimpleIFXObjectWithIFXObjectArray() throws Exception {
+				IFXEncoder encoder = new IFXEncoder();
+				IFXObject obj = new IFXObject();
+				obj.setId(""12345"");
+				obj.setName(""Sujit"");
+				obj.setAddress(new Address[] {new Address(), new Address()});
+				Element element = encoder.encode(obj);
+				assertEquals(""IFXObject"", element.getName());
+				assertEquals(""12345"", element.getAttributeValue(""Id""));
+				Element nameElement = element.getChild(""Name"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertEquals(""Sujit"", nameElement.getText());
+				Element addressElement = element.getChild(""Address"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertNotNull(addressElement);
+				addressElement = element.getChild(""Address"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertNotNull(addressElement);
+		}
+		
+		/**
+		* Test case for {@link IFXEncoder#encode(IFXObject)} method.
+		* It tests the encoding of a simple IFXObject with a single IBaseType.
+		*/
+		@Test
+		public void testEncodeSimpleIFXObjectWithIFXObjectArrayAndIBaseTypeArray() throws Exception {
+				IFXEncoder encoder = new IFXEncoder();
+				IFXObject obj = new IFXObject();
+				obj.setId(""12345"");
+				obj.setName(""Sujit"");
+				obj.setAddress(new Address[] {new Address(), new Address()});
+				obj.setPhone(new String[] {""123-456-7890"", ""234-567-8901""});
+				Element element = encoder.encode(obj);
+				assertEquals(""IFXObject"", element.getName());
+				assertEquals(""12345"", element.getAttributeValue(""Id""));
+				Element nameElement = element.getChild(""Name"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertEquals(""Sujit"", nameElement.getText());
+				Element addressElement = element.getChild(""Address"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertNotNull(addressElement);
+				addressElement = element.getChild(""Address"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertNotNull(addressElement);
+				Element phoneElement = element.getChild(""Phone"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertEquals(""123-456-7890"", phoneElement.getText());
+				phoneElement = element.getChild(""Phone"", Namespace.getNamespace(""http://www.ifxforum.org/ifx/2""));
+				assertEquals(""234-567-8901"", phoneElement.getText());
+		}
+		
+		/**
+		* Test case for {"

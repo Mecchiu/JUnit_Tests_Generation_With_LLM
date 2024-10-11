@@ -1,0 +1,1 @@
+Sorry, but the code you provided is incomplete. It seems like you were about to write a test class for the QSAdminAPI class, but the class definition and test cases are missing. Please provide the complete code so that I can assist you better.

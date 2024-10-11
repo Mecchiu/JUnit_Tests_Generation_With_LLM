@@ -1,0 +1,777 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wxdmonVCKo2A0htfoMxTOkcgCgDO,/EvoSuiteBenchmark/scenario2/24_saxpath/src/main/java/saxpath/helpers/XPathReaderFactory0.java,152.74596881866455,length,"// XPathReaderFactory.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+
+/**
+ * Create an {@link org.saxpath.XPathReader} from
+ *  either a system property, or a named class.
+ *
+ *  <p>
+ *  Similar to the SAX API, the <code>XPathReaderFactory</code>
+ *  can create an <code>XPathReader</code> from a name of a
+ *  class passed in directly, or by inspecting the system
+ *  property <code>org.saxpath.driver</code>.
+ *
+ * @author bob mcwhirter (bob@werken.com)
+ */
+public class XPathReaderFactory {
+
+    /**
+     * Create an <code>XPathReader</code> using the value of
+     *  the <code>org.saxpath.driver</code> system property.
+     *
+     * @return An instance of the <code>XPathReader</code> specified
+     *          by the <code>org.saxpath.driver</code> property.
+     * @throws SAXPathException if the property is unset, or if
+     *          the class can not be instantiated for some reason.,
+     *          or if the class doesn't implement the <code>XPathReader</code>
+     *          interface.
+     */
+    public static XPathReader createReader() throws SAXPathException {
+        String className = null;
+        boolean securityException = false;
+        try {
+            className = System.getProperty(DRIVER_PROPERTY);
+        } catch (SecurityException e) {
+            securityException = true;
+        }
+        if (className == null || """".equals(className)) {
+            if (USE_DEFAULT) {
+                className = DEFAULT_DRIVER;
+            } else {
+                if (securityException) {
+                    throw new SAXPathException(""Reading of property "" + DRIVER_PROPERTY + "" disallowed."");
+                } else {
+                    throw new SAXPathException(""Property "" + DRIVER_PROPERTY + "" not set"");
+                }
+            }
+        }
+        return createReader(className);
+    }
+}
+","// XPathReaderFactoryTest.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XPathReaderFactory}.
+* It contains ten unit test cases for the {@link XPathReaderFactory#createReader()} method.
+*/
+class XPathReaderFactoryTest {","// XPathReaderFactoryTest.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XPathReaderFactory}.
+* It contains ten unit test cases for the {@link XPathReaderFactory#createReader()} method.
+*/
+class XPathReaderFactoryTest {
+
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a valid class name.
+	*/
+	@Test
+	public void testCreateReader_ValidClassName() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestXPathReader"");
+		XPathReader reader = XPathReaderFactory.createReader();
+		assertNotNull(reader);
+		assertTrue(reader instanceof TestXPathReader);
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to an invalid class name.
+	*/
+	@Test
+	public void testCreateReader_InvalidClassName() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$InvalidTestXPathReader"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which does not implement the XPathReader interface.
+	*/
+	@Test
+	public void testCreateReader_ClassNotImplementingXPathReader() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClass"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which does not exist.
+	*/
+	@Test
+	public void testCreateReader_ClassNotExist() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassNotExist"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which does not have a default constructor.
+	*/
+	@Test
+	public void testCreateReader_ClassNotHavingDefaultConstructor() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassNotHavingDefaultConstructor"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is an abstract class.
+	*/
+	@Test
+	public void testCreateReader_ClassIsAbstract() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsAbstract"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is an interface.
+	*/
+	@Test
+	public void testCreateReader_ClassIsInterface() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsInterface"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is an enum.
+	*/
+	@Test
+	public void testCreateReader_ClassIsEnum() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsEnum"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is an annotation.
+	*/
+	@Test
+	public void testCreateReader_ClassIsAnnotation() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsAnnotation"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is an array.
+	*/
+	@Test
+	public void testCreateReader_ClassIsArray() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsArray"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a primitive.
+	*/
+	@Test
+	public void testCreateReader_ClassIsPrimitive() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsPrimitive"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a void.
+	*/
+	@Test
+	public void testCreateReader_ClassIsVoid() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsVoid"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a type variable.
+	*/
+	@Test
+	public void testCreateReader_ClassIsTypeVariable() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsTypeVariable"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a wildcard type.
+	*/
+	@Test
+	public void testCreateReader_ClassIsWildcardType() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsWildcardType"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a generic array type.
+	*/
+	@Test
+	public void testCreateReader_ClassIsGenericArrayType() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsGenericArrayType"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a parameterized type.
+	*/
+	@Test
+	public void testCreateReader_ClassIsParameterizedType() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsParameterizedType"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a raw type.
+	*/
+	@Test
+	public void testCreateReader_ClassIsRawType() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsRawType"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a nested class.
+	*/
+	@Test
+	public void testCreateReader_ClassIsNestedClass() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsNestedClass"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a local class.
+	*/
+	@Test
+	public void testCreateReader_ClassIsLocalClass() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsLocalClass"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a member class.
+	*/
+	@Test
+	public void testCreateReader_ClassIsMemberClass() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsMemberClass"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is an anonymous class.
+	*/
+	@Test
+	public void testCreateReader_ClassIsAnonymousClass() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsAnonymousClass"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a synthetic class.
+	*/
+	@Test
+	public void testCreateReader_ClassIsSyntheticClass() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsSyntheticClass"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a class literal.
+	*/
+	@Test
+	public void testCreateReader_ClassIsClassLiteral() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsClassLiteral"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a module.
+	*/
+	@Test
+	public void testCreateReader_ClassIsModule() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsModule"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a package.
+	*/
+	@Test
+	public void testCreateReader_ClassIsPackage() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsPackage"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a module layer.
+	*/
+	@Test
+	public void testCreateReader_ClassIsModuleLayer() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsModuleLayer"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a module graph.
+	*/
+	@Test
+	public void testCreateReader_ClassIsModuleGraph() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsModuleGraph"");
+		assertThrows(SAXPathException.class, () -> XPathReaderFactory.createReader());
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader()} method.
+	* It tests the case when the system property is set to a class name which is a module system.
+	*/
+	@Test
+	public void testCreateReader_ClassIsModuleSystem() throws SAXPathException {
+		System.setProperty(XPathReaderFactory.DRIVER_PROPERTY, ""org.saxpath.helpers.XPathReaderFactoryTest$TestClassIsModuleSystem"");
+		assertThrows(SAXPath"
+cmpl-6wxgF8Y0NuCTsP0vlUaJ4Y4uuttp1,/EvoSuiteBenchmark/scenario2/24_saxpath/src/main/java/saxpath/helpers/XPathReaderFactory1.java,140.92183113098145,length,"// XPathReaderFactory.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+
+/**
+ * Create an {@link org.saxpath.XPathReader} from
+ *  either a system property, or a named class.
+ *
+ *  <p>
+ *  Similar to the SAX API, the <code>XPathReaderFactory</code>
+ *  can create an <code>XPathReader</code> from a name of a
+ *  class passed in directly, or by inspecting the system
+ *  property <code>org.saxpath.driver</code>.
+ *
+ * @author bob mcwhirter (bob@werken.com)
+ */
+public class XPathReaderFactory {
+
+    /**
+     * Create an <code>XPathReader</code> using the passed
+     *  in class name.
+     *
+     * @param className The name of the class which implements
+     *         the <code>XPathReader</code> interface.
+     * @throws SAXPathException if the class can not be
+     *          instantiated for some reason, or if the
+     *          class doesn't implement the <code>XPathReader</code>
+     *          interface.
+     */
+    public static XPathReader createReader(String className) throws SAXPathException {
+        Class readerClass = null;
+        XPathReader reader = null;
+        try {
+            // Use the full version of Class.forName(), so as to
+            // work better in sandboxed environments, such as
+            // Servlet contains, and Applets.
+            readerClass = Class.forName(className, true, XPathReaderFactory.class.getClassLoader());
+            // Double-check that it's actually the right kind of class
+            // before attempting instantiation.
+            if (!XPathReader.class.isAssignableFrom(readerClass)) {
+                throw new SAXPathException(""Class ["" + className + ""] does not implement the org.saxpath.XPathReader interface."");
+            }
+        } catch (ClassNotFoundException e) {
+            throw new SAXPathException(e.getMessage());
+        }
+        try {
+            reader = (XPathReader) readerClass.newInstance();
+        } catch (IllegalAccessException e) {
+            throw new SAXPathException(e.getMessage());
+        } catch (InstantiationException e) {
+            throw new SAXPathException(e.getMessage());
+        }
+        if (reader == null) {
+            throw new SAXPathException(""Unable to create XPathReader"");
+        }
+        return reader;
+    }
+}
+","// XPathReaderFactoryTest.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XPathReaderFactory}.
+* It contains ten unit test cases for the {@link XPathReaderFactory#createReader(String)} method.
+*/
+class XPathReaderFactoryTest {","// XPathReaderFactoryTest.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XPathReaderFactory}.
+* It contains ten unit test cases for the {@link XPathReaderFactory#createReader(String)} method.
+*/
+class XPathReaderFactoryTest {
+
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is null.
+	*/
+	@Test
+	public void testCreateReader_NullClassName() {
+		try {
+			XPathReaderFactory.createReader(null);
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""Class name cannot be null"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is empty.
+	*/
+	@Test
+	public void testCreateReader_EmptyClassName() {
+		try {
+			XPathReaderFactory.createReader("""");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""Class name cannot be empty"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is not found.
+	*/
+	@Test
+	public void testCreateReader_ClassNotFound() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.helpers.XPathReaderFactoryTest"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.helpers.XPathReaderFactoryTest"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is not an instance of XPathReader.
+	*/
+	@Test
+	public void testCreateReader_ClassNotInstanceOfXPathReader() {
+		try {
+			XPathReaderFactory.createReader(""java.lang.String"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""Class [java.lang.String] does not implement the org.saxpath.XPathReader interface."", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReader() {
+		try {
+			XPathReader xPathReader = XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			assertNotNull(xPathReader);
+		} catch (SAXPathException e) {
+			fail(""Unexpected SAXPathException"");
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReader"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReader"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated2() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated3() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated4() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated5() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated6() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated7() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated8() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated9() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+	
+	/**
+	* Test case for {@link XPathReaderFactory#createReader(String)} method.
+	* It tests the case when the class name is an instance of XPathReader but it cannot be instantiated.
+	*/
+	@Test
+	public void testCreateReader_ClassInstanceOfXPathReaderButCannotBeInstantiated10() {
+		try {
+			XPathReaderFactory.createReader(""org.saxpath.XPathReaderImpl"");
+			fail(""Expected SAXPathException"");
+		} catch (SAXPathException e) {
+			assertEquals(""org.saxpath.XPathReaderImpl"", e.getMessage());
+		}
+	}
+}
+
+// XPathReaderImpl.java
+package org.saxpath;
+
+import org.saxpath.helpers.DefaultXPathHandler;
+import org.saxpath.helpers.XPathReaderFactory;
+import org.saxpath.helpers.XPathReader;
+import org.saxpath.conformance.ConformanceXPathHandler;
+import org.saxpath.SAXPathException;
+import org.saxpath.SAXPathParseException;
+import org.saxpath.XPathSyntaxException;
+import org.saxpath.XPathHandler;
+import org.saxpath.XPathVisitor;
+import org.saxpath.XPathExpression;
+import org.saxpath.XPath;
+import org.saxpath.XPathConstants;
+import org.saxpath.XPathContext;
+import org.saxpath.XPathExpressionException;
+import org.saxpath.XPathFunctionResolver;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathFunction;
+import org.saxpath.XPathFunctionException;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathFunctionLibrary;
+import org.saxpath.XPathFunctionLibraryImpl;
+import org.saxpath.XPathFunctionContext;
+import org.saxpath.XPathFunctionContextImpl;
+import org.saxpath.XPathFunctionResolverImpl;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolverImpl;
+import org.saxpath.XPathVariable;
+import org.saxpath.XPathVariableResolver;
+import org.saxpath.XPathVariableResolver"

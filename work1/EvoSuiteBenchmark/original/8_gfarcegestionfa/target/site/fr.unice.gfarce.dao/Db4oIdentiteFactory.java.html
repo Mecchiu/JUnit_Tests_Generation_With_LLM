@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Db4oIdentiteFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">fr.unice.gfarce.dao</a> &gt; <span class="el_source">Db4oIdentiteFactory.java</span></div><h1>Db4oIdentiteFactory.java</h1><pre class="source lang-java linenums">/**
+ * Classe Db4oIdentiteFactory
+ */
+
+package fr.unice.gfarce.dao;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.List;
+import com.db4o.Db4o;
+import com.db4o.ObjectContainer;
+import com.db4o.ObjectSet;
+import com.db4o.config.Configuration;
+import com.db4o.ext.ExtObjectContainer;
+
+import fr.unice.gfarce.connect.Db4oConfig;
+import fr.unice.gfarce.identity.Candidat;
+import fr.unice.gfarce.identity.Formation;
+import fr.unice.gfarce.identity.Identite;
+import fr.unice.gfarce.identity.Identite.TypeIdentite;
+import fr.unice.gfarce.identity.RespFormation;
+
+/**
+ *  Classe permettant d'acc&amp;eacute;der &amp;agrave; la base de donn&amp;eacute;es db4o et d'en modifier les Identites.
+ */
+
+public class Db4oIdentiteFactory implements IdentiteDao{
+
+	ObjectContainer bd; // Interface qui repr&amp;eacute;sente la connexion � la BD
+	String nombase;
+	Configuration configuration;
+
+<span class="nc" id="L33">	public Db4oIdentiteFactory() throws IOException {</span>
+<span class="nc" id="L34">		nombase=Db4oConfig.getInfo();</span>
+<span class="nc" id="L35">	}</span>
+
+	private void getConfig(){
+<span class="nc" id="L38">		configuration =Db4o.newConfiguration();</span>
+<span class="nc" id="L39">		configuration.lockDatabaseFile(false);</span>
+<span class="nc" id="L40">		configuration.objectClass(Calendar.class).storeTransientFields(true);</span>
+<span class="nc" id="L41">	}</span>
+
+/**
+ * Ajoute une Identite dans le cache.
+ * on ajoute &amp;eacute;galement le candidat &amp;agrave; la  formation nomForm.
+ * @param ident
+ * @param nomForm
+ * @param dateLimite
+ * @return 
+ */
+	@Override
+	public void insert(Identite ident, String nomForm, Calendar dateLimite){
+<span class="nc bnc" id="L53" title="All 2 branches missed.">		if(ident.getType()==TypeIdentite.CANDIDAT){</span>
+<span class="nc" id="L54">			Candidat cand=(Candidat)ident;</span>
+<span class="nc" id="L55">			getConfig();</span>
+<span class="nc" id="L56">			bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc" id="L57">			configuration.objectClass(Formation.class).cascadeOnDelete(true); </span>
+
+<span class="nc" id="L59">			ObjectSet&lt;Formation&gt; test = bd.queryByExample(new Formation());	   </span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">			for (Formation ligne : test) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">				if (ligne.getTitre_formation().equals(nomForm) </span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">						&amp;&amp; ligne.getDate_limite_candidature().get(Calendar.MONTH) == dateLimite.get(Calendar.MONTH) </span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">						&amp;&amp; ligne.getDate_limite_candidature().get(Calendar.DAY_OF_MONTH) == dateLimite.get(Calendar.DAY_OF_MONTH)</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">						&amp;&amp; ligne.getDate_limite_candidature().get(Calendar.YEAR) == dateLimite.get(Calendar.YEAR)){</span>
+<span class="nc" id="L65">					cand.setFormation(ligne);			</span>
+<span class="nc" id="L66">					ligne.ajouterCandidat(cand);</span>
+<span class="nc" id="L67">					bd.delete(ligne);</span>
+<span class="nc" id="L68">					break;</span>
+				}
+<span class="nc" id="L70">			}</span>
+<span class="nc" id="L71">			bd.commit();</span>
+<span class="nc" id="L72">			bd.close();</span>
+		}
+<span class="nc" id="L74">		insertIdentite(ident);</span>
+<span class="nc" id="L75">	}	</span>
+
+	public void insertIdentite(Identite ident) {
+<span class="nc" id="L78">		getConfig();</span>
+<span class="nc" id="L79">		bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc" id="L80">		bd.store(ident);</span>
+<span class="nc" id="L81">		bd.commit();</span>
+<span class="nc" id="L82">		bd.close();</span>
+<span class="nc" id="L83">	}</span>
+
+/**
+ * Modifie une Identite deja pr&amp;eacute;sente dans le cache.
+ * @param ident
+ * @return 
+ */
+	@Override
+	public void update(Identite ident) throws Exception {
+<span class="nc" id="L92">		getConfig();</span>
+<span class="nc" id="L93">		bd = Db4o.openFile(configuration,nombase); </span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">		if(ident.getType()==TypeIdentite.CANDIDAT){</span>
+<span class="nc" id="L95">			Candidat identC = (Candidat)ident;</span>
+<span class="nc" id="L96">			Candidat result=(Candidat)bd.queryByExample(new Identite(ident.getNom(), ident.getPrenom(), null, null, ident.getType())).get(0);</span>
+<span class="nc" id="L97">			result.setEmail(identC.getEmail());</span>
+<span class="nc" id="L98">			result.setAcceptation(identC.getAcceptation());</span>
+<span class="nc" id="L99">			result.setSex(identC.getSex());</span>
+<span class="nc" id="L100">			result.setDate_naissance(identC.getDateNaissance());</span>
+<span class="nc" id="L101">			result.setBource(identC.getBource());</span>
+<span class="nc" id="L102">			result.setNationalite(identC.getNationalite());</span>
+<span class="nc" id="L103">			ExtObjectContainer eoc = bd.ext();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">			if (! eoc.isStored(result)) {</span>
+<span class="nc" id="L105">				System.out.println(result + &quot; n'a pas d'identit� dans la base&quot;);</span>
+			}
+<span class="nc" id="L107">			bd.store(result);</span>
+<span class="nc" id="L108">			bd.commit();</span>
+<span class="nc" id="L109">			bd.close();</span>
+<span class="nc" id="L110">		}else{</span>
+<span class="nc" id="L111">			RespFormation identF = (RespFormation)ident;</span>
+<span class="nc" id="L112">			RespFormation result=(RespFormation)bd.queryByExample(new Identite(ident.getNom(), ident.getPrenom(), null, null, ident.getType())).get(0);</span>
+<span class="nc" id="L113">			result.setEmail(identF.getEmail());</span>
+<span class="nc" id="L114">			result.setSex(identF.getSex());</span>
+<span class="nc" id="L115">			result.setTelephone(identF.getTelephone());</span>
+<span class="nc" id="L116">			ExtObjectContainer eoc = bd.ext();</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">			if (! eoc.isStored(result)) {</span>
+<span class="nc" id="L118">				System.out.println(result + &quot; n'a pas d'identit� dans la base&quot;);</span>
+			}
+<span class="nc" id="L120">			bd.store(result);</span>
+<span class="nc" id="L121">			bd.commit();</span>
+<span class="nc" id="L122">			bd.close();</span>
+		}
+<span class="nc" id="L124">	}</span>
+
+/**
+ * Supprime une Identite dans le cache.
+ * @param identite
+ * @return 
+ */
+	@Override
+	public void delete(Identite ident) {
+<span class="nc" id="L133">		getConfig();</span>
+<span class="nc" id="L134">		bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">		if(ident.getType()==TypeIdentite.CANDIDAT){</span>
+<span class="nc" id="L136">			Candidat res = (Candidat)bd.queryByExample(new Identite(ident.getNom(), ident.getPrenom(), null, null, null)).get(0);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">			if(res!=null){</span>
+<span class="nc" id="L138">				res.getFormation().supprimerCandidat(res);</span>
+<span class="nc" id="L139">				bd.delete(res);</span>
+			}
+<span class="nc" id="L141">			bd.commit();</span>
+<span class="nc" id="L142">			bd.close();</span>
+<span class="nc" id="L143">		}</span>
+		else{
+<span class="nc" id="L145">			RespFormation res = (RespFormation)bd.queryByExample(new Identite(ident.getNom(), ident.getPrenom(), null, null, null)).get(0);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">			if(res!=null){</span>
+<span class="nc" id="L147">				bd.delete(res);</span>
+			}
+<span class="nc" id="L149">			bd.commit();</span>
+<span class="nc" id="L150">			bd.close();</span>
+		}
+<span class="nc" id="L152">	}</span>
+
+/**
+ * Recherche des Candidats du cache selon certains crit&amp;egrave;res.
+ * Retourne tous les candidats du cache si tous les param&amp;egrave;tres sont null.
+ * @param nom
+ * @param prenom
+ * @param sex
+ * @param email
+ * @return Candidat[]
+ */
+	@Override
+	public Candidat[] findCandidat(String nom,String prenom,String sex, String email){
+<span class="nc" id="L165">		getConfig();</span>
+<span class="nc" id="L166">		bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc" id="L167">		List&lt;Identite&gt; f = find(nom,prenom,sex,email,TypeIdentite.CANDIDAT);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">		if(f != null){</span>
+<span class="nc" id="L169">			Candidat[] identite= f.toArray(new Candidat[f.size()]);</span>
+<span class="nc" id="L170">			bd.close();</span>
+<span class="nc" id="L171">			return identite;</span>
+		}
+		else{
+<span class="nc" id="L174">			bd.close();</span>
+<span class="nc" id="L175">			return null;</span>
+		}
+	}
+
+	private List&lt;Identite&gt; find(String nom,String prenom,String sex, String email, TypeIdentite type) {
+<span class="nc" id="L180">		ObjectSet&lt;Identite&gt; f= bd.queryByExample(new Identite (nom, prenom, sex, email, type ));</span>
+<span class="nc" id="L181">		List&lt;Identite&gt; lid = (List&lt;Identite&gt;)f;</span>
+<span class="nc" id="L182">		return lid;</span>
+	}
+
+/**
+ * Recherche des RespFormations du cache selon certains crit&amp;egrave;res.
+ * Retourne tous les responsables du cache si tous les param&amp;egrave;tres sont null.
+ * @param nom
+ * @param prenom
+ * @param sex
+ * @param email
+ * @return RespFormation[]
+ */
+	@Override
+	public RespFormation[] findRespForm(String nom, String prenom, String sex, String email){
+<span class="nc" id="L196">		getConfig();</span>
+<span class="nc" id="L197">		bd = Db4o.openFile(configuration,nombase);</span>
+<span class="nc" id="L198">		List&lt;Identite&gt; f = find(nom,prenom,sex,email,TypeIdentite.FORMATEUR);</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">		if(f != null){</span>
+<span class="nc" id="L200">			RespFormation[] identite= f.toArray(new RespFormation[f.size()]);</span>
+<span class="nc" id="L201">			bd.close();</span>
+<span class="nc" id="L202">			return identite;</span>
+		}
+		else{
+<span class="nc" id="L205">			bd.close();</span>
+<span class="nc" id="L206">			return null;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

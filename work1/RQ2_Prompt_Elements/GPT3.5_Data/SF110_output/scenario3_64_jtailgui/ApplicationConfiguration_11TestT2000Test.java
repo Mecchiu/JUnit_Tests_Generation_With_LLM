@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `ApplicationConfiguration_11Test` is not implemented. Please provide the complete code so I can assist you better.

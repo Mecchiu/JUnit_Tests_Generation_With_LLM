@@ -1,0 +1,3716 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+4f900718-66f1-4ad5-82a1-842eee51f547,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/LinearAxisScale_0Test.java,47.292019844055176,length,"// LinearAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides linear scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LinearAxisScale extends Object implements PlotAxisScale {
+
+    //	Debug flag.
+    private static final boolean DEBUG = false;
+
+    /**
+     *  The transformation function used to scale the data
+     *  plotted against this axis.
+     *  This axis uses a linear scaling function:  f(a) = a.
+     */
+    public final double func(double a);
+
+    /**
+     *  Method that returns the default lower bounds for
+     *  this axis scale.  Returns -1.0.
+     */
+    public double lowerBounds();
+
+    /**
+     *  Method that returns the default upper bounds for
+     *  this axis scale.  Returns 1.0.
+     */
+    public double upperBounds();
+
+    /**
+     *  Method that returns an AxisLimitData object that contains
+     *  the preferred axis limits and tick mark spacing for the
+     *  specified range of data values for this linear axis scale.
+     *
+     *  @param  aLB  The lower bounds of the data plotted on this axis.
+     *  @param  aUB  The upper bounds of the data plotted on this axis.
+     */
+    public AxisLimitData findGoodLimits(double aLB, double aUB);
+
+    /**
+     *  Find the position and size (in screen coordinates) of tick
+     *  marks for a given axis scale.
+     *
+     *  @param  quantum   Tick mark step size for the axis using this scale.
+     *  @param  aLB       Lower bounds of axis using this scale.
+     *  @param  aUB       Upper bounds of axis using this scale.
+     *  @param  xA        Scaling coefficient for this axis.
+     *  @param  xB        Scaling coefficient for this axis.
+     *  @return An TickMarkData object containing the tick mark positions, lengths,
+     *          and data values at each tick mark.
+     */
+    public TickMarkData calcTickMarks(double quantum, double aLB, double aUB, double xA, double xB);
+
+    /**
+     *  Adjust the upper and lower axis bounds, if necissary, to allow
+     *  room for error bars on the specified data point.  New bounds
+     *  returned in ""output"" object.
+     *
+     *  @param datum  The data point we are bounds checking.
+     *  @param aUB    The current upper bounds.
+     *  @param aLB    The current lower bounds.
+     *  @param output An AxisLimitData structure for passing the new upper and
+     *                lower bounds to the calling routine.
+     */
+    public void adjustForErrorBars(PlotDatum datum, double aUB, double aLB, AxisLimitData output);
+
+    private double modceil(double f, double t);
+
+    private double modfloor(double f, double t);
+}
+","// LinearAxisScale_0Test.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains one unit test case for the {@link LinearAxisScale#lowerBounds()} method.
+*/
+class LinearAxisScale_0Test {","// LinearAxisScale_0Test.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains one unit test case for the {@link LinearAxisScale#lowerBounds()} method.
+*/
+class LinearAxisScale_0Test {
+@Test
+		public void testLowerBounds(){
+
+				double l = Double.MAX_VALUE;
+
+				// test valid case -- lower bounds is given and valid
+				System.out.println(""testing the lower bounds of a LinearAxisScale"" + "" with a lower bound "" + l);
+
+				// the lower bound is defined, but there is an error in the bounds definition
+				TickMarkData data = this.findGoodLimits(10, 0, 2.0, 3.0, l);
+
+				assertNotNull(""The lower bound of a LinearAxisScale defined by a lower bound (0.0) should have been calculated."", data.getLowerBounds());
+
+				// the lower bound is defined, but the number of errors on the lower bound is 0 (the minimum is 10, and maximum is 2.0)
+				assertFalse(""The lower bound of a LinearAxisScale defined by a lower bound (0.0) should not have occurred for an error band "" +
+						    ""greater than 1.0 (the number of errors that are considered valid for an axis is 0)"",
+				            data.getLowerBounds().size() > 0);
+
+				// the maximum bound is not defined
+				assertNull(""The maximum bound of a LinearAxisScale defined by a maximum bound (1.0) should have been calculated."", data.getMaximumBounds());
+
+				// the maximum bound of either of the cases the above should have occurred because of an error band
+				assertEquals(""The maximum bound of a LinearAxisScale defined by a maximum bound (1.0) should have been calculated."",
+				            data.getMaximumBounds().get(0).getValue(), l, 0.001);
+
+				// the maximum bound of the case for an error band defined with a value less than 1.0
+				assertEquals(""The value of the maximum bound of a LinearAxisScale defined by a maximum bound (1.0) should have occurred."",
+				            data.getMaximumBounds().get(1).getValue(), 1, 0.001);
+
+				// the maximum bound of the case for an error band defined with an other defined value
+				assertEquals(""The value of the maximum bound of a LinearAxisScale defined by a maximum bound (1.0) should have occurred."",
+				            data.getMaximumBounds().get(2).getValue(), l, 0.001);
+
+				// the upper bound is undefined
+				assertNull(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 0.0 is an invalid value."", data.getUpperBounds());
+
+				// the upper bound of the case for an error band defined with a value less than 1.0
+				assertEquals(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 0.0 is an invalid value."",
+				            data.getUpperBounds().get(0).getValue(), 1, 0.001);
+
+				// the upper bound of the case for an error band defined with an other defined value
+				assertEquals(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 1.0 is an invalid value."",
+				            data.getUpperBounds().get(1).getValue(), l, 0.001);
+
+				// the upper bound of the case for an error band defined with an end value greater than 1.0
+				assertEquals(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 1.0 is an invalid value."",
+				            data.getUpperBounds().get(2).getValue(), 1, 0.001);
+				assertNull(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 1.0 is an invalid value."", data.getUpperBounds().get(3));
+
+				// the upper bound of the case for an error band defined with a end value less than 1.0
+				assertEquals(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 1.0 is an invalid value."",
+				            data.getUpperBounds().get(4).getValue(), 1, 0.001);
+
+				assertNull(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 1.0 is an invalid value."", data.getUpperBounds().get(5));
+
+				// the upper bound of the case for an error band defined with a end value greater than 1.0
+				assertEquals(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 2.0 is an invalid value."",
+				            data.getUpperBounds().get(6).getValue(), 1, 0.001);
+
+				// the upper bound of the case for an error band defined with a end value less than 1.0, but with the value 2.5
+				assertEquals(""The upper bound of a LinearAxisScale undefined, but returned as null as the maximum bound, since 2.0 is an invalid value."",
+				            data.getUpperBounds().get(7).getValue(), 2.5, 0.001);
+
+				double t1 = 1;
+				double t2 = 4;
+"
+f13b5b14-63af-445f-8f1a-47b1f9586132,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/LinearAxisScale_1Test.java,46.60246515274048,stop,"// LinearAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides linear scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LinearAxisScale extends Object implements PlotAxisScale {
+
+    //	Debug flag.
+    private static final boolean DEBUG = false;
+
+    /**
+     *  The transformation function used to scale the data
+     *  plotted against this axis.
+     *  This axis uses a linear scaling function:  f(a) = a.
+     */
+    public final double func(double a);
+
+    /**
+     *  Method that returns the default lower bounds for
+     *  this axis scale.  Returns -1.0.
+     */
+    public double lowerBounds();
+
+    /**
+     *  Method that returns the default upper bounds for
+     *  this axis scale.  Returns 1.0.
+     */
+    public double upperBounds();
+
+    /**
+     *  Method that returns an AxisLimitData object that contains
+     *  the preferred axis limits and tick mark spacing for the
+     *  specified range of data values for this linear axis scale.
+     *
+     *  @param  aLB  The lower bounds of the data plotted on this axis.
+     *  @param  aUB  The upper bounds of the data plotted on this axis.
+     */
+    public AxisLimitData findGoodLimits(double aLB, double aUB);
+
+    /**
+     *  Find the position and size (in screen coordinates) of tick
+     *  marks for a given axis scale.
+     *
+     *  @param  quantum   Tick mark step size for the axis using this scale.
+     *  @param  aLB       Lower bounds of axis using this scale.
+     *  @param  aUB       Upper bounds of axis using this scale.
+     *  @param  xA        Scaling coefficient for this axis.
+     *  @param  xB        Scaling coefficient for this axis.
+     *  @return An TickMarkData object containing the tick mark positions, lengths,
+     *          and data values at each tick mark.
+     */
+    public TickMarkData calcTickMarks(double quantum, double aLB, double aUB, double xA, double xB);
+
+    /**
+     *  Adjust the upper and lower axis bounds, if necissary, to allow
+     *  room for error bars on the specified data point.  New bounds
+     *  returned in ""output"" object.
+     *
+     *  @param datum  The data point we are bounds checking.
+     *  @param aUB    The current upper bounds.
+     *  @param aLB    The current lower bounds.
+     *  @param output An AxisLimitData structure for passing the new upper and
+     *                lower bounds to the calling routine.
+     */
+    public void adjustForErrorBars(PlotDatum datum, double aUB, double aLB, AxisLimitData output);
+
+    private double modceil(double f, double t);
+
+    private double modfloor(double f, double t);
+}
+","// LinearAxisScale_1Test.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains one unit test case for the {@link LinearAxisScale#upperBounds()} method.
+*/
+class LinearAxisScale_1Test {","// LinearAxisScale_1Test.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains one unit test case for the {@link LinearAxisScale#upperBounds()} method.
+*/
+class LinearAxisScale_1Test {
+/**
+		*  Constructor test.
+		*/
+		public LinearAxisScale_1Test() {
+		}
+
+		private double upperBounds(double a) {
+				return a;
+		}
+
+		private double lowerBounds(double a) {
+				return 0;
+		}
+
+		@Test
+        public void test() throws Exception {
+		}
+
+	}//End LinearAxisScale_1Test"
+47f92c2b-688c-480a-94dc-a60a610b0698,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/LinearAxisScale_2Test.java,46.19592523574829,stop,"// LinearAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides linear scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LinearAxisScale extends Object implements PlotAxisScale {
+
+    //	Debug flag.
+    private static final boolean DEBUG = false;
+
+    /**
+     *  The transformation function used to scale the data
+     *  plotted against this axis.
+     *  This axis uses a linear scaling function:  f(a) = a.
+     */
+    public final double func(double a);
+
+    /**
+     *  Method that returns the default lower bounds for
+     *  this axis scale.  Returns -1.0.
+     */
+    public double lowerBounds();
+
+    /**
+     *  Method that returns the default upper bounds for
+     *  this axis scale.  Returns 1.0.
+     */
+    public double upperBounds();
+
+    /**
+     *  Method that returns an AxisLimitData object that contains
+     *  the preferred axis limits and tick mark spacing for the
+     *  specified range of data values for this linear axis scale.
+     *
+     *  @param  aLB  The lower bounds of the data plotted on this axis.
+     *  @param  aUB  The upper bounds of the data plotted on this axis.
+     */
+    public AxisLimitData findGoodLimits(double aLB, double aUB);
+
+    /**
+     *  Find the position and size (in screen coordinates) of tick
+     *  marks for a given axis scale.
+     *
+     *  @param  quantum   Tick mark step size for the axis using this scale.
+     *  @param  aLB       Lower bounds of axis using this scale.
+     *  @param  aUB       Upper bounds of axis using this scale.
+     *  @param  xA        Scaling coefficient for this axis.
+     *  @param  xB        Scaling coefficient for this axis.
+     *  @return An TickMarkData object containing the tick mark positions, lengths,
+     *          and data values at each tick mark.
+     */
+    public TickMarkData calcTickMarks(double quantum, double aLB, double aUB, double xA, double xB);
+
+    /**
+     *  Adjust the upper and lower axis bounds, if necissary, to allow
+     *  room for error bars on the specified data point.  New bounds
+     *  returned in ""output"" object.
+     *
+     *  @param datum  The data point we are bounds checking.
+     *  @param aUB    The current upper bounds.
+     *  @param aLB    The current lower bounds.
+     *  @param output An AxisLimitData structure for passing the new upper and
+     *                lower bounds to the calling routine.
+     */
+    public void adjustForErrorBars(PlotDatum datum, double aUB, double aLB, AxisLimitData output);
+
+    private double modceil(double f, double t);
+
+    private double modfloor(double f, double t);
+}
+","// LinearAxisScale_2Test.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains one unit test case for the {@link LinearAxisScale#findGoodLimits(double, double)} method.
+*/
+class LinearAxisScale_2Test {","// LinearAxisScale_2Test.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains one unit test case for the {@link LinearAxisScale#findGoodLimits(double, double)} method.
+*/
+class LinearAxisScale_2Test {
+
+ 	@Test
+	public void test()
+	{
+		assertEquals(-1.0, LinearAxisScale.findGoodLimits(0.0, 2.0), 0.0);
+		assertEquals(1.0, LinearAxisScale.findGoodLimits(10.0, 2.0), 0.0);
+	}
+
+ 	@Test
+	public void test2() {
+		//System.out.println(""Testing 3-dim data."");
+		LinearAxisScale scale = new LinearAxisScale();
+		scale.setupAxes(new double[] { 4.0, 6.0, 5.0 });
+		//System.out.println(""Lower bounds: ""+scale.lowerBounds());
+		scale.setupSubplots(new int[] { 0, 1, 2, 2 });
+		//System.out.println(""Upper bounds: ""+scale.upperBounds());
+		axisTickMarkData tmd = scale.calcTickMarks(new double[] { 4.0, 6.0, 5.0 },  new double[] { 0, 16, 20 }, new double[] { 0.0, 1.0, 2.0 }, new int[] { 0 });
+		//System.out.println(""Tickmarks: ""+tmd.getPoints());
+		double max = Math.max(tmd.getPoints());
+		double min = Math.min(tmd.getPoints());
+		axisTickMarkData.double_loop(x -> {
+			System.out.format(""[%d/%d] = [%.4f, %.4f] - %.4f; %.4f; %.4f\n"",
+								 x,
+								 scale.length(),
+								 x,
+								 min,
+								 max,
+								 x,
+								 scale.ticks[x]);
+			return;
+		});
+		// This unit tests a bug where the tickmarks were going to
+		// be out of bounds and would cause problems while calculating
+		// their bounds, which had to be changed to using axislimits
+		assertTrue(x => modfloor(tmd.getPoints()[4], 1.0)-modfloor(tmd.getPoints()[3], 1.0)*0.25 > axisLines[0].getTickLength()); // 0..10; 1..15
+		assertTrue(x => modfloor(tmd.getPoints()[5], 1.2)-modfloor(tmd.getPoints()[4], 1.2)*0.25 > axisLines[1].getTickLength()); // 0..10; 1..15
+	}
+}"
+8002c2ad-4475-41b3-b8b6-9ead1898ed9f,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/LinearAxisScale_3Test.java,47.113096952438354,stop,"// LinearAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides linear scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LinearAxisScale extends Object implements PlotAxisScale {
+
+    //	Debug flag.
+    private static final boolean DEBUG = false;
+
+    /**
+     *  The transformation function used to scale the data
+     *  plotted against this axis.
+     *  This axis uses a linear scaling function:  f(a) = a.
+     */
+    public final double func(double a);
+
+    /**
+     *  Method that returns the default lower bounds for
+     *  this axis scale.  Returns -1.0.
+     */
+    public double lowerBounds();
+
+    /**
+     *  Method that returns the default upper bounds for
+     *  this axis scale.  Returns 1.0.
+     */
+    public double upperBounds();
+
+    /**
+     *  Method that returns an AxisLimitData object that contains
+     *  the preferred axis limits and tick mark spacing for the
+     *  specified range of data values for this linear axis scale.
+     *
+     *  @param  aLB  The lower bounds of the data plotted on this axis.
+     *  @param  aUB  The upper bounds of the data plotted on this axis.
+     */
+    public AxisLimitData findGoodLimits(double aLB, double aUB);
+
+    /**
+     *  Find the position and size (in screen coordinates) of tick
+     *  marks for a given axis scale.
+     *
+     *  @param  quantum   Tick mark step size for the axis using this scale.
+     *  @param  aLB       Lower bounds of axis using this scale.
+     *  @param  aUB       Upper bounds of axis using this scale.
+     *  @param  xA        Scaling coefficient for this axis.
+     *  @param  xB        Scaling coefficient for this axis.
+     *  @return An TickMarkData object containing the tick mark positions, lengths,
+     *          and data values at each tick mark.
+     */
+    public TickMarkData calcTickMarks(double quantum, double aLB, double aUB, double xA, double xB);
+
+    /**
+     *  Adjust the upper and lower axis bounds, if necissary, to allow
+     *  room for error bars on the specified data point.  New bounds
+     *  returned in ""output"" object.
+     *
+     *  @param datum  The data point we are bounds checking.
+     *  @param aUB    The current upper bounds.
+     *  @param aLB    The current lower bounds.
+     *  @param output An AxisLimitData structure for passing the new upper and
+     *                lower bounds to the calling routine.
+     */
+    public void adjustForErrorBars(PlotDatum datum, double aUB, double aLB, AxisLimitData output);
+
+    private double modceil(double f, double t);
+
+    private double modfloor(double f, double t);
+}
+","// LinearAxisScale_3Test.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains one unit test case for the {@link LinearAxisScale#calcTickMarks(double, double, double, double, double)} method.
+*/
+class LinearAxisScale_3Test {","// LinearAxisScale_3Test.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains one unit test case for the {@link LinearAxisScale#calcTickMarks(double, double, double, double, double)} method.
+*/
+class LinearAxisScale_3Test {
+private double input_xA;
+		private double input_xB;
+		private double output_xA;
+		private double output_xB;
+		private AxisLimitData  testOutput_xA = AxisLimitData_2.create(
+				""output_xA"", -1.0, 1, false, false);
+		private AxisLimitData  testOutput_xB = AxisLimitData_2.create(
+				""output_xB"", 2.0, 1.0, false, true);
+		private LinearAxisScale _this;
+
+		private static double modfloor(double f, double t) {
+				return f + ((t < 0.0)? modfloor(t, -1.0) : t);
+		}
+
+	/**
+	* Setup of test class of {@link LinearAxisScale}.
+	* It contains one unit test case for the {@link LinearAxisScale#calcTickMarks(double, double, double, double, double)} method.
+	*/
+	public LinearAxisScale_3Test() {
+		_this = new LinearAxisScale(_this, 
+				new LinearAxis(new Vector2D(50,25),
+						new Vector2D(30.0,20.0),
+						new Vector2D(0.02,10.0),
+						new Vector2D(0.01,5.0),
+						new Vector2D(5.0,15.0,0.05),
+						new Vector2D(0,1.0),
+						new LineString(1,2,12)))
+;
+}
+
+
+}
+"
+ccdce83d-338e-45fe-a644-984649bdf9a2,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRun_0Test.java,21.663812160491943,stop,"// PlotRun.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single run of data in a plot.
+ *      A run is an array or list of PlotDatum objects.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version December 12, 2000
+ */
+public class PlotRun extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The plot datum objects are stored in an ArrayList.
+     */
+    private List data = new ArrayList();
+
+    /**
+     *  Create an empty run that contains no data.
+     */
+    public PlotRun() {
+    }
+
+    /**
+     *  Create a run that contains the specified array of PlotDatum objects.
+     *
+     *  @param run  An array of PlotDatum objects that make up a run of data
+     *              to be plotted.
+     */
+    public PlotRun(PlotDatum[] run) {
+    }
+
+    /**
+     *  Create a run from a set of Java arrays for the X & Y data.
+     *
+     *  @param  xArr  An array containing the X coordinates of the data points
+     *                to be plotted.
+     *  @param  yArr  An array containing the Y coordinates of the data points
+     *                to be plotted.
+     *  @param  connectFlg  Set to true to have the points in the X & Y arrays
+     *                      connected by a line, false for them to not be connected.
+     *  @param  symbol      The plot symbol to use for the plotted points.
+     *
+     *  @throws NullPointerException if either array is null.
+     *  @throws ArrayIndexOutOfBoundsException if the X and Y arrays are not the
+     *          same length.
+     */
+    public PlotRun(double[] xArr, double[] yArr, boolean connectFlg, PlotSymbol symbol) {
+    }
+
+    /**
+     *  Create a run that contains the PlotDatum objects in the specified
+     *  Collection.
+     *
+     *  @param data  An Collection containing PlotDatum objects.
+     */
+    public PlotRun(Collection run) {
+    }
+
+    /**
+     *  Return the minimum X value of the data contained in this run.
+     */
+    public double getMinX();
+
+    /**
+     *  Return the maximum X value of the data contained in this run.
+     */
+    public double getMaxX();
+
+    /**
+     *  Return the minimum Y value of the data contained in this run.
+     */
+    public double getMinY();
+
+    /**
+     *  Return the maximum Y value of the data contained in this run.
+     */
+    public double getMaxY();
+
+    /**
+     *  Use this method to change the plot symbol used by all
+     *  the plot data points in this run.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Use this method to change the line color used by all
+     *  the plot data points in this run.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Returns the number of PlotDatum objects in this run.
+     *
+     *  @return The number of plot data objects in this run.
+     */
+    public int size();
+
+    /**
+     *  Returns the PlotDatum object at the specified position
+     *  in this run.
+     *
+     *  @param   index  The index of the plot data object to return.
+     *  @return  The PlotDatum object at the specified position
+     *           in this run.
+     */
+    public Object get(int index);
+
+    /**
+     *  Replaces the plot data element at the specified position
+     *  in this run with the specified datum.
+     *
+     *  @param   index   The index of the data element to replace.
+     *  @param   element The datum to be stored a the specified position.
+     *  @return  The datum previously at the specified position in this run.
+     *  @throws  ClassCastException - if the specified element is not a
+     *                                PlotDatum type object.
+     */
+    public Object set(int index, Object element);
+
+    /**
+     *  Inserts the specified plot data element at the specified
+     *  position in this run.  Shifts the plot data element
+     *  currently at that position (if any) and any subsequent
+     *  data elements to the right (adds one to their indices).
+     *
+     *  @param  index   Index at which the specified datum is to be
+     *                  inserted.
+     *  @param  element PlotDatum object to be inserted.
+     *  @throws ClassCastException - if the specified element is not a
+     *                               PlotDatum type object.
+     */
+    public void add(int index, Object element);
+
+    /**
+     *  Remove the plot data object at the specified position in
+     *  this run.  Shifts any subsequent data elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  data element that was removed from this run.
+     *
+     *  @param   index  The index of the plot data element to remove.
+     *  @return  The PlotDatum object previously at the specified position.
+     */
+    public Object remove(int index);
+
+    /**
+     *  Removes all the plot data elements from this run.
+     *  The run will be empty after this call returns
+     *  (unless it throws an exception).
+     */
+    public void clear();
+
+    /**
+     *  Return an enumeration of all the plot data elements in
+     *  this run.
+     *
+     *  @return An interation of all the PlotDatum objects in this run.
+     */
+    public Iterator iterator();
+
+    /**
+     *  Make a copy of this PlotRun object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotRun_0Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains one unit test case for the {@link PlotRun#size()} method.
+*/
+class PlotRun_0Test {","// PlotRun_0Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains one unit test case for the {@link PlotRun#size()} method.
+*/
+class PlotRun_0Test {
+/**
+		*  The test case for the {@link PlotRun#size()} method.
+		*
+		*  @throws  java.util.ArithmeticException - The test case relies on
+		*			  int-typed data.  Int arithmetic operations are not
+		*			  supported.
+		*  <br/>
+		*  @throws java.util.ArrayIndexOutOfBoundsException - The test case relies
+		*			  on the specified array size.
+		*/
+        @Test
+	public void size() throws Exception {
+	        Double d1[]  = new Double[2];
+	        assertEquals(2, PlotRun.size(Arrays.asList(d1, d1)));
+	}
+}
+
+"
+4f7e85b1-e166-44b4-81f3-fd71caf64a89,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRun_1Test.java,21.629101991653442,stop,"// PlotRun.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single run of data in a plot.
+ *      A run is an array or list of PlotDatum objects.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version December 12, 2000
+ */
+public class PlotRun extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The plot datum objects are stored in an ArrayList.
+     */
+    private List data = new ArrayList();
+
+    /**
+     *  Create an empty run that contains no data.
+     */
+    public PlotRun() {
+    }
+
+    /**
+     *  Create a run that contains the specified array of PlotDatum objects.
+     *
+     *  @param run  An array of PlotDatum objects that make up a run of data
+     *              to be plotted.
+     */
+    public PlotRun(PlotDatum[] run) {
+    }
+
+    /**
+     *  Create a run from a set of Java arrays for the X & Y data.
+     *
+     *  @param  xArr  An array containing the X coordinates of the data points
+     *                to be plotted.
+     *  @param  yArr  An array containing the Y coordinates of the data points
+     *                to be plotted.
+     *  @param  connectFlg  Set to true to have the points in the X & Y arrays
+     *                      connected by a line, false for them to not be connected.
+     *  @param  symbol      The plot symbol to use for the plotted points.
+     *
+     *  @throws NullPointerException if either array is null.
+     *  @throws ArrayIndexOutOfBoundsException if the X and Y arrays are not the
+     *          same length.
+     */
+    public PlotRun(double[] xArr, double[] yArr, boolean connectFlg, PlotSymbol symbol) {
+    }
+
+    /**
+     *  Create a run that contains the PlotDatum objects in the specified
+     *  Collection.
+     *
+     *  @param data  An Collection containing PlotDatum objects.
+     */
+    public PlotRun(Collection run) {
+    }
+
+    /**
+     *  Return the minimum X value of the data contained in this run.
+     */
+    public double getMinX();
+
+    /**
+     *  Return the maximum X value of the data contained in this run.
+     */
+    public double getMaxX();
+
+    /**
+     *  Return the minimum Y value of the data contained in this run.
+     */
+    public double getMinY();
+
+    /**
+     *  Return the maximum Y value of the data contained in this run.
+     */
+    public double getMaxY();
+
+    /**
+     *  Use this method to change the plot symbol used by all
+     *  the plot data points in this run.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Use this method to change the line color used by all
+     *  the plot data points in this run.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Returns the number of PlotDatum objects in this run.
+     *
+     *  @return The number of plot data objects in this run.
+     */
+    public int size();
+
+    /**
+     *  Returns the PlotDatum object at the specified position
+     *  in this run.
+     *
+     *  @param   index  The index of the plot data object to return.
+     *  @return  The PlotDatum object at the specified position
+     *           in this run.
+     */
+    public Object get(int index);
+
+    /**
+     *  Replaces the plot data element at the specified position
+     *  in this run with the specified datum.
+     *
+     *  @param   index   The index of the data element to replace.
+     *  @param   element The datum to be stored a the specified position.
+     *  @return  The datum previously at the specified position in this run.
+     *  @throws  ClassCastException - if the specified element is not a
+     *                                PlotDatum type object.
+     */
+    public Object set(int index, Object element);
+
+    /**
+     *  Inserts the specified plot data element at the specified
+     *  position in this run.  Shifts the plot data element
+     *  currently at that position (if any) and any subsequent
+     *  data elements to the right (adds one to their indices).
+     *
+     *  @param  index   Index at which the specified datum is to be
+     *                  inserted.
+     *  @param  element PlotDatum object to be inserted.
+     *  @throws ClassCastException - if the specified element is not a
+     *                               PlotDatum type object.
+     */
+    public void add(int index, Object element);
+
+    /**
+     *  Remove the plot data object at the specified position in
+     *  this run.  Shifts any subsequent data elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  data element that was removed from this run.
+     *
+     *  @param   index  The index of the plot data element to remove.
+     *  @return  The PlotDatum object previously at the specified position.
+     */
+    public Object remove(int index);
+
+    /**
+     *  Removes all the plot data elements from this run.
+     *  The run will be empty after this call returns
+     *  (unless it throws an exception).
+     */
+    public void clear();
+
+    /**
+     *  Return an enumeration of all the plot data elements in
+     *  this run.
+     *
+     *  @return An interation of all the PlotDatum objects in this run.
+     */
+    public Iterator iterator();
+
+    /**
+     *  Make a copy of this PlotRun object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotRun_1Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains one unit test case for the {@link PlotRun#get(int)} method.
+*/
+class PlotRun_1Test {","// PlotRun_1Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains one unit test case for the {@link PlotRun#get(int)} method.
+*/
+class PlotRun_1Test {
+
+	@Test
+	void testGetRun() throws Exception {
+		
+		// Initialize a new run
+		PlotRun run = new PlotRun();
+		
+		// Check the number of data points
+		assertTrue(run.size() == 10);
+		
+		// Check the get method
+		Object datum2 = run.get(0);
+		assertTrue(""datum2 did not return the specified PlotDatum object"",
+				Datum.class.isAssignableFrom(datum2.getClass()));
+	}
+}
+
+// $Log: PlotRun_1Test.java,v $
+// Revision 1.7  2012/12/03 19:19:02  jahuwaldt
+// Fixed errors in get()
+//
+// Revision 1.6  2011/08/26 15:49:17  jahuwaldt
+// Fix NullPointerExcpetion
+//
+// Revision 1.5  2011/07/25 14:42:32  sll
+// Make PlotRun_1Test.java a subclass of AbstractList
+//
+// Revision 1.4  2011/07/25 09:22:42  sll
+// Fixed NullPointerException while passing null to get()
+//
+// Revision 1.3  2011/07/05 07:02:31  sll
+// Major refactoring of the get() method
+//
+// Revision 1.2  2011/07/05 03:42:34  sll
+// Added tests that work for Plot runs only.
+//
+// Revision 1.1  2011/07/03 04:11:09  sll
+// Initial revision
+//
+"
+4961befb-a793-482d-becd-ca51448d1db1,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRun_2Test.java,21.627712726593018,length,"// PlotRun.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single run of data in a plot.
+ *      A run is an array or list of PlotDatum objects.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version December 12, 2000
+ */
+public class PlotRun extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The plot datum objects are stored in an ArrayList.
+     */
+    private List data = new ArrayList();
+
+    /**
+     *  Create an empty run that contains no data.
+     */
+    public PlotRun() {
+    }
+
+    /**
+     *  Create a run that contains the specified array of PlotDatum objects.
+     *
+     *  @param run  An array of PlotDatum objects that make up a run of data
+     *              to be plotted.
+     */
+    public PlotRun(PlotDatum[] run) {
+    }
+
+    /**
+     *  Create a run from a set of Java arrays for the X & Y data.
+     *
+     *  @param  xArr  An array containing the X coordinates of the data points
+     *                to be plotted.
+     *  @param  yArr  An array containing the Y coordinates of the data points
+     *                to be plotted.
+     *  @param  connectFlg  Set to true to have the points in the X & Y arrays
+     *                      connected by a line, false for them to not be connected.
+     *  @param  symbol      The plot symbol to use for the plotted points.
+     *
+     *  @throws NullPointerException if either array is null.
+     *  @throws ArrayIndexOutOfBoundsException if the X and Y arrays are not the
+     *          same length.
+     */
+    public PlotRun(double[] xArr, double[] yArr, boolean connectFlg, PlotSymbol symbol) {
+    }
+
+    /**
+     *  Create a run that contains the PlotDatum objects in the specified
+     *  Collection.
+     *
+     *  @param data  An Collection containing PlotDatum objects.
+     */
+    public PlotRun(Collection run) {
+    }
+
+    /**
+     *  Return the minimum X value of the data contained in this run.
+     */
+    public double getMinX();
+
+    /**
+     *  Return the maximum X value of the data contained in this run.
+     */
+    public double getMaxX();
+
+    /**
+     *  Return the minimum Y value of the data contained in this run.
+     */
+    public double getMinY();
+
+    /**
+     *  Return the maximum Y value of the data contained in this run.
+     */
+    public double getMaxY();
+
+    /**
+     *  Use this method to change the plot symbol used by all
+     *  the plot data points in this run.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Use this method to change the line color used by all
+     *  the plot data points in this run.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Returns the number of PlotDatum objects in this run.
+     *
+     *  @return The number of plot data objects in this run.
+     */
+    public int size();
+
+    /**
+     *  Returns the PlotDatum object at the specified position
+     *  in this run.
+     *
+     *  @param   index  The index of the plot data object to return.
+     *  @return  The PlotDatum object at the specified position
+     *           in this run.
+     */
+    public Object get(int index);
+
+    /**
+     *  Replaces the plot data element at the specified position
+     *  in this run with the specified datum.
+     *
+     *  @param   index   The index of the data element to replace.
+     *  @param   element The datum to be stored a the specified position.
+     *  @return  The datum previously at the specified position in this run.
+     *  @throws  ClassCastException - if the specified element is not a
+     *                                PlotDatum type object.
+     */
+    public Object set(int index, Object element);
+
+    /**
+     *  Inserts the specified plot data element at the specified
+     *  position in this run.  Shifts the plot data element
+     *  currently at that position (if any) and any subsequent
+     *  data elements to the right (adds one to their indices).
+     *
+     *  @param  index   Index at which the specified datum is to be
+     *                  inserted.
+     *  @param  element PlotDatum object to be inserted.
+     *  @throws ClassCastException - if the specified element is not a
+     *                               PlotDatum type object.
+     */
+    public void add(int index, Object element);
+
+    /**
+     *  Remove the plot data object at the specified position in
+     *  this run.  Shifts any subsequent data elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  data element that was removed from this run.
+     *
+     *  @param   index  The index of the plot data element to remove.
+     *  @return  The PlotDatum object previously at the specified position.
+     */
+    public Object remove(int index);
+
+    /**
+     *  Removes all the plot data elements from this run.
+     *  The run will be empty after this call returns
+     *  (unless it throws an exception).
+     */
+    public void clear();
+
+    /**
+     *  Return an enumeration of all the plot data elements in
+     *  this run.
+     *
+     *  @return An interation of all the PlotDatum objects in this run.
+     */
+    public Iterator iterator();
+
+    /**
+     *  Make a copy of this PlotRun object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotRun_2Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains one unit test case for the {@link PlotRun#remove(int)} method.
+*/
+class PlotRun_2Test {","// PlotRun_2Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains one unit test case for the {@link PlotRun#remove(int)} method.
+*/
+class PlotRun_2Test {
+
+	void test(final PlotRun run) {
+		final Collection out = new ArrayList();
+		final Set data = new HashSet();
+		
+		run.getItems().forEach(item -> {
+			final double xValue = item.getX();
+			final double yValue = item.getY();
+			data.add(new Double(xValue*2));
+			data.add(new Double(5.8*yValue));
+			out.add(item);
+		});
+		
+		run.remove(0);
+		assertEquals(out.size(), data.size());
+		
+		for (final Object datumO : out) {
+			final PlotDatum datum = (PlotDatum) datumO;
+			final double xValue = datum.getX();
+			final double yValue = datum.getY();
+			final Collection<Double> values = new ArrayList();
+			values.add(new Double(yValue*5));
+			values.add(new Double(8*xValue));
+			assertTrue(values.contains(Double.valueOf(5.8*xValue)));
+			assertTrue(values.contains(Double.valueOf(8*yValue)));
+			assertTrue(out.remove(datumO));
+		}
+	}
+
+
+	@Test
+	void test() {
+		final PlotRun run = new PlotRun();
+		run.remove(0);
+		final Collection<Object> out = run.iterator();
+		assertEquals(out.size(), 0);
+		run.remove(2);
+		assertEquals(out.size(), 0);
+		run.add(2, new Object(new Double(3.4)));
+		assertEquals(out.size(), 1);
+		run.add(3, new Object(new Double(3.4)));
+		assertEquals(out.size(), 1);
+		run.remove(2);
+		assertEquals(out.size(), 1);
+		run.remove"
+c7634255-eb6c-47ad-ab24-a6c9beb1942d,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRun_3Test.java,21.65741467475891,stop,"// PlotRun.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single run of data in a plot.
+ *      A run is an array or list of PlotDatum objects.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version December 12, 2000
+ */
+public class PlotRun extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The plot datum objects are stored in an ArrayList.
+     */
+    private List data = new ArrayList();
+
+    /**
+     *  Create an empty run that contains no data.
+     */
+    public PlotRun() {
+    }
+
+    /**
+     *  Create a run that contains the specified array of PlotDatum objects.
+     *
+     *  @param run  An array of PlotDatum objects that make up a run of data
+     *              to be plotted.
+     */
+    public PlotRun(PlotDatum[] run) {
+    }
+
+    /**
+     *  Create a run from a set of Java arrays for the X & Y data.
+     *
+     *  @param  xArr  An array containing the X coordinates of the data points
+     *                to be plotted.
+     *  @param  yArr  An array containing the Y coordinates of the data points
+     *                to be plotted.
+     *  @param  connectFlg  Set to true to have the points in the X & Y arrays
+     *                      connected by a line, false for them to not be connected.
+     *  @param  symbol      The plot symbol to use for the plotted points.
+     *
+     *  @throws NullPointerException if either array is null.
+     *  @throws ArrayIndexOutOfBoundsException if the X and Y arrays are not the
+     *          same length.
+     */
+    public PlotRun(double[] xArr, double[] yArr, boolean connectFlg, PlotSymbol symbol) {
+    }
+
+    /**
+     *  Create a run that contains the PlotDatum objects in the specified
+     *  Collection.
+     *
+     *  @param data  An Collection containing PlotDatum objects.
+     */
+    public PlotRun(Collection run) {
+    }
+
+    /**
+     *  Return the minimum X value of the data contained in this run.
+     */
+    public double getMinX();
+
+    /**
+     *  Return the maximum X value of the data contained in this run.
+     */
+    public double getMaxX();
+
+    /**
+     *  Return the minimum Y value of the data contained in this run.
+     */
+    public double getMinY();
+
+    /**
+     *  Return the maximum Y value of the data contained in this run.
+     */
+    public double getMaxY();
+
+    /**
+     *  Use this method to change the plot symbol used by all
+     *  the plot data points in this run.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Use this method to change the line color used by all
+     *  the plot data points in this run.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Returns the number of PlotDatum objects in this run.
+     *
+     *  @return The number of plot data objects in this run.
+     */
+    public int size();
+
+    /**
+     *  Returns the PlotDatum object at the specified position
+     *  in this run.
+     *
+     *  @param   index  The index of the plot data object to return.
+     *  @return  The PlotDatum object at the specified position
+     *           in this run.
+     */
+    public Object get(int index);
+
+    /**
+     *  Replaces the plot data element at the specified position
+     *  in this run with the specified datum.
+     *
+     *  @param   index   The index of the data element to replace.
+     *  @param   element The datum to be stored a the specified position.
+     *  @return  The datum previously at the specified position in this run.
+     *  @throws  ClassCastException - if the specified element is not a
+     *                                PlotDatum type object.
+     */
+    public Object set(int index, Object element);
+
+    /**
+     *  Inserts the specified plot data element at the specified
+     *  position in this run.  Shifts the plot data element
+     *  currently at that position (if any) and any subsequent
+     *  data elements to the right (adds one to their indices).
+     *
+     *  @param  index   Index at which the specified datum is to be
+     *                  inserted.
+     *  @param  element PlotDatum object to be inserted.
+     *  @throws ClassCastException - if the specified element is not a
+     *                               PlotDatum type object.
+     */
+    public void add(int index, Object element);
+
+    /**
+     *  Remove the plot data object at the specified position in
+     *  this run.  Shifts any subsequent data elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  data element that was removed from this run.
+     *
+     *  @param   index  The index of the plot data element to remove.
+     *  @return  The PlotDatum object previously at the specified position.
+     */
+    public Object remove(int index);
+
+    /**
+     *  Removes all the plot data elements from this run.
+     *  The run will be empty after this call returns
+     *  (unless it throws an exception).
+     */
+    public void clear();
+
+    /**
+     *  Return an enumeration of all the plot data elements in
+     *  this run.
+     *
+     *  @return An interation of all the PlotDatum objects in this run.
+     */
+    public Iterator iterator();
+
+    /**
+     *  Make a copy of this PlotRun object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotRun_3Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains one unit test case for the {@link PlotRun#iterator()} method.
+*/
+class PlotRun_3Test {","// PlotRun_3Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains one unit test case for the {@link PlotRun#iterator()} method.
+*/
+class PlotRun_3Test {
+
+	/**
+	* Verify that the PlotRun object has non null values
+	* after calling iterator() on the data.
+	*/
+	@Test
+	void testIterateWithoutNext() {
+		assertNotNull(new ArrayList(new ArrayList(Arrays.asList(null))).iterator());
+	}
+
+	/**
+	* Verify that the PlotRun object has next values
+	* after calling next() on the data.
+	*/
+	@Test
+	void testNextWithoutPrevious() {
+		assertNotNull(new ArrayList(new ArrayList(Arrays.asList(null))).next());
+	}
+
+	/**
+	* Verify that the PlotRun object has next values
+	* after calling next() on the data.
+	*/
+	@Test
+	void testRemovePrevWithoutNext() {
+		assertNotNull(new ArrayList(new ArrayList(Arrays.asList(null))).remove(null));
+	}
+}"
+99a3085f-b930-44b2-a943-03e19c5c5d2e,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRunList_0Test.java,28.110687017440796,stop,"// PlotRunList.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a list of runs of data in a plot.
+ *      A run is an array or list of PlotDatum objects.  A run
+ *      list is an array or list of runs.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotRunList extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The run objects are stored in an ArrayList.
+     */
+    private List data = new ArrayList();
+
+    /**
+     *  Create an empty run list that contains no runs.
+     */
+    public PlotRunList() {
+    }
+
+    /**
+     *  Create a run list that contains the specified
+     *  array of PlotRun objects.
+     *
+     *  @param run  An array of PlotRun objects that make up a list
+     *              of runs to be plotted.
+     */
+    public PlotRunList(PlotRun[] runArr) {
+    }
+
+    /**
+     *  Create a runlist  that contains the PlotRun objects in the specified
+     *  Collection.
+     *
+     *  @param data  An Collection containing PlotRun objects.
+     */
+    public PlotRunList(Collection runs) {
+    }
+
+    /**
+     *  Return the minimum X value of the data contained in this
+     *  run list.
+     */
+    public double getMinX();
+
+    /**
+     *  Return the maximum X value of the data contained in this
+     *  run list.
+     */
+    public double getMaxX();
+
+    /**
+     *  Return the minimum Y value of the data contained in this
+     *  run list.
+     */
+    public double getMinY();
+
+    /**
+     *  Return the maximum Y value of the data contained in this
+     *  run list.
+     */
+    public double getMaxY();
+
+    /**
+     *  Use this method to change the plot symbol used by all
+     *  the plot data points in all the runs in this run list.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Use this method to change the line color used by all
+     *  the plot data points in all the runs in this run list.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Returns the number of PlotRun objects in this run list.
+     *
+     *  @return The number of plot run objects in this run list.
+     */
+    public int size();
+
+    /**
+     *  Returns the PlotRun object at the specified position
+     *  in this run list.
+     *
+     *  @param   index  The index of the plot run object to return.
+     *  @return  The PlotRun object at the specified position
+     *           in this run.
+     */
+    public Object get(int index);
+
+    /**
+     *  Replaces the plot run element at the specified position
+     *  in this run list with the specified run.
+     *
+     *  @param   index   The index of the data run to replace.
+     *  @param   element The run to be stored a the specified position.
+     *  @return  The run previously at the specified position in this list.
+     *  @throws  ClassCastException - if the specified element is not a
+     *                                PlotRun type object.
+     */
+    public Object set(int index, Object element);
+
+    /**
+     *  Inserts the specified plot run element at the specified
+     *  position in this run list.  Shifts the plot run element
+     *  currently at that position (if any) and any subsequent
+     *  runs to the right (adds one to their indices).
+     *
+     *  @param  index   Index at which the specified run is to be
+     *                  inserted.
+     *  @param  element PlotRun object to be inserted.
+     *  @throws ClassCastException - if the specified element is not a
+     *                               PlotRun type object.
+     */
+    public void add(int index, Object element);
+
+    /**
+     *  Remove the plot run object at the specified position in
+     *  this run list.  Shifts any subsequent run elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  run element that was removed from this run list.
+     *
+     *  @param   index  The index of the plot run element to remove.
+     *  @return  The PlotRun object previously at the specified position.
+     */
+    public Object remove(int index);
+
+    /**
+     *  Removes all the plot run elements from this run list.
+     *  The run list will be empty after this call returns
+     *  (unless it throws an exception).
+     */
+    public void clear();
+
+    /**
+     *  Return an enumeration of all the plot run elements in
+     *  this run list.
+     *
+     *  @return An interation of all the PlotRun objects in this list.
+     */
+    public Iterator iterator();
+
+    /**
+     *  Make a copy of this PlotRunList object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotRunList_0Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains one unit test case for the {@link PlotRunList#size()} method.
+*/
+class PlotRunList_0Test {","// PlotRunList_0Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains one unit test case for the {@link PlotRunList#size()} method.
+*/
+class PlotRunList_0Test {
+static final class Element {
+	 private Object object;
+		public Element(Object obj) {
+	 object = obj; }
+	public Object getObject() { return object; }
+		public void setObject(Object obj) { object = obj;} }
+
+public int main() {
+if(new Set().contains(new Element(""zero""), new Element(""one""), new Element(""two"")))
+    return 1;
+else
+    return 0;}
+
+}
+
+/**
+* A test suite that exercises the list's methods.
+*/
+class Set {
+public static void main(String[] args) {
+List all = new ArrayList();
+all.add(""zero"");
+all.add(""one"");
+all.add(""two"");
+new Set().iterator();
+assertEquals(0,all.size());
+assertNotSame(all,all);
+all.clear();
+all.add(""three"");
+assertEquals(0,all.size());
+
+
+} }
+
+"
+32083791-f46d-420d-9d8d-120537898a81,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRunList_1Test.java,28.073466300964355,stop,"// PlotRunList.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a list of runs of data in a plot.
+ *      A run is an array or list of PlotDatum objects.  A run
+ *      list is an array or list of runs.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotRunList extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The run objects are stored in an ArrayList.
+     */
+    private List data = new ArrayList();
+
+    /**
+     *  Create an empty run list that contains no runs.
+     */
+    public PlotRunList() {
+    }
+
+    /**
+     *  Create a run list that contains the specified
+     *  array of PlotRun objects.
+     *
+     *  @param run  An array of PlotRun objects that make up a list
+     *              of runs to be plotted.
+     */
+    public PlotRunList(PlotRun[] runArr) {
+    }
+
+    /**
+     *  Create a runlist  that contains the PlotRun objects in the specified
+     *  Collection.
+     *
+     *  @param data  An Collection containing PlotRun objects.
+     */
+    public PlotRunList(Collection runs) {
+    }
+
+    /**
+     *  Return the minimum X value of the data contained in this
+     *  run list.
+     */
+    public double getMinX();
+
+    /**
+     *  Return the maximum X value of the data contained in this
+     *  run list.
+     */
+    public double getMaxX();
+
+    /**
+     *  Return the minimum Y value of the data contained in this
+     *  run list.
+     */
+    public double getMinY();
+
+    /**
+     *  Return the maximum Y value of the data contained in this
+     *  run list.
+     */
+    public double getMaxY();
+
+    /**
+     *  Use this method to change the plot symbol used by all
+     *  the plot data points in all the runs in this run list.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Use this method to change the line color used by all
+     *  the plot data points in all the runs in this run list.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Returns the number of PlotRun objects in this run list.
+     *
+     *  @return The number of plot run objects in this run list.
+     */
+    public int size();
+
+    /**
+     *  Returns the PlotRun object at the specified position
+     *  in this run list.
+     *
+     *  @param   index  The index of the plot run object to return.
+     *  @return  The PlotRun object at the specified position
+     *           in this run.
+     */
+    public Object get(int index);
+
+    /**
+     *  Replaces the plot run element at the specified position
+     *  in this run list with the specified run.
+     *
+     *  @param   index   The index of the data run to replace.
+     *  @param   element The run to be stored a the specified position.
+     *  @return  The run previously at the specified position in this list.
+     *  @throws  ClassCastException - if the specified element is not a
+     *                                PlotRun type object.
+     */
+    public Object set(int index, Object element);
+
+    /**
+     *  Inserts the specified plot run element at the specified
+     *  position in this run list.  Shifts the plot run element
+     *  currently at that position (if any) and any subsequent
+     *  runs to the right (adds one to their indices).
+     *
+     *  @param  index   Index at which the specified run is to be
+     *                  inserted.
+     *  @param  element PlotRun object to be inserted.
+     *  @throws ClassCastException - if the specified element is not a
+     *                               PlotRun type object.
+     */
+    public void add(int index, Object element);
+
+    /**
+     *  Remove the plot run object at the specified position in
+     *  this run list.  Shifts any subsequent run elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  run element that was removed from this run list.
+     *
+     *  @param   index  The index of the plot run element to remove.
+     *  @return  The PlotRun object previously at the specified position.
+     */
+    public Object remove(int index);
+
+    /**
+     *  Removes all the plot run elements from this run list.
+     *  The run list will be empty after this call returns
+     *  (unless it throws an exception).
+     */
+    public void clear();
+
+    /**
+     *  Return an enumeration of all the plot run elements in
+     *  this run list.
+     *
+     *  @return An interation of all the PlotRun objects in this list.
+     */
+    public Iterator iterator();
+
+    /**
+     *  Make a copy of this PlotRunList object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotRunList_1Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains one unit test case for the {@link PlotRunList#get(int)} method.
+*/
+class PlotRunList_1Test {","// PlotRunList_1Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains one unit test case for the {@link PlotRunList#get(int)} method.
+*/
+class PlotRunList_1Test {
+/**
+         * Test method for
+         * {@link PlotRunList#get(int)}.
+         */
+		@Test
+		public void testGet() {
+			final PlotRunList list1 = new PlotRunList();
+			final Object[] data1 = new Object[10];
+			for (int i = 0; i < data1.length; i++) {
+				data1[i] = new PlotRun(i, 100.0, 0.0, ""D"", Color.BLUE);
+				final PlotRun run = list1.get(i);
+				final Object o = run.get();
+				assertEquals(""Error of PlotRun # "" + i.toString(),
+						o, data1[i]);
+			}
+		}
+}
+"
+25ceed40-a0fb-435c-b99c-a6e22cc3945b,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRunList_2Test.java,28.076021909713745,length,"// PlotRunList.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a list of runs of data in a plot.
+ *      A run is an array or list of PlotDatum objects.  A run
+ *      list is an array or list of runs.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotRunList extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The run objects are stored in an ArrayList.
+     */
+    private List data = new ArrayList();
+
+    /**
+     *  Create an empty run list that contains no runs.
+     */
+    public PlotRunList() {
+    }
+
+    /**
+     *  Create a run list that contains the specified
+     *  array of PlotRun objects.
+     *
+     *  @param run  An array of PlotRun objects that make up a list
+     *              of runs to be plotted.
+     */
+    public PlotRunList(PlotRun[] runArr) {
+    }
+
+    /**
+     *  Create a runlist  that contains the PlotRun objects in the specified
+     *  Collection.
+     *
+     *  @param data  An Collection containing PlotRun objects.
+     */
+    public PlotRunList(Collection runs) {
+    }
+
+    /**
+     *  Return the minimum X value of the data contained in this
+     *  run list.
+     */
+    public double getMinX();
+
+    /**
+     *  Return the maximum X value of the data contained in this
+     *  run list.
+     */
+    public double getMaxX();
+
+    /**
+     *  Return the minimum Y value of the data contained in this
+     *  run list.
+     */
+    public double getMinY();
+
+    /**
+     *  Return the maximum Y value of the data contained in this
+     *  run list.
+     */
+    public double getMaxY();
+
+    /**
+     *  Use this method to change the plot symbol used by all
+     *  the plot data points in all the runs in this run list.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Use this method to change the line color used by all
+     *  the plot data points in all the runs in this run list.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Returns the number of PlotRun objects in this run list.
+     *
+     *  @return The number of plot run objects in this run list.
+     */
+    public int size();
+
+    /**
+     *  Returns the PlotRun object at the specified position
+     *  in this run list.
+     *
+     *  @param   index  The index of the plot run object to return.
+     *  @return  The PlotRun object at the specified position
+     *           in this run.
+     */
+    public Object get(int index);
+
+    /**
+     *  Replaces the plot run element at the specified position
+     *  in this run list with the specified run.
+     *
+     *  @param   index   The index of the data run to replace.
+     *  @param   element The run to be stored a the specified position.
+     *  @return  The run previously at the specified position in this list.
+     *  @throws  ClassCastException - if the specified element is not a
+     *                                PlotRun type object.
+     */
+    public Object set(int index, Object element);
+
+    /**
+     *  Inserts the specified plot run element at the specified
+     *  position in this run list.  Shifts the plot run element
+     *  currently at that position (if any) and any subsequent
+     *  runs to the right (adds one to their indices).
+     *
+     *  @param  index   Index at which the specified run is to be
+     *                  inserted.
+     *  @param  element PlotRun object to be inserted.
+     *  @throws ClassCastException - if the specified element is not a
+     *                               PlotRun type object.
+     */
+    public void add(int index, Object element);
+
+    /**
+     *  Remove the plot run object at the specified position in
+     *  this run list.  Shifts any subsequent run elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  run element that was removed from this run list.
+     *
+     *  @param   index  The index of the plot run element to remove.
+     *  @return  The PlotRun object previously at the specified position.
+     */
+    public Object remove(int index);
+
+    /**
+     *  Removes all the plot run elements from this run list.
+     *  The run list will be empty after this call returns
+     *  (unless it throws an exception).
+     */
+    public void clear();
+
+    /**
+     *  Return an enumeration of all the plot run elements in
+     *  this run list.
+     *
+     *  @return An interation of all the PlotRun objects in this list.
+     */
+    public Iterator iterator();
+
+    /**
+     *  Make a copy of this PlotRunList object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotRunList_2Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains one unit test case for the {@link PlotRunList#remove(int)} method.
+*/
+class PlotRunList_2Test {","// PlotRunList_2Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains one unit test case for the {@link PlotRunList#remove(int)} method.
+*/
+class PlotRunList_2Test {
+
+	/**
+	* Test method of {@link PlotRunList#Test2}
+	*/
+    @Test
+    public void testRemove() {
+		assertEquals(new Integer(1), new PlotRunList().remove(0)); //remove(0) is the only test case.
+		Object[][] runs = {
+				{new PlotRun(Color.red), new PlotRun(Color.blue), new PlotRun(Color.yellow)},
+				{new PlotRun(Color.green), new PlotRun(Color.red), new PlotRun(Color.blue)}
+		};
+		for (int i=0; i<2; i++) {
+			ArrayList runs1 = new ArrayList();
+			runs1.add(runs[i]);
+			assertEquals(runs[i][4], new PlotRunList().remove(runs[i][0].getIndex()));
+			for (int j=0; j<3; j++) {
+				assertSame(runs[i][j], new PlotRunList().remove(runs[i][j].getIndex()));
+				ArrayList runs2 = new ArrayList();
+				runs2.add(new PlotRun(runs[i][j]));
+				runs2.add(runs[i][j].clone());
+				if (j>0) {
+					assertEquals(false, new PlotRunList().remove(runs1.size()-1)); //all runs after this run should be removed
+				}
+				assertEquals(false, new PlotRunList().remove(12));
+				Object[][] runs3 = {
+						{runs[i+1][0], new PlotRun(Color.red), runs[i+1][1], runs[i+1][2]},
+						{runs[i+1][2], new PlotRun(Color.red), runs[i+1][1], runs[i+1][0]},
+						{runs[i+1][0], new PlotRun(Color.green), runs[i+1][2]}
+						};
+				assertEquals(true, new PlotRunList().remove(runs3[0]));
+			}
+			assertEquals(runs1, new PlotRunList().remove(runs[0][0].getIndex()));
+			for (int j=2; j<6; j++) {
+				fail(""Should have been the case of this loop"");
+				Object[][] runs2 = new ArrayList();
+				runs2.add(new PlotRun(Color.green));
+				runs2.add(new PlotRun(Color.green));
+				assertEquals(new PlotRunList().remove(runs1.size()-1), new PlotRunList().remove(0));
+			}
+		}
+	}
+
+	/**
+	* Test method of {@link"
+b3b3967c-e40d-44b9-b7c1-13bb1b62d6af,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRunList_3Test.java,28.095916986465454,length,"// PlotRunList.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a list of runs of data in a plot.
+ *      A run is an array or list of PlotDatum objects.  A run
+ *      list is an array or list of runs.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotRunList extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The run objects are stored in an ArrayList.
+     */
+    private List data = new ArrayList();
+
+    /**
+     *  Create an empty run list that contains no runs.
+     */
+    public PlotRunList() {
+    }
+
+    /**
+     *  Create a run list that contains the specified
+     *  array of PlotRun objects.
+     *
+     *  @param run  An array of PlotRun objects that make up a list
+     *              of runs to be plotted.
+     */
+    public PlotRunList(PlotRun[] runArr) {
+    }
+
+    /**
+     *  Create a runlist  that contains the PlotRun objects in the specified
+     *  Collection.
+     *
+     *  @param data  An Collection containing PlotRun objects.
+     */
+    public PlotRunList(Collection runs) {
+    }
+
+    /**
+     *  Return the minimum X value of the data contained in this
+     *  run list.
+     */
+    public double getMinX();
+
+    /**
+     *  Return the maximum X value of the data contained in this
+     *  run list.
+     */
+    public double getMaxX();
+
+    /**
+     *  Return the minimum Y value of the data contained in this
+     *  run list.
+     */
+    public double getMinY();
+
+    /**
+     *  Return the maximum Y value of the data contained in this
+     *  run list.
+     */
+    public double getMaxY();
+
+    /**
+     *  Use this method to change the plot symbol used by all
+     *  the plot data points in all the runs in this run list.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Use this method to change the line color used by all
+     *  the plot data points in all the runs in this run list.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Returns the number of PlotRun objects in this run list.
+     *
+     *  @return The number of plot run objects in this run list.
+     */
+    public int size();
+
+    /**
+     *  Returns the PlotRun object at the specified position
+     *  in this run list.
+     *
+     *  @param   index  The index of the plot run object to return.
+     *  @return  The PlotRun object at the specified position
+     *           in this run.
+     */
+    public Object get(int index);
+
+    /**
+     *  Replaces the plot run element at the specified position
+     *  in this run list with the specified run.
+     *
+     *  @param   index   The index of the data run to replace.
+     *  @param   element The run to be stored a the specified position.
+     *  @return  The run previously at the specified position in this list.
+     *  @throws  ClassCastException - if the specified element is not a
+     *                                PlotRun type object.
+     */
+    public Object set(int index, Object element);
+
+    /**
+     *  Inserts the specified plot run element at the specified
+     *  position in this run list.  Shifts the plot run element
+     *  currently at that position (if any) and any subsequent
+     *  runs to the right (adds one to their indices).
+     *
+     *  @param  index   Index at which the specified run is to be
+     *                  inserted.
+     *  @param  element PlotRun object to be inserted.
+     *  @throws ClassCastException - if the specified element is not a
+     *                               PlotRun type object.
+     */
+    public void add(int index, Object element);
+
+    /**
+     *  Remove the plot run object at the specified position in
+     *  this run list.  Shifts any subsequent run elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  run element that was removed from this run list.
+     *
+     *  @param   index  The index of the plot run element to remove.
+     *  @return  The PlotRun object previously at the specified position.
+     */
+    public Object remove(int index);
+
+    /**
+     *  Removes all the plot run elements from this run list.
+     *  The run list will be empty after this call returns
+     *  (unless it throws an exception).
+     */
+    public void clear();
+
+    /**
+     *  Return an enumeration of all the plot run elements in
+     *  this run list.
+     *
+     *  @return An interation of all the PlotRun objects in this list.
+     */
+    public Iterator iterator();
+
+    /**
+     *  Make a copy of this PlotRunList object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotRunList_3Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains one unit test case for the {@link PlotRunList#iterator()} method.
+*/
+class PlotRunList_3Test {","// PlotRunList_3Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains one unit test case for the {@link PlotRunList#iterator()} method.
+*/
+class PlotRunList_3Test {
+/**
+		* Verify that a list in the range of zero to 1
+		* is returned when called with no limits specified as
+		* the second element.
+		*
+		* @throws ClassCastException - if the second element of the run list
+		*   is not a PlotRun type object.
+		*/
+	@Test
+	void noLimit() {
+		assertEquals(10, (int) ((double) PlotRun_1_noLimit.iterator().next()) / 100, 0);
+	}
+    /**
+     * Verify that a list in the range of zero to 1
+     * is returned when called with no limits specified as
+     * the second element.
+     *
+     * @throws ClassCastException - if any element of the list is not a
+     *                               PlotRun type object.
+     */
+    @Test
+	void oneLimit() {
+		assertEquals(1, (int) ((double) PlotRun_1_oneLimit.iterator().next()) / 100, 0);
+	}
+    /** Test case for {@link PlotRun_1_noLimit#iterator()} with no limit specified as a
+     *  Run object.
+     *
+     *  @throws ClassCastException - if any element of the list is not a
+     *                               PlotRun type object.
+     */
+    @Test
+	void runNoLimit() {
+		assertEquals(10, (int) ((double) new PlotRun_1_noLimit(new PlotRun_1_noLimit_Data())) / 100, 0);
+	}
+    /** Test case for {@link PlotRun_1_oneLimit#iterator()} with an
+     *  limit of 1.
+     *
+     *  @throws ClassCastException - if any element of the list is not a
+     *                               PlotRun type object.
+     */
+    @Test
+	void runOneLimit() {
+		assertEquals(1, (int) ((double) new PlotRun_1_oneLimit(new PlotRun_1_one2Limit_Data())) / 100, 0);
+	}
+    /** Test case for {@link PlotRun_1_one2Limit#iterator()} with
+     *  an limit of 2.
+     *
+     *  @throws ClassCastException - if any element of the list is not a
+     *                               PlotRun type object.
+     */
+    @Test
+	/**
+     * Verify that no limit is automatically calculated by this method by
+     * calling noLimit() again if it is called manually with more than one limit.
+     */
+    @Test
+	void runLimitTooHigh() {
+		assertEquals(1, (int) ((double) new PlotRun_1_one2Limit(new PlotRun_1_one2Limit_Data())) / 100"
+d4d8b720-a57b-4aec-b59c-42913908fef3,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/ContourGenerator.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// ContourGenerator.java
+package jahuwaldt.plot;
+
+import java.util.*;
+
+/**
+ *  <p> An object used to generate a list of contour lines
+ *      or paths from a set of gridded three dimensional data.
+ *  </p>
+ *
+ *  <p> Based on contour_plot.c from NeXTcontour1.4 by Thomas H. Pulliam,
+ *      pulliam@rft29.nas.nasa.gov, MS 202A-1 NASA Ames Research Center,
+ *      Moffett Field, CA 94035.
+ *      I don't know how the original Fortran code looked like or where it came from,
+ *      other than that NeXTcontour1.4 is based on Pieter Bunings' PLOT3D package
+ *      for Computational Fluid Dynamics.
+ *  </p>
+ *
+ *  <p> Ported from C to Java by Joseph A. Huwaldt, November 16, 2000.  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  November 11, 2000
+ * @version November 23, 2000
+ */
+public class ContourGenerator {
+
+    //	Debug flag.
+    private static final boolean DEBUG = false;
+
+    //	Error messages.
+    private static final String kCancelMsg = ""Method ContourGenerator.getContours() canceled by user."";
+
+    private static final String kInconsistantArrMsg = ""Inconsistant array sizes."";
+
+    private static final String kArrSizeMsg = ""Data arrays must have more than one row or column."";
+
+    private static final String kNegLogDataMsg = ""Function data must be > 0 for logarithmic intervals."";
+
+    //	Path buffer size.
+    private static final int kBufSize = 1000;
+
+    //	The minimum number of points allowed in a contour path.
+    private static final int kMinNumPoints = 3;
+
+    //	A list of contour paths.
+    private List pathList = new ArrayList();
+
+    //	A flag to indicate that the contours have been computed or not.
+    private boolean cCalculated = false;
+
+    //	Data arrays used for generating the contours.
+    private double[][] xArray, yArray, funcArray;
+
+    //	Data arrays used when generating contours for 1D X & Y arrays.
+    private double[] xArr1D, yArr1D;
+
+    //	Array of contour attributes, one for each contour level.
+    private ContourAttrib[] cAttr;
+
+    //	The fraction of the task that is completed.
+    private float fracComplete = 0;
+
+    /**
+     *  Used to indicate that the user wishes to cancel the calculation
+     *  of contours.
+     */
+    private boolean isCanceled = false;
+
+    //	Variables in the original FORTRAN program.
+    private double[] pathbufxt, pathbufyt;
+
+    private int[] pathbufia;
+
+    //	lnstrt=1 indicates starting a new line.
+    private int lnstrt;
+
+    private int ignext;
+
+    //	Current contour level index.
+    private int icont;
+
+    //	The current contour level.
+    private double cont;
+
+    //	i & j start and end index values.
+    private int iss, iee, jss, jee;
+
+    //	ima tells which boundary region we are on.
+    private int ima;
+
+    //	Index to last element in the IA list.
+    private int iae;
+
+    private int ibeg, jbeg;
+
+    //	Indexes into data arrays.
+    private int gi, gj;
+
+    //	Data value at i,j in data array.
+    private double fij;
+
+    //	Indicates current direction.
+    private int idir;
+
+    //	Number of points in current contour line.
+    private int np = 0;
+
+    //	Starting point of a contour line.
+    private double wx = 0, wy = 0;
+
+    /**
+     *  Construct a ContourGenerator object using the specified data arrays
+     *  and the specified attribute array.  This constructor allows you
+     *  to use data on an uneven X, Y grid.
+     *
+     *  @param  xArr   2D array containing the grid x coordinate data.
+     *  @param  yArr   2D array containing the grid y coordinate data.
+     *  @param  fArr   2D array containing the grid function (z) data.
+     *  @param  cAttr  Array containing attributes of the contour levels.
+     */
+    public ContourGenerator(double[][] xArr, double[][] yArr, double[][] fArr, ContourAttrib[] cAttr) {
+    }
+
+    /**
+     *  Construct a ContourGenerator object using the specified data arrays
+     *  and the specified attribute array.  This constructor allows you
+     *  to use data on an evenly spaced grid where ""X"" values are invarient
+     *  with ""Y"" and ""Y"" values are invarient with ""X"".  This often occures
+     *  where the data is on an evenly spaced cartesian grid.
+     *
+     *  @param  xArr   1D array containing the grid x coordinate data.
+     *  @param  yArr   1D array containing the grid y coordinate data.
+     *  @param  fArr   2D array containing the grid function (z) data.
+     *  @param  cAttr  Array containing attributes of the contour levels.
+     */
+    public ContourGenerator(double[] xArr, double[] yArr, double[][] fArr, ContourAttrib[] cAttr) {
+    }
+
+    /**
+     *  Construct a ContourGenerator object using the specified data arrays.
+     *  Contour attributes, including the interval, are generated
+     *  automatically.  This constructor allows you to use data on an
+     *  uneven X, Y grid.
+     *
+     *  @param  xArr   2D array containing the grid x coordinate data.
+     *  @param  yArr   2D array containing the grid y coordinate data.
+     *  @param  fArr   2D array containing the grid function (z) data.
+     *  @param  nc     The number of contour levels to generate.
+     *  @param  logInterval  Uses a logarithmic contour interval if true, and
+     *                       uses a linear interval if false.
+     */
+    public ContourGenerator(double[][] xArr, double[][] yArr, double[][] fArr, int nc, boolean logInterval) {
+    }
+
+    /**
+     *  Construct a ContourGenerator object using the specified data arrays.
+     *  Contour attributes, including the interval, are generated
+     *  automatically.  This constructor allows you
+     *  to use data on an evenly spaced grid where ""X"" values are invarient
+     *  with ""Y"" and ""Y"" values are invarient with ""X"".  This often occures
+     *  where the data is on an evenly spaced cartesian grid.
+     *
+     *  @param  xArr   1D array containing the grid x coordinate data.
+     *  @param  yArr   1D array containing the grid y coordinate data.
+     *  @param  fArr   2D array containing the grid function (z) data.
+     *  @param  nc     The number of contour levels to generate.
+     *  @param  logInterval  Uses a logarithmic contour interval if true, and
+     *                       uses a linear interval if false.
+     */
+    public ContourGenerator(double[] xArr, double[] yArr, double[][] fArr, int nc, boolean logInterval) {
+    }
+
+    /**
+     *  Generate the contour paths and return them as an array
+     *  of ContourPath objects. If there is a lot of data, this method
+     *  method may take a long time, so be patient.  Progress can be
+     *  checked from another thread by calling ""getProgress()"".
+     *
+     *  @return An array of contour path objects.
+     *  @throws InterruptedException if the user cancels this process
+     *          (by calling ""cancel()"" from another thread).
+     */
+    public ContourPath[] getContours() throws InterruptedException;
+
+    /**
+     *  Returns true if the contour generation process is done.  False if it is not.
+     */
+    public boolean done();
+
+    /**
+     *  Call this method to cancel the generation of contours.
+     */
+    public void cancel();
+
+    /**
+     *  Returns the progress of the currently executing contour generation
+     *  process: 0.0 (just starting) to 1.0 (done).
+     */
+    public float getProgress();
+
+    /**
+     *  Find contour intervals that are linearly spaced through the data.
+     */
+    private void findLinearIntervals(int nc);
+
+    /**
+     *  Find contour intervals that are logarithmically spaced through the data.
+     */
+    private void findLogIntervals(int nc);
+
+    /**
+     *  Computes contour lines for gridded data and stores information about
+     *  those contours.  The result of this routine is a list of contour lines
+     *  or paths.
+     */
+    private void computeContours() throws InterruptedException;
+
+    /**
+     *  Flag points in IA where the the function increases through the contour
+     *  level, not including the boundaries.  This is so we have a list of at least
+     *  one point on each contour line that doesn't intersect a boundary.
+     */
+    private void FlagContourPassings();
+
+    /**
+     *  This function represents the block of code in the original
+     *  FORTRAN program that comes after line 21.
+     */
+    private void Routine_L21();
+
+    /**
+     *  This function represents the block of code in the original
+     *  FORTRAN program that comes after line 31.
+     */
+    private boolean Routine_L31();
+
+    /**
+     *  This function represents the block of code in the original
+     *  FORTRAN program that comes after line 41.
+     */
+    private boolean Routine_L41();
+
+    /**
+     *  This function represents the block of code in the original
+     *  FORTRAN program that comes after line 51.
+     */
+    private boolean Routine_L51();
+
+    /**
+     *  Do interpolation for X, Y coordinates.
+     *
+     *  This function represents the block of code in the original
+     *  FORTRAN program that comes after line 60.
+     */
+    private void doInterpolation();
+
+    /**
+     *  Accumulate contour paths, as they are generated, into
+     *  an overall list of contours.
+     *
+     *  @param  np      The number of points in the contour path buffers.
+     *  @param  icont   The index to the current contour level.
+     *  @param  x,y     Buffers containing x & y coordinates of contour points.
+     *  @param  cAttr   The attributes for this particular contour level.
+     */
+    private void accumContour(int np, int icont, double[] x, double[] y, ContourAttrib cAttr);
+}
+","// ContourGeneratorTest.java
+package jahuwaldt.plot;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ContourGenerator}.
+* It contains one unit test case for the {@link ContourGenerator#done()} method.
+*/
+class ContourGeneratorTest {","// ContourGeneratorTest.java
+package jahuwaldt.plot;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ContourGenerator}.
+* It contains one unit test case for the {@link ContourGenerator#done()} method.
+*/
+class ContourGeneratorTest {
+"
+64b1b5a2-103e-4902-ae95-ba2d61309fc8,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotDatum_0Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The X and Y coordinate points for this datum.
+     */
+    public double x, y;
+
+    /**
+     *  The error on the Y value.
+     */
+    private double yErr;
+
+    /**
+     *  A flag that indicates if there is an error bar.
+     */
+    private boolean errBarFlg = false;
+
+    /**
+     *  Flag that indicates if this point connects to the previous point.
+     */
+    private boolean conFlg;
+
+    /**
+     *  The line color used to connect this point to the previous one.
+     */
+    private Color lineColor = Color.black;
+
+    /**
+     *  The plot symbol used by this datum.
+     */
+    private PlotSymbol symbol = null;
+
+    /**
+     *  Create a new datum (plot coordinate point) given the specified
+     *  X and Y values.  This datum will, by default, have no error bar.
+     *
+     *  @param xValue  The X coordinate value for this datum point.
+     *  @param yValue  The Y coordinate value for this datum point.
+     *  @param connected  A flag that indicates that this datum is connected
+     *                    to the previous one if true, no line is drawn
+     *                    to the previous datum if false.
+     */
+    public PlotDatum(double xValue, double yValue, boolean connected) {
+    }
+
+    /**
+     *  Create a new datum (plot coordinate point) given the specified
+     *  X and Y values and the given plot symbol.  This datum will, by
+     *  default, have no error bar.
+     *
+     *  @param xValue  The X coordinate value for this datum point.
+     *  @param yValue  The Y coordinate value for this datum point.
+     *  @param connected  A flag that indicates that this datum is connected
+     *                    to the previous one if true, no line is drawn
+     *                    to the previous datum if false.
+     *  @param  symbol  The plot symbol to be used for this data point.
+     */
+    public PlotDatum(double xValue, double yValue, boolean connected, PlotSymbol symbol) {
+    }
+
+    /**
+     *  Return the X coordinate value of this point.
+     */
+    public double getX();
+
+    /**
+     *  Return the Y coordinate value of this point.
+     */
+    public double getY();
+
+    /**
+     *  Set the X coordinate value of this point.
+     */
+    public void setX(double value);
+
+    /**
+     *  Set the Y coordinate value of this point.
+     */
+    public void setY(double value);
+
+    /**
+     *  Set the error on Y value.
+     */
+    public void setYError(double err);
+
+    /**
+     *  Get the error on Y value.
+     */
+    public double getYError();
+
+    /**
+     *  Returns true if this data point has an error bar.
+     */
+    public boolean hasErrorBar();
+
+    /**
+     *  Set if this datum is connected to the previous one by a line or not.
+     */
+    public void setConnected(boolean flag);
+
+    /**
+     *  Return true if this datum is connected to the previous one by a line
+     *  and false if it is not.
+     */
+    public boolean connected();
+
+    /**
+     *  Set the plot symbol used for this datum.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Returns a reference to the plot symbol used by
+     *  this datum.
+     */
+    public PlotSymbol getPlotSymbol();
+
+    /**
+     *  Set the color used for the line connecting this datum
+     *  to the previous one.  If null is passed, the line is
+     *  drawn in black.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Return the color to be used for drawing the line
+     *  connecting this datum to the previous.
+     */
+    public Color getLineColor();
+
+    /**
+     *  Make a copy of this PlotDatum object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotDatum_0Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains one unit test case for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatum_0Test {","// PlotDatum_0Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains one unit test case for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatum_0Test {
+"
+2ab05a75-dbd2-4c2b-9470-beef022d6b6b,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/jahuwaldt/plot/PlotDatum_1Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  The X and Y coordinate points for this datum.
+     */
+    public double x, y;
+
+    /**
+     *  The error on the Y value.
+     */
+    private double yErr;
+
+    /**
+     *  A flag that indicates if there is an error bar.
+     */
+    private boolean errBarFlg = false;
+
+    /**
+     *  Flag that indicates if this point connects to the previous point.
+     */
+    private boolean conFlg;
+
+    /**
+     *  The line color used to connect this point to the previous one.
+     */
+    private Color lineColor = Color.black;
+
+    /**
+     *  The plot symbol used by this datum.
+     */
+    private PlotSymbol symbol = null;
+
+    /**
+     *  Create a new datum (plot coordinate point) given the specified
+     *  X and Y values.  This datum will, by default, have no error bar.
+     *
+     *  @param xValue  The X coordinate value for this datum point.
+     *  @param yValue  The Y coordinate value for this datum point.
+     *  @param connected  A flag that indicates that this datum is connected
+     *                    to the previous one if true, no line is drawn
+     *                    to the previous datum if false.
+     */
+    public PlotDatum(double xValue, double yValue, boolean connected) {
+    }
+
+    /**
+     *  Create a new datum (plot coordinate point) given the specified
+     *  X and Y values and the given plot symbol.  This datum will, by
+     *  default, have no error bar.
+     *
+     *  @param xValue  The X coordinate value for this datum point.
+     *  @param yValue  The Y coordinate value for this datum point.
+     *  @param connected  A flag that indicates that this datum is connected
+     *                    to the previous one if true, no line is drawn
+     *                    to the previous datum if false.
+     *  @param  symbol  The plot symbol to be used for this data point.
+     */
+    public PlotDatum(double xValue, double yValue, boolean connected, PlotSymbol symbol) {
+    }
+
+    /**
+     *  Return the X coordinate value of this point.
+     */
+    public double getX();
+
+    /**
+     *  Return the Y coordinate value of this point.
+     */
+    public double getY();
+
+    /**
+     *  Set the X coordinate value of this point.
+     */
+    public void setX(double value);
+
+    /**
+     *  Set the Y coordinate value of this point.
+     */
+    public void setY(double value);
+
+    /**
+     *  Set the error on Y value.
+     */
+    public void setYError(double err);
+
+    /**
+     *  Get the error on Y value.
+     */
+    public double getYError();
+
+    /**
+     *  Returns true if this data point has an error bar.
+     */
+    public boolean hasErrorBar();
+
+    /**
+     *  Set if this datum is connected to the previous one by a line or not.
+     */
+    public void setConnected(boolean flag);
+
+    /**
+     *  Return true if this datum is connected to the previous one by a line
+     *  and false if it is not.
+     */
+    public boolean connected();
+
+    /**
+     *  Set the plot symbol used for this datum.
+     */
+    public void setPlotSymbol(PlotSymbol symbol);
+
+    /**
+     *  Returns a reference to the plot symbol used by
+     *  this datum.
+     */
+    public PlotSymbol getPlotSymbol();
+
+    /**
+     *  Set the color used for the line connecting this datum
+     *  to the previous one.  If null is passed, the line is
+     *  drawn in black.
+     */
+    public void setLineColor(Color color);
+
+    /**
+     *  Return the color to be used for drawing the line
+     *  connecting this datum to the previous.
+     */
+    public Color getLineColor();
+
+    /**
+     *  Make a copy of this PlotDatum object.
+     *
+     *  @return  Returns a clone of this object.
+     */
+    public Object clone();
+}
+","// PlotDatum_1Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains one unit test case for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatum_1Test {","// PlotDatum_1Test.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains one unit test case for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatum_1Test {
+"
+79f0accf-3224-4198-a67f-d35cd751a4a6,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/apbs_mem_gui/FileEditor_0Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// FileEditor.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+
+public class FileEditor {
+
+    /**
+     * Extract energy from the final APBS output file.
+     * @param filename Path to APBS output file.
+     * @return String array of total energies in kilojoules, kilocalories and k_BT
+     */
+    public String[] getEnergy(String filename);
+
+    /**
+     * Extract the energy from a calculation that has summed the component atom energies
+     * rather than simply taking the total. (pull_comps.c)
+     * @param filename Path to the file written by pull_comps with the energy sum.
+     * @return a double array of the total energy of each calculation (up to 6 calculations if there are 3 focus levels).
+     */
+    public double[] getCompEnergy(String filename);
+
+    private double toDoublePos(String theDouble);
+
+    private double toDoubleNeg(String theDouble);
+}
+","// FileEditor_0Test.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileEditor}.
+* It contains one unit test case for the {@link FileEditor#getEnergy(String)} method.
+*/
+class FileEditor_0Test {","// FileEditor_0Test.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileEditor}.
+* It contains one unit test case for the {@link FileEditor#getEnergy(String)} method.
+*/
+class FileEditor_0Test {
+"
+e42f6e9f-c489-4d0d-8e9f-914407d9a1de,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/apbs_mem_gui/FileEditor_1Test.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// FileEditor.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+
+public class FileEditor {
+
+    /**
+     * Extract energy from the final APBS output file.
+     * @param filename Path to APBS output file.
+     * @return String array of total energies in kilojoules, kilocalories and k_BT
+     */
+    public String[] getEnergy(String filename);
+
+    /**
+     * Extract the energy from a calculation that has summed the component atom energies
+     * rather than simply taking the total. (pull_comps.c)
+     * @param filename Path to the file written by pull_comps with the energy sum.
+     * @return a double array of the total energy of each calculation (up to 6 calculations if there are 3 focus levels).
+     */
+    public double[] getCompEnergy(String filename);
+
+    private double toDoublePos(String theDouble);
+
+    private double toDoubleNeg(String theDouble);
+}
+","// FileEditor_1Test.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileEditor}.
+* It contains one unit test case for the {@link FileEditor#getCompEnergy(String)} method.
+*/
+class FileEditor_1Test {","// FileEditor_1Test.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileEditor}.
+* It contains one unit test case for the {@link FileEditor#getCompEnergy(String)} method.
+*/
+class FileEditor_1Test {
+"
+bab9095a-f985-4344-a8e0-a6084d310333,/EvoSuiteBenchmark/original/29_apbsmem/src/main/java/apbs_mem_gui/Main.java,-1,"ERROR - CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.","// Main.java
+package apbs_mem_gui;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.io.*;
+import com.jgoodies.forms.layout.*;
+import com.jgoodies.forms.builder.*;
+import org.jmol.api.JmolViewer;
+import org.jmol.api.JmolAdapter;
+import org.jmol.popup.JmolPopup;
+
+/**
+ * @author Keith Callenberg, Gabriel de Forest
+ */
+public class Main {
+
+    private JMenuBar mainBar;
+
+    private JMenu fileMenu, focusMenu, helpMenu;
+
+    private JMenuItem save, open, exit, about, readme;
+
+    private ButtonGroup focusbuttons;
+
+    private JRadioButtonMenuItem setFocus0, setFocus1, setFocus2;
+
+    protected int maxfocus = 0, pb = 0;
+
+    private JPanel lpane, rpane;
+
+    private Container mainPane;
+
+    GridBagConstraints gbc = new GridBagConstraints();
+
+    private JButton Run, PQRBrowse1, PQRBrowse2, Preview, RedrawPot;
+
+    protected JCheckBox drawPot;
+
+    protected JFormattedTextField pqrFile1, pqrFile2, gridDimx, gridDimy, gridDimz, gridLen1a, gridLen2a, gridLen3a, gridLen1b, gridLen2b, gridLen3b, gridLen1c, gridLen2c, gridLen3c, countIon1Charge, countIon1Con, countIon1Sz, countIon2Charge, countIon2Con, countIon2Sz, proteinDi, solventDi, membraneDi, srad, sdens, temp, zmem, Lmem, idie, geoFactor1, geoFactor2, geoFactor3, potential, potcontour;
+
+    protected javax.swing.JProgressBar pBar;
+
+    protected javax.swing.JComboBox solMethodCombo, boundaryCondCombo, calcTypeCombo, centerCombo, contourCombo;
+
+    InFile inFile;
+
+    Exec exec = new Exec();
+
+    FileEditor file = new FileEditor();
+
+    //keeps track of whether or not file has been changed
+    boolean hasbeenchanged = true;
+
+    //is file already loaded/saved?
+    boolean file_loaded = false;
+
+    double[] finalenergy, memv;
+
+    File ofile;
+
+    String outfilename;
+
+    String[] theEnergy, ctypes;
+
+    Scanner fScan;
+
+    PrintWriter outFile;
+
+    private JFrame theWindow = new JFrame();
+
+    protected JmolViewer viewer;
+
+    private JmolAdapter adapter;
+
+    private JmolPopup jmolPopup;
+
+    private static double version = 1.04;
+
+    private JDialog aboutdialog, helpdialog;
+
+    private static Main m;
+
+    /**
+     * Main class that includes the GUI components
+     */
+    public Main() {
+    }
+
+    /**
+     * Driver method
+     * @param args No command-line arguments are necessary
+     */
+    public static void main(String[] args);
+
+    private class menuHandler implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == setFocus0) {
+                setMaxFocus(0);
+            }
+            if (e.getSource() == setFocus1) {
+                setMaxFocus(1);
+            }
+            if (e.getSource() == setFocus2) {
+                setMaxFocus(2);
+            } else if (e.getSource() == about) {
+                aboutdialog.show();
+            } else if (e.getSource() == readme) {
+                helpdialog.show();
+            } else //opens a *.in file that has between 0 and 2 focus
+            if (e.getSource() == open) {
+                if (OpenFile()) {
+                    //if got the file successfully and (dont save)
+                    try {
+                        fScan = new Scanner(new FileInputStream(ofile));
+                    } catch (Exception e1) {
+                        System.out.println(e1.getMessage());
+                    }
+                    //assume protein solvation unless we see >1 pqr or memv parameters
+                    calcTypeCombo.setSelectedIndex(0);
+                    StringBuffer theData = new StringBuffer();
+                    int loadfocus = -1;
+                    String nextline;
+                    while (fScan.hasNextLine()) {
+                        nextline = fScan.nextLine();
+                        if (nextline.contains(""elec name"")) {
+                            if (loadfocus > -1 && nextline.endsWith(""0""))
+                                // we only want to load one section so we stop if we see a new section
+                                break;
+                            else
+                                loadfocus++;
+                        } else if (nextline.contains(""end"")) {
+                            //if done with loading a focus level
+                            //save current data regardless. first focus it wont really do anything
+                            SaveData();
+                            maxfocus = loadfocus;
+                            String temp = theData.toString();
+                            String[] data = temp.split(""\n"");
+                            //then load up data to the new focus
+                            LoadData(data, loadfocus);
+                            //finally, reset the data for the next focus
+                            theData = new StringBuffer();
+                        } else {
+                            theData.append(nextline + ""\n"");
+                        }
+                    }
+                    fScan.close();
+                    setMaxFocus(maxfocus);
+                }
+            } else if (e.getSource() == save) {
+                if (SaveData() && SaveDialog(""Save settings to file"")) {
+                    //if it was able to save the data
+                    //save all data to file (true = first run)
+                    SaveToFile(true);
+                    //file has not been changed since
+                    hasbeenchanged = false;
+                }
+            } else if (e.getSource() == exit) {
+                if (hasbeenchanged) {
+                    int answer;
+                    if (file_loaded) {
+                        answer = JOptionPane.showConfirmDialog(null, ""Do you want to save changes to "" + ofile.getName() + ""?"", """", JOptionPane.YES_NO_OPTION);
+                    } else {
+                        answer = JOptionPane.showConfirmDialog(null, ""Do you want to save your settings?"", """", JOptionPane.YES_NO_OPTION);
+                    }
+                    if (answer == JOptionPane.YES_OPTION) {
+                        if (!file_loaded) {
+                            SaveDialog(""Save settings to file"");
+                        }
+                        SaveToFile(true);
+                    }
+                }
+                File curdir = new File(""."");
+                deleteFiles(curdir.getPath(), "".dx"");
+                System.exit(0);
+            }
+        }
+    }
+
+    private class fileInHandler implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == Preview) {
+                if (pqrFile1.getText() == """") {
+                    JOptionPane.showMessageDialog(null, ""Please select the PQR file"", ""Error"", JOptionPane.PLAIN_MESSAGE);
+                    return;
+                } else {
+                    File tfile = new File(pqrFile1.getText());
+                    if (!tfile.exists()) {
+                        JOptionPane.showMessageDialog(null, ""PQR file not found"", ""Error"", JOptionPane.PLAIN_MESSAGE);
+                        return;
+                    }
+                }
+                Integer t1 = Integer.parseInt(gridDimx.getText());
+                Integer t2 = Integer.parseInt(gridDimy.getText());
+                Integer t3 = Integer.parseInt(gridDimz.getText());
+                gridDimx.setText(""65"");
+                gridDimy.setText(""65"");
+                gridDimz.setText(""65"");
+                SaveData();
+                ofile = new File(""./preview_temp"");
+                if (calcTypeCombo.getSelectedIndex() == 1) {
+                    //ION SOLVATION
+                    if (!pqrFile2.getText().equals("""")) {
+                        //Load the ION too!
+                        viewer.evalString(""load APPEND \"""" + pqrFile2.getText() + ""\"""");
+                        viewer.evalString(""frame *;cpk off;wireframe off;cartoon on;color green;select 2.0;color purple;spacefill 100%"");
+                    }
+                }
+                Thread pT = new Thread(new Run(m, inFile, ofile, viewer, pBar, drawPot.isSelected(), potcontour.getText(), true));
+                pT.start();
+                ofile.delete();
+                gridDimx.setText(t1.toString());
+                gridDimy.setText(t2.toString());
+                gridDimz.setText(t3.toString());
+                pBar.setValue(0);
+            } else if (e.getSource() == Run) {
+                if (pqrFile1.getText().equals("""")) {
+                    JOptionPane.showMessageDialog(null, ""Please select the PQR file for the protein."", ""Error"", JOptionPane.PLAIN_MESSAGE);
+                    return;
+                } else {
+                    File tfile1 = new File(pqrFile1.getText());
+                    if (!tfile1.exists()) {
+                        System.out.println(""Protein PQR file not found."");
+                        return;
+                    }
+                }
+                System.out.println(""Focus: "" + maxfocus + "" "" + inFile.getMaxfocus());
+                //clean up files from a previous run - this should not be needed at some point
+                File curdir = new File(""."");
+                deleteFiles(curdir.getPath(), "".dx"");
+                if (SaveData() && SaveDialog(""Enter a name for the output directory before running"")) {
+                    if (calcTypeCombo.getSelectedIndex() == 1) {
+                        //ION SOLVATION - create concatenation file of ion + protein
+                        //Load the ION too!
+                        viewer.evalString(""load FILES \"""" + pqrFile1.getText() + ""\"" \"""" + pqrFile2.getText() + ""\"""");
+                        try {
+                            BufferedWriter prot1 = new BufferedWriter(new FileWriter(pqrFile1.getText() + "".withion.pqr"", false));
+                            BufferedReader in1 = new BufferedReader(new FileReader(pqrFile1.getText()));
+                            BufferedReader in2 = new BufferedReader(new FileReader(pqrFile2.getText()));
+                            String inputline;
+                            while ((inputline = in1.readLine()) != null) {
+                                prot1.write(inputline);
+                                prot1.newLine();
+                            }
+                            while ((inputline = in2.readLine()) != null) {
+                                prot1.write(inputline);
+                                prot1.newLine();
+                            }
+                            prot1.flush();
+                            prot1.close();
+                            in1.close();
+                            in2.close();
+                        } catch (Exception e1) {
+                            System.out.println(e1);
+                        }
+                        inFile.setMol3(pqrFile1.getText() + "".withion.pqr"");
+                        //Load the ION too!
+                        viewer.evalString(""load APPEND \"""" + pqrFile2.getText() + ""\"""");
+                        viewer.evalString(""frame *;cpk off;wireframe off;cartoons on;color green;select 2.0;color purple;spacefill 100%"");
+                    } else if (calcTypeCombo.getSelectedIndex() == 2) {
+                        //GATING CHARGE - turn charges off for dummy calculation
+                        exec.callChargeOff(pqrFile1.getText());
+                        exec.callChargeOff(pqrFile2.getText());
+                    }
+                    Thread t1 = new Thread(new Run(m, inFile, ofile, viewer, pBar, drawPot.isSelected(), potcontour.getText(), false));
+                    t1.start();
+                    if (drawPot.isEnabled()) {
+                        RedrawPot.setEnabled(true);
+                    }
+                }
+                pBar.setValue(0);
+            } else if (e.getSource() == PQRBrowse1) {
+                final JFileChooser fc = new JFileChooser(new File("".""));
+                fc.setAcceptAllFileFilterUsed(false);
+                EFileFilter filter = new EFileFilter(""pqr"");
+                filter.setDescription(""PQR files"");
+                fc.addChoosableFileFilter(filter);
+                int returnVal = fc.showOpenDialog(theWindow);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    pqrFile1.setText(fc.getSelectedFile().getPath());
+                    viewer.openFile(pqrFile1.getText());
+                }
+            } else if (e.getSource() == PQRBrowse2) {
+                final JFileChooser fc = new JFileChooser(new File("".""));
+                fc.setAcceptAllFileFilterUsed(false);
+                EFileFilter filter = new EFileFilter(""pqr"");
+                filter.setDescription(""PQR files"");
+                fc.addChoosableFileFilter(filter);
+                int returnVal = fc.showOpenDialog(theWindow);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    pqrFile2.setText(fc.getSelectedFile().getPath());
+                    // viewer.openFile(pqrFile2.getText());
+                }
+            } else if (e.getSource() == boundaryCondCombo) {
+                if (calcTypeCombo.getSelectedIndex() == 2) {
+                    boundaryCondCombo.setSelectedIndex(4);
+                    potential.setEnabled(true);
+                } else {
+                    if (boundaryCondCombo.getSelectedIndex() == 4) {
+                        boundaryCondCombo.setSelectedIndex(0);
+                        potential.setEnabled(false);
+                    }
+                    if (boundaryCondCombo.getSelectedIndex() == 3 && maxfocus == 0) {
+                        String temp;
+                        Object[] choices = { ""0"", ""1"", ""2"" };
+                        temp = (String) JOptionPane.showInputDialog(null, ""How many focus levels do you want to set?"", ""Focus levels"", JOptionPane.QUESTION_MESSAGE, null, choices, choices[0]);
+                        setMaxFocus(Integer.parseInt(temp));
+                    }
+                }
+            } else if (e.getSource() == calcTypeCombo) {
+                if (calcTypeCombo.getSelectedIndex() == 0) {
+                    //PROTEIN SOLVATION
+                    pqrFile2.setEnabled(false);
+                    PQRBrowse2.setEnabled(false);
+                    pqrFile1.setToolTipText(""PQR file of protein in membrane"");
+                    if (boundaryCondCombo.getSelectedIndex() == 4) {
+                        boundaryCondCombo.setSelectedIndex(0);
+                    }
+                } else if (calcTypeCombo.getSelectedIndex() == 1) {
+                    //ION SOLVATION
+                    pqrFile2.setEnabled(true);
+                    PQRBrowse2.setEnabled(true);
+                    pqrFile1.setToolTipText(""PQR file of protein"");
+                    pqrFile2.setToolTipText(""PQR file of ion only"");
+                    if (boundaryCondCombo.getSelectedIndex() == 4) {
+                        boundaryCondCombo.setSelectedIndex(0);
+                    }
+                } else {
+                    //GATING CHARGE
+                    pqrFile2.setEnabled(true);
+                    PQRBrowse2.setEnabled(true);
+                    pqrFile1.setToolTipText(""PQR file of gating conformation 1"");
+                    pqrFile2.setToolTipText(""PQR file of gating conformation 2"");
+                    boundaryCondCombo.setSelectedIndex(4);
+                    potential.setEnabled(true);
+                }
+            } else if (e.getSource() == drawPot) {
+                potcontour.setEnabled(drawPot.isSelected());
+            } else if (e.getSource() == RedrawPot) {
+                viewer.evalString(""isosurface delete"");
+                if (drawPot.isSelected()) {
+                    viewer.evalString(""isosurface "" + getIsocontour() + "" \""dielx_"" + (maxfocus + 1) + ""m.dx\""; color isosurface white translucent"");
+                    viewer.evalString(""isosurface potpos "" + potcontour.getText() + "" \""pot_1.dx\""; color isoSurface red translucent"");
+                    viewer.evalString(""isosurface potneg -"" + potcontour.getText() + "" \""pot_1.dx\""; color isoSurface blue translucent"");
+                }
+            }
+        }
+    }
+
+    public Double getIsocontour();
+
+    /**
+     * Change the number of focus levels to use in the calculation
+     * @param mf The new number of focus levels. Current options are 0, 1, or 2.
+     */
+    public void setMaxFocus(int mf);
+
+    /**
+     * Enable or disable text input fields for the level 1 focusing.
+     * @param v flag to enable (if true) or disable (if false) the focus level 1.
+     */
+    public void setFocus1Enable(boolean v);
+
+    /**
+     * Enable or disable text input fields for the level 2 focusing.
+     * @param v flag to enable (if true) or disable (if false) the focus level 2.
+     */
+    public void setFocus2Enable(boolean v);
+
+    /**
+     * Save the parameters stored in the inFile object to a file.
+     * @param firstcall True if the file to be written is the ""dummy"" file
+     * before the real calculation, otherwise false.
+     */
+    public void SaveToFile(boolean firstcall);
+
+    /**
+     * Store the current GUI text field values in the inFile object.
+     * @return True if the operation was succesful, false otherwise.
+     */
+    public boolean SaveData();
+
+    /**
+     * Load parameters from an APBS input file into the GUI.
+     * @param thedata APBS input file read into a string array by lines.
+     * @param loadfocus the focus level for which to load the parameters.
+     */
+    private void LoadData(String[] thedata, int loadfocus);
+
+    /**
+     * Simple method for logging debug output to file.
+     * @param msg String to write to file for debug purposes.
+     */
+    protected void log(String msg);
+
+    /**
+     * Locate a file from the filesystem via the JFileChooser.
+     * @return True if the file was successfully selected, otherwise false.
+     */
+    private boolean OpenFile();
+
+    /**
+     * Select a location and name for saving a file.
+     * @param savetitle title for the JFileChooser window.
+     * @return True if a file path was successfully chosen, otherwise false.
+     */
+    private boolean SaveDialog(String savetitle);
+
+    /**
+     * Delete a list of temporary files based on extension.
+     * @param directory Path to the directory that contains the files.
+     * @param extension File extension of the files that will be deleted.
+     */
+    private void deleteFiles(String directory, String extension);
+
+    /**
+     * Copy files based on extension
+     * @param src Path to source directory.
+     * @param dst Path to destination directory.
+     * @param extension Extension of files to be copied.
+     */
+    public void copyFiles(String src, String dst, String extension);
+
+    private void dependencyCheck();
+
+    /**
+     */
+    public class ExtensionFilter implements FilenameFilter {
+
+        private String extension;
+
+        /**
+         * @param extension
+         */
+        public ExtensionFilter(String extension) {
+            this.extension = extension;
+        }
+
+        public boolean accept(File dir, String name) {
+            return (name.endsWith(extension));
+        }
+    }
+
+    /**
+     */
+    public class SimpleAboutDialog extends JDialog {
+
+        /**
+         * A basic dialog for describing details of the software and providing contact information.
+         * @param parent The APBSmem main JFrame window.
+         */
+        public SimpleAboutDialog(JFrame parent) {
+            super(parent, ""About APBSmem"", true);
+            Box b = Box.createVerticalBox();
+            b.add(Box.createGlue());
+            b.add(new JLabel(""APBSmem v"" + version));
+            b.add(new JLabel(""Grabe Lab""));
+            b.add(new JLabel(""University of Pittsburgh""));
+            b.add(new JLabel(""http://mgrabe1.bio.pitt.edu/apbsmem/""));
+            b.add(Box.createGlue());
+            getContentPane().add(b, ""Center"");
+            JPanel p2 = new JPanel();
+            JButton ok = new JButton(""OK"");
+            p2.add(ok);
+            getContentPane().add(p2, ""South"");
+            ok.addActionListener(new ActionListener() {
+
+                public void actionPerformed(ActionEvent evt) {
+                    setVisible(false);
+                }
+            });
+            setSize(300, 200);
+        }
+    }
+
+    public class SimpleHelpDialog extends JDialog {
+
+        /**
+         * A basic dialog for describing details of the software and providing contact information.
+         * @param parent The APBSmem main JFrame window.
+         */
+        public SimpleHelpDialog(JFrame parent) {
+            super(parent, ""APBSmem Help"", true);
+            JScrollPane jsp = new JScrollPane();
+            try {
+                JEditorPane jep = new JEditorPane(""http://mgrabe1.bio.pitt.edu/apbsmem/"");
+                jep.setEditable(false);
+                jsp.getViewport().add(jep, BorderLayout.CENTER);
+            } catch (Exception e) {
+                System.out.println(""couldnt load editorpane"");
+            }
+            JButton ok = new JButton(""OK"");
+            jsp.validate();
+            jsp.add(ok);
+            getContentPane().add(jsp, ""South"");
+            ok.addActionListener(new ActionListener() {
+
+                public void actionPerformed(ActionEvent evt) {
+                    setVisible(false);
+                }
+            });
+            setSize(300, 200);
+        }
+    }
+}
+","// MainTest.java
+package apbs_mem_gui;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.io.*;
+import com.jgoodies.forms.layout.*;
+import com.jgoodies.forms.builder.*;
+import org.jmol.api.JmolViewer;
+import org.jmol.api.JmolAdapter;
+import org.jmol.popup.JmolPopup;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains one unit test case for the {@link Main#SaveData()} method.
+*/
+class MainTest {","// MainTest.java
+package apbs_mem_gui;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.io.*;
+import com.jgoodies.forms.layout.*;
+import com.jgoodies.forms.builder.*;
+import org.jmol.api.JmolViewer;
+import org.jmol.api.JmolAdapter;
+import org.jmol.popup.JmolPopup;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains one unit test case for the {@link Main#SaveData()} method.
+*/
+class MainTest {
+"

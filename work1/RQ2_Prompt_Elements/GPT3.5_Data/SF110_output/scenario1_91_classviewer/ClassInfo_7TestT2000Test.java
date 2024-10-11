@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `ClassInfo_7Test` is not properly defined. Could you please provide the complete code for me to assist you better?

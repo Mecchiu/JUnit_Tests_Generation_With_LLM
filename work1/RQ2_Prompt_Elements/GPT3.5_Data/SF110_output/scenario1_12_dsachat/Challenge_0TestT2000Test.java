@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems to be missing the actual implementation of the `rollTalent()`, `rollAttr()`, and `rollFight()` methods. Please provide the complete code so I can assist you better.

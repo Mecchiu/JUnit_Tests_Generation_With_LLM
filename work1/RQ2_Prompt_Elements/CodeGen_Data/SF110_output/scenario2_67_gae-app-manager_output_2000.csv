@@ -1,0 +1,424 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+3141adf5-caa5-4a67-9ca4-d903132ba2e3,/EvoSuiteBenchmark/original/67_gae-app-manager/src/main/java/net/sf/gaeappmanager/google/appengine/Manager.java,43.50170540809631,stop,"// Manager.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+/**
+ * Google App Engine application manager.
+ *
+ * @author Alois Belaska
+ */
+public class Manager {
+
+    /**
+     * Retrieve quota details of application deployed in Google App Engine.
+     *
+     * @param userid full gmail address for user
+     * @param password gmail account password
+     * @param source name of application requesting quota details
+     * @param application appspot application name
+     * @return quota details of application
+     * @throws Exception in case of failure
+     */
+    public static QuotaDetails retrieveAppQuotaDetails(String userid, String password, String source, String application) throws Exception {
+        String authCookie = LogonHelper.loginToGoogleAppEngine(userid, password, source);
+        DefaultHttpClient client = new DefaultHttpClient();
+        try {
+            HttpGet get = new HttpGet(""https://appengine.google.com/dashboard/quotadetails?&app_id="" + application);
+            get.setHeader(""Cookie"", ""ACSID="" + authCookie);
+            HttpResponse response = client.execute(get);
+            return new QuotaDetailsParser().parse(response.getEntity().getContent());
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+}
+","// ManagerTest.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Manager}.
+* It contains one unit test case for the {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+*/
+class ManagerTest {","// ManagerTest.java
+package net.sf.gaeappmanager.google.appengine;
+
+import net.sf.gaeappmanager.google.LogonHelper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Manager}.
+* It contains one unit test case for the {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.
+*/
+class ManagerTest {
+String testUrl = ""http://apps.google.com/appengine/"";
+		Object testObject = new QuotaDetails();
+		Manager manager = new Manager();
+		
+		//@RunWith(Parameterized.class)
+		TestParameterizedParameterized testValue1, testValue2;
+		
+		@Test
+		void testDefaultRetrieveAppQuotaDetails(Parameters parameter) throws Exception {
+		
+			// Set up the parameters and check status code
+			Object[] params = testValue1.getParams(parameter);
+			testValue1.assertValue1(params.length, ""1"", ""1"");
+			
+			// Make sure that the request is successful
+			params = testValue2.getParams(parameter);
+			testValue2.assertValue1(params.length, ""2"", """");
+			assertEquals(testUrl + ""?APPID=%2$s&QUOTA="", manager.testUrl(queryString(""APPID=%2$s&QUOTA="", null)));
+			assertEquals(testUrl + ""?APPID=%2$s&QUOTA=&APPSERVERID=%%2$s"", manager.testUrl(testUrl, null));
+			assertEquals(testUrl + ""?APPID=%%2$s&QUOTA=&APPSERVERID=%%2$s"", manager.testUrl(testUrl, testValue1.parameter));
+			assertEquals(testUrl + ""?APPID=%%2$s&QUOTA=%2$d"", manager.testUrl(testUrl, testValue1.parameter, ""3""));
+			assertEquals(testUrl + ""?APPID=%%2$s&QUOTA=%2$d&APPSERVERID=%%2$s"", manager.testUrl(testUrl, testValue1.parameter, ""3""));
+			assertEquals(testUrl + ""?APPID=%%2$s&QUOTA=%2$d&APPSERVERID=%%2$s"", manager.testUrl(testUrl, testValue1.parameter, ""3""));
+			assertTrue(manager.isValid(testUrl, testValue1.parameter));
+			
+			// TODO check status code (default request without quota)
+		}
+		
+		@Test
+		void testRetrieveAppQuotaDetailsFromGoogleAppEngine(Parameters parameter) throws Exception {
+		
+			// Set up the parameters and check status code
+			Object[] params = testValue2.getParams(parameter);
+			testValue2.assertParam1(params.length, ""1"");
+			testValue2.assertParam2(params.length, ""3"");
+			String expectedAppId = testValue1.parameter;
+			
+			Object[] paramsGoogleApp = LogonHelper.logoutFromGoogleAppEngine();
+			LogonHelper.loginToGoogleAppEngine(paramsGoogleApp[0].toString(),
+					(String) paramsGoogleApp[1].toString());
+			Object[] paramsGoogleAppGoogleAccount = LogonHelper.logoutFromGoogleAppEngine();
+			LogonHelper.loginToGoogleAppEngine(testUrl, ""user"");
+			
+			// Perform the request
+			params = testValue2.getParams(parameter);
+			LogonHelper.logoutFromGoogleAppEngine(
+					(String) params[0].toString(), paramsGoogleApp[0].toString());
+			params = testValue2.getParams(parameter);
+			HttpGet get = new HttpGet(""http://%s/%s?APPID=%s&QUOTA=%d&APPSERVERID=%s"",
+					testUrl, testUrlGoogleApp, expectedAppId, """", testUrlGoogleAccount);
+			HttpResponse response = manager.retrieveAppQuotaDetails(testUrl, expectedAppId,
+					LogonHelper.APPLICATION_ID_GOOGLE_GAE_ACCESS_CODE,
+					LogonHelper.APPLICATION_ID_GOOGLE_APPSERVERID);
+					
+			HttpResponse responseGoogleAppGoogleAccount =
+					manager.retrieveAppQuotaDetails(testUrlGoogleAccount, expectedAppId,
+							LogonHelper.APPLICATION_ID_GOOGLE_GAE_ACCESS_CODE,
+							LogonHelper.APPLICATION_ID_GOOGLE_APPSERVERID);
+			
+			assertEquals(get.getURI().toString(), responseGoogleAppGoogleAccount.getURI().toString());
+			assertEquals(get.getURI().toString(), response.getURI().toString());
+		}
+
+}"
+079280f7-b74d-4379-afea-6d186f3902dd,/EvoSuiteBenchmark/original/67_gae-app-manager/src/main/java/net/sf/gaeappmanager/google/LogonHelper.java,39.37608098983765,stop,"// LogonHelper.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+
+/**
+ * Google login helper.
+ *
+ * Based on work of Cheers Geoff.
+ *
+ * http://groups.google.com/group/google-appengine
+ * -java/browse_thread/thread/c96d4fff73117e1d?pli=1
+ *
+ * @author Alois Belaska
+ */
+public class LogonHelper {
+
+    /**
+     * Returns the ACSID string to be set as the Cookie field in the request
+     * header.
+     *
+     * @param userid full gmail address for user
+     * @param password password
+     * @param source name of application requesting quota details
+     * @return the ACSID field value
+     * @throws Exception if any error occurs getting the ACSID
+     */
+    public static String loginToGoogleAppEngine(String userid, String password, String source) throws Exception {
+        DefaultHttpClient client = new DefaultHttpClient();
+        try {
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            nvps.add(new BasicNameValuePair(""accountType"", ""HOSTED_OR_GOOGLE""));
+            nvps.add(new BasicNameValuePair(""Email"", userid));
+            nvps.add(new BasicNameValuePair(""Passwd"", password));
+            nvps.add(new BasicNameValuePair(""service"", ""ah""));
+            nvps.add(new BasicNameValuePair(""source"", source));
+            HttpPost post = new HttpPost(""https://www.google.com/accounts/ClientLogin"");
+            post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+            HttpResponse response = client.execute(post);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new Exception(""Error obtaining ACSID"");
+            }
+            String authToken = getAuthToken(response.getEntity().getContent());
+            post.abort();
+            HttpGet get = new HttpGet(""https://appengine.google.com/_ah/login?auth="" + authToken);
+            response = client.execute(get);
+            for (Cookie cookie : client.getCookieStore().getCookies()) {
+                if (cookie.getName().startsWith(""ACSID"")) {
+                    return cookie.getValue();
+                }
+            }
+            get.abort();
+            throw new Exception(""Did not find ACSID cookie"");
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+}
+","// LogonHelperTest.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogonHelper}.
+* It contains one unit test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+*/
+class LogonHelperTest {","// LogonHelperTest.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogonHelper}.
+* It contains one unit test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+*/
+class LogonHelperTest {
+// LogonHelper.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+
+/**
+ * Google login helper.
+ *
+ * Based on work of Cheers Geoff.
+ *
+ * http://groups.google.com/group/google-appengine
+ * -java/browse_thread/thread/c96d4fff73117e1d?pli=1
+ *
+ * @author Alois Belaska
+ */
+public class LogonHelper {
+
+    /**
+     * Returns the ACSID string to be set as the Cookie field in the request
+     * header.
+     *
+     * @param userid full gmail address for user
+     * @param password password
+     * @param source name of application requesting quota details
+     * @return the ACSID field value
+     * @throws Exception if any error occurs getting the ACSID
+     */
+    public static String loginToGoogleAppEngine(String userid, String password, String source) throws Exception {
+        DefaultHttpClient client = new DefaultHttpClient();
+        try {
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            nvps.add(new BasicNameValuePair(""accountType"", ""HOSTED_OR_GOOGLE""));
+            nvps.add(new BasicNameValuePair(""Email"", userid));
+            nvps.add(new BasicNameValuePair(""Passwd"", password));
+            nvps.add(new BasicNameValuePair(""service"", ""ah""));
+            nvps.add(new BasicNameValuePair(""source"", source));
+            HttpPost post = new HttpPost(""https://www.google.com/accounts/ClientLogin"");
+            post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+            HttpResponse response = client.execute(post);
+            if (response.getStatusLine().getStatusCode()!= 200) {
+                throw new Exception(""Error obtaining ACSID"");
+            }
+            String authToken = getAuthToken(response.getEntity().getContent());
+            post.abort();
+            HttpGet get = new HttpGet(""https://appengine.google.com/_ah/login?auth="" + authToken);
+            response = client.execute(get);
+            for (Cookie cookie : client.getCookieStore().getCookies()) {
+                if (cookie.getName().startsWith(""ACSID"")) {
+                    return cookie.getValue();
+                }
+            }
+            get.abort();
+            throw new Exception(""Did not find ACSID cookie"");
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+}
+
+// LogonHelperTest.java
+package net.sf.gaeappmanager.google;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogonHelper}.
+* It contains one unit test case for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.
+*/
+class LogonHelperTest {
+		
+  @Test
+  void testLoginToGoogleAppElement() throws Exception {
+    logon(new LoginRequestBuilder().success(""email1@yahoo.com"").user(""me""));
+    assertEquals(""email1@yahoo.com"", getAuthToken(""https://www.google.com/_ah/account/email""));
+    assertEquals(""me"", getAuthToken(""https://www.google.com/_ah/account/email""), ""Authentication failed for user'me'"");  
+
+    // Make sure LoginRequestBuilder doesn't require a user token
+    List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+    nvps.add(new BasicNameValuePair(""accountType"", ""HOSTED_OR_GOOGLE""));
+    HttpPost post = new HttpPost(""https://www.google.com/_ah/login"");
+    post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+
+    try {
+      client.execute(post);
+    } catch (Exception ex) {
+      // We expect the POST to fail
+    }    
+  }
+	
+  @Test
+  void testLoginToGoogleAppManager() throws Exception {
+    List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+    nvps.add(new BasicNameValuePair(""accountType"", ""MANAGER""));
+    HttpPost post = new HttpPost(""https://www.google.com/_ah/login"");
+    post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+
+    try {
+      client.execute(post);
+    } catch (Exception ex) {
+      // We expect the POST to fail
+    }    
+
+    // Make sure LoginRequestBuilder doesn't require a user token
+    nvps = new ArrayList<NameValuePair>();
+    nvps.add(new BasicNameValuePair(""accountType"", ""HOSTED_OR_GOOGLE""));
+    nvps.add(new BasicNameValuePair(""Email"", ""test@mail.com""));
+    post = new HttpPost(""https://www.google.com/_ah/login"");
+    post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+
+    try {
+      client.execute(post);
+    } catch (Exception ex) {
+      // We expect the POST to fail
+    }
+  }
+    
+  /**
+   * A utility method for logging in to Google via HttpGet.
+   *
+   * @param post HTTP POST object
+   */
+  private static void logon(HttpPost post) throws Exception {
+    List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+    List<String> values = new ArrayList<String>();
+    for (String rv : getAuthTokenValues()) {
+      ValuesPair value = new ValuesPair();
+      values.add(rv);
+      ArrayList<String> pv = new ArrayList<String>();
+      pv.add(value.name);
+      pv.add(value.value);
+      List<String> r = new ArrayList<String>();
+      r.add(rv);
+      nvps.add(new BasicNameValuePair(pv.get(0), r.get(0)));
+    }
+    input(post, values);
+  }
+
+}
+"

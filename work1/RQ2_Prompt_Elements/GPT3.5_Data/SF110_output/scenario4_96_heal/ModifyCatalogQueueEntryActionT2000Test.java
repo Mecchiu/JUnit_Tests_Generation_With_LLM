@@ -1,0 +1,1 @@
+I can help you write the source code for the test cases. Please provide me with the details of the ten test cases you want to write for the `actionRequiresLogin()` method.

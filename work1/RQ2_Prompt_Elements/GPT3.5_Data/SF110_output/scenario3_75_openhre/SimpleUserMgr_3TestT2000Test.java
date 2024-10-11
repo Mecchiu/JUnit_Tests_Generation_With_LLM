@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class definition for `SimpleUserMgr` is missing its implementation. Can you please provide the complete code for `SimpleUserMgr` so I can assist you better?

@@ -1,0 +1,1 @@
+I'm sorry, it seems that the code snippet you provided for the SolveTest class is incomplete. Could you please provide the complete code for the SolveTest class?

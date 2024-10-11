@@ -1,0 +1,4048 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wT7pt2EIjfCSURoNIvLtqmQ0p9BA,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/FileFollower_0Test.java,59.08256506919861,length,"// FileFollower.java
+/*
+ * Copyright (C) 2000-2003 Greg Merrill (greghmerrill@yahoo.com)
+ * 
+ * This file is part of Follow (http://follow.sf.net).
+ * 
+ * Follow is free software; you can redistribute it and/or modify it under the
+ * terms of version 2 of the GNU General Public License as published by the Free
+ * Software Foundation.
+ * 
+ * Follow is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * Follow; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
+ * Suite 330, Boston, MA 02111-1307 USA
+ */
+package ghm.follow;
+
+import ghm.follow.io.OutputDestination;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Instances of this class 'follow' a particular text file, assmebling that
+ * file's characters into Strings and sending them to instances of
+ * {@link OutputDestination}. The name and behavior of this class are inspired
+ * by the '-f' (follow) flag of the UNIX command 'tail'.
+ *
+ * @see OutputDestination
+ * @author <a href=""mailto:greghmerrill@yahoo.com"">Greg Merrill</a>
+ */
+public class FileFollower {
+
+    /**
+     * Constructs a new FileFollower; invoking this constructor does
+     * <em>not</em> cause the new object to begin following the supplied file.
+     * In order to begin following, one must call {@link #start()}.
+     *
+     * @param file
+     *            file to be followed
+     * @param bufferSize
+     *            number of chars to be read each time the file is accessed
+     * @param latency
+     *            each time a FileFollower's running thread encounters the end
+     *            of the file in its stream, it will rest for this many
+     *            milliseconds before checking to see if there are any more
+     *            bytes in the file
+     * @param initialOutputDestinations
+     *            an initial array of OutputDestinations which will be used when
+     *            printing the contents of the file (this array may be
+     *            <tt>null</tt>)
+     */
+    public FileFollower(File file, int bufferSize, int latency, OutputDestination[] initialOutputDestinations) {
+        this.file = file;
+        this.bufferSize = bufferSize;
+        this.latency = latency;
+        int initOutputDestsSize = (initialOutputDestinations != null) ? initialOutputDestinations.length : 0;
+        outputDestinations = new ArrayList<OutputDestination>(initOutputDestsSize);
+        for (int i = 0; i < initOutputDestsSize; i++) {
+            outputDestinations.add(initialOutputDestinations[i]);
+        }
+    }
+
+    /**
+     * Identical to {@link #FileFollower(File, int, int, OutputDestination[])},
+     * except that a default buffer size (32,768 characters) and latency (1000
+     * milliseconds) are used.
+     *
+     * @see #FileFollower(File, int, int, OutputDestination[])
+     */
+    public FileFollower(File file, OutputDestination[] initialOutputDestinations) {
+        // Initial buffer size pilfered from org.gjt.sp.jedit.Buffer. I'm not
+        // sure whether this is a truly optimal buffer size.
+        this(// Don't change without updating docs!
+        file, // Don't change without updating docs!
+        32768, // Don't change without updating docs!
+        1000, initialOutputDestinations);
+    }
+
+    /**
+     * Cause this FileFollower to spawn a thread which will follow the file
+     * supplied in the constructor and send its contents to all of the
+     * FileFollower's OutputDestinations.<br>
+     * <br>
+     * If this FileFollower is running but paused, this method equates to
+     * calling unpause().
+     */
+    public synchronized void start() {
+        if (continueRunning && paused) {
+            unpause();
+        } else {
+            continueRunning = true;
+            paused = false;
+            runnerThread = new Thread(new Runner(), getFollowedFile().getName());
+            runnerThread.start();
+        }
+    }
+
+    public synchronized void pause() {
+        paused = true;
+    }
+
+    public synchronized void unpause() {
+        paused = false;
+    }
+
+    public synchronized void restart() {
+        needsRestart = true;
+        runnerThread.interrupt();
+    }
+
+    /**
+     * Cause this FileFollower to stop following the file supplied in the
+     * constructor after it flushes the characters it's currently reading to all
+     * its OutputDestinations.
+     */
+    public synchronized void stop() {
+        continueRunning = false;
+        runnerThread.interrupt();
+    }
+
+    /**
+     * Like {@link #stop()}, but this method will not exit until the thread
+     * which is following the file has finished executing (i.e., stop
+     * synchronously).
+     */
+    public synchronized void stopAndWait() throws InterruptedException {
+        stop();
+        while (runnerThread.isAlive()) {
+            Thread.yield();
+        }
+    }
+
+    /**
+     * Send the supplied string to all OutputDestinations
+     *
+     * @param s
+     */
+    private synchronized void print(String s) {
+        for (OutputDestination out : outputDestinations) {
+            out.print(s);
+        }
+    }
+
+    /**
+     * Clear all OutputDestinations
+     */
+    private synchronized void clear() {
+        for (OutputDestination out : outputDestinations) {
+            out.clear();
+        }
+    }
+
+    /**
+     * Add another OutputDestination to which the followed file's contents
+     * should be printed.
+     *
+     * @param outputDestination
+     *            OutputDestination to be added
+     */
+    public boolean addOutputDestination(OutputDestination outputDestination) {
+        return outputDestinations.add(outputDestination);
+    }
+
+    /**
+     * Remove the supplied OutputDestination from the list of OutputDestinations
+     * to which the followed file's contents should be printed.
+     *
+     * @param outputDestination
+     *            OutputDestination to be removed
+     */
+    public boolean removeOutputDestination(OutputDestination outputDestination) {
+        return outputDestinations.remove(outputDestination);
+    }
+
+    /**
+     * Returns the List which maintains all OutputDestinations for this
+     * FileFollower.
+     *
+     * @return contains all OutputDestinations for this FileFollower
+     */
+    public List<OutputDestination> getOutputDestinations() {
+        return outputDestinations;
+    }
+
+    /**
+     * Returns the file which is being followed by this FileFollower
+     *
+     * @return file being followed
+     */
+    public File getFollowedFile() {
+        return file;
+    }
+
+    /**
+     * Returns the following state of a file
+     *
+     * @return true if being followed, false if not being followed
+     */
+    public boolean isBeingFollowed() {
+        return continueRunning;
+    }
+
+    /**
+     * Returns the pause state of the follower.
+     *
+     * @return true if paused, false otherwise
+     */
+    public boolean isPaused() {
+        return paused;
+    }
+
+    /**
+     * Returns the size of the character buffer used to read characters from the
+     * followed file. Each time the file is accessed, this buffer is filled.
+     *
+     * @return size of the character buffer
+     */
+    public int getBufferSize() {
+        return bufferSize;
+    }
+
+    /**
+     * Sets the size of the character buffer used to read characters from the
+     * followed file. Increasing buffer size will improve efficiency but
+     * increase the amount of memory used by the FileFollower.<br>
+     * <em>NOTE:</em> Setting this value will <em>not</em> cause a running
+     * FileFollower to immediately begin reading characters into a buffer of the
+     * newly specified size. You must stop & restart the FileFollower in order
+     * for changes to take effect.
+     *
+     * @param bufferSize
+     *            size of the character buffer
+     */
+    public void setBufferSize(int bufferSize) {
+        this.bufferSize = bufferSize;
+    }
+
+    /**
+     * Returns the time (in milliseconds) which a FileFollower spends sleeping
+     * each time it encounters the end of the followed file.
+     *
+     * @return latency, in milliseconds
+     */
+    public int getLatency() {
+        return latency;
+    }
+
+    /**
+     * Sets the time (in milliseconds) which a FileFollower spends sleeping each
+     * time it encounters the end of the followed file. Note that extremely low
+     * latency values may cause thrashing between the FileFollower's running
+     * thread and other threads in an application. A change in this value will
+     * be reflected the next time the FileFollower's running thread sleeps.
+     *
+     * @param latency
+     *            latency, in milliseconds
+     */
+    public void setLatency(int latency) {
+        this.latency = latency;
+    }
+
+    protected int bufferSize;
+
+    protected int latency;
+
+    protected File file;
+
+    protected List<OutputDestination> outputDestinations;
+
+    protected boolean continueRunning;
+
+    protected boolean needsRestart;
+
+    protected Thread runnerThread;
+
+    protected boolean paused;
+
+    /**
+     * Instances of this class are used to run a thread which follows a
+     * FileFollower's file and sends prints its contents to OutputDestinations.
+     * This class should only handle the gathering of data from the followed
+     * file. Actually writing to the output destinations is handled by the outer
+     * class (FileFollower).
+     */
+    class Runner implements Runnable {
+
+        private Logger log = Logger.getLogger(Runner.class.getName());
+
+        public void run() {
+            log.finer(""entering FileFollower.run()"");
+            while (continueRunning) {
+                runAction();
+            }
+            log.finer(""exiting FileFollower.run()"");
+        }
+
+        protected void runAction() {
+            try {
+                clear();
+                long fileSize = file.length();
+                byte[] byteArray = new byte[bufferSize];
+                int numBytesRead;
+                long lastActivityTime = file.lastModified();
+                // create some stream readers to handle the file
+                FileInputStream fis = new FileInputStream(file);
+                BufferedInputStream bis = new BufferedInputStream(fis);
+                // start at the beginning of the file
+                long startingPoint = 0;
+                // if the file size is bigger than the buffer size, skip to the
+                // end of the file if not performing a restart
+                if (fileSize > bufferSize) {
+                    startingPoint = fileSize - bufferSize;
+                }
+                // reset the restart flag
+                needsRestart = false;
+                log.finer(""Starting point: "" + startingPoint + ""; Last activity: "" + lastActivityTime);
+                bis.skip(startingPoint);
+                while (continueRunning && !needsRestart) {
+                    if (!paused) {
+                        lastActivityTime = System.currentTimeMillis();
+                        numBytesRead = bis.read(byteArray, 0, byteArray.length);
+                        boolean dataWasFound = (numBytesRead > 0);
+                        log.finer(""Bytes read: "" + numBytesRead + ""; dataWasFound: "" + dataWasFound);
+                        // if data was found, print it and log activity time
+                        if (dataWasFound) {
+                            String output = new String(byteArray, 0, numBytesRead);
+                            // print the output to the listeners
+                            print(output);
+                        } else // no data found so check the file and restart if needed
+                        {
+                            // check if the file handle has become stale (file
+                            // was modified, but no data was read).
+                            boolean fileExists = file.exists();
+                            // removed check for 0 length because a file could
+                            // change by being cleared out
+                            // && (file_.length() > 0);
+                            boolean fileHasChanged = file.lastModified() > lastActivityTime;
+                            if (fileExists && fileHasChanged) {
+                                log.finer(""Needs restart [fileExists="" + fileExists + ""; fileHasChanged="" + fileHasChanged + ""]"");
+                                needsRestart = true;
+                            }
+                        }
+                        boolean allDataRead = (numBytesRead < byteArray.length);
+                        if (allDataRead && !needsRestart) {
+                            log.finer(""Sleeping for "" + latency + ""ms [allDataRead:"" + allDataRead + ""; needsRestart:"" + needsRestart + ""]"");
+                            sleep();
+                        }
+                    } else {
+                        log.finer(""Runner paused."");
+                        sleep();
+                    }
+                }
+                log.finer(""exiting Runner.runAction [continueRunning="" + continueRunning + ""; needsRestart="" + needsRestart + ""]"");
+                bis.close();
+                fis.close();
+            } catch (IOException e) {
+                log.log(Level.SEVERE, ""IOException while following file"", e);
+            }
+        }
+
+        private void sleep() {
+            try {
+                Thread.sleep(latency);
+            } catch (InterruptedException e) {
+                // Interrupt may be thrown manually by stop()
+                log.finer(""DIED IN MY SLEEP"");
+            }
+        }
+    }
+
+    /**
+     * Line separator, retrieved from System properties & stored statically.
+     */
+    protected static final String lineSeparator = System.getProperty(""line.separator"");
+}
+","// FileFollower_0Test.java
+package ghm.follow;
+
+import ghm.follow.io.OutputDestination;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileFollower}.
+* It contains ten unit test cases for the {@link FileFollower#addOutputDestination(OutputDestination)} method.
+*/
+class FileFollower_0Test {","// FileFollower_0Test.java
+package ghm.follow;
+
+import ghm.follow.io.OutputDestination;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileFollower}.
+* It contains ten unit test cases for the {@link FileFollower#addOutputDestination(OutputDestination)} method.
+*/
+class FileFollower_0Test {
+
+		private static final Logger LOG = Logger.getLogger(FileFollower_0Test.class.getName());
+		
+		private static final String TEST_FILE_NAME = ""test.txt"";
+		
+		private static final String TEST_FILE_CONTENT = ""This is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED = ""This is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_TWICE = ""This is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_THRICE = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_FOUR_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_FIVE_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_SIX_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_SEVEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_EIGHT_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_NINE_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_TEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_ELEVEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_TWELVE_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_THIRTEEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_FOURTEEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_FIFTEEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_SIXTEEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_SEVENTEEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file."";
+		
+		private static final String TEST_FILE_CONTENT_APPENDED_EIGHTEEN_TIMES = ""This is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file.\nThis is a test file"
+cmpl-6wT8sqKMjmdIGcPZMvPfNowAcJfYw,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/FileFollower_1Test.java,51.31059908866882,length,"// FileFollower.java
+/*
+ * Copyright (C) 2000-2003 Greg Merrill (greghmerrill@yahoo.com)
+ * 
+ * This file is part of Follow (http://follow.sf.net).
+ * 
+ * Follow is free software; you can redistribute it and/or modify it under the
+ * terms of version 2 of the GNU General Public License as published by the Free
+ * Software Foundation.
+ * 
+ * Follow is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * Follow; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
+ * Suite 330, Boston, MA 02111-1307 USA
+ */
+package ghm.follow;
+
+import ghm.follow.io.OutputDestination;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Instances of this class 'follow' a particular text file, assmebling that
+ * file's characters into Strings and sending them to instances of
+ * {@link OutputDestination}. The name and behavior of this class are inspired
+ * by the '-f' (follow) flag of the UNIX command 'tail'.
+ *
+ * @see OutputDestination
+ * @author <a href=""mailto:greghmerrill@yahoo.com"">Greg Merrill</a>
+ */
+public class FileFollower {
+
+    /**
+     * Constructs a new FileFollower; invoking this constructor does
+     * <em>not</em> cause the new object to begin following the supplied file.
+     * In order to begin following, one must call {@link #start()}.
+     *
+     * @param file
+     *            file to be followed
+     * @param bufferSize
+     *            number of chars to be read each time the file is accessed
+     * @param latency
+     *            each time a FileFollower's running thread encounters the end
+     *            of the file in its stream, it will rest for this many
+     *            milliseconds before checking to see if there are any more
+     *            bytes in the file
+     * @param initialOutputDestinations
+     *            an initial array of OutputDestinations which will be used when
+     *            printing the contents of the file (this array may be
+     *            <tt>null</tt>)
+     */
+    public FileFollower(File file, int bufferSize, int latency, OutputDestination[] initialOutputDestinations) {
+        this.file = file;
+        this.bufferSize = bufferSize;
+        this.latency = latency;
+        int initOutputDestsSize = (initialOutputDestinations != null) ? initialOutputDestinations.length : 0;
+        outputDestinations = new ArrayList<OutputDestination>(initOutputDestsSize);
+        for (int i = 0; i < initOutputDestsSize; i++) {
+            outputDestinations.add(initialOutputDestinations[i]);
+        }
+    }
+
+    /**
+     * Identical to {@link #FileFollower(File, int, int, OutputDestination[])},
+     * except that a default buffer size (32,768 characters) and latency (1000
+     * milliseconds) are used.
+     *
+     * @see #FileFollower(File, int, int, OutputDestination[])
+     */
+    public FileFollower(File file, OutputDestination[] initialOutputDestinations) {
+        // Initial buffer size pilfered from org.gjt.sp.jedit.Buffer. I'm not
+        // sure whether this is a truly optimal buffer size.
+        this(// Don't change without updating docs!
+        file, // Don't change without updating docs!
+        32768, // Don't change without updating docs!
+        1000, initialOutputDestinations);
+    }
+
+    /**
+     * Cause this FileFollower to spawn a thread which will follow the file
+     * supplied in the constructor and send its contents to all of the
+     * FileFollower's OutputDestinations.<br>
+     * <br>
+     * If this FileFollower is running but paused, this method equates to
+     * calling unpause().
+     */
+    public synchronized void start() {
+        if (continueRunning && paused) {
+            unpause();
+        } else {
+            continueRunning = true;
+            paused = false;
+            runnerThread = new Thread(new Runner(), getFollowedFile().getName());
+            runnerThread.start();
+        }
+    }
+
+    public synchronized void pause() {
+        paused = true;
+    }
+
+    public synchronized void unpause() {
+        paused = false;
+    }
+
+    public synchronized void restart() {
+        needsRestart = true;
+        runnerThread.interrupt();
+    }
+
+    /**
+     * Cause this FileFollower to stop following the file supplied in the
+     * constructor after it flushes the characters it's currently reading to all
+     * its OutputDestinations.
+     */
+    public synchronized void stop() {
+        continueRunning = false;
+        runnerThread.interrupt();
+    }
+
+    /**
+     * Like {@link #stop()}, but this method will not exit until the thread
+     * which is following the file has finished executing (i.e., stop
+     * synchronously).
+     */
+    public synchronized void stopAndWait() throws InterruptedException {
+        stop();
+        while (runnerThread.isAlive()) {
+            Thread.yield();
+        }
+    }
+
+    /**
+     * Send the supplied string to all OutputDestinations
+     *
+     * @param s
+     */
+    private synchronized void print(String s) {
+        for (OutputDestination out : outputDestinations) {
+            out.print(s);
+        }
+    }
+
+    /**
+     * Clear all OutputDestinations
+     */
+    private synchronized void clear() {
+        for (OutputDestination out : outputDestinations) {
+            out.clear();
+        }
+    }
+
+    /**
+     * Add another OutputDestination to which the followed file's contents
+     * should be printed.
+     *
+     * @param outputDestination
+     *            OutputDestination to be added
+     */
+    public boolean addOutputDestination(OutputDestination outputDestination) {
+        return outputDestinations.add(outputDestination);
+    }
+
+    /**
+     * Remove the supplied OutputDestination from the list of OutputDestinations
+     * to which the followed file's contents should be printed.
+     *
+     * @param outputDestination
+     *            OutputDestination to be removed
+     */
+    public boolean removeOutputDestination(OutputDestination outputDestination) {
+        return outputDestinations.remove(outputDestination);
+    }
+
+    /**
+     * Returns the List which maintains all OutputDestinations for this
+     * FileFollower.
+     *
+     * @return contains all OutputDestinations for this FileFollower
+     */
+    public List<OutputDestination> getOutputDestinations() {
+        return outputDestinations;
+    }
+
+    /**
+     * Returns the file which is being followed by this FileFollower
+     *
+     * @return file being followed
+     */
+    public File getFollowedFile() {
+        return file;
+    }
+
+    /**
+     * Returns the following state of a file
+     *
+     * @return true if being followed, false if not being followed
+     */
+    public boolean isBeingFollowed() {
+        return continueRunning;
+    }
+
+    /**
+     * Returns the pause state of the follower.
+     *
+     * @return true if paused, false otherwise
+     */
+    public boolean isPaused() {
+        return paused;
+    }
+
+    /**
+     * Returns the size of the character buffer used to read characters from the
+     * followed file. Each time the file is accessed, this buffer is filled.
+     *
+     * @return size of the character buffer
+     */
+    public int getBufferSize() {
+        return bufferSize;
+    }
+
+    /**
+     * Sets the size of the character buffer used to read characters from the
+     * followed file. Increasing buffer size will improve efficiency but
+     * increase the amount of memory used by the FileFollower.<br>
+     * <em>NOTE:</em> Setting this value will <em>not</em> cause a running
+     * FileFollower to immediately begin reading characters into a buffer of the
+     * newly specified size. You must stop & restart the FileFollower in order
+     * for changes to take effect.
+     *
+     * @param bufferSize
+     *            size of the character buffer
+     */
+    public void setBufferSize(int bufferSize) {
+        this.bufferSize = bufferSize;
+    }
+
+    /**
+     * Returns the time (in milliseconds) which a FileFollower spends sleeping
+     * each time it encounters the end of the followed file.
+     *
+     * @return latency, in milliseconds
+     */
+    public int getLatency() {
+        return latency;
+    }
+
+    /**
+     * Sets the time (in milliseconds) which a FileFollower spends sleeping each
+     * time it encounters the end of the followed file. Note that extremely low
+     * latency values may cause thrashing between the FileFollower's running
+     * thread and other threads in an application. A change in this value will
+     * be reflected the next time the FileFollower's running thread sleeps.
+     *
+     * @param latency
+     *            latency, in milliseconds
+     */
+    public void setLatency(int latency) {
+        this.latency = latency;
+    }
+
+    protected int bufferSize;
+
+    protected int latency;
+
+    protected File file;
+
+    protected List<OutputDestination> outputDestinations;
+
+    protected boolean continueRunning;
+
+    protected boolean needsRestart;
+
+    protected Thread runnerThread;
+
+    protected boolean paused;
+
+    /**
+     * Instances of this class are used to run a thread which follows a
+     * FileFollower's file and sends prints its contents to OutputDestinations.
+     * This class should only handle the gathering of data from the followed
+     * file. Actually writing to the output destinations is handled by the outer
+     * class (FileFollower).
+     */
+    class Runner implements Runnable {
+
+        private Logger log = Logger.getLogger(Runner.class.getName());
+
+        public void run() {
+            log.finer(""entering FileFollower.run()"");
+            while (continueRunning) {
+                runAction();
+            }
+            log.finer(""exiting FileFollower.run()"");
+        }
+
+        protected void runAction() {
+            try {
+                clear();
+                long fileSize = file.length();
+                byte[] byteArray = new byte[bufferSize];
+                int numBytesRead;
+                long lastActivityTime = file.lastModified();
+                // create some stream readers to handle the file
+                FileInputStream fis = new FileInputStream(file);
+                BufferedInputStream bis = new BufferedInputStream(fis);
+                // start at the beginning of the file
+                long startingPoint = 0;
+                // if the file size is bigger than the buffer size, skip to the
+                // end of the file if not performing a restart
+                if (fileSize > bufferSize) {
+                    startingPoint = fileSize - bufferSize;
+                }
+                // reset the restart flag
+                needsRestart = false;
+                log.finer(""Starting point: "" + startingPoint + ""; Last activity: "" + lastActivityTime);
+                bis.skip(startingPoint);
+                while (continueRunning && !needsRestart) {
+                    if (!paused) {
+                        lastActivityTime = System.currentTimeMillis();
+                        numBytesRead = bis.read(byteArray, 0, byteArray.length);
+                        boolean dataWasFound = (numBytesRead > 0);
+                        log.finer(""Bytes read: "" + numBytesRead + ""; dataWasFound: "" + dataWasFound);
+                        // if data was found, print it and log activity time
+                        if (dataWasFound) {
+                            String output = new String(byteArray, 0, numBytesRead);
+                            // print the output to the listeners
+                            print(output);
+                        } else // no data found so check the file and restart if needed
+                        {
+                            // check if the file handle has become stale (file
+                            // was modified, but no data was read).
+                            boolean fileExists = file.exists();
+                            // removed check for 0 length because a file could
+                            // change by being cleared out
+                            // && (file_.length() > 0);
+                            boolean fileHasChanged = file.lastModified() > lastActivityTime;
+                            if (fileExists && fileHasChanged) {
+                                log.finer(""Needs restart [fileExists="" + fileExists + ""; fileHasChanged="" + fileHasChanged + ""]"");
+                                needsRestart = true;
+                            }
+                        }
+                        boolean allDataRead = (numBytesRead < byteArray.length);
+                        if (allDataRead && !needsRestart) {
+                            log.finer(""Sleeping for "" + latency + ""ms [allDataRead:"" + allDataRead + ""; needsRestart:"" + needsRestart + ""]"");
+                            sleep();
+                        }
+                    } else {
+                        log.finer(""Runner paused."");
+                        sleep();
+                    }
+                }
+                log.finer(""exiting Runner.runAction [continueRunning="" + continueRunning + ""; needsRestart="" + needsRestart + ""]"");
+                bis.close();
+                fis.close();
+            } catch (IOException e) {
+                log.log(Level.SEVERE, ""IOException while following file"", e);
+            }
+        }
+
+        private void sleep() {
+            try {
+                Thread.sleep(latency);
+            } catch (InterruptedException e) {
+                // Interrupt may be thrown manually by stop()
+                log.finer(""DIED IN MY SLEEP"");
+            }
+        }
+    }
+
+    /**
+     * Line separator, retrieved from System properties & stored statically.
+     */
+    protected static final String lineSeparator = System.getProperty(""line.separator"");
+}
+","// FileFollower_1Test.java
+package ghm.follow;
+
+import ghm.follow.io.OutputDestination;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileFollower}.
+* It contains ten unit test cases for the {@link FileFollower#removeOutputDestination(OutputDestination)} method.
+*/
+class FileFollower_1Test {","// FileFollower_1Test.java
+package ghm.follow;
+
+import ghm.follow.io.OutputDestination;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileFollower}.
+* It contains ten unit test cases for the {@link FileFollower#removeOutputDestination(OutputDestination)} method.
+*/
+class FileFollower_1Test {
+
+		private static final Logger log = Logger.getLogger(FileFollower_1Test.class.getName());
+		
+		/**
+		* Test case for {@link FileFollower#removeOutputDestination(OutputDestination)}
+		*
+		* @throws IOException
+		*/
+		@Test
+		void testRemoveOutputDestination_1() throws IOException {
+				File file = new File(""test/ghm/follow/test.txt"");
+				OutputDestination[] initialOutputDestinations = new OutputDestination[1];
+				initialOutputDestinations[0] = new OutputDestination() {
+						@Override
+						public void print(String s) {
+								log.info(s);
+						}
+						@Override
+						public void clear() {
+								log.info(""clear"");
+						}
+				};
+				FileFollower fileFollower = new FileFollower(file, initialOutputDestinations);
+				fileFollower.start();
+				try {
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+						log.log(Level.SEVERE, ""InterruptedException while sleeping"", e);
+				}
+				fileFollower.stop();
+				try {
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+						log.log(Level.SEVERE, ""InterruptedException while sleeping"", e);
+				}
+				assertTrue(fileFollower.removeOutputDestination(initialOutputDestinations[0]));
+		}
+		
+		/**
+		* Test case for {@link FileFollower#removeOutputDestination(OutputDestination)}
+		*
+		* @throws IOException
+		*/
+		@Test
+		void testRemoveOutputDestination_2() throws IOException {
+				File file = new File(""test/ghm/follow/test.txt"");
+				OutputDestination[] initialOutputDestinations = new OutputDestination[1];
+				initialOutputDestinations[0] = new OutputDestination() {
+						@Override
+						public void print(String s) {
+								log.info(s);
+						}
+						@Override
+						public void clear() {
+								log.info(""clear"");
+						}
+				};
+				FileFollower fileFollower = new FileFollower(file, initialOutputDestinations);
+				fileFollower.start();
+				try {
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+						log.log(Level.SEVERE, ""InterruptedException while sleeping"", e);
+				}
+				fileFollower.stop();
+				try {
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+						log.log(Level.SEVERE, ""InterruptedException while sleeping"", e);
+				}
+				assertTrue(fileFollower.removeOutputDestination(initialOutputDestinations[0]));
+		}
+		
+		/**
+		* Test case for {@link FileFollower#removeOutputDestination(OutputDestination)}
+		*
+		* @throws IOException
+		*/
+		@Test
+		void testRemoveOutputDestination_3() throws IOException {
+				File file = new File(""test/ghm/follow/test.txt"");
+				OutputDestination[] initialOutputDestinations = new OutputDestination[1];
+				initialOutputDestinations[0] = new OutputDestination() {
+						@Override
+						public void print(String s) {
+								log.info(s);
+						}
+						@Override
+						public void clear() {
+								log.info(""clear"");
+						}
+				};
+				FileFollower fileFollower = new FileFollower(file, initialOutputDestinations);
+				fileFollower.start();
+				try {
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+						log.log(Level.SEVERE, ""InterruptedException while sleeping"", e);
+				}
+				fileFollower.stop();
+				try {
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+						log.log(Level.SEVERE, ""InterruptedException while sleeping"", e);
+				}
+				assertTrue(fileFollower.removeOutputDestination(initialOutputDestinations[0]));
+		}
+		
+		/**
+		* Test case for {@link FileFollower#removeOutputDestination(OutputDestination)}
+		*
+		* @throws IOException
+		*/
+		@Test
+		void testRemoveOutputDestination_4() throws IOException {
+				File file = new File(""test/ghm/follow/test.txt"");
+				OutputDestination[] initialOutputDestinations = new OutputDestination[1];
+				initialOutputDestinations[0] = new OutputDestination() {
+						@Override
+						public void print(String s) {
+								log.info(s);
+						}
+						@Override
+						public void clear() {
+								log.info(""clear"");
+						}
+				};
+				FileFollower fileFollower = new FileFollower(file, initialOutputDestinations);
+				fileFollower.start();
+				try {
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+						log.log(Level.SEVERE, ""InterruptedException while sleeping"", e);
+				}
+				fileFollower.stop();
+				try {
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+						log.log(Level.SEVERE, ""InterruptedException while sleeping"", e);
+				}
+				assertTrue(fileFollower.removeOutputDestination(initialOutputDestinations[0]));
+		}
+		
+		/**
+		* Test case for {@link FileFollower#removeOutputDestination(OutputDestination)}
+		*
+		* @throws IOException
+		*/
+		@Test
+		void testRemoveOutputDestination_5() throws IOException {
+				File file = new File(""test/ghm/follow/test.txt"");
+				OutputDestination[] initialOutputDestinations = new OutputDestination[1];
+				initialOutputDestinations[0] = new OutputDestination() {
+						@Override
+						public void print(String s) {
+								log.info(s);
+						}
+						@Override
+						public void clear() {
+								log.info(""clear"");
+						}
+				};
+				FileFollower"
+28c74b3c-53dd-4345-87e5-55fe0829229b,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/FollowApp_1Test.java,-1,"ERROR - This model's maximum context length is 8001 tokens, however you requested 9339 tokens (7339 in your prompt; 2000 for the completion). Please reduce your prompt; or completion length.","// FollowApp.java
+/*
+ * Copyright (C) 2000-2003 Greg Merrill (greghmerrill@yahoo.com)
+ * 
+ * This file is part of Follow (http://follow.sf.net).
+ * 
+ * Follow is free software; you can redistribute it and/or modify it under the
+ * terms of version 2 of the GNU General Public License as published by the Free
+ * Software Foundation.
+ * 
+ * Follow is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * Follow; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
+ * Suite 330, Boston, MA 02111-1307 USA
+ */
+package ghm.follow;
+
+import ghm.follow.config.Configure;
+import ghm.follow.config.FollowAppAttributes;
+import ghm.follow.event.WindowTracker;
+import ghm.follow.gui.About;
+import ghm.follow.gui.Clear;
+import ghm.follow.gui.ClearAll;
+import ghm.follow.gui.Close;
+import ghm.follow.gui.Debug;
+import ghm.follow.gui.Delete;
+import ghm.follow.gui.DeleteAll;
+import ghm.follow.gui.DndFileOpener;
+import ghm.follow.gui.Edit;
+import ghm.follow.gui.Exit;
+import ghm.follow.gui.FileFollowingPane;
+import ghm.follow.gui.FollowAppAction;
+import ghm.follow.gui.Menu;
+import ghm.follow.gui.ComponentBuilder;
+import ghm.follow.gui.Open;
+import ghm.follow.gui.Pause;
+import ghm.follow.gui.PopupMenu;
+import ghm.follow.gui.Reset;
+import ghm.follow.gui.StartupStatus;
+import ghm.follow.gui.TabbedPane;
+import ghm.follow.gui.ToolBar;
+import ghm.follow.gui.FollowAppAction.ActionContext;
+import ghm.follow.nav.Bottom;
+import ghm.follow.nav.NextTab;
+import ghm.follow.nav.PreviousTab;
+import ghm.follow.nav.Top;
+import ghm.follow.search.ClearAllHighlights;
+import ghm.follow.search.ClearHighlights;
+import ghm.follow.search.Find;
+import ghm.follow.search.SearchableTextPane;
+import ghm.follow.systemInterface.DefaultSystemInterface;
+import ghm.follow.systemInterface.SystemInterface;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.Window;
+import java.awt.dnd.DropTarget;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * This class' main() method is the entry point into the Follow application.
+ *
+ * @see #main(String[])
+ * @author <a href=""mailto:greghmerrill@yahoo.com"">Greg Merrill</a>
+ */
+public class FollowApp {
+
+    public static final String FILE_SEPARATOR = System.getProperty(""file.separator"");
+
+    public static final String MESSAGE_LINE_SEPARATOR = ""\n"";
+
+    public static final boolean DEBUG = Boolean.getBoolean(""follow.debug"");
+
+    public static boolean HAS_SOLARIS_BUG = false;
+
+    private static Logger LOG = Logger.getLogger(FollowApp.class.getName());
+
+    private int currentCursor = Cursor.DEFAULT_CURSOR;
+
+    private Cursor defaultCursor;
+
+    private Cursor waitCursor;
+
+    private Map<File, FileFollowingPane> fileToFollowingPaneMap = new HashMap<File, FileFollowingPane>();
+
+    private JTabbedPane tabbedPane;
+
+    private ToolBar toolBar;
+
+    private PopupMenu popupMenu;
+
+    private Menu recentFilesMenu;
+
+    private MouseListener rightClickListener;
+
+    private HashMap<String, FollowAppAction> actions = new HashMap<String, FollowAppAction>();
+
+    private SystemInterface systemInterface;
+
+    private StartupStatus startupStatus;
+
+    private FollowAppAttributes attributes;
+
+    private static FollowApp instance;
+
+    private static ResourceBundle resources = ResourceBundle.getBundle(""ghm.follow.FollowAppResourceBundle"");
+
+    private JFrame frame;
+
+    // We should remove this hack once JDK 1.4 gets wide adoption on Solaris.
+    static {
+        boolean isSolaris = ""SunOS"".equals(System.getProperty(""os.name""));
+        if (isSolaris) {
+            String version = System.getProperty(""java.version"");
+            if ((version != null) && version.startsWith(""1."")) {
+                String substring = version.substring(2, 3);
+                try {
+                    int minor = Integer.parseInt(substring);
+                    if (minor < 4) {
+                        HAS_SOLARIS_BUG = true;
+                    }
+                } catch (NumberFormatException nfe) {
+                    // Nothing else to do.
+                }
+            }
+        }
+    }
+
+    /**
+     * @param fileNames
+     *            names of files to be opened
+     */
+    FollowApp(List<String> fileNames) throws IOException, InterruptedException, InvocationTargetException {
+        this(fileNames, null);
+    }
+
+    FollowApp(List<String> filenames, File propertyFile) throws IOException, InterruptedException, InvocationTargetException {
+        // Create & show startup status window
+        startupStatus = new StartupStatus(resources);
+        centerWindowInScreen(startupStatus);
+        startupStatus.pack();
+        SwingUtilities.invokeAndWait(new Runnable() {
+
+            public void run() {
+                startupStatus.setVisible(true);
+            }
+        });
+        // Ghastly workaround for bug in Font construction, in review by
+        // Sun with review id 108683.
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+        SwingUtilities.invokeAndWait(new Runnable() {
+
+            public void run() {
+                startupStatus.markDone(startupStatus.LOAD_SYSTEM_FONTS);
+            }
+        });
+        // create frame first. the close operation is handled in WindowTracker
+        frame = new JFrame(getResourceString(""frame.title""));
+        // load the attributes
+        attributes = new FollowAppAttributes(propertyFile);
+        // add listeners to update the recent files list
+        RecentFileListener rfl = new RecentFileListener();
+        attributes.addPropertyChangeListener(FollowAppAttributes.RECENT_FILES_KEY, rfl);
+        attributes.addPropertyChangeListener(FollowAppAttributes.RECENT_FILES_MAX_KEY, rfl);
+        // load the actions referenced in the application
+        loadActions();
+        // initialize SystemInterface
+        systemInterface = new DefaultSystemInterface(this);
+        // initialize menubar
+        JMenuBar jMenuBar = ComponentBuilder.buildMenuBar(resources, getActions());
+        // set the recent files menu to local variable so it can be updated
+        // easily
+        recentFilesMenu = ComponentBuilder.recentFilesMenu;
+        // fake an event to get the menu setup initially
+        rfl.propertyChange(null);
+        // initialize popupMenu
+        popupMenu = ComponentBuilder.buildPopupMenu(getActions());
+        // initialize toolbar
+        toolBar = ComponentBuilder.buildToolBar(getActions());
+        // initialize tabbedPane, but wait to open files until after frame
+        // initialization
+        tabbedPane = new TabbedPane(attributes);
+        enableDragAndDrop(tabbedPane);
+        // initialize frame
+        initFrame(jMenuBar);
+        // This is an ugly hack. It seems like JFrame.setLocation() is buggy
+        // on Solaris jdk versions before 1.4
+        if (HAS_SOLARIS_BUG) {
+            frame.setLocation(50, 50);
+        } else {
+            frame.setLocation(attributes.getX(), attributes.getY());
+        }
+        // track window close events. WindowTracker handles the close operation
+        frame.addWindowListener(new WindowTracker(attributes, tabbedPane, systemInterface));
+        enableDragAndDrop(frame);
+        // Open files from attributes; this is done after the frame is complete
+        // and all components have been added to it to make sure that the frame
+        // can be shown absolutely as soon as possible. If we put this code
+        // before frame creation (as in v1.0), frame creation may take longer
+        // because there are more threads (spawned in the course of open())
+        // contending for processor time.
+        List<File> files = attributes.getFollowedFiles();
+        StringBuffer nonexistentFilesBuffer = null;
+        int nonexistentFileCount = 0;
+        for (File file : files) {
+            try {
+                openFile(file);
+            } catch (FileNotFoundException e) {
+                // This file has been deleted since the previous execution.
+                // Remove it from the list of followed files
+                attributes.removeFollowedFile(file);
+                nonexistentFileCount++;
+                if (nonexistentFilesBuffer == null) {
+                    nonexistentFilesBuffer = new StringBuffer(file.getAbsolutePath());
+                } else {
+                    nonexistentFilesBuffer.append(file.getAbsolutePath());
+                }
+                nonexistentFilesBuffer.append(MESSAGE_LINE_SEPARATOR);
+            }
+        }
+        // open files from the command line
+        for (String filename : filenames) {
+            try {
+                openFile(new File(filename));
+            } catch (FileNotFoundException e) {
+                String msg = MessageFormat.format(getResourceString(""message.cmdLineFileNotFound.text""), new Object[] { filename });
+                LOG.info(msg);
+            }
+        }
+        if (nonexistentFileCount > 0) {
+            // Alert the user of the fact that one or more files have been
+            // deleted since the previous execution
+            String text = getResourceString(""message.filesDeletedSinceLastExecution.text"");
+            String message = MessageFormat.format(text, new Object[] { nonexistentFileCount, nonexistentFilesBuffer.toString() });
+            // String title =
+            // getResourceString(""message.filesDeletedSinceLastExecution.title"");
+            // JOptionPane.showMessageDialog(frame_, message, title,
+            // JOptionPane.WARNING_MESSAGE);
+            LOG.info(message);
+        }
+        int tabCount = tabbedPane.getTabCount();
+        if (tabCount > 0) {
+            if (tabCount > attributes.getSelectedTabIndex()) {
+                tabbedPane.setSelectedIndex(attributes.getSelectedTabIndex());
+            } else {
+                tabbedPane.setSelectedIndex(0);
+            }
+        }
+    }
+
+    /**
+     * Close the current tab
+     */
+    public void closeFile() {
+        FileFollowingPane fileFollowingPane = getSelectedFileFollowingPane();
+        int tab = tabbedPane.getSelectedIndex();
+        if (tab >= 0) {
+            tabbedPane.removeTabAt(tab);
+            disableDragAndDrop(fileFollowingPane.getTextPane());
+            attributes.removeFollowedFile(fileFollowingPane.getFollowedFile());
+            fileFollowingPane.stopFollowing();
+            fileToFollowingPaneMap.remove(fileFollowingPane.getFollowedFile());
+        }
+        updateActions();
+    }
+
+    /**
+     * Get a string from the resource bundle. Convenience method to shorten and
+     * centralize this common call
+     *
+     * @param key
+     * @return The value of key in the resource bundle. null if the key is not
+     *         found.
+     */
+    public static String getResourceString(String key) {
+        String value = null;
+        try {
+            value = resources.getString(key);
+        } catch (MissingResourceException mre) {
+            LOG.warning(mre.getMessage());
+        }
+        return value;
+    }
+
+    /**
+     * Gets an image icon from the resource path.
+     *
+     * @param clazz
+     *            The class to use as an entry point to the resource path. Image
+     *            path should be relative to this class.
+     * @param iconNameKey
+     *            The resource key name where the image is defined.
+     * @return An image icon based on the URL generated from the value of
+     *         iconNameKey. null if no URL can be found.
+     */
+    public static ImageIcon getIcon(Class<?> clazz, String iconNameKey) {
+        String filename = getResourceString(iconNameKey);
+        URL url = clazz.getResource(filename);
+        LOG.finer(""Class: "" + clazz + "", iconNameKey: "" + iconNameKey);
+        LOG.finer(""filename: "" + filename);
+        LOG.finer(""url: "" + url);
+        ImageIcon icon = null;
+        if (url != null) {
+            icon = new ImageIcon(url);
+            LOG.finer(""errored: "" + (java.awt.MediaTracker.ERRORED == icon.getImageLoadStatus()));
+        }
+        return icon;
+    }
+
+    /**
+     * Loads the actions used in the application
+     *
+     * @throws IOException
+     */
+    private void loadActions() throws IOException {
+        // initialize actions
+        putAction(Open.NAME, new Open(this));
+        putAction(Close.NAME, new Close(this));
+        putAction(Edit.NAME, new Edit(this));
+        putAction(Exit.NAME, new Exit(this));
+        putAction(Top.NAME, new Top(this));
+        putAction(Bottom.NAME, new Bottom(this));
+        putAction(Clear.NAME, new Clear(this));
+        putAction(ClearAll.NAME, new ClearAll(this));
+        putAction(Delete.NAME, new Delete(this));
+        putAction(DeleteAll.NAME, new DeleteAll(this));
+        putAction(Configure.NAME, new Configure(this));
+        putAction(About.NAME, new About(this));
+        if (DEBUG) {
+            putAction(Debug.NAME, new Debug(this));
+        }
+        putAction(Pause.NAME, new Pause(this));
+        putAction(NextTab.NAME, new NextTab(this));
+        putAction(PreviousTab.NAME, new PreviousTab(this));
+        putAction(Find.NAME, new Find(this));
+        putAction(ClearHighlights.NAME, new ClearHighlights(this));
+        putAction(ClearAllHighlights.NAME, new ClearAllHighlights(this));
+        putAction(Reset.NAME, new Reset(this));
+    }
+
+    /**
+     * @param jMenuBar
+     */
+    private void initFrame(JMenuBar jMenuBar) {
+        frame.setJMenuBar(jMenuBar);
+        frame.getContentPane().add(toolBar, BorderLayout.NORTH);
+        frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
+        frame.setSize(attributes.getWidth(), attributes.getHeight());
+    }
+
+    public void show() {
+        frame.setVisible(true);
+    }
+
+    public FollowAppAction getAction(String name) {
+        return actions.get(name);
+    }
+
+    /**
+     * Get all actions associated to the application
+     *
+     * @return
+     */
+    public HashMap<String, FollowAppAction> getActions() {
+        return actions;
+    }
+
+    /**
+     * Set an action to the action map of the application.
+     *
+     * @param name
+     *            The key to set the action to.
+     * @param action
+     *            The action to create an association for.
+     */
+    public void putAction(String name, FollowAppAction action) {
+        if (FollowAppAction.ActionContext.APP == action.getContext())
+            action.setEnabled(true);
+        else
+            action.setEnabled(false);
+        actions.put(name, action);
+    }
+
+    public void openFile(File file) throws FileNotFoundException {
+        openFile(file, attributes.autoScroll());
+    }
+
+    /**
+     * Warning: This method should be called only from (1) the FollowApp
+     * initializer (before any components are realized) or (2) from the event
+     * dispatching thread.
+     */
+    void openFile(File file, boolean startFollowing) throws FileNotFoundException {
+        if (file == null) {
+            throw new FileNotFoundException(""file is null."");
+        }
+        if (!file.exists()) {
+            throw new FileNotFoundException(file.getName() + "" not found."");
+        }
+        FileFollowingPane fileFollowingPane = (FileFollowingPane) fileToFollowingPaneMap.get(file);
+        if (fileFollowingPane != null) {
+            // File is already open; merely select its tab
+            tabbedPane.setSelectedComponent(fileFollowingPane);
+        } else {
+            fileFollowingPane = new FileFollowingPane(file, attributes.getBufferSize(), attributes.getLatency(), attributes.autoScroll(), attributes.getFont(), attributes.getTabSize());
+            SearchableTextPane ffpTextPane = fileFollowingPane.getTextPane();
+            enableDragAndDrop(ffpTextPane);
+            fileFollowingPane.setSize(frame.getSize());
+            ffpTextPane.setFont(attributes.getFont());
+            ffpTextPane.addMouseListener(getRightClickListener());
+            fileToFollowingPaneMap.put(file, fileFollowingPane);
+            if (startFollowing) {
+                fileFollowingPane.startFollowing();
+            }
+            tabbedPane.addTab(file.getName(), null, fileFollowingPane, file.getAbsolutePath());
+            int tabCount = tabbedPane.getTabCount();
+            if (tabCount < 10) {
+                // KeyEvent.VK_1 through KeyEvent.VK_9 is represented by the
+                // ascii characters 1-9 (49-57)
+                int index = tabCount - 1;
+                tabbedPane.setMnemonicAt(index, index + ((int) '1'));
+            }
+            tabbedPane.setSelectedIndex(tabCount - 1);
+            // add a listener to set the pause icon correctly
+            fileFollowingPane.addComponentListener(new ComponentAdapter() {
+
+                public void componentShown(ComponentEvent e) {
+                    FileFollowingPane ffp = (FileFollowingPane) e.getSource();
+                    Pause pause = (Pause) getAction(Pause.NAME);
+                    pause.setIconByState(ffp.isFollowingPaused());
+                }
+            });
+            // add the file to history
+            attributes.addFollowedFile(file);
+            attributes.addRecentFile(file);
+            updateActions();
+        }
+    }
+
+    private void updateActions() {
+        int tabCount = tabbedPane.getTabCount();
+        for (FollowAppAction a : actions.values()) {
+            if (tabCount <= 1 && a.getContext() == ActionContext.MULTI_FILE)
+                a.setEnabled(false);
+            else if (tabCount == 0 && a.getContext() == ActionContext.SINGLE_FILE)
+                a.setEnabled(false);
+            else
+                a.setEnabled(true);
+        }
+    }
+
+    /**
+     * Warning: This method should be called only from the event dispatching
+     * thread.
+     *
+     * @param cursorType
+     *            may be Cursor.DEFAULT_CURSOR or Cursor.WAIT_CURSOR
+     */
+    public void setCursor(int cursorType) {
+        if (cursorType == currentCursor) {
+            return;
+        }
+        switch(cursorType) {
+            case Cursor.DEFAULT_CURSOR:
+                if (defaultCursor == null) {
+                    defaultCursor = Cursor.getDefaultCursor();
+                }
+                frame.setCursor(defaultCursor);
+                break;
+            case Cursor.WAIT_CURSOR:
+                if (waitCursor == null) {
+                    waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+                }
+                frame.setCursor(waitCursor);
+                break;
+            default:
+                throw new IllegalArgumentException(""Supported cursors are Cursor.DEFAULT_CURSOR and Cursor.WAIT_CURSOR"");
+        }
+        currentCursor = cursorType;
+    }
+
+    // Lazy initializer for the right-click listener which invokes a popup menu
+    private MouseListener getRightClickListener() {
+        if (rightClickListener == null) {
+            rightClickListener = new MouseAdapter() {
+
+                public void mouseReleased(MouseEvent e) {
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        Component source = e.getComponent();
+                        popupMenu.show(source, e.getX(), e.getY());
+                    }
+                }
+            };
+        }
+        return rightClickListener;
+    }
+
+    public void enableDragAndDrop(Component c) {
+        // Invoking this constructor automatically sets the component's drop
+        // target
+        new DropTarget(c, new DndFileOpener(this));
+    }
+
+    public void disableDragAndDrop(Component c) {
+        c.setDropTarget(null);
+    }
+
+    public FileFollowingPane getSelectedFileFollowingPane() {
+        return (FileFollowingPane) tabbedPane.getSelectedComponent();
+    }
+
+    public List<FileFollowingPane> getAllFileFollowingPanes() {
+        int tabCount = tabbedPane.getTabCount();
+        List<FileFollowingPane> allFileFollowingPanes = new ArrayList<FileFollowingPane>();
+        for (int i = 0; i < tabCount; i++) {
+            allFileFollowingPanes.add((FileFollowingPane) tabbedPane.getComponentAt(i));
+        }
+        return allFileFollowingPanes;
+    }
+
+    public FollowAppAttributes getAttributes() {
+        return attributes;
+    }
+
+    public Map<File, FileFollowingPane> getFileToFollowingPaneMap() {
+        return fileToFollowingPaneMap;
+    }
+
+    public JFrame getFrame() {
+        return frame;
+    }
+
+    public static FollowApp getInstance() {
+        return instance;
+    }
+
+    public SystemInterface getSystemInterface() {
+        return systemInterface;
+    }
+
+    public void setSystemInterface(SystemInterface systemInterface) {
+        this.systemInterface = systemInterface;
+    }
+
+    public JTabbedPane getTabbedPane() {
+        return tabbedPane;
+    }
+
+    public static void centerWindowInScreen(Window window) {
+        Dimension screenSize = window.getToolkit().getScreenSize();
+        Dimension windowSize = window.getPreferredSize();
+        window.setLocation((int) (screenSize.getWidth() / 2 - windowSize.getWidth() / 2), (int) (screenSize.getHeight() / 2 - windowSize.getHeight() / 2));
+    }
+
+    /**
+     * Invoke this method to start the Follow application. If any command-line
+     * arguments are passed in, they are assume to be filenames and are opened
+     * in the Follow application
+     *
+     * @param args
+     *            files to be opened
+     */
+    public static void main(String[] args) {
+        try {
+            ArrayList<String> fileNames = new ArrayList<String>();
+            File propFile = null;
+            for (int i = 0; i < args.length; i++) {
+                if (args[i].startsWith(""-"")) {
+                    if (""-propFile"".equalsIgnoreCase(args[i])) {
+                        propFile = new File(args[++i]);
+                    }
+                } else {
+                    fileNames.add(args[i]);
+                }
+            }
+            instance = new FollowApp(fileNames, propFile);
+            SwingUtilities.invokeAndWait(new Runnable() {
+
+                public void run() {
+                    // ensure all widgets inited before opening files
+                    instance.show();
+                    instance.startupStatus.markDone(instance.startupStatus.CREATE_WIDGETS);
+                }
+            });
+            instance.startupStatus.dispose();
+            // commented code below so that windows follow based on setting in
+            // preferences which is set on the pane when the file is opened
+            // for (int i=0; i < instance_.tabbedPane_.getTabCount(); i++) {
+            // ((FileFollowingPane)instance_.tabbedPane_.getComponentAt(i)).startFollowing();
+            // }
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, ""Unhandled exception"", t);
+            System.exit(-1);
+        }
+    }
+
+    private class RecentFileListener implements PropertyChangeListener {
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (recentFilesMenu != null) {
+                recentFilesMenu.removeAll();
+                List<File> recentFiles = attributes.getRecentFiles();
+                // descend down the list to order files by last opened
+                for (int i = recentFiles.size() - 1; i >= 0; i--) {
+                    // have to use FollowApp.this because 'this' is now the
+                    // context of
+                    // the inner class
+                    recentFilesMenu.add(new Open(FollowApp.this, recentFiles.get(i)));
+                }
+            }
+        }
+    }
+}
+","// FollowApp_1Test.java
+package ghm.follow;
+
+import ghm.follow.config.Configure;
+import ghm.follow.config.FollowAppAttributes;
+import ghm.follow.event.WindowTracker;
+import ghm.follow.gui.About;
+import ghm.follow.gui.Clear;
+import ghm.follow.gui.ClearAll;
+import ghm.follow.gui.Close;
+import ghm.follow.gui.Debug;
+import ghm.follow.gui.Delete;
+import ghm.follow.gui.DeleteAll;
+import ghm.follow.gui.DndFileOpener;
+import ghm.follow.gui.Edit;
+import ghm.follow.gui.Exit;
+import ghm.follow.gui.FileFollowingPane;
+import ghm.follow.gui.FollowAppAction;
+import ghm.follow.gui.Menu;
+import ghm.follow.gui.ComponentBuilder;
+import ghm.follow.gui.Open;
+import ghm.follow.gui.Pause;
+import ghm.follow.gui.PopupMenu;
+import ghm.follow.gui.Reset;
+import ghm.follow.gui.StartupStatus;
+import ghm.follow.gui.TabbedPane;
+import ghm.follow.gui.ToolBar;
+import ghm.follow.gui.FollowAppAction.ActionContext;
+import ghm.follow.nav.Bottom;
+import ghm.follow.nav.NextTab;
+import ghm.follow.nav.PreviousTab;
+import ghm.follow.nav.Top;
+import ghm.follow.search.ClearAllHighlights;
+import ghm.follow.search.ClearHighlights;
+import ghm.follow.search.Find;
+import ghm.follow.search.SearchableTextPane;
+import ghm.follow.systemInterface.DefaultSystemInterface;
+import ghm.follow.systemInterface.SystemInterface;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.Window;
+import java.awt.dnd.DropTarget;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FollowApp}.
+* It contains ten unit test cases for the {@link FollowApp#getIcon(Class, String)} method.
+*/
+class FollowApp_1Test {","// FollowApp_1Test.java
+package ghm.follow;
+
+import ghm.follow.config.Configure;
+import ghm.follow.config.FollowAppAttributes;
+import ghm.follow.event.WindowTracker;
+import ghm.follow.gui.About;
+import ghm.follow.gui.Clear;
+import ghm.follow.gui.ClearAll;
+import ghm.follow.gui.Close;
+import ghm.follow.gui.Debug;
+import ghm.follow.gui.Delete;
+import ghm.follow.gui.DeleteAll;
+import ghm.follow.gui.DndFileOpener;
+import ghm.follow.gui.Edit;
+import ghm.follow.gui.Exit;
+import ghm.follow.gui.FileFollowingPane;
+import ghm.follow.gui.FollowAppAction;
+import ghm.follow.gui.Menu;
+import ghm.follow.gui.ComponentBuilder;
+import ghm.follow.gui.Open;
+import ghm.follow.gui.Pause;
+import ghm.follow.gui.PopupMenu;
+import ghm.follow.gui.Reset;
+import ghm.follow.gui.StartupStatus;
+import ghm.follow.gui.TabbedPane;
+import ghm.follow.gui.ToolBar;
+import ghm.follow.gui.FollowAppAction.ActionContext;
+import ghm.follow.nav.Bottom;
+import ghm.follow.nav.NextTab;
+import ghm.follow.nav.PreviousTab;
+import ghm.follow.nav.Top;
+import ghm.follow.search.ClearAllHighlights;
+import ghm.follow.search.ClearHighlights;
+import ghm.follow.search.Find;
+import ghm.follow.search.SearchableTextPane;
+import ghm.follow.systemInterface.DefaultSystemInterface;
+import ghm.follow.systemInterface.SystemInterface;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.Window;
+import java.awt.dnd.DropTarget;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FollowApp}.
+* It contains ten unit test cases for the {@link FollowApp#getIcon(Class, String)} method.
+*/
+class FollowApp_1Test {
+"
+cmpl-6wTAtW6u7mCYdqSpCNsh0jyPaCTWV,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/config/EnumeratedProperties.java,62.90441346168518,length,"// EnumeratedProperties.java
+/* 
+Copyright (C) 2000-2003 Greg Merrill (greghmerrill@yahoo.com)
+
+This file is part of Follow (http://follow.sf.net).
+
+Follow is free software; you can redistribute it and/or modify
+it under the terms of version 2 of the GNU General Public
+License as published by the Free Software Foundation.
+
+Follow is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Follow; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+package ghm.follow.config;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+/**
+ * Extension of {@link java.util.Properties} which allows one to specify property values which are
+ * Lists of Strings.
+ *
+ * @author <a href=""mailto:greghmerrill@yahoo.com"">Greg Merrill</a>
+ */
+public class EnumeratedProperties extends Properties {
+
+    /**
+     * Returns the List value of the property with the supplied key. Note that one can call
+     * getEnumeratedProperty() for a given key successfully if and only if setEnumeratedProperty()
+     * for that key was called some time beforehand. All members of the list returned will be
+     * Strings.
+     *
+     * @param key
+     *            lookup of the enumerated property to be retrieved.
+     * @return list containing String values
+     */
+    public List<String> getEnumeratedProperty(String key) {
+        ArrayList<String> values = new ArrayList<String>();
+        int i = 0;
+        String value;
+        while ((value = this.getProperty(key + delimiter + i++)) != null) {
+            values.add(value);
+        }
+        return values;
+    }
+
+    /**
+     * Assigns the supplied array of String values to the supplied key.
+     *
+     * @param key
+     *            property lookup
+     * @param values
+     *            values to be associated with the property lookup
+     */
+    public void setEnumeratedProperty(String key, List<String> values) {
+        int i = 0;
+        for (; i < values.size(); i++) {
+            setProperty(key + delimiter + i, values.get(i));
+        }
+        while (getProperty(key + delimiter + i) != null) {
+            remove(key + delimiter + i);
+            i++;
+        }
+    }
+
+    /**
+     * Delimiter between property name & list member index
+     */
+    protected static char delimiter = '.';
+}
+","// EnumeratedPropertiesTest.java
+package ghm.follow.config;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EnumeratedProperties}.
+* It contains ten unit test cases for the {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+*/
+class EnumeratedPropertiesTest {","// EnumeratedPropertiesTest.java
+package ghm.follow.config;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link EnumeratedProperties}.
+* It contains ten unit test cases for the {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+*/
+class EnumeratedPropertiesTest {
+
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is not set.
+	*/
+	@Test
+	void testGetEnumeratedProperty_NotSet() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set.
+	*/
+	@Test
+	void testGetEnumeratedProperty_Set() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(""test1"");
+		expected.add(""test2"");
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is empty.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetEmpty() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = null;
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull2() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(null);
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull3() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(""test1"");
+		expected.add(null);
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull4() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(null);
+		expected.add(""test1"");
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull5() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(null);
+		expected.add(null);
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull6() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(""test1"");
+		expected.add(null);
+		expected.add(""test2"");
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull7() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(""test1"");
+		expected.add(null);
+		expected.add(null);
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull8() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(null);
+		expected.add(""test1"");
+		expected.add(null);
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty(String)} method.
+	* It tests the case when the property is set and the list is null.
+	*/
+	@Test
+	void testGetEnumeratedProperty_SetNull9() {
+		EnumeratedProperties properties = new EnumeratedProperties();
+		List<String> expected = new ArrayList<String>();
+		expected.add(null);
+		expected.add(null);
+		expected.add(""test1"");
+		properties.setEnumeratedProperty(""test"", expected);
+		List<String> actual = properties.getEnumeratedProperty(""test"");
+		assertEquals(expected, actual);
+	}
+	
+	/**
+	* Test case for {@link EnumeratedProperties#getEnumeratedProperty("
+cmpl-6wTBulOt3KvQfI9EK69u2ucLnp3t5,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/gui/FileFollowingPane.java,53.92352342605591,length,"// FileFollowingPane.java
+/* 
+ Copyright (C) 2000-2003 Greg Merrill (greghmerrill@yahoo.com)
+
+ This file is part of Follow (http://follow.sf.net).
+
+ Follow is free software; you can redistribute it and/or modify
+ it under the terms of version 2 of the GNU General Public
+ License as published by the Free Software Foundation.
+
+ Follow is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with Follow; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+package ghm.follow.gui;
+
+import ghm.follow.FileFollower;
+import ghm.follow.io.JTextComponentDestination;
+import ghm.follow.io.OutputDestination;
+import ghm.follow.search.SearchableTextPane;
+import java.awt.Font;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JScrollPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+
+/**
+ * A component which allows one to view a text file to which information is being asynchronously
+ * appended.
+ *
+ * @author <a href=""mailto:greghmerrill@yahoo.com"">Greg Merrill</a>
+ */
+public class FileFollowingPane extends JScrollPane {
+
+    private Logger log = Logger.getLogger(FileFollowingPane.class.getName());
+
+    /**
+     * FileFollower used to print to this component
+     */
+    protected FileFollower fileFollower;
+
+    /**
+     * Text area into which followed file's contents are printed
+     */
+    protected SearchableTextPane textArea;
+
+    /**
+     * OutputDestination used w/FileFollower
+     */
+    protected JTextComponentDestination destination;
+
+    /**
+     * @param file
+     *            text file to be followed
+     * @param bufferSize
+     *            size of the character buffer inside the FileFollower used to follow the supplied
+     *            file
+     * @param latency
+     *            latency of the FileFollower used to follow the supplied file
+     */
+    public FileFollowingPane(File file, int bufferSize, int latency, boolean autoPositionCaret, Font font, int tabSize) {
+        textArea = new SearchableTextPane(font, tabSize);
+        textArea.setEditable(false);
+        textArea.setUI(new LineTextUI());
+        destination = new JTextComponentDestination(textArea, autoPositionCaret);
+        fileFollower = new FileFollower(file, bufferSize, latency, new OutputDestination[] { destination });
+        add(textArea);
+        setViewportView(textArea);
+    }
+
+    /**
+     * Returns the text area to which the followed file's contents are being printed.
+     *
+     * @return text area containing followed file's contents
+     */
+    public SearchableTextPane getTextPane() {
+        return textArea;
+    }
+
+    /**
+     * Returns whether caret is automatically repositioned to the end of the text area when text is
+     * appended to the followed file
+     *
+     * @return whether caret is automatically repositioned on append
+     */
+    public boolean autoPositionCaret() {
+        return destination.autoPositionCaret();
+    }
+
+    /**
+     * Sets whether caret is automatically repositioned to the end of the text area when text is
+     * appended to the followed file
+     *
+     * @param value
+     *            whether caret is automatically repositioned on append
+     */
+    public void setAutoPositionCaret(boolean value) {
+        destination.setAutoPositionCaret(value);
+    }
+
+    /**
+     * Returns the FileFollower which is being used to print information in this component.
+     *
+     * @return FileFollower used by this component
+     */
+    public FileFollower getFileFollower() {
+        return fileFollower;
+    }
+
+    /**
+     * Convenience method; equivalent to calling getFileFollower().getFollowedFile()
+     */
+    public File getFollowedFile() {
+        return fileFollower.getFollowedFile();
+    }
+
+    /**
+     * Convenience method; equivalent to calling getFileFollower().start()
+     */
+    public void startFollowing() {
+        fileFollower.start();
+    }
+
+    /**
+     * Convenience method; equivalent to calling getFileFollower().stop()
+     */
+    public void stopFollowing() {
+        fileFollower.stop();
+    }
+
+    /**
+     * Convenience method; equivalent to calling getFileFollower().restart()
+     */
+    public void restartFollowing() {
+        fileFollower.restart();
+    }
+
+    /**
+     * Convenience method; equivalent to calling getFileFollower().pause()
+     */
+    public void pauseFollowing() {
+        fileFollower.pause();
+    }
+
+    /**
+     * Convenience method; equivalent to calling getFileFollower().unpause()
+     */
+    public void unpauseFollowing() {
+        fileFollower.unpause();
+    }
+
+    /**
+     * Convenience method; equivalent to calling getFileFollower().isPaused()
+     *
+     * @return
+     */
+    public boolean isFollowingPaused() {
+        return fileFollower.isPaused();
+    }
+
+    /**
+     * Convenience method; equivalent to calling getFileFollower().stopAndWait()
+     */
+    public void stopFollowingAndWait() throws InterruptedException {
+        fileFollower.stopAndWait();
+    }
+
+    /**
+     * Convenience method; equivalent to called getFileFollower().isBeingFollowed()
+     *
+     * @return
+     */
+    public boolean isFollowing() {
+        return fileFollower.isBeingFollowed();
+    }
+
+    /**
+     * Clears the contents of this FileFollowingPane synchronously.
+     */
+    public void clear() throws IOException {
+        if (fileFollower.getFollowedFile().length() == 0L) {
+            return;
+        }
+        synchronized (fileFollower) {
+            try {
+                fileFollower.stopAndWait();
+            } catch (InterruptedException interruptedException) {
+                // Handle this better later
+                log.log(Level.SEVERE, ""InterrupedException in FileFollowingPane"", interruptedException);
+            }
+            // This has the effect of clearing the contents of the followed file
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileFollower.getFollowedFile()));
+            bos.close();
+            // Update textarea contents to reflect freshly cleared file
+            Document doc = textArea.getDocument();
+            try {
+                doc.remove(0, doc.getLength());
+            } catch (BadLocationException e) {
+                // Handle this better later
+                log.log(Level.WARNING, ""BadLocationException in FileFolloingPane"", e);
+            }
+            fileFollower.start();
+        }
+    }
+}
+","// FileFollowingPaneTest.java
+package ghm.follow.gui;
+
+import ghm.follow.FileFollower;
+import ghm.follow.io.JTextComponentDestination;
+import ghm.follow.io.OutputDestination;
+import ghm.follow.search.SearchableTextPane;
+import java.awt.Font;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JScrollPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileFollowingPane}.
+* It contains ten unit test cases for the {@link FileFollowingPane#autoPositionCaret()} method.
+*/
+class FileFollowingPaneTest {","// FileFollowingPaneTest.java
+package ghm.follow.gui;
+
+import ghm.follow.FileFollower;
+import ghm.follow.io.JTextComponentDestination;
+import ghm.follow.io.OutputDestination;
+import ghm.follow.search.SearchableTextPane;
+import java.awt.Font;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JScrollPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileFollowingPane}.
+* It contains ten unit test cases for the {@link FileFollowingPane#autoPositionCaret()} method.
+*/
+class FileFollowingPaneTest {
+
+		private Logger log = Logger.getLogger(FileFollowingPaneTest.class.getName());
+		
+		/**
+		 * FileFollower used to print to this component
+		 */
+		protected FileFollower fileFollower;
+		
+		/**
+		 * Text area into which followed file's contents are printed
+		 */
+		protected SearchableTextPane textArea;
+		
+		/**
+		 * OutputDestination used w/FileFollower
+		 */
+		protected JTextComponentDestination destination;
+		
+		/**
+		 * @param file
+		 *            text file to be followed
+		 * @param bufferSize
+		 *            size of the character buffer inside the FileFollower used to follow the supplied
+		 *            file
+		 * @param latency
+		 *            latency of the FileFollower used to follow the supplied file
+		 */
+		public FileFollowingPaneTest(File file, int bufferSize, int latency, boolean autoPositionCaret, Font font, int tabSize) {
+				textArea = new SearchableTextPane(font, tabSize);
+				textArea.setEditable(false);
+				textArea.setUI(new LineTextUI());
+				destination = new JTextComponentDestination(textArea, autoPositionCaret);
+				fileFollower = new FileFollower(file, bufferSize, latency, new OutputDestination[] { destination });
+				add(textArea);
+				setViewportView(textArea);
+		}
+		
+		/**
+		 * Returns the text area to which the followed file's contents are being printed.
+		 *
+		 * @return text area containing followed file's contents
+		 */
+		public SearchableTextPane getTextPane() {
+				return textArea;
+		}
+		
+		/**
+		 * Returns whether caret is automatically repositioned to the end of the text area when text is
+		 * appended to the followed file
+		 *
+		 * @return whether caret is automatically repositioned on append
+		 */
+		public boolean autoPositionCaret() {
+				return destination.autoPositionCaret();
+		}
+		
+		/**
+		 * Sets whether caret is automatically repositioned to the end of the text area when text is
+		 * appended to the followed file
+		 *
+		 * @param value
+		 *            whether caret is automatically repositioned on append
+		 */
+		public void setAutoPositionCaret(boolean value) {
+				destination.setAutoPositionCaret(value);
+		}
+		
+		/**
+		 * Returns the FileFollower which is being used to print information in this component.
+		 *
+		 * @return FileFollower used by this component
+		 */
+		public FileFollower getFileFollower() {
+				return fileFollower;
+		}
+		
+		/**
+		 * Convenience method; equivalent to calling getFileFollower().getFollowedFile()
+		 */
+		public File getFollowedFile() {
+				return fileFollower.getFollowedFile();
+		}
+		
+		/**
+		 * Convenience method; equivalent to calling getFileFollower().start()
+		 */
+		public void startFollowing() {
+				fileFollower.start();
+		}
+		
+		/**
+		 * Convenience method; equivalent to calling getFileFollower().stop()
+		 */
+		public void stopFollowing() {
+				fileFollower.stop();
+		}
+		
+		/**
+		 * Convenience method; equivalent to calling getFileFollower().restart()
+		 */
+		public void restartFollowing() {
+				fileFollower.restart();
+		}
+		
+		/**
+		 * Convenience method; equivalent to calling getFileFollower().pause()
+		 */
+		public void pauseFollowing() {
+				fileFollower.pause();
+		}
+		
+		/**
+		 * Convenience method; equivalent to calling getFileFollower().unpause()
+		 */
+		public void unpauseFollowing() {
+				fileFollower.unpause();
+		}
+		
+		/**
+		 * Convenience method; equivalent to calling getFileFollower().isPaused()
+		 *
+		 * @return
+		 */
+		public boolean isFollowingPaused() {
+				return fileFollower.isPaused();
+		}
+		
+		/**
+		 * Convenience method; equivalent to calling getFileFollower().stopAndWait()
+		 */
+		public void stopFollowingAndWait() throws InterruptedException {
+				fileFollower.stopAndWait();
+		}
+		
+		/**
+		 * Convenience method; equivalent to called getFileFollower().isBeingFollowed()
+		 *
+		 * @return
+		 */
+		public boolean isFollowing() {
+				return fileFollower.isBeingFollowed();
+		}
+		
+		/**
+		 * Clears the contents of this FileFollowingPane synchronously.
+		 */
+		public void clear() throws IOException {
+				if (fileFollower.getFollowedFile().length() == 0L) {
+						return;
+				}
+				synchronized (fileFollower) {
+						try {
+								fileFollower.stopAndWait();
+						} catch (InterruptedException interruptedException) {
+								// Handle this better later
+								log.log(Level.SEVERE, ""InterrupedException in FileFollowingPane"", interruptedException);
+						}
+						// This has the effect of clearing the contents of the followed file
+						BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileFollower.getFollowedFile()));
+						bos.close();
+						// Update textarea contents to reflect freshly cleared file
+						Document doc = textArea.getDocument();
+						try {
+								doc.remove(0, doc.getLength());
+						} catch (BadLocationException e) {
+								// Handle this better later
+								log.log(Level.WARNING, ""BadLocationException in FileFolloingPane"", e);
+						}
+						fileFollower.start();
+				}
+		}
+		
+		/**
+		 * Test case for {@link FileFollowingPane#autoPositionCaret()} method.
+		 * It checks if the method returns the correct value.
+		 */
+		@Test
+		public void testAutoPositionCaret() {
+				FileFollowingPane fileFollowingPane = new FileFollowingPane(new File(""test.txt""), 1024, 1000, true, new Font(""Monospaced"", Font.PLAIN, 12), 4);
+				assertTrue(fileFollowingPane.autoPositionCaret());
+		}
+		
+		/**
+		 * Test case for {@link FileFollowingPane#autoPositionCaret()} method.
+		 * It checks if the method returns the correct value.
+		 */
+		@Test
+		public void testAutoPositionCaret2() {
+				FileFollowingPane fileFollowingPane = new FileFollowingPane(new File(""test.txt""), 1024, 1000, false, new Font(""Monospaced"", Font.PLAIN, 12), 4);
+				assertFalse(fileFollowingPane.autoPositionCaret());
+		}
+		
+		/**
+		 * Test case for {@link FileFollowingPane#autoPositionCaret()} method.
+		 * It checks if the method returns the correct value.
+"
+cmpl-6wTCxFr3wH3rDg6uZbhyqcVefdHDE,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/io/JTextComponentDestination.java,60.17330551147461,length,"// JTextComponentDestination.java
+/* 
+ Copyright (C) 2000-2003 Greg Merrill (greghmerrill@yahoo.com)
+
+ This file is part of Follow (http://follow.sf.net).
+
+ Follow is free software; you can redistribute it and/or modify
+ it under the terms of version 2 of the GNU General Public
+ License as published by the Free Software Foundation.
+
+ Follow is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with Follow; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+package ghm.follow.io;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+
+/**
+ * Implementation of {@link OutputDestination} which appends Strings to a {@link JTextComponent}.
+ *
+ * @see OutputDestination
+ * @see JTextCompnent
+ * @author <a href=""mailto:carl.hall@gmail.com"">Carl Hall</a>
+ */
+public class JTextComponentDestination extends FilterableOutputDestination {
+
+    private static final Logger LOG = Logger.getLogger(JTextComponentDestination.class.getName());
+
+    protected JTextComponent comp;
+
+    protected boolean autoPositionCaret;
+
+    /**
+     * Construct a new JTextCompnentDestination.
+     *
+     * @param jTextPane
+     *            text will be appended to this text area
+     * @param autoPositionCaret
+     *            if true, caret will be automatically moved to the bottom of the text area when
+     *            text is appended
+     */
+    public JTextComponentDestination(JTextComponent comp, boolean autoPositionCaret) {
+        this.comp = comp;
+        this.autoPositionCaret = autoPositionCaret;
+    }
+
+    public JTextComponent getJTextComponent() {
+        return comp;
+    }
+
+    public void setJTextComponent(JTextComponent comp) {
+        this.comp = comp;
+    }
+
+    /**
+     * Add a filtered view to this destination. Filtered views show only a subset of the total
+     * output based on filter conditions.
+     *
+     * @since 1.8.0
+     */
+    public void addFilteredView() {
+    }
+
+    /**
+     * Remove a filtered view
+     *
+     * @since 1.8.0
+     */
+    public void removeFilteredView() {
+    }
+
+    /**
+     * @return whether caret will be automatically moved to the bottom of the text area when text is
+     *         appended
+     */
+    public boolean autoPositionCaret() {
+        return autoPositionCaret;
+    }
+
+    /**
+     * @param autoPositionCaret
+     *            if true, caret will be automatically moved to the bottom of the text area when
+     *            text is appended
+     */
+    public void setAutoPositionCaret(boolean autoPositionCaret) {
+        this.autoPositionCaret = autoPositionCaret;
+    }
+
+    public void handlePrint(String s) {
+        try {
+            comp.getDocument().insertString(comp.getDocument().getLength(), s, null);
+            if (autoPositionCaret) {
+                comp.setCaretPosition(comp.getDocument().getLength());
+            }
+        } catch (BadLocationException e) {
+            // just ignore, nothing we can do
+            LOG.log(Level.SEVERE, ""BadLocationException in JTextComponentDestination"", e);
+        }
+    }
+
+    public void clear() {
+        comp.setText("""");
+        if (autoPositionCaret) {
+            comp.setCaretPosition(0);
+        }
+    }
+}
+","// JTextComponentDestinationTest.java
+package ghm.follow.io;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JTextComponentDestination}.
+* It contains ten unit test cases for the {@link JTextComponentDestination#autoPositionCaret()} method.
+*/
+class JTextComponentDestinationTest {","// JTextComponentDestinationTest.java
+package ghm.follow.io;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JTextComponentDestination}.
+* It contains ten unit test cases for the {@link JTextComponentDestination#autoPositionCaret()} method.
+*/
+class JTextComponentDestinationTest {
+
+		private static final Logger LOG = Logger.getLogger(JTextComponentDestinationTest.class.getName());
+		
+		/**
+		* Test case for {@link JTextComponentDestination#autoPositionCaret()} method.
+		* This test case checks if the method returns true when the caret is automatically moved to the bottom of the text area when text is appended.
+		*/
+		@Test
+		public void testAutoPositionCaret() {
+				JTextComponentDestination jTextComponentDestination = new JTextComponentDestination(new JTextComponent() {
+						@Override
+						public void setCaretPosition(int position) {
+								assertEquals(0, position);
+						}
+						
+						@Override
+						public int getCaretPosition() {
+								return 0;
+						}
+						
+						@Override
+						public void setText(String t) {
+								assertEquals("""", t);
+						}
+						
+						@Override
+						public String getText() {
+								return """";
+						}
+						
+						@Override
+						public void replaceSelection(String content) {
+								assertEquals("""", content);
+						}
+						
+						@Override
+						public void insert(String str, int pos) {
+								assertEquals("""", str);
+								assertEquals(0, pos);
+						}
+						
+						@Override
+						public int getDocument().getLength() {
+								return 0;
+						}
+						
+						@Override
+						public void getDocument().insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+								assertEquals(0, offs);
+								assertEquals("""", str);
+								assertEquals(null, a);
+						}
+				}, true);
+				assertTrue(jTextComponentDestination.autoPositionCaret());
+		}
+		
+		/**
+		* Test case for {@link JTextComponentDestination#autoPositionCaret()} method.
+		* This test case checks if the method returns false when the caret is not automatically moved to the bottom of the text area when text is appended.
+		*/
+		@Test
+		public void testAutoPositionCaret2() {
+				JTextComponentDestination jTextComponentDestination = new JTextComponentDestination(new JTextComponent() {
+						@Override
+						public void setCaretPosition(int position) {
+								assertEquals(0, position);
+						}
+						
+						@Override
+						public int getCaretPosition() {
+								return 0;
+						}
+						
+						@Override
+						public void setText(String t) {
+								assertEquals("""", t);
+						}
+						
+						@Override
+						public String getText() {
+								return """";
+						}
+						
+						@Override
+						public void replaceSelection(String content) {
+								assertEquals("""", content);
+						}
+						
+						@Override
+						public void insert(String str, int pos) {
+								assertEquals("""", str);
+								assertEquals(0, pos);
+						}
+						
+						@Override
+						public int getDocument().getLength() {
+								return 0;
+						}
+						
+						@Override
+						public void getDocument().insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+								assertEquals(0, offs);
+								assertEquals("""", str);
+								assertEquals(null, a);
+						}
+				}, false);
+				assertFalse(jTextComponentDestination.autoPositionCaret());
+		}
+		
+		/**
+		* Test case for {@link JTextComponentDestination#autoPositionCaret()} method.
+		* This test case checks if the method returns true when the caret is automatically moved to the bottom of the text area when text is appended.
+		*/
+		@Test
+		public void testAutoPositionCaret3() {
+				JTextComponentDestination jTextComponentDestination = new JTextComponentDestination(new JTextComponent() {
+						@Override
+						public void setCaretPosition(int position) {
+								assertEquals(0, position);
+						}
+						
+						@Override
+						public int getCaretPosition() {
+								return 0;
+						}
+						
+						@Override
+						public void setText(String t) {
+								assertEquals("""", t);
+						}
+						
+						@Override
+						public String getText() {
+								return """";
+						}
+						
+						@Override
+						public void replaceSelection(String content) {
+								assertEquals("""", content);
+						}
+						
+						@Override
+						public void insert(String str, int pos) {
+								assertEquals("""", str);
+								assertEquals(0, pos);
+						}
+						
+						@Override
+						public int getDocument().getLength() {
+								return 0;
+						}
+						
+						@Override
+						public void getDocument().insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+								assertEquals(0, offs);
+								assertEquals("""", str);
+								assertEquals(null, a);
+						}
+				}, true);
+				assertTrue(jTextComponentDestination.autoPositionCaret());
+		}
+		
+		/**
+		* Test case for {@link JTextComponentDestination#autoPositionCaret()} method.
+		* This"
+cmpl-6wTDw6kMz397AnqJHgrcCjIf71HkR,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/io/JTextPaneDestination.java,57.24583292007446,length,"// JTextPaneDestination.java
+/* 
+ Copyright (C) 2000-2003 Greg Merrill (greghmerrill@yahoo.com)
+
+ This file is part of Follow (http://follow.sf.net).
+
+ Follow is free software; you can redistribute it and/or modify
+ it under the terms of version 2 of the GNU General Public
+ License as published by the Free Software Foundation.
+
+ Follow is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with Follow; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+package ghm.follow.io;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+
+/**
+ * Implementation of {@link OutputDestination} which appends Strings to a {@link JTextPane}.
+ *
+ * @see OutputDestination
+ * @see JTextPane
+ * @author <a href=""mailto:carl.hall@gmail.com"">Carl Hall</a>
+ */
+public class JTextPaneDestination implements OutputDestination {
+
+    private Logger log = Logger.getLogger(JTextPaneDestination.class.getName());
+
+    protected JTextPane jTextPane;
+
+    protected boolean autoPositionCaret;
+
+    /**
+     * Construct a new JTextPaneDestination.
+     *
+     * @param jTextPane
+     *            text will be appended to this text area
+     * @param autoPositionCaret
+     *            if true, caret will be automatically moved to the bottom of the text area when
+     *            text is appended
+     */
+    public JTextPaneDestination(JTextPane jTextPane, boolean autoPositionCaret) {
+        this.jTextPane = jTextPane;
+        this.autoPositionCaret = autoPositionCaret;
+    }
+
+    public JTextPane getJTextPane() {
+        return jTextPane;
+    }
+
+    public void setJTextArea(JTextPane jTextPane) {
+        this.jTextPane = jTextPane;
+    }
+
+    /**
+     * Add a filtered view to this destination. Filtered views show only a subset of the total
+     * output based on filter conditions.
+     *
+     * @since 1.8.0
+     */
+    public void addFilteredView() {
+    }
+
+    /**
+     * Remove a filtered view
+     *
+     * @since 1.8.0
+     */
+    public void removeFilteredView() {
+    }
+
+    /**
+     * @return whether caret will be automatically moved to the bottom of the text area when text is
+     *         appended
+     */
+    public boolean autoPositionCaret() {
+        return autoPositionCaret;
+    }
+
+    /**
+     * @param autoPositionCaret
+     *            if true, caret will be automatically moved to the bottom of the text area when
+     *            text is appended
+     */
+    public void setAutoPositionCaret(boolean autoPositionCaret) {
+        this.autoPositionCaret = autoPositionCaret;
+    }
+
+    public void print(String s) {
+        try {
+            jTextPane.getDocument().insertString(jTextPane.getDocument().getLength(), s, null);
+            if (autoPositionCaret) {
+                jTextPane.setCaretPosition(jTextPane.getDocument().getLength());
+            }
+        } catch (BadLocationException e) {
+            // just ignore, nothing we can do
+            log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestination"", e);
+        }
+    }
+
+    public void clear() {
+        jTextPane.setText("""");
+        if (autoPositionCaret) {
+            jTextPane.setCaretPosition(0);
+        }
+    }
+}
+","// JTextPaneDestinationTest.java
+package ghm.follow.io;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JTextPaneDestination}.
+* It contains ten unit test cases for the {@link JTextPaneDestination#autoPositionCaret()} method.
+*/
+class JTextPaneDestinationTest {","// JTextPaneDestinationTest.java
+package ghm.follow.io;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JTextPaneDestination}.
+* It contains ten unit test cases for the {@link JTextPaneDestination#autoPositionCaret()} method.
+*/
+class JTextPaneDestinationTest {
+
+	private static final Logger log = Logger.getLogger(JTextPaneDestinationTest.class.getName());
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testAutoPositionCaret() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPaneDestination(jTextPane, true);
+		jTextPaneDestination.print(""test"");
+		try {
+			assertEquals(jTextPane.getDocument().getLength(), jTextPane.getCaretPosition());
+		} catch (BadLocationException e) {
+			// just ignore, nothing we can do
+			log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestinationTest"", e);
+		}
+	}
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is not automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testNotAutoPositionCaret() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPaneDestination(jTextPane, false);
+		jTextPaneDestination.print(""test"");
+		try {
+			assertNotEquals(jTextPane.getDocument().getLength(), jTextPane.getCaretPosition());
+		} catch (BadLocationException e) {
+			// just ignore, nothing we can do
+			log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestinationTest"", e);
+		}
+	}
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testAutoPositionCaret2() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPaneDestination(jTextPane, true);
+		jTextPaneDestination.print(""test"");
+		try {
+			assertEquals(jTextPane.getDocument().getLength(), jTextPane.getCaretPosition());
+		} catch (BadLocationException e) {
+			// just ignore, nothing we can do
+			log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestinationTest"", e);
+		}
+	}
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is not automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testNotAutoPositionCaret2() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPaneDestination(jTextPane, false);
+		jTextPaneDestination.print(""test"");
+		try {
+			assertNotEquals(jTextPane.getDocument().getLength(), jTextPane.getCaretPosition());
+		} catch (BadLocationException e) {
+			// just ignore, nothing we can do
+			log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestinationTest"", e);
+		}
+	}
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testAutoPositionCaret3() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPaneDestination(jTextPane, true);
+		jTextPaneDestination.print(""test"");
+		try {
+			assertEquals(jTextPane.getDocument().getLength(), jTextPane.getCaretPosition());
+		} catch (BadLocationException e) {
+			// just ignore, nothing we can do
+			log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestinationTest"", e);
+		}
+	}
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is not automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testNotAutoPositionCaret3() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPaneDestination(jTextPane, false);
+		jTextPaneDestination.print(""test"");
+		try {
+			assertNotEquals(jTextPane.getDocument().getLength(), jTextPane.getCaretPosition());
+		} catch (BadLocationException e) {
+			// just ignore, nothing we can do
+			log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestinationTest"", e);
+		}
+	}
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testAutoPositionCaret4() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPaneDestination(jTextPane, true);
+		jTextPaneDestination.print(""test"");
+		try {
+			assertEquals(jTextPane.getDocument().getLength(), jTextPane.getCaretPosition());
+		} catch (BadLocationException e) {
+			// just ignore, nothing we can do
+			log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestinationTest"", e);
+		}
+	}
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is not automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testNotAutoPositionCaret4() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPaneDestination(jTextPane, false);
+		jTextPaneDestination.print(""test"");
+		try {
+			assertNotEquals(jTextPane.getDocument().getLength(), jTextPane.getCaretPosition());
+		} catch (BadLocationException e) {
+			// just ignore, nothing we can do
+			log.log(Level.SEVERE, ""BadLocationException in JTextPaneDestinationTest"", e);
+		}
+	}
+	
+	/**
+	* Test case for {@link JTextPaneDestination#autoPositionCaret()} method.
+	* It tests the case when the caret is automatically moved to the bottom of the text area when text is appended.
+	*/
+	@Test
+	void testAutoPositionCaret5() {
+		JTextPane jTextPane = new JTextPane();
+		JTextPaneDestination jTextPaneDestination = new JTextPane"
+cmpl-6wTEzdJWHsFLLFddducOIEh5E6HfD,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/search/SearchableTextPane_1Test.java,50.90191078186035,length,"// SearchableTextPane.java
+package ghm.follow.search;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextArea;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.Utilities;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
+
+public class SearchableTextPane extends JTextArea {
+
+    private Logger log = Logger.getLogger(SearchableTextPane.class.getName());
+
+    private int lastSearchPos = -1;
+
+    private String lastSearchTerm;
+
+    private final DefaultHighlightPainter wordPainter = new DefaultHighlightPainter(Color.YELLOW);
+
+    public SearchableTextPane(Font font, int tabSize) {
+        // set the display font
+        setFont(font);
+        setTabSize(tabSize);
+    }
+
+    /**
+     * Override this to keep the text from wrapping and to make the viewable area as wide as the
+     * tabbed pane
+     */
+    public boolean getScrollableTracksViewportWidth() {
+        Component parent = getParent();
+        ComponentUI ui = getUI();
+        return parent != null ? (ui.getPreferredSize(this).width <= parent.getSize().width) : true;
+    }
+
+    /**
+     * Highlight <code>term</code> wherever it is found in the view. Also highlights the entire
+     * line on which the term is found.
+     *
+     * @param term
+     * @param caseSensitive
+     * @param useRegularExpression
+     * @return
+     */
+    public List<LineResult> highlight(String term, int flags) {
+        List<LineResult> lineResults = new ArrayList<LineResult>();
+        // Remove all old highlights
+        removeHighlights();
+        // Search for pattern
+        if ((term != null) && (term.length() > 0)) {
+            // look for instances of the term in the text
+            try {
+                Document doc = getDocument();
+                String text = doc.getText(0, doc.getLength());
+                List<WordResult> searchResults = new SearchEngine(flags).search(term, text);
+                lineResults = convertWords2Lines(searchResults);
+                for (LineResult lineResult : lineResults) {
+                    List<WordResult> wordResults = lineResult.getWordResults();
+                    for (WordResult wordResult : wordResults) {
+                        // highlight the searched term
+                        int wordStart = wordResult.start;
+                        int wordEnd = wordResult.end;
+                        addHighlight(wordStart, wordEnd - wordStart);
+                        Thread.yield();
+                    }
+                }
+            } catch (BadLocationException e) {
+                log.log(Level.SEVERE, ""BadLocationException in SearchableTextPane"", e);
+                lineResults = new ArrayList<LineResult>();
+            }
+        }
+        return lineResults;
+    }
+
+    /**
+     * Highlight a piece of text in the document
+     *
+     * @param start
+     * @param wordEnd
+     * @param highlighter
+     */
+    private void addHighlight(int start, int length) throws BadLocationException {
+        getHighlighter().addHighlight(start, start + length, wordPainter);
+    }
+
+    /**
+     * Removes highlights from text area
+     */
+    public void removeHighlights() {
+        getHighlighter().removeAllHighlights();
+    }
+
+    /**
+     * Searches for a term. If the term provided matches the last searched term, the last found
+     * position is used as a starting point.<br>
+     * <br>
+     * Developer note: this method isn't currently used.
+     *
+     * @param term
+     *            The string for which to search.
+     * @return The position where the term was found.<br>
+     *         If the term is null, empty or not found, -1 is returned.
+     */
+    public int search(String term) {
+        if (term != null && term.length() > 0) {
+            if (term.equals(lastSearchTerm)) {
+                // assume to start at the beginning
+                int pos = 0;
+                // if there is a previous search position, start there plus the
+                // length
+                // of the last term so that last term again isn't found again
+                if (lastSearchPos != -1) {
+                    pos = lastSearchPos + lastSearchTerm.length();
+                }
+                lastSearchPos = search(lastSearchTerm, pos);
+            } else {
+                lastSearchPos = search(term, 0);
+            }
+        }
+        // remember the term if it was found
+        if (lastSearchPos == -1) {
+            lastSearchTerm = null;
+        } else {
+            lastSearchTerm = term;
+        }
+        return lastSearchPos;
+    }
+
+    /**
+     * Searches for a term at the given starting position.<br>
+     * <br>
+     * Developer note: this method isn't currently used.
+     *
+     * @param term
+     *            The string for which to search.
+     * @param startPos
+     *            Where to start.
+     * @return The position where the term was found.<br>
+     *         If the term is null, empty or not found, -1 is returned.
+     */
+    public int search(String term, int startPos) {
+        int pos = 0;
+        try {
+            Document doc = getDocument();
+            String text = doc.getText(0, doc.getLength());
+            // Search for pattern
+            pos = text.indexOf(term, startPos);
+        } catch (BadLocationException e) {
+            // just return -1;
+            log.log(Level.WARNING, ""BadLocationException in SearchableTextPane"", e);
+            pos = -1;
+        }
+        return pos;
+    }
+
+    /**
+     * Converts word results from search into line results
+     *
+     * @param words
+     * @return
+     */
+    private List<LineResult> convertWords2Lines(List<WordResult> words) throws BadLocationException {
+        ArrayList<LineResult> lines = new ArrayList<LineResult>();
+        LineResult tempLine = null;
+        int lastLine = -1;
+        for (WordResult word : words) {
+            int line = getLineOfOffset(word.start);
+            if (line != lastLine) {
+                if (tempLine != null) {
+                    lines.add(tempLine);
+                }
+                Element elem = Utilities.getParagraphElement(this, word.start);
+                int lineStart = elem.getStartOffset();
+                int lineEnd = elem.getEndOffset();
+                tempLine = new LineResult(line, lineStart, lineEnd);
+            }
+            updateWordResult(word, tempLine);
+            lastLine = line;
+            // allow other things to happen in case the search takes a while
+            Thread.yield();
+        }
+        if (tempLine != null) {
+            lines.add(tempLine);
+        }
+        return lines;
+    }
+
+    /**
+     * Adds word result to line result and updates line information
+     *
+     * @param wordResult
+     * @param lineResult
+     */
+    private void updateWordResult(WordResult wordResult, LineResult lineResult) throws BadLocationException {
+        lineResult.addWord(wordResult);
+        // increase by 1 because offset starts at 0.
+        // 1 is clearer to the user since most people don't start counting
+        // at 0
+        int line = getLineOfOffset(wordResult.start);
+        wordResult.parent.lineNumber = line + 1;
+        int lineOffset = getLineStartOffset(line);
+        wordResult.setLineOffset(lineOffset);
+    }
+}
+","// SearchableTextPane_1Test.java
+package ghm.follow.search;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextArea;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.Utilities;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SearchableTextPane}.
+* It contains ten unit test cases for the {@link SearchableTextPane#search(String)} method.
+*/
+class SearchableTextPane_1Test {","// SearchableTextPane_1Test.java
+package ghm.follow.search;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextArea;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.Utilities;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SearchableTextPane}.
+* It contains ten unit test cases for the {@link SearchableTextPane#search(String)} method.
+*/
+class SearchableTextPane_1Test {
+
+		private Logger log = Logger.getLogger(SearchableTextPane_1Test.class.getName());
+		
+		private int lastSearchPos = -1;
+		
+		private String lastSearchTerm;
+		
+		private final DefaultHighlightPainter wordPainter = new DefaultHighlightPainter(Color.YELLOW);
+		
+		public SearchableTextPane_1Test(Font font, int tabSize) {
+				// set the display font
+				setFont(font);
+				setTabSize(tabSize);
+		}
+		
+		/**
+		* Override this to keep the text from wrapping and to make the viewable area as wide as the
+		* tabbed pane
+		*/
+		public boolean getScrollableTracksViewportWidth() {
+				Component parent = getParent();
+				ComponentUI ui = getUI();
+				return parent != null ? (ui.getPreferredSize(this).width <= parent.getSize().width) : true;
+		}
+		
+		/**
+		* Highlight <code>term</code> wherever it is found in the view. Also highlights the entire
+		* line on which the term is found.
+		*
+		* @param term
+		* @param caseSensitive
+		* @param useRegularExpression
+		* @return
+		*/
+		public List<LineResult> highlight(String term, int flags) {
+				List<LineResult> lineResults = new ArrayList<LineResult>();
+				// Remove all old highlights
+				removeHighlights();
+				// Search for pattern
+				if ((term != null) && (term.length() > 0)) {
+						// look for instances of the term in the text
+						try {
+								Document doc = getDocument();
+								String text = doc.getText(0, doc.getLength());
+								List<WordResult> searchResults = new SearchEngine(flags).search(term, text);
+								lineResults = convertWords2Lines(searchResults);
+								for (LineResult lineResult : lineResults) {
+										List<WordResult> wordResults = lineResult.getWordResults();
+										for (WordResult wordResult : wordResults) {
+												// highlight the searched term
+												int wordStart = wordResult.start;
+												int wordEnd = wordResult.end;
+												addHighlight(wordStart, wordEnd - wordStart);
+												Thread.yield();
+										}
+								}
+						} catch (BadLocationException e) {
+								log.log(Level.SEVERE, ""BadLocationException in SearchableTextPane"", e);
+								lineResults = new ArrayList<LineResult>();
+						}
+				}
+				return lineResults;
+		}
+		
+		/**
+		* Highlight a piece of text in the document
+		*
+		* @param start
+		* @param wordEnd
+		* @param highlighter
+		*/
+		private void addHighlight(int start, int length) throws BadLocationException {
+				getHighlighter().addHighlight(start, start + length, wordPainter);
+		}
+		
+		/**
+		* Removes highlights from text area
+		*/
+		public void removeHighlights() {
+				getHighlighter().removeAllHighlights();
+		}
+		
+		/**
+		* Searches for a term. If the term provided matches the last searched term, the last found
+		* position is used as a starting point.<br>
+		* <br>
+		* Developer note: this method isn't currently used.
+		*
+		* @param term
+		*            The string for which to search.
+		* @return The position where the term was found.<br>
+		*         If the term is null, empty or not found, -1 is returned.
+		*/
+		public int search(String term) {
+				if (term != null && term.length() > 0) {
+						if (term.equals(lastSearchTerm)) {
+								// assume to start at the beginning
+								int pos = 0;
+								// if there is a previous search position, start there plus the
+								// length
+								// of the last term so that last term again isn't found again
+								if (lastSearchPos != -1) {
+										pos = lastSearchPos + lastSearchTerm.length();
+								}
+								lastSearchPos = search(lastSearchTerm, pos);
+						} else {
+								lastSearchPos = search(term, 0);
+						}
+				}
+				// remember the term if it was found
+				if (lastSearchPos == -1) {
+						lastSearchTerm = null;
+				} else {
+						lastSearchTerm = term;
+				}
+				return lastSearchPos;
+		}
+		
+		/**
+		* Searches for a term at the given starting position.<br>
+		* <br>
+		* Developer note: this method isn't currently used.
+		*
+		* @param term
+		*            The string for which to search.
+		* @param startPos
+		*            Where to start.
+		* @return The position where the term was found.<br>
+		*         If the term is null, empty or not found, -1 is returned.
+		*/
+		public int search(String term, int startPos) {
+				int pos = 0;
+				try {
+						Document doc = getDocument();
+						String text = doc.getText(0, doc.getLength());
+						// Search for pattern
+						pos = text.indexOf(term, startPos);
+				} catch (BadLocationException e) {
+						// just return -1;
+						log.log(Level.WARNING, ""BadLocationException in SearchableTextPane"", e);
+						pos = -1;
+				}
+				return pos;
+		}
+		
+		/**
+		* Converts word results from search into line results
+		*
+		* @param words
+		* @return
+		*/
+		private List<LineResult> convertWords2Lines(List<WordResult> words) throws BadLocationException {
+				ArrayList<LineResult> lines = new ArrayList<LineResult>();
+				LineResult tempLine = null;
+				int lastLine = -1;
+				for (WordResult word : words) {
+						int line = getLineOfOffset(word.start);
+						if (line != lastLine) {
+								if (tempLine != null) {
+										lines.add(tempLine);
+								}
+								Element elem = Utilities.getParagraphElement(this, word.start);
+						"
+cmpl-6wTG2LtBM5LaaxqK5Oyd3HEe3diN5,/EvoSuiteBenchmark/original/41_follow/src/main/java/ghm/follow/search/SearchableTextPane_2Test.java,57.75744867324829,length,"// SearchableTextPane.java
+package ghm.follow.search;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextArea;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.Utilities;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
+
+public class SearchableTextPane extends JTextArea {
+
+    private Logger log = Logger.getLogger(SearchableTextPane.class.getName());
+
+    private int lastSearchPos = -1;
+
+    private String lastSearchTerm;
+
+    private final DefaultHighlightPainter wordPainter = new DefaultHighlightPainter(Color.YELLOW);
+
+    public SearchableTextPane(Font font, int tabSize) {
+        // set the display font
+        setFont(font);
+        setTabSize(tabSize);
+    }
+
+    /**
+     * Override this to keep the text from wrapping and to make the viewable area as wide as the
+     * tabbed pane
+     */
+    public boolean getScrollableTracksViewportWidth() {
+        Component parent = getParent();
+        ComponentUI ui = getUI();
+        return parent != null ? (ui.getPreferredSize(this).width <= parent.getSize().width) : true;
+    }
+
+    /**
+     * Highlight <code>term</code> wherever it is found in the view. Also highlights the entire
+     * line on which the term is found.
+     *
+     * @param term
+     * @param caseSensitive
+     * @param useRegularExpression
+     * @return
+     */
+    public List<LineResult> highlight(String term, int flags) {
+        List<LineResult> lineResults = new ArrayList<LineResult>();
+        // Remove all old highlights
+        removeHighlights();
+        // Search for pattern
+        if ((term != null) && (term.length() > 0)) {
+            // look for instances of the term in the text
+            try {
+                Document doc = getDocument();
+                String text = doc.getText(0, doc.getLength());
+                List<WordResult> searchResults = new SearchEngine(flags).search(term, text);
+                lineResults = convertWords2Lines(searchResults);
+                for (LineResult lineResult : lineResults) {
+                    List<WordResult> wordResults = lineResult.getWordResults();
+                    for (WordResult wordResult : wordResults) {
+                        // highlight the searched term
+                        int wordStart = wordResult.start;
+                        int wordEnd = wordResult.end;
+                        addHighlight(wordStart, wordEnd - wordStart);
+                        Thread.yield();
+                    }
+                }
+            } catch (BadLocationException e) {
+                log.log(Level.SEVERE, ""BadLocationException in SearchableTextPane"", e);
+                lineResults = new ArrayList<LineResult>();
+            }
+        }
+        return lineResults;
+    }
+
+    /**
+     * Highlight a piece of text in the document
+     *
+     * @param start
+     * @param wordEnd
+     * @param highlighter
+     */
+    private void addHighlight(int start, int length) throws BadLocationException {
+        getHighlighter().addHighlight(start, start + length, wordPainter);
+    }
+
+    /**
+     * Removes highlights from text area
+     */
+    public void removeHighlights() {
+        getHighlighter().removeAllHighlights();
+    }
+
+    /**
+     * Searches for a term. If the term provided matches the last searched term, the last found
+     * position is used as a starting point.<br>
+     * <br>
+     * Developer note: this method isn't currently used.
+     *
+     * @param term
+     *            The string for which to search.
+     * @return The position where the term was found.<br>
+     *         If the term is null, empty or not found, -1 is returned.
+     */
+    public int search(String term) {
+        if (term != null && term.length() > 0) {
+            if (term.equals(lastSearchTerm)) {
+                // assume to start at the beginning
+                int pos = 0;
+                // if there is a previous search position, start there plus the
+                // length
+                // of the last term so that last term again isn't found again
+                if (lastSearchPos != -1) {
+                    pos = lastSearchPos + lastSearchTerm.length();
+                }
+                lastSearchPos = search(lastSearchTerm, pos);
+            } else {
+                lastSearchPos = search(term, 0);
+            }
+        }
+        // remember the term if it was found
+        if (lastSearchPos == -1) {
+            lastSearchTerm = null;
+        } else {
+            lastSearchTerm = term;
+        }
+        return lastSearchPos;
+    }
+
+    /**
+     * Searches for a term at the given starting position.<br>
+     * <br>
+     * Developer note: this method isn't currently used.
+     *
+     * @param term
+     *            The string for which to search.
+     * @param startPos
+     *            Where to start.
+     * @return The position where the term was found.<br>
+     *         If the term is null, empty or not found, -1 is returned.
+     */
+    public int search(String term, int startPos) {
+        int pos = 0;
+        try {
+            Document doc = getDocument();
+            String text = doc.getText(0, doc.getLength());
+            // Search for pattern
+            pos = text.indexOf(term, startPos);
+        } catch (BadLocationException e) {
+            // just return -1;
+            log.log(Level.WARNING, ""BadLocationException in SearchableTextPane"", e);
+            pos = -1;
+        }
+        return pos;
+    }
+
+    /**
+     * Converts word results from search into line results
+     *
+     * @param words
+     * @return
+     */
+    private List<LineResult> convertWords2Lines(List<WordResult> words) throws BadLocationException {
+        ArrayList<LineResult> lines = new ArrayList<LineResult>();
+        LineResult tempLine = null;
+        int lastLine = -1;
+        for (WordResult word : words) {
+            int line = getLineOfOffset(word.start);
+            if (line != lastLine) {
+                if (tempLine != null) {
+                    lines.add(tempLine);
+                }
+                Element elem = Utilities.getParagraphElement(this, word.start);
+                int lineStart = elem.getStartOffset();
+                int lineEnd = elem.getEndOffset();
+                tempLine = new LineResult(line, lineStart, lineEnd);
+            }
+            updateWordResult(word, tempLine);
+            lastLine = line;
+            // allow other things to happen in case the search takes a while
+            Thread.yield();
+        }
+        if (tempLine != null) {
+            lines.add(tempLine);
+        }
+        return lines;
+    }
+
+    /**
+     * Adds word result to line result and updates line information
+     *
+     * @param wordResult
+     * @param lineResult
+     */
+    private void updateWordResult(WordResult wordResult, LineResult lineResult) throws BadLocationException {
+        lineResult.addWord(wordResult);
+        // increase by 1 because offset starts at 0.
+        // 1 is clearer to the user since most people don't start counting
+        // at 0
+        int line = getLineOfOffset(wordResult.start);
+        wordResult.parent.lineNumber = line + 1;
+        int lineOffset = getLineStartOffset(line);
+        wordResult.setLineOffset(lineOffset);
+    }
+}
+","// SearchableTextPane_2Test.java
+package ghm.follow.search;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextArea;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.Utilities;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SearchableTextPane}.
+* It contains ten unit test cases for the {@link SearchableTextPane#search(String, int)} method.
+*/
+class SearchableTextPane_2Test {","// SearchableTextPane_2Test.java
+package ghm.follow.search;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTextArea;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.Utilities;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SearchableTextPane}.
+* It contains ten unit test cases for the {@link SearchableTextPane#search(String, int)} method.
+*/
+class SearchableTextPane_2Test {
+
+		private Logger log = Logger.getLogger(SearchableTextPane_2Test.class.getName());
+		
+		private int lastSearchPos = -1;
+		
+		private String lastSearchTerm;
+		
+		private final DefaultHighlightPainter wordPainter = new DefaultHighlightPainter(Color.YELLOW);
+		
+		public SearchableTextPane_2Test(Font font, int tabSize) {
+				// set the display font
+				setFont(font);
+				setTabSize(tabSize);
+		}
+		
+		/**
+		* Override this to keep the text from wrapping and to make the viewable area as wide as the
+		* tabbed pane
+		*/
+		public boolean getScrollableTracksViewportWidth() {
+				Component parent = getParent();
+				ComponentUI ui = getUI();
+				return parent != null ? (ui.getPreferredSize(this).width <= parent.getSize().width) : true;
+		}
+		
+		/**
+		* Highlight <code>term</code> wherever it is found in the view. Also highlights the entire
+		* line on which the term is found.
+		*
+		* @param term
+		* @param caseSensitive
+		* @param useRegularExpression
+		* @return
+		*/
+		public List<LineResult> highlight(String term, int flags) {
+				List<LineResult> lineResults = new ArrayList<LineResult>();
+				// Remove all old highlights
+				removeHighlights();
+				// Search for pattern
+				if ((term != null) && (term.length() > 0)) {
+						// look for instances of the term in the text
+						try {
+								Document doc = getDocument();
+								String text = doc.getText(0, doc.getLength());
+								List<WordResult> searchResults = new SearchEngine(flags).search(term, text);
+								lineResults = convertWords2Lines(searchResults);
+								for (LineResult lineResult : lineResults) {
+										List<WordResult> wordResults = lineResult.getWordResults();
+										for (WordResult wordResult : wordResults) {
+												// highlight the searched term
+												int wordStart = wordResult.start;
+												int wordEnd = wordResult.end;
+												addHighlight(wordStart, wordEnd - wordStart);
+												Thread.yield();
+										}
+								}
+						} catch (BadLocationException e) {
+								log.log(Level.SEVERE, ""BadLocationException in SearchableTextPane"", e);
+								lineResults = new ArrayList<LineResult>();
+						}
+				}
+				return lineResults;
+		}
+		
+		/**
+		* Highlight a piece of text in the document
+		*
+		* @param start
+		* @param wordEnd
+		* @param highlighter
+		*/
+		private void addHighlight(int start, int length) throws BadLocationException {
+				getHighlighter().addHighlight(start, start + length, wordPainter);
+		}
+		
+		/**
+		* Removes highlights from text area
+		*/
+		public void removeHighlights() {
+				getHighlighter().removeAllHighlights();
+		}
+		
+		/**
+		* Searches for a term. If the term provided matches the last searched term, the last found
+		* position is used as a starting point.<br>
+		* <br>
+		* Developer note: this method isn't currently used.
+		*
+		* @param term
+		*            The string for which to search.
+		* @return The position where the term was found.<br>
+		*         If the term is null, empty or not found, -1 is returned.
+		*/
+		public int search(String term) {
+				if (term != null && term.length() > 0) {
+						if (term.equals(lastSearchTerm)) {
+								// assume to start at the beginning
+								int pos = 0;
+								// if there is a previous search position, start there plus the
+								// length
+								// of the last term so that last term again isn't found again
+								if (lastSearchPos != -1) {
+										pos = lastSearchPos + lastSearchTerm.length();
+								}
+								lastSearchPos = search(lastSearchTerm, pos);
+						} else {
+								lastSearchPos = search(term, 0);
+						}
+				}
+				// remember the term if it was found
+				if (lastSearchPos == -1) {
+						lastSearchTerm = null;
+				} else {
+						lastSearchTerm = term;
+				}
+				return lastSearchPos;
+		}
+		
+		/**
+		* Searches for a term at the given starting position.<br>
+		* <br>
+		* Developer note: this method isn't currently used.
+		*
+		* @param term
+		*            The string for which to search.
+		* @param startPos
+		*            Where to start.
+		* @return The position where the term was found.<br>
+		*         If the term is null, empty or not found, -1 is returned.
+		*/
+		public int search(String term, int startPos) {
+				int pos = 0;
+				try {
+						Document doc = getDocument();
+						String text = doc.getText(0, doc.getLength());
+						// Search for pattern
+						pos = text.indexOf(term, startPos);
+				} catch (BadLocationException e) {
+						// just return -1;
+						log.log(Level.WARNING, ""BadLocationException in SearchableTextPane"", e);
+						pos = -1;
+				}
+				return pos;
+		}
+		
+		/**
+		* Converts word results from search into line results
+		*
+		* @param words
+		* @return
+		*/
+		private List<LineResult> convertWords2Lines(List<WordResult> words) throws BadLocationException {
+				ArrayList<LineResult> lines = new ArrayList<LineResult>();
+				LineResult tempLine = null;
+				int lastLine = -1;
+				for (WordResult word : words) {
+						int line = getLineOfOffset(word.start);
+						if (line != lastLine) {
+								if (tempLine != null) {
+										lines.add(tempLine);
+								}
+								Element elem = Utilities.getParagraphElement(this, word.start);
+						"

@@ -1,0 +1,203 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+34dd3f36-6324-4f38-8cdd-d79a035ab5cf,/EvoSuiteBenchmark/original/24_saxpath/src/main/java/saxpath/helpers/XPathReaderFactory_0Test.java,33.895854473114014,stop,"// XPathReaderFactory.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+
+/**
+ * Create an {@link org.saxpath.XPathReader} from
+ *  either a system property, or a named class.
+ *
+ *  <p>
+ *  Similar to the SAX API, the <code>XPathReaderFactory</code>
+ *  can create an <code>XPathReader</code> from a name of a
+ *  class passed in directly, or by inspecting the system
+ *  property <code>org.saxpath.driver</code>.
+ *
+ * @author bob mcwhirter (bob@werken.com)
+ */
+public class XPathReaderFactory {
+
+    /**
+     * Create an <code>XPathReader</code> using the value of
+     *  the <code>org.saxpath.driver</code> system property.
+     *
+     * @return An instance of the <code>XPathReader</code> specified
+     *          by the <code>org.saxpath.driver</code> property.
+     * @throws SAXPathException if the property is unset, or if
+     *          the class can not be instantiated for some reason.,
+     *          or if the class doesn't implement the <code>XPathReader</code>
+     *          interface.
+     */
+    public static XPathReader createReader() throws SAXPathException {
+        String className = null;
+        boolean securityException = false;
+        try {
+            className = System.getProperty(DRIVER_PROPERTY);
+        } catch (SecurityException e) {
+            securityException = true;
+        }
+        if (className == null || """".equals(className)) {
+            if (USE_DEFAULT) {
+                className = DEFAULT_DRIVER;
+            } else {
+                if (securityException) {
+                    throw new SAXPathException(""Reading of property "" + DRIVER_PROPERTY + "" disallowed."");
+                } else {
+                    throw new SAXPathException(""Property "" + DRIVER_PROPERTY + "" not set"");
+                }
+            }
+        }
+        return createReader(className);
+    }
+}
+","// XPathReaderFactory_0Test.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XPathReaderFactory}.
+* It contains one unit test case for the {@link XPathReaderFactory#createReader()} method.
+*/
+class XPathReaderFactory_0Test {","// XPathReaderFactory_0Test.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XPathReaderFactory}.
+* It contains one unit test case for the {@link XPathReaderFactory#createReader()} method.
+*/
+class XPathReaderFactory_0Test {
+/**
+		 * Test of constructors of class {@link XPathReaderFactory}.
+		 */
+		@Test
+		public void test_Constructor_IllegalArgumentException_IllegalClassnameParameter() throws Exception {
+			String className = null;
+			try {
+				new XPathReaderFactory(className);
+			} catch (IllegalArgumentException e) {
+				String msg = e.getMessage();
+				assertTrue(msg, msg.contains(""null""));
+			}
+		}
+		@Test
+		public void 	test_Constructor_ParameterizedName_ParameterizedName_ClassNameParameter() throws Exception {
+			SAXPathReaderFactory factory = new XPathReaderFactory(""junit"", ""driver=org.apache.xpath.objects.jaxp.XPathReaderFactoryImplTest"");
+			XPathReader reader = (XPathReader) factory.createReaders().get(0);
+			assertTrue(reader.getClass().getName().endsWith(""jaxp.XPathReaderFactoryImplTest""));
+		}
+}
+"
+a803a84e-724e-4f52-815f-2f0409be943b,/EvoSuiteBenchmark/original/24_saxpath/src/main/java/saxpath/helpers/XPathReaderFactory_1Test.java,27.239868640899658,stop,"// XPathReaderFactory.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+
+/**
+ * Create an {@link org.saxpath.XPathReader} from
+ *  either a system property, or a named class.
+ *
+ *  <p>
+ *  Similar to the SAX API, the <code>XPathReaderFactory</code>
+ *  can create an <code>XPathReader</code> from a name of a
+ *  class passed in directly, or by inspecting the system
+ *  property <code>org.saxpath.driver</code>.
+ *
+ * @author bob mcwhirter (bob@werken.com)
+ */
+public class XPathReaderFactory {
+
+    /**
+     * Create an <code>XPathReader</code> using the passed
+     *  in class name.
+     *
+     * @param className The name of the class which implements
+     *         the <code>XPathReader</code> interface.
+     * @throws SAXPathException if the class can not be
+     *          instantiated for some reason, or if the
+     *          class doesn't implement the <code>XPathReader</code>
+     *          interface.
+     */
+    public static XPathReader createReader(String className) throws SAXPathException {
+        Class readerClass = null;
+        XPathReader reader = null;
+        try {
+            // Use the full version of Class.forName(), so as to
+            // work better in sandboxed environments, such as
+            // Servlet contains, and Applets.
+            readerClass = Class.forName(className, true, XPathReaderFactory.class.getClassLoader());
+            // Double-check that it's actually the right kind of class
+            // before attempting instantiation.
+            if (!XPathReader.class.isAssignableFrom(readerClass)) {
+                throw new SAXPathException(""Class ["" + className + ""] does not implement the org.saxpath.XPathReader interface."");
+            }
+        } catch (ClassNotFoundException e) {
+            throw new SAXPathException(e.getMessage());
+        }
+        try {
+            reader = (XPathReader) readerClass.newInstance();
+        } catch (IllegalAccessException e) {
+            throw new SAXPathException(e.getMessage());
+        } catch (InstantiationException e) {
+            throw new SAXPathException(e.getMessage());
+        }
+        if (reader == null) {
+            throw new SAXPathException(""Unable to create XPathReader"");
+        }
+        return reader;
+    }
+}
+","// XPathReaderFactory_1Test.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XPathReaderFactory}.
+* It contains one unit test case for the {@link XPathReaderFactory#createReader(String)} method.
+*/
+class XPathReaderFactory_1Test {","// XPathReaderFactory_1Test.java
+package org.saxpath.helpers;
+
+import org.saxpath.XPathReader;
+import org.saxpath.SAXPathException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link XPathReaderFactory}.
+* It contains one unit test case for the {@link XPathReaderFactory#createReader(String)} method.
+*/
+class XPathReaderFactory_1Test {
+/**
+		 * @throws SAXPathException when the method runs successfully, or when it's unable to create an XPathReader.
+	 */
+	@Test
+	public void testNullInput() throws SAXPathException {
+		XPathReaderFactory.createReader(null);
+	}
+
+	/**
+	 * Test method of {@link XPathReaderFactory#newReader()}.
+	 * @throws Exception
+	 */
+	@Test
+    public void testNewReader() throws Exception {
+		XPathReaderFactory.createReader(""dummy"");
+	}
+}
+"

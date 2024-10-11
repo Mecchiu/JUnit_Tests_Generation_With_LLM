@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RIFManagerFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">com.densebrain.rif.client</a> &gt; <span class="el_source">RIFManagerFactory.java</span></div><h1>RIFManagerFactory.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+
+/**
+ * Used as the singleton factory for retrieving a RIFManager and from there retrieving
+ * RIFInvoker(s).  The initialize method MUST be called before using the Factory.
+ * 
+ * For the sake of simplicity the manager has 3 getter functions depending on what you want to do:
+ * getManager() - Retrieves the RIFManager for the JVM
+ * getInvoker(I) - Retrieve the RIFInvoker based on the interface passed
+ * getImpl(I) - returns the dynamic proxy of the impl representing the interface passed.
+ * 
+ * @author Jonathan Glanz
+ *
+ */
+public class RIFManagerFactory {
+	
+<span class="nc" id="L47">	private static RIFManagerFactory instance = new RIFManagerFactory();</span>
+	
+	/**
+	 * Initialize's the factory for use; the url passed in is the URL of the 
+	 * RIFServer with no context path: i.e. http://&amp;lt;hostname&amp;gt;:&amp;lt;port&amp;gt;
+	 * 
+	 * @param url - URL of the RIFServer in the format http://&amp;lt;hostname&amp;gt;:&amp;lt;port&amp;gt;
+	 * @throws RemoteException
+	 */
+	public static RIFManagerFactory getInstance() throws RemoteException {
+<span class="nc" id="L57">		return instance;</span>
+	}
+	
+	/**
+	 * Retrieve the RIFManager that is being used for this JVM, its a Singleton
+	 * @return RIFManager for the domain
+	 */
+	public RIFManager getManager(String url) throws RemoteException {
+<span class="nc" id="L65">		RIFManager manager = managerMap.get(url);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">		if (manager == null) {</span>
+<span class="nc" id="L67">			synchronized(this) {</span>
+<span class="nc" id="L68">				manager = managerMap.get(url);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">				if (manager == null) {</span>
+<span class="nc" id="L70">					manager = new RIFManager(url + &quot;/rif/services/RIFService&quot;);</span>
+<span class="nc" id="L71">					managerMap.put(url, manager);</span>
+				}
+<span class="nc" id="L73">			}</span>
+		}
+<span class="nc" id="L75">		return manager;</span>
+	}
+	
+	/**
+	 * Get a RIFInvoker for a specific interface. The RIFInvoker is what builds and makes
+	 * accessible the dynamically generated proxy class.
+	 * 
+	 * @param interfaceClazz - the interface that the invoker will proxy for.
+	 * @return - RIUFInvoker that is proxying for the provided interface.
+	 * @throws RemoteException
+	 */
+	public RIFInvoker getInvoker(String url, Class interfaceClazz) throws RemoteException {
+<span class="nc" id="L87">		return getManager(url).getInvoker(interfaceClazz);</span>
+	}
+	
+	/**
+	 * Retrieve the dynamically generated proxy directly instead of first requesting 
+	 * the RIFInvoker.
+	 * 
+	 * @param interfaceClazz
+	 * @return
+	 * @throws RemoteException
+	 */
+	public Object getImpl(String url, Class interfaceClazz) throws RemoteException {
+<span class="nc" id="L99">		return getInvoker(url, interfaceClazz).getImpl();</span>
+	}
+	
+<span class="nc" id="L102">	private Hashtable&lt;String, RIFManager&gt; managerMap = new Hashtable&lt;String, RIFManager&gt;();</span>
+	
+<span class="nc" id="L104">	private RIFManagerFactory() {</span>
+		
+<span class="nc" id="L106">	}</span>
+	
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

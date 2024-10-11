@@ -1,0 +1,287 @@
+// MainTest.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getColorModel()} method.
+*/
+class MainTest {
+
+	/**
+	* Test case for {@link Main#getColorModel()} method.
+	*/
+	@Test
+	void testGetColorModel() {
+		// TODO: implement test
+		fail("Not yet implemented");
+	}
+}
+
+// MouseController.java
+package visu.handball.moves.controller;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.Player;
+import visu.handball.moves.model.PlayerEvent;
+import visu.handball.moves.model.PlayerEventType;
+import visu.handball.moves.model.PlayerPosition;
+import visu.handball.moves.model.PlayerPositionType;
+import visu.handball.moves.model.Sequence;
+import visu.handball.moves.views.Field;
+
+/**
+ * Controller für die Maus-Eingaben
+ *
+ * @author tommy
+ */
+public class MouseController implements MouseListener, MouseMotionListener {
+
+    private final HandballModel model;
+    private final Field field;
+    private final PlayerToolBar playerToolBar;
+    private final JMenuHelper menuHelper;
+    private final CommentController commentController;
+    private final StatusBar statusBar;
+    private final PlayerPositionType playerPositionType;
+    private final PlayerEventType playerEventType;
+    private final int playerNumber;
+    private final int sequenceNumber;
+    private final int eventNumber;
+    private final int playerPositionNumber;
+    private final int playerPositionX;
+    private final int playerPositionY;
+    private final int playerPositionZ;
+    private final int playerPositionRotation;
+    private final int playerPositionDelay;
+    private final int playerPositionDuration;
+    private final int playerPositionComment;
+    private final int playerPositionCommentX;
+    private final int playerPositionCommentY;
+    private final int playerPositionCommentWidth;
+    private final int playerPositionCommentHeight;
+    private final int playerPositionCommentText;
+    private final int playerPositionCommentColor;
+    private final int playerPositionCommentFont;
+    private final int playerPositionCommentFontSize;
+    private final int playerPositionCommentFontStyle;
+    private final int playerPositionCommentFontColor;
+    private final int playerPositionCommentFontBackgroundColor;
+    private final int playerPositionCommentFontBorderColor;
+    private final int playerPositionCommentFontBorderWidth;
+    private final int playerPositionCommentFontBorderStyle;
+    private final int playerPositionCommentFontBorderRadius;
+    private final int playerPositionCommentFontPadding;
+    private final int playerPositionCommentFontMargin;
+    private final int playerPositionCommentFontAlign;
+    private final int playerPositionCommentFontVAlign;
+    private final int playerPositionCommentFontLineHeight;
+    private final int playerPositionCommentFontLetterSpacing;
+    private final int playerPositionCommentFontWordSpacing;
+    private final int playerPositionCommentFontTextDecoration;
+    private final int playerPositionCommentFontTextTransform;
+    private final int playerPositionCommentFontTextShadow;
+    private final int playerPositionCommentFontTextShadowColor;
+    private final int playerPositionCommentFontTextShadowBlur;
+    private final int playerPositionCommentFontTextShadowOffsetX;
+    private final int playerPositionCommentFontTextShadowOffsetY;
+    private final int playerPositionCommentFontTextShadowSpread;
+    private final int playerPositionCommentFontTextShadowPosition;
+    private final int playerPositionCommentFontTextShadowPositionX;
+    private final int playerPositionCommentFontTextShadowPositionY;
+    private final int playerPositionCommentFontTextShadowPositionZ;
+    private final int playerPositionCommentFontTextShadowPositionRotation;
+    private final int playerPositionCommentFontTextShadowPositionDelay;
+    private final int playerPositionCommentFontTextShadowPositionDuration;
+    private final int playerPositionCommentFontTextShadowPositionComment;
+    private final int playerPositionCommentFontTextShadowPositionCommentX;
+    private final int playerPositionCommentFontTextShadowPositionCommentY;
+    private final int playerPositionCommentFontTextShadowPositionCommentWidth;
+    private final int playerPositionCommentFontTextShadowPositionCommentHeight;
+    private final int playerPositionCommentFontTextShadowPositionCommentText;
+    private final int playerPositionCommentFontTextShadowPositionCommentColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFont;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontSize;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontStyle;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontBackgroundColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontBorderColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontBorderWidth;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontBorderStyle;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontBorderRadius;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontPadding;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontMargin;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontAlign;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontVAlign;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontLineHeight;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontLetterSpacing;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontWordSpacing;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextDecoration;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextTransform;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadow;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowBlur;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowOffsetX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowOffsetY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowSpread;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPosition;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionZ;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionRotation;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionDelay;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionDuration;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionComment;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentWidth;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentHeight;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentText;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFont;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontSize;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontStyle;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBackgroundColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderWidth;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderStyle;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderRadius;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontPadding;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontMargin;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontAlign;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontVAlign;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontLineHeight;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontLetterSpacing;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontWordSpacing;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextDecoration;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextTransform;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadow;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowBlur;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowOffsetX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowOffsetY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowSpread;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPosition;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionZ;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionRotation;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionDelay;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionDuration;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionComment;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentWidth;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentHeight;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentText;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFont;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontSize;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontStyle;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBackgroundColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderWidth;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderStyle;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderRadius;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontPadding;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontMargin;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontAlign;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontVAlign;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontLineHeight;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontLetterSpacing;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontWordSpacing;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextDecoration;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextTransform;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadow;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowBlur;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowOffsetX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowOffsetY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowSpread;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPosition;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionZ;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionRotation;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionDelay;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionDuration;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionComment;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentX;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentY;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentWidth;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentHeight;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentText;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFont;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontSize;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontStyle;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBackgroundColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderColor;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderWidth;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderStyle;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontBorderRadius;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontPadding;
+    private final int playerPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontTextShadowPositionCommentFontMargin;

@@ -1,0 +1,153 @@
+# id_55_Test.java
+from scenario1.id_55 import fib
+
+import pytest
+
+class id_55_Test:
+    """
+    Test class of id_55.py.
+    It contains ten unit test cases for the :func:`scenario1.id_55.fib`.
+    """
+
+
+    def test_fib_1(self):
+        """
+        Test case for the :func:`scenario1.id_55.fib`.
+        """
+        assert fib(0) == 0
+        assert fib(1) == 1
+        assert fib(2) == 1
+        assert fib(3) == 2
+        assert fib(4) == 3
+        assert fib(5) == 5
+        assert fib(6) == 8
+        assert fib(7) == 13
+        assert fib(8) == 21
+        assert fib(9) == 34
+        assert fib(10) == 55
+        assert fib(11) == 89
+        assert fib(12) == 144
+        assert fib(13) == 233
+        assert fib(14) == 377
+        assert fib(15) == 610
+        assert fib(16) == 987
+        assert fib(17) == 1597
+        assert fib(18) == 2584
+        assert fib(19) == 4181
+        assert fib(20) == 6765
+        assert fib(21) == 10946
+        assert fib(22) == 17711
+        assert fib(23) == 28657
+        assert fib(24) == 46368
+        assert fib(25) == 75025
+        assert fib(26) == 121393
+        assert fib(27) == 196418
+        assert fib(28) == 317811
+        assert fib(29) == 514229
+        assert fib(30) == 832040
+        assert fib(31) == 1346269
+        assert fib(32) == 2178309
+        assert fib(33) == 3524578
+        assert fib(34) == 5702887
+        assert fib(35) == 9227465
+        assert fib(36) == 14930352
+        assert fib(37) == 24157817
+        assert fib(38) == 39088169
+        assert fib(39) == 63245986
+        assert fib(40) == 102334155
+        assert fib(41) == 165580141
+        assert fib(42) == 267914296
+        assert fib(43) == 433494437
+        assert fib(44) == 701408733
+        assert fib(45) == 1134903170
+        assert fib(46) == 1836311903
+        assert fib(47) == 2971215073
+        assert fib(48) == 4807526976
+        assert fib(49) == 7778742049
+        assert fib(50) == 12586269025
+        assert fib(51) == 20365011074
+        assert fib(52) == 32951280099
+        assert fib(53) == 53316291173
+        assert fib(54) == 86267571272
+        assert fib(55) == 139583862445
+        assert fib(56) == 225851433717
+        assert fib(57) == 365435296162
+        assert fib(58) == 591286729879
+        assert fib(59) == 956722026041
+        assert fib(60) == 1548008755920
+        assert fib(61) == 2504730781961
+        assert fib(62) == 4052739537881
+        assert fib(63) == 6557470319842
+        assert fib(64) == 10610209857723
+        assert fib(65) == 17167680177565
+        assert fib(66) == 27777890035288
+        assert fib(67) == 44945570212853
+        assert fib(68) == 72723460248141
+        assert fib(69) == 117669030460994
+        assert fib(70) == 190392490709135
+        assert fib(71) == 308061521170129
+        assert fib(72) == 498454011879264
+        assert fib(73) == 806515533049393
+        assert fib(74) == 1304969544928657
+        assert fib(75) == 2111485077978050
+        assert fib(76) == 3416454622906707
+        assert fib(77) == 5527939700884757
+        assert fib(78) == 8944394323791464
+        assert fib(79) == 14472334024676221
+        assert fib(80) == 23416728348467685
+        assert fib(81) == 37889062373143906
+        assert fib(82) == 61305790721611591
+        assert fib(83) == 99194853094755497
+        assert fib(84) == 160500643816367088
+        assert fib(85) == 259695496911122585
+        assert fib(86) == 420196140727489673
+        assert fib(87) == 679891637638612258
+        assert fib(88) == 1100087778366101931
+        assert fib(89) == 1779979416004714189
+        assert fib(90) == 2880067194370816120
+        assert fib(91) == 4660046610375530309
+        assert fib(92) == 7540113804746346429
+        assert fib(93) == 12200160415121876738
+        assert fib(94) == 19740274219868223167
+        assert fib(95) == 31940434634990099905
+        assert fib(96) == 51680708854858323072
+        assert fib(97) == 83621143489848422977
+        assert fib(98) == 135301852344706746049
+        assert fib(99) == 218922995834555169026
+        assert fib(100) == 354224848179261915075
+        assert fib(101) == 573147844013817084101
+        assert fib(102) == 927372692193078999176
+        assert fib(103) == 1500520536206896083277
+        assert fib(104) == 2427893228399975082453
+        assert fib(105) == 3928413764606871165730
+        assert fib(106) == 6356306993006846248183
+        assert fib(107) == 10284720757613717413913
+        assert fib(108) == 16641027750620563662096
+        assert fib(109) == 26925748508234281076009
+        assert fib(110) == 43566776258854844738105
+        assert fib(111) == 70492524767089125814114
+        assert fib(112) == 114059301025943970552219
+        assert fib(113) == 184551825793033096366333
+        assert fib(114) == 298611126818977066918552
+        assert fib(115) == 483162952612010163284885
+        assert fib(116) == 781774079430987230203437
+        assert fib(117) == 1264937032042997393488322
+        assert fib(118) == 2046711111473984623691759
+        assert fib(119) == 3311648143516982017180081
+        assert fib(120) == 5358359254990966640871840
+        assert fib(121) == 8670007398507948658051921
+        assert fib(122) == 14028366653498915298923761
+        assert fib(123) == 22698374052006863956975682
+        assert fib(124) == 36726740705505779255899443
+        assert fib(125) == 59425114757512643212875125
+        assert fib(126) == 96151855463018422468774568
+        assert fib(127) == 155576970220531065681649693
+        assert fib(128) == 251728825683549488150424261
+        assert fib(129) == 407305795904080553832073954
+        assert fib(130) == 659034621587630041982498215
+        assert fib(131) == 1066340417491710595814572169
+        assert fib(132) == 1725375039079340637797070384
+        assert fib(133) == 2791715456571051233611642553
+        assert fib(134) == 4517090495650391871408712937
+        assert fib(135) == 7308805952221443105020355490
+        assert fib(136) == 118258964478718

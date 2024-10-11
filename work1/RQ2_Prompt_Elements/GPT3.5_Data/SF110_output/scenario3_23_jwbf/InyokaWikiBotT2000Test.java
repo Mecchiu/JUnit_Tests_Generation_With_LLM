@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the method `getArticle` in the `InyokaWikiBot` class is not properly closed with curly braces. Can you please provide the complete code so I can assist you better?

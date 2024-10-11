@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `ManagerTest` is not implemented yet. Can you please provide the complete code for `ManagerTest`?

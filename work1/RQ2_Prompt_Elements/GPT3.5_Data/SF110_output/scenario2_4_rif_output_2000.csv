@@ -1,0 +1,704 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-6yYCNxqlg1wXkOsiCOgndQU3qBRTw,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/server/RIFImplementationManager_0Test.java,69.86963891983032,stop,"// RIFImplementationManager.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+
+/**
+ * Manages all of the interface implementations registered on the service and
+ * provides a simple function for invoking a method on a registered interface.
+ *
+ * The RIFServer decomposes the WebService request sent through the RIFServer to the RIFService
+ * and then prepares a call to RIFImplementationManager.invoke to call the actual function.
+ *
+ * To register an implementation:
+ * <code>
+ *
+ * RIFImplementationManager.getInstance().registerImplementation(YourInterface.class, new YourImpl());
+ *
+ * </code>
+ *
+ * @author Jonathan Glanz
+ */
+public class RIFImplementationManager {
+
+    /**
+     * Retrieve the singleton RIFImplementationManager instance.
+     *
+     * @return
+     */
+    public static RIFImplementationManager getInstance() {
+        return instance;
+    }
+}
+","// RIFImplementationManager_0Test.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFImplementationManager}.
+* It contains ten unit test cases for the {@link RIFImplementationManager#getInstance()} method.
+*/
+class RIFImplementationManager_0Test {","// Here's an example implementation of the RIFImplementationManager class and a test class for it:
+
+// RIFImplementationManager.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Manages all of the interface implementations registered on the service and
+ * provides a simple function for invoking a method on a registered interface.
+ *
+ * The RIFServer decomposes the WebService request sent through the RIFServer to the RIFService
+ * and then prepares a call to RIFImplementationManager.invoke to call the actual function.
+ *
+ * To register an implementation:
+ * <code>
+ *
+ * RIFImplementationManager.getInstance().registerImplementation(YourInterface.class, new YourImpl());
+ *
+ * </code>
+ *
+ * @author Jonathan Glanz
+ */
+public class RIFImplementationManager {
+
+    private static RIFImplementationManager instance = new RIFImplementationManager();
+    private Map<Class<?>, Object> implementations = new HashMap<>();
+
+    private RIFImplementationManager() {}
+
+    /**
+     * Retrieve the singleton RIFImplementationManager instance.
+     *
+     * @return
+     */
+    public static RIFImplementationManager getInstance() {
+        return instance;
+    }
+
+    /**
+     * Register an implementation for a given interface.
+     *
+     * @param interfaceClass
+     * @param implementation
+     */
+    public void registerImplementation(Class<?> interfaceClass, Object implementation) {
+        implementations.put(interfaceClass, implementation);
+    }
+
+    /**
+     * Invoke a method on a registered interface implementation.
+     *
+     * @param interfaceClass
+     * @param methodName
+     * @param args
+     * @return
+     * @throws RemoteException
+     */
+    public Object invoke(Class<?> interfaceClass, String methodName, Object[] args) throws RemoteException {
+        Object implementation = implementations.get(interfaceClass);
+        if (implementation == null) {
+            throw new RemoteException(""No implementation registered for interface "" + interfaceClass.getName());
+        }
+
+        try {
+            Method method = interfaceClass.getMethod(methodName);
+            return method.invoke(implementation, args);
+        } catch (Exception e) {
+            throw new RemoteException(""Error invoking method "" + methodName + "" on implementation of interface "" + interfaceClass.getName(), e);
+        }
+    }
+}
+
+// RIFImplementationManagerTest.java
+package com.densebrain.rif.server;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFImplementationManager}.
+* It contains ten unit test cases for the {@link RIFImplementationManager#getInstance()} method.
+*/
+class RIFImplementationManagerTest {
+
+    @Test
+    void testGetInstance() {
+        RIFImplementationManager instance1 = RIFImplementationManager.getInstance();
+        RIFImplementationManager instance2 = RIFImplementationManager.getInstance();
+        assertSame(instance1, instance2);
+    }
+
+    @Test
+    void testRegisterImplementation() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertNotNull(instance.invoke(TestInterface.class, ""testMethod"", new Object[] {}));
+    }
+
+    @Test
+    void testInvoke() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertEquals(""test"", instance.invoke(TestInterface.class, ""testMethod"", new Object[] {}));
+    }
+
+    @Test
+    void testInvokeWithArgs() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertEquals(""test arg1 arg2"", instance.invoke(TestInterface.class, ""testMethodWithArgs"", new Object[] {""arg1"", ""arg2""}));
+    }
+
+    @Test
+    void testInvokeNonexistentInterface() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        assertThrows(RemoteException.class, () -> instance.invoke(NonexistentInterface.class, ""testMethod"", new Object[] {}));
+    }
+
+    @Test
+    void testInvokeNonexistentMethod() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertThrows(RemoteException.class, () -> instance.invoke(TestInterface.class, ""nonexistentMethod"", new Object[] {}));
+    }
+
+    @Test
+    void testInvokeMethodWithWrongArgs() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertThrows(RemoteException.class, () -> instance.invoke(TestInterface.class, ""testMethodWithArgs"", new Object[] {""arg1""}));
+    }
+
+    @Test
+    void testInvokeMethodWithNullArgs() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertThrows(RemoteException.class, () -> instance.invoke(TestInterface.class, ""testMethodWithArgs"", null));
+    }
+
+    @Test
+    void testInvokeMethodWithPrimitiveArgs() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertEquals(""1 2"", instance.invoke(TestInterface.class, ""testMethodWithPrimitiveArgs"", new Object[] {1, 2}));
+    }
+
+    @Test
+    void testInvokeMethodWithPrimitiveWrapperArgs() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertEquals(""1 2"", instance.invoke(TestInterface.class, ""testMethodWithPrimitiveWrapperArgs"", new Object[] {1, 2}));
+    }
+
+    @Test
+    void testInvokeMethodWithVarArgs() {
+        RIFImplementationManager instance = RIFImplementationManager.getInstance();
+        instance.registerImplementation(TestInterface.class, new TestImplementation());
+        assertEquals(""1 2 3"", instance.invoke(TestInterface.class, ""testMethodWithVarArgs"", new Object[] {1, 2, 3}));
+        assertEquals(""1 2"", instance.invoke(TestInterface.class, ""testMethodWithVarArgs"", new Object[] {1, 2}));
+        assertEquals(""1"", instance.invoke(TestInterface.class, ""testMethodWithVarArgs"", new Object[] {1}));
+        assertEquals("""", instance.invoke(TestInterface.class, ""testMethodWithVarArgs"", new Object[] {}));
+    }
+
+    private interface TestInterface {
+        String testMethod();
+        String testMethodWithArgs(String arg1, String arg2);
+        String testMethodWithPrimitiveArgs(int arg1, long arg2);
+        String testMethodWithPrimitiveWrapperArgs(Integer arg1, Long arg2);
+        String testMethodWithVarArgs(int... args);
+    }
+
+    private static class TestImplementation implements TestInterface {
+        @Override
+        public String testMethod() {
+            return ""test"";
+        }
+
+        @Override
+        public String testMethodWithArgs(String arg1, String arg2) {
+            return ""test "" + arg1 + "" "" + arg2;
+        }
+
+        @Override
+        public String testMethodWithPrimitiveArgs(int arg1, long arg2) {
+            return arg1 + "" "" + arg2;
+        }
+
+        @Override
+        public String testMethodWithPrimitiveWrapperArgs(Integer arg1, Long arg2) {
+            return arg1 + "" "" + arg2;
+        }
+
+        @Override
+        public String testMethodWithVarArgs(int... args) {
+            StringBuilder sb = new StringBuilder();
+            for (int arg : args) {
+                sb.append(arg).append("" "");
+            }
+            return sb.toString().trim();
+        }
+    }
+
+    private interface NonexistentInterface {}
+}"
+chatcmpl-6yYDVf3fOpwBoVWwgmQECR8XRCGUp,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/server/RIFImplementationManager_1Test.java,38.21233081817627,stop,"// RIFImplementationManager.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+
+/**
+ * Manages all of the interface implementations registered on the service and
+ * provides a simple function for invoking a method on a registered interface.
+ *
+ * The RIFServer decomposes the WebService request sent through the RIFServer to the RIFService
+ * and then prepares a call to RIFImplementationManager.invoke to call the actual function.
+ *
+ * To register an implementation:
+ * <code>
+ *
+ * RIFImplementationManager.getInstance().registerImplementation(YourInterface.class, new YourImpl());
+ *
+ * </code>
+ *
+ * @author Jonathan Glanz
+ */
+public class RIFImplementationManager {
+
+    /**
+     * Invoke a method on a registered implementation.  The iterfaceName passed is used to lookup
+     * a registered implementation and then the method is invoked on the registered implementation
+     * with the passed parameters.
+     *
+     * @param iterfaceName - name of the registered interface class
+     * @param methodName - method to invoke on the registered implementation
+     * @param params - parameters to pass to the method, which is to be invoked.
+     * @return the return from the method being invoked.
+     * @throws RemoteException
+     */
+    public Object invoke(String iterfaceName, String methodName, Object[] params) throws RemoteException {
+        Object impl = implementationMap.get(iterfaceName);
+        if (impl == null)
+            throw new RemoteException(""Not registered: "" + iterfaceName);
+        Map<String, Method> methodMap = methodsMap.get(impl);
+        if (methodMap == null) {
+            synchronized (this) {
+                methodMap = methodsMap.get(impl);
+                if (methodMap == null) {
+                    methodMap = new Hashtable<String, Method>();
+                    Class clazz = impl.getClass();
+                    Method[] methods = clazz.getMethods();
+                    for (int i = 0; i < methods.length; i++) {
+                        Method method = methods[i];
+                        methodMap.put(method.getName(), method);
+                    }
+                    methodsMap.put(impl, methodMap);
+                }
+            }
+        }
+        Method method = methodMap.get(methodName);
+        if (method == null)
+            throw new IllegalArgumentException(""Unknown method "" + methodName + "" on "" + iterfaceName);
+        try {
+            return method.invoke(impl, params);
+        } catch (Exception e) {
+            throw new RemoteException(""Error occured while invoking "" + iterfaceName + ""."" + methodName + "": "" + e.getMessage(), e);
+        }
+    }
+}
+","// RIFImplementationManager_1Test.java
+package com.densebrain.rif.server;
+
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFImplementationManager}.
+* It contains ten unit test cases for the {@link RIFImplementationManager#invoke(String, String, Object[])} method.
+*/
+class RIFImplementationManager_1Test {","// Here's the source code for the RIFImplementationManager_1Test class:
+
+package com.densebrain.rif.server;
+
+import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class of {@link RIFImplementationManager}.
+ * It contains ten unit test cases for the {@link RIFImplementationManager#invoke(String, String, Object[])} method.
+ */
+class RIFImplementationManager_1Test {
+
+    private RIFImplementationManager manager;
+
+    @BeforeEach
+    void setUp() {
+        manager = new RIFImplementationManager();
+    }
+
+    @Test
+    void testInvokeWithNullInterfaceName() {
+        assertThrows(RemoteException.class, () -> manager.invoke(null, ""methodName"", new Object[]{}));
+    }
+
+    @Test
+    void testInvokeWithNullMethodName() {
+        assertThrows(RemoteException.class, () -> manager.invoke(""interfaceName"", null, new Object[]{}));
+    }
+
+    @Test
+    void testInvokeWithNullParams() {
+        assertThrows(RemoteException.class, () -> manager.invoke(""interfaceName"", ""methodName"", null));
+    }
+
+    @Test
+    void testInvokeWithUnregisteredInterface() {
+        assertThrows(RemoteException.class, () -> manager.invoke(""interfaceName"", ""methodName"", new Object[]{}));
+    }
+
+    @Test
+    void testInvokeWithUnknownMethod() {
+        manager.registerImplementation(TestInterface.class, new TestImplementation());
+        assertThrows(IllegalArgumentException.class, () -> manager.invoke(TestInterface.class.getName(), ""unknownMethod"", new Object[]{}));
+    }
+
+    @Test
+    void testInvokeWithValidParams() throws RemoteException {
+        manager.registerImplementation(TestInterface.class, new TestImplementation());
+        String result = (String) manager.invoke(TestInterface.class.getName(), ""testMethod"", new Object[]{""param1"", ""param2""});
+        assertEquals(""param1param2"", result);
+    }
+
+    @Test
+    void testInvokeWithInvalidParams() {
+        manager.registerImplementation(TestInterface.class, new TestImplementation());
+        assertThrows(RemoteException.class, () -> manager.invoke(TestInterface.class.getName(), ""testMethod"", new Object[]{""param1""}));
+    }
+
+    @Test
+    void testInvokeWithMultipleImplementations() throws RemoteException {
+        manager.registerImplementation(TestInterface.class, new TestImplementation());
+        manager.registerImplementation(TestInterface.class, new TestImplementation2());
+        String result = (String) manager.invoke(TestInterface.class.getName(), ""testMethod"", new Object[]{""param1"", ""param2""});
+        assertEquals(""param1param2"", result);
+    }
+
+    @Test
+    void testInvokeWithMultipleMethods() throws RemoteException {
+        manager.registerImplementation(TestInterface.class, new TestImplementation());
+        String result1 = (String) manager.invoke(TestInterface.class.getName(), ""testMethod"", new Object[]{""param1"", ""param2""});
+        assertEquals(""param1param2"", result1);
+        String result2 = (String) manager.invoke(TestInterface.class.getName(), ""testMethod2"", new Object[]{""param3""});
+        assertEquals(""param3"", result2);
+    }
+
+    private interface TestInterface {
+        String testMethod(String param1, String param2);
+        String testMethod2(String param);
+    }
+
+    private static class TestImplementation implements TestInterface {
+        @Override
+        public String testMethod(String param1, String param2) {
+            return param1 + param2;
+        }
+
+        @Override
+        public String testMethod2(String param) {
+            return param;
+        }
+    }
+
+    private static class TestImplementation2 implements TestInterface {
+        @Override
+        public String testMethod(String param1, String param2) {
+            return param2 + param1;
+        }
+
+        @Override
+        public String testMethod2(String param) {
+            return null;
+        }
+    }
+}"
+chatcmpl-6yYEYvrjiC0FdrYrOILkir8OV2mCa,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/server/RIFService.java,2.329073190689087,stop,"// RIFService.java
+package com.densebrain.rif.server;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.rmi.RemoteException;
+import org.apache.axis2.util.Base64;
+
+/**
+ * This is the WebService, which is hosted on Axis2 that marshalls the remote calls
+ * between the client RIFInvoker and the Server RIFImplementationManager.
+ *
+ * @see com.densebrain.rif.client.RIFInvoker
+ * @see com.densebrain.rif.server.RIFImplementationManager
+ * @author Jonathan Glanz
+ */
+public class RIFService {
+
+    /**
+     * The invoke ws method, which marshalls the call to the RIFImplementationManager
+     *
+     * @param interfaceName - the registered interface to invoke the method on
+     * @param methodName - method to invoke on the registered interface
+     * @param serializedParams - serialized parameters to reconstruct and pass to the RIFImplementationManager
+     * @return
+     * @throws RemoteException
+     */
+    public String invoke(String interfaceName, String methodName, String serializedParams) throws RemoteException {
+        byte[] paramBytes = Base64.decode(serializedParams);
+        Object[] params;
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(paramBytes);
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            params = (Object[]) ois.readObject();
+            ois.close();
+            bais.close();
+        } catch (Exception e) {
+            throw new RemoteException(""Unable to deserialize parameters: "" + e.getMessage(), e);
+        }
+        Object result = RIFImplementationManager.getInstance().invoke(interfaceName, methodName, params);
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(result);
+            oos.close();
+            byte[] resultBytes = baos.toByteArray();
+            return Base64.encode(resultBytes);
+        } catch (Exception e) {
+            throw new RemoteException(""Unable to serialize result: "" + e.getMessage());
+        }
+    }
+}
+","// RIFServiceTest.java
+package com.densebrain.rif.server;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.rmi.RemoteException;
+import org.apache.axis2.util.Base64;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFService}.
+* It contains ten unit test cases for the {@link RIFService#invoke(String, String, String)} method.
+*/
+class RIFServiceTest {","I'm sorry, but the code you provided is incomplete. It seems to be missing the actual test cases for the `RIFService` class. Can you please provide the complete code for `RIFServiceTest`?"
+chatcmpl-6yYFbHYDHMJB8Wlf5ggLgTV8aUe1r,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/client/RIFManager.java,2.389554738998413,stop,"// RIFManager.java
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import com.densebrain.rif.client.service.RIFService;
+import com.densebrain.rif.client.service.RIFServiceStub;
+
+/**
+ * The RIFManager is responsible for keeping track of the client side web service annd caching
+ * RIFInvoker's to cut down on processing time for secondary RIFInvoker requests.  It keeps an
+ * internal mapping of interfaces to RIFInvokers.
+ *
+ * @author Jonathan Glanz
+ * @copyright Desnbrain, Inc @ 2006
+ */
+public class RIFManager {
+
+    /**
+     * Retrieve an invoker by interface name, if one does not exist then create a new RIFInvoker.
+     * When the RIFInvoker is instantiate it build the dynamic runtime proxy.
+     *
+     * @param interfaceClazz - The interface to proxy against the server for, MUST be an interface
+     * @return - RIFInvoker ready to proxy for the given interface
+     * @throws RemoteException
+     */
+    public RIFInvoker getInvoker(Class interfaceClazz) throws RemoteException {
+        RIFInvoker invoker = invokerMap.get(interfaceClazz);
+        if (invoker == null) {
+            synchronized (this) {
+                invoker = invokerMap.get(interfaceClazz);
+                if (invoker == null) {
+                    invoker = new RIFInvoker(this, interfaceClazz);
+                    invokerMap.put(interfaceClazz, invoker);
+                }
+            }
+        }
+        return invoker;
+    }
+}
+","// RIFManagerTest.java
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import com.densebrain.rif.client.service.RIFService;
+import com.densebrain.rif.client.service.RIFServiceStub;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFManager}.
+* It contains ten unit test cases for the {@link RIFManager#getInvoker(Class)} method.
+*/
+class RIFManagerTest {","I'm sorry, but the code you provided is incomplete. It seems to be missing the actual test cases for the `RIFManager` class. Can you please provide the complete code for `RIFManagerTest`?"
+chatcmpl-6yYGedBjblczWvp2Rtwh72P1xiqqy,/EvoSuiteBenchmark/original/4_rif/src/main/java/com/densebrain/rif/client/RIFManagerFactory.java,26.345017910003662,stop,"// RIFManagerFactory.java
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+
+/**
+ * Used as the singleton factory for retrieving a RIFManager and from there retrieving
+ * RIFInvoker(s).  The initialize method MUST be called before using the Factory.
+ *
+ * For the sake of simplicity the manager has 3 getter functions depending on what you want to do:
+ * getManager() - Retrieves the RIFManager for the JVM
+ * getInvoker(I) - Retrieve the RIFInvoker based on the interface passed
+ * getImpl(I) - returns the dynamic proxy of the impl representing the interface passed.
+ *
+ * @author Jonathan Glanz
+ */
+public class RIFManagerFactory {
+
+    /**
+     * Initialize's the factory for use; the url passed in is the URL of the
+     * RIFServer with no context path: i.e. http://&lt;hostname&gt;:&lt;port&gt;
+     *
+     * @param url - URL of the RIFServer in the format http://&lt;hostname&gt;:&lt;port&gt;
+     * @throws RemoteException
+     */
+    public static RIFManagerFactory getInstance() throws RemoteException {
+        return instance;
+    }
+}
+","// RIFManagerFactoryTest.java
+package com.densebrain.rif.client;
+
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link RIFManagerFactory}.
+* It contains ten unit test cases for the {@link RIFManagerFactory#getInstance()} method.
+*/
+class RIFManagerFactoryTest {","// Here's an implementation of the RIFManagerFactoryTest class with ten unit test cases for the getInstance() method.
+
+package com.densebrain.rif.client;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class RIFManagerFactoryTest {
+
+    @Test
+    void testGetInstanceReturnsSameInstance() throws Exception {
+        RIFManagerFactory instance1 = RIFManagerFactory.getInstance();
+        RIFManagerFactory instance2 = RIFManagerFactory.getInstance();
+        assertSame(instance1, instance2);
+    }
+
+    @Test
+    void testGetInstanceIsNotNull() throws Exception {
+        RIFManagerFactory instance = RIFManagerFactory.getInstance();
+        assertNotNull(instance);
+    }
+
+    @Test
+    void testGetInstanceReturnsRIFManagerFactoryInstance() throws Exception {
+        RIFManagerFactory instance = RIFManagerFactory.getInstance();
+        assertTrue(instance instanceof RIFManagerFactory);
+    }
+
+    @Test
+    void testGetInstanceThrowsRemoteException() {
+        assertThrows(RemoteException.class, () -> {
+            RIFManagerFactory.getInstance();
+        });
+    }
+
+    @Test
+    void testGetInstanceDoesNotThrowException() {
+        assertDoesNotThrow(() -> {
+            RIFManagerFactory.getInstance();
+        });
+    }
+
+    @Test
+    void testGetInstanceReturnsNonNullRIFManagerFactoryInstance() throws Exception {
+        RIFManagerFactory instance = RIFManagerFactory.getInstance();
+        assertNotNull(instance);
+    }
+
+    @Test
+    void testGetInstanceReturnsSameInstanceAfterMultipleCalls() throws Exception {
+        RIFManagerFactory instance1 = RIFManagerFactory.getInstance();
+        RIFManagerFactory instance2 = RIFManagerFactory.getInstance();
+        RIFManagerFactory instance3 = RIFManagerFactory.getInstance();
+        assertSame(instance1, instance2);
+        assertSame(instance2, instance3);
+    }
+
+    @Test
+    void testGetInstanceReturnsDifferentInstanceAfterReset() throws Exception {
+        RIFManagerFactory instance1 = RIFManagerFactory.getInstance();
+        RIFManagerFactory.reset();
+        RIFManagerFactory instance2 = RIFManagerFactory.getInstance();
+        assertNotSame(instance1, instance2);
+    }
+
+    @Test
+    void testGetInstanceReturnsSameInstanceAfterResetAndGetInstance() throws Exception {
+        RIFManagerFactory instance1 = RIFManagerFactory.getInstance();
+        RIFManagerFactory.reset();
+        RIFManagerFactory instance2 = RIFManagerFactory.getInstance();
+        RIFManagerFactory instance3 = RIFManagerFactory.getInstance();
+        assertNotSame(instance1, instance2);
+        assertSame(instance2, instance3);
+    }
+
+    @Test
+    void testGetInstanceReturnsSameInstanceAfterResetAndInitialize() throws Exception {
+        RIFManagerFactory instance1 = RIFManagerFactory.getInstance();
+        RIFManagerFactory.reset();
+        RIFManagerFactory.initialize(""http://localhost:8080"");
+        RIFManagerFactory instance2 = RIFManagerFactory.getInstance();
+        RIFManagerFactory instance3 = RIFManagerFactory.getInstance();
+        assertNotSame(instance1, instance2);
+        assertSame(instance2, instance3);
+    }
+}"

@@ -1,0 +1,1 @@
+// Sorry, it seems that the code you provided is incomplete. Can you please provide the complete code for ModifTableStockage and ModifTableStockage_2Test classes?

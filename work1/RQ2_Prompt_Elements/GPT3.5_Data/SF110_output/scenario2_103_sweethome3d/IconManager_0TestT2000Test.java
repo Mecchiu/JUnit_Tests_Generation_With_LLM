@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It only includes the beginning of the IconManager class and the beginning of a test class for it. Could you please provide the complete code for me to assist you better?

@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `QSAdminAPITest` is not implemented and there are missing method implementations in the `QSAdminAPI` class. Please provide the complete code so I can assist you better.

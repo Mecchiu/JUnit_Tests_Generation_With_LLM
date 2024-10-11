@@ -1,0 +1,1252 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+120cc2b4-1d50-4cf4-8c60-4627b992b169,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/model/impl/SimpleCombatant_0Test.java,57.81547999382019,stop,"// SimpleCombatant.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+
+/**
+ * A Combatant with basic attributes (position, health)
+ *
+ * @author daniel
+ */
+public class SimpleCombatant implements Combatant {
+
+    public int _getMaxLP() {
+        return maxHealth;
+    }
+}
+","// SimpleCombatant_0Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getMaxLP()} method.
+*/
+class SimpleCombatant_0Test {","// SimpleCombatant_0Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getMaxLP()} method.
+*/
+class SimpleCombatant_0Test {
+/**
+		* A Set used to verify if a GameWorldObserver can be obeyed by the <code>Combatant</code>.
+		*/
+	private static final Set<CombatantObserver> INVALID = new HashSet<CombatantObserver>();
+
+	/**
+	* Validate a GameWorldObserver's behavior.
+	* The <code>invalidCombatant</code> method needs to be overloaded to validate, the methods should add the
+	* combatant's identification to the Set of invalidCombatant.
+	* One Combatant will be notified about any invalid attacker in the game as well as any invalid defender
+	* @param gameWorldObserver The GameWorldObserver instance who needs to validate
+	*/
+	private static void validate (CombatantObserver gameWorldObserver) {
+		if (gameWorldObserver!= null) {
+			for (int i = 0; i < gameWorldObserver.getNumCombatants(); i++) {
+				if (!INVALID.contains(gameWorldObserver)) {
+					// Invalid attacker found.
+					fail(""Found invalid attacker"");
+				}
+			}
+
+			for (Combatant attacker : gameWorldObserver.getCombatants()) {
+				if (!INVALID.contains(attacker)) {
+					// Valid attacker found.
+					fail(""Found valid attacker"");
+				}
+			}
+		}
+	}
+
+	/**
+	* Build a {@link SimpleCombatant} with the default values.
+	*/
+	public static SimpleCombatant build() {
+		return new SimpleCombatant(10, 10);
+	}
+
+	/**
+	* Basic constructor for the {@link SimpleCombatant}.
+	* @param _maxLeft The maxLeft attribute for this Combatant instance.
+	* @param _maxRight The maxRight attribute for this Combatant instance.
+	* @throws NotEnoughAttacksException Thrown, if a required attribute is missing.
+	* @throws TooManyAttacksException Thrown, if the required attribute will cause a attack.
+	*/
+	public SimpleCombatant(int _maxLeft, int _maxRight) throws NotEnoughAttacksException, TooManyAttacksException {
+		this.addSectorBonus(_maxLeft);
+		this.addSectorBonus(_maxRight);
+	}
+
+	/**
+	* Test constructor with a different minLeft and maxRight.
+	* @param _minLeft The minLeft attribute for this Combatant instance.
+	* @param _maxRight The maxRight attribute for this Combatant instance.
+	* @throws NotEnoughAttacksException Thrown, if a required attribute is missing.
+	* @throws TooManyAttacksException Thrown, if the required attribute will cause a attack.
+	* @throws WrongMoveCostException Thrown, if the move cost isn't consistent with the attributes.
+	*/
+	public SimpleCombatant(int _minLeft, int _maxRight, int _moveCost) throws NotEnoughAttacksException, TooManyAttacksException, WrongMoveCostException {
+		super();
+		assertEquals(_minLeft, 20);
+		assertEquals(_maxRight, 10);
+		this.addSectorBonus(_moveCost);
+	}
+
+	/**
+	* Test constructor with a different minLeft attribute and maxRight.
+	* @param _minLeft The minLeft attribute for this Combatant instance.
+	* @param _maxRight The maxRight attribute for this Combatant instance.
+	* @throws NotEnoughAttacksException Thrown, if a required attribute is missing.
+	* @throws TooManyAttacksException Thrown, if the required attribute will cause a attack.
+	* @throws WrongMoveCostException Thrown, if the move cost isn't consistent with the attributes.
+	*/
+	public SimpleCombatant(int _minLeft, int _maxRight, int _moveCost, 
+			int _minObserverObservedAttacks, int _maxObserverObservedAttacks) 
+			throws NotEnoughAttacksException, TooManyAttacksException,WrongMoveCostException {
+		super();
+		assertEquals(_minLeft, 20);
+		assertEquals(_maxRight, 10);
+		this.addSectorBonus(_moveCost);
+		this.addSectorBonus(_minObserverObservedAttacks);
+	}
+
+	/**
+	* A single instance of the {@link Combatant}.
+	*/
+	public static Combatant create () {
+		return Combatant.create(10, 10);
+	}
+}
+
+// SimpleCombatant_0.java
+"
+b1c6e07c-90a9-48f7-bd8f-5142e91fd8c3,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/model/impl/SimpleCombatant_1Test.java,56.226661920547485,length,"// SimpleCombatant.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+
+/**
+ * A Combatant with basic attributes (position, health)
+ *
+ * @author daniel
+ */
+public class SimpleCombatant implements Combatant {
+
+    public int _getCurrentLP() {
+        return state.getHealth();
+    }
+}
+","// SimpleCombatant_1Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getCurrentLP()} method.
+*/
+class SimpleCombatant_1Test {","// SimpleCombatant_1Test.java
+package de.outstare.fortbattleplayer.model.impl;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Area;
+import de.outstare.fortbattleplayer.model.CharacterClass;
+import de.outstare.fortbattleplayer.model.Combatant;
+import de.outstare.fortbattleplayer.model.CombatantObserver;
+import de.outstare.fortbattleplayer.model.CombatantSide;
+import de.outstare.fortbattleplayer.model.CombatantState;
+import de.outstare.fortbattleplayer.model.SectorBonus;
+import de.outstare.fortbattleplayer.model.Weapon;
+import de.outstare.fortbattleplayer.model.WeaponData;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SimpleCombatant}.
+* It contains one unit test case for the {@link SimpleCombatant#_getCurrentLP()} method.
+*/
+class SimpleCombatant_1Test {
+
+	/**
+	 * The _currentHP attribute of the Combatant
+	 */
+	int _currentHP = 0;
+	
+	/**
+	 * The _currentMP attribute of the Combatant
+	 */
+	int _currentMP = 0;
+	
+	/**
+	 * The _currentWeapon attribute of the Combatant
+	 */
+	Weapon _currentWeapon = null;
+	
+	/**
+	 * The _currentLP is the current LP of the Combatant.
+	 */
+	int _currentLP = 0;
+	
+	/**
+	 * The _isActive attribute of the Combatant
+	 */
+	boolean _isActive = false;
+	
+	/**
+	 * The _state attribute of the Combatant
+	 */
+	CombatantState _state = CombatantState.FLEEING;
+	
+	/**
+	 * The _combatantObserver attribute of this class
+	 */
+	CombatantObserver _combatantObserver = new CombatantObserver() {
+		
+		private Set<CombatantSide> currentSides = new HashSet<>();
+
+		@Override
+		public Set<CombatantSide> getAttackableSides() {
+			return currentSides;
+		}
+		
+		@Override
+		public CombatantState getState() {
+			return _state;
+		}
+		
+		@Override
+		public void notifyStateChanged() {
+			_state = CombatantState.FLEEING;
+		}
+	};
+	
+	/**
+	 * Test of getAttachedLPs method, of combatant.
+	 */
+	@Test
+	public void testGetAttachedLPs() {
+		// System.out.println(""getAttachedLPs #1"");
+		//System.out.println(_currentHP);
+
+		_currentHP = 1;
+		
+		// System.out.println(""getAttachedLPs #2"");
+		//System.out.println(_currentHP);
+
+		assertNotNull( _currentHP );
+		assertEquals(""getAttachedLPM"", 1, _currentHP);
+		
+		_currentHP = 30;
+		
+		//System.out.println(""got a new HP"");
+		//System.out.println(getAttachedLPM());
+		
+		// We must go forward!
+		assertTrue(!isActive());
+		
+		//System.out.println(""turn on"");
+		_isActive = true;
+		
+		// System.out.println(getAttachedLPM());
+		assertEquals(""was attached to sides #1"", 30, getAttachedLPM());
+		
+		// We must go backward!
+		_combatantObserver.notifyAttackStarted();
+		assertEquals(""set new HP"", 30, getAttachedLPM());	
+		
+		_combatantObserver.notifyAttackOver();
+		//TODO uncoment this if we have a weapon
+		//assertTrue(""attached to sides #1 is still attached"",_combatantObserver.getAttackableSides().size() == 1);
+		//assertFalse(""attached to sides #1's new HP"", _combatantObserver.getAttackableSides().iterator().next().getNewDamage());
+		
+		//_combatantObserver.notifyAttackOver();
+		_combatantObserver.notifyAttackFulfilled();
+		
+		assertTrue(""attack end."",_isActive);
+		getAttachedLPM();
+		assertEquals(1, _currentHP);
+		
+	}
+
+	/**
+	 * Test of _getCurrentLP() method, of combatant.
+	 */
+	@Test
+	public void testGetCurrentLP() {
+		//System.out.println(""getCurrentLP"");
+		
+		// We must go forward!
+		assertTrue(!isActive());
+		
+		assertEquals(""current LP is not already set to 0."", 0, _state.getCurrentHP().intValue());
+		
+		assertEquals(""get Current HP"", 30, getCurrentHP());
+		
+		// First time a LPS is assigned:
+		assertEquals(""get Current HP"", 30, _currentHP);
+		assertEquals(""_getCurrentHP"", 30, _currentHP);
+		
+		_isActive = true;
+		
+		for (int id : _state.getAttackableSides()) {
+			for (int j = 0; j < id; ++j) {
+				assertEquals(""current LP assignment"", 30, _currentHP);
+				assertEquals(""got a new HP"", 30 + id, _currentHP);
+				getCurrentHP();
+				assertEquals(2, getAttachedLPM().getTotalHP());
+				assertEquals(1, getAttachedLPM().getTotalHP());
+			}
+		}
+		
+		_currentRP = 0;
+		assertEquals(""_currentRP"", 0, _currentRP);
+		
+		assertEquals(""current RP is not set to 0"", 0, _currentRP);
+		
+		_combatantObserver.notifyAttackStarted();
+		_combatantObserver.notifyAttackOver();
+		assertEquals(""new LPS is added to _combatantObserver"", 90, _currentRP);
+		assertEquals(""current RP is not already set to 90"", 90, _currentRP);
+		// TODO uncoment this if we have a weapon
+		//assertEquals(""attack end."", _combatantObserver.getAttackableSides().iterator().next().getNewDamage(), _combatantObserver.getAttackableSides().iterator().next().getNewDamage());
+		//assertEquals(""attack end."", _combatantObserver.getAttackableSides().iterator().next().getNewHP(), _combatantObserver.getAttackableSides().iterator().next().getNewHP());
+
+		assertEquals(""_combatantObserver.getCurrentLPM()"", 0, _combatantObserver.getCurrentLPM().intValue());
+		
+		_combatantObserver.notifyAttackOver();
+		_isActive = true;
+		
+		// TODO uncoment this if we have a weapon
+		assertEquals(""attack end."", _combatantObserver.getAttackableSides().iterator().next().getNewDamage(), _combatantObserver.getAttackableSides().iterator().next().getNewDamage());
+		getCurrentHP();
+		// TODO uncoment this if we have a weapon
+		//assertEquals(""attack end."", _combatantObserver."
+609c16bc-8cee-4615-a86a-4d348e62a352,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_0Test.java,62.27047252655029,length,"// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    public PlayerConfiguration copy() throws CloneNotSupportedException {
+        return (PlayerConfiguration) clone();
+    }
+}
+","// PlayerConfiguration_0Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#copy()} method.
+*/
+class PlayerConfiguration_0Test {","// PlayerConfiguration_0Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#copy()} method.
+*/
+class PlayerConfiguration_0Test {
+
+	private PlayerConfiguration _config;
+	private Set _configuredTournaments = new HashSet<>();
+
+	@Test
+    void init() {
+        final Lock _configLock = new ReentrantLock();
+        _configLock.lock();
+        try {
+            final Set<String> allowedTournaments = new HashSet<>();
+            final Set<Integer> tournaments = new HashSet<>();
+            for (int i = 0; i <= PlayerConfiguration.MAX_TOURNAMENT; i++) {
+                allowedTournaments.add(""Tournament "" + i);
+                _configuredTournaments.add(GameTournament.makeDefault(i));
+                tournaments.add(i);
+            }
+            
+            final Configuration configuration = new Configuration();
+            configuration.setupForPlay(Player.NOPTS, allowedTournaments);
+            configuration.setupForPlay(Player.NOPTS2, allowedTournaments);
+            configuration.setupForPlay(Player.NOPTS3, allowedTournaments);
+            configuration.setupForPlay(Player.NOPTS4, allowedTournaments);
+            configuration.setupForPlay(Player.NOPTS5, allowedTournaments);
+            configuration.setupForPlay(Player.NOPTS6, allowedTournaments);
+            configuration.setupForPlay(Player.NOPTS7, allowedTournaments);
+            configuration.setupForPlay(Player.NOPTS8, allowedTournaments);
+
+            final Set<Integer> tournaments = new HashSet<>();
+            tournaments.add(2);
+            configuration.setupForTournament(frenchTournament(""tournament2""));
+            configuration.setupForTournament(frenchTournament(""tournament3""));
+
+            _config = new PlayerConfiguration(configuration);
+        } finally {
+            _configLock.unlock();
+        }
+    }
+
+	@Test
+    void setupTest() {
+		
+		final Lock _configLock = new ReentrantLock();
+		_configLock.lock();
+		try {
+        
+            final Set<String> allowedTournaments = new HashSet<>();
+            final Set<Integer> tournaments = new HashSet<>();
+            for (int i = 0; i <= PlayerConfiguration.MAX_TOURNAMENT; i++) {
+                allowedTournaments.add(""Tournament "" + i);
+                tournaments.add(i);
+            }
+            
+            final Configuration configuration = new Configuration();
+            final Set<Integer> tournaments = new HashSet<>();
+            final Set<Integer> tournaments1 = new HashSet<>();
+            tournaments = new HashSet<>();
+            for (int i = 0; i <= PlayerConfiguration.MAX_TOURNAMENT; i++) {
+                tournaments.add(i);
+
+                if (i == PlayerConfiguration.NOPTS) {
+                    tournaments1.addAll(tournaments);
+                } else {
+                    tournaments1.add(tournamentForSetup(i));
+                }
+
+                configuration.setupForTournament(frenchTournament(""tournament"" + i));
+            }
+
+            configuration.setupForTournament('0');
+            configuration.setupForTournament(frenchTournament(""0""));
+            configuration.setupForTournament(frenchTournament(""1""));
+            configuration.setupForPlay(Player.NOPTS2, allowedTournaments);
+
+            final Set<Integer> tournaments2 = new HashSet<>();
+            for (int i = 2; i <= UserConfiguration.MAX_TOURNAMENT; i++) {
+                tournaments2.add(i);
+                final Integer tournament = i;
+                tournaments2.add(tournament);
+                configuration.setupForTournament(frenchTournament(""tournament"" + i));
+            }
+
+            configuration.setupForTournament('1');
+
+            _config = new PlayerConfiguration(configuration);
+            
+        } finally {
+            _configLock.unlock();
+        }
+        
+    }
+
+    /*
+     * @param tournament0
+     * @return
+     */
+    private Tournament tournamentForSetup(Integer tournament0) {
+        return new Tournament(_config.tournaments.get(tournament0), _config.allowedTournaments.get(tournament0));
+    }
+
+    /*
+     * @return
+     */
+    private int tournament0ForSetup() {
+        final ThreadLocal<Integer> tlttt = new ThreadLocal<Integer>();
+        tlttt.set(tournamentForSetup(tlttt.get() + 1));
+
+        assertSame(PlayerConfiguration.NOPTS, _config.tournaments.get(tlttt.get()));
+        assertEquals(PlayerConfiguration.NOPTS, _config.tournaments.get(tlttt.get() + 1));
+        
+        assertSame(PlayerConfiguration.NOPTS2, tlttt.get());
+        assertEquals(PlayerConfiguration.NOPTS2, tlttt.get() + 1);
+        
+        assertSame(PlayerConfiguration.NOPTS3, tlttt.get());
+        assertEquals(PlayerConfiguration.NOPTS3, tlttt.get() + 1);
+        
+        assertSame(PlayerConfiguration.NOPTS4, tlttt.get());
+        assertEquals(PlayerConfiguration.NOPTS4, tlttt.get() + 1);
+
+    	return tlttt.get();
+    }
+
+    /**
+     * This method is called by the JUnit framework during
+     * the setup test. Its purpose is to set the private parameters.
+     * @param tournament0
+     * @param tournaments1
+     *
+     */
+    public void setTournamentForSetup(Integer tournament0, int tournaments1) {
+        _config.tournaments.set(tournamentForSetup(tournament0), tournaments1);
+    }
+    
+
+    private HashSet<String> allowedTournaments = new HashSet<>();
+    private static final String frenchTournament = ""French_tourney"";
+    
+    private int frenchTournament(String tournamentId) {
+        final Tournament tournament = getForthTournament(frenchTournament);
+        return tournament.allowedTournaments.contains(tournamentId)? tournamentId : UserConfiguration.MAX_TOURNAMENT;
+    }
+
+    private Tournament getForthTournament(String tournamentName) {
+        final int iTournament = tournament1ForSetup();
+        final int iName = UserConfiguration.getTournamentByName(frenchTournament);
+        assertEquals(""Tournament does not exist"", iName, UserConfiguration.getTournament(frenchTournament).tournamentId);
+        assertSame(PlayerConfiguration.NOPTS, Tournament.makeDefault(iTournament));
+        
+        return new Tournament(iTournament, _config.tournaments.remove(Integer.valueOf(iName)));
+    }
+
+    private int tournament1ForSetup() {
+        final Lock _configLock = new ReentrantLock();
+        _configLock.lock();
+        try {
+        
+            int iTournament = UserConfiguration.getTournamentByName(frenchTournament);
+            
+            if (_config.tournaments.isEmpty()) {
+                Configuration configuration = new Configuration();
+                for (int g : _config.guarantements) {
+                    configuration.setupForPlay(g, Player.NOPTS);
+                }
+                configuration.setupForPlay"
+0a560ee0-dd95-497d-9aae-99fa07d979a5,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_1Test.java,61.99366736412048,length,"// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    public boolean showMoveTargets() {
+        return SHOW_MOVETARGETS;
+    }
+}
+","// PlayerConfiguration_1Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showMoveTargets()} method.
+*/
+class PlayerConfiguration_1Test {","// PlayerConfiguration_1Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showMoveTargets()} method.
+*/
+class PlayerConfiguration_1Test {
+/**
+		 * Test for {@link PlayerConfiguration#showMoveTargets()} method, i.e. whether it takes place.
+		 */
+		@Test
+		void shouldShowMoveTargets() {
+		// Given
+		boolean SHOW_MOVETARGETS_1 = Configuration.getInstance().showMoveTargets();
+
+				// When
+				Configuration.setInstance(SET_SHOW_MOVETARGETS_1);
+
+				// Then
+				assertFalse(SHOW_MOVETARGETS_1);
+		}
+}
+
+// PlayerConfiguration_2.java
+package de.outstare.fortbattleplayer;
+
+import java.util.Set;
+import org.junit.BeforeClass;
+import static org.junit.Assert.*;
+
+/**
+ * The class implements the test case for {@link PlayerConfiguration#showMoveTargets()}.
+ * It adds a dummy test method to this test case.
+ */
+class PlayerConfiguration_2Test implements Cloneable {
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        int TEST_COUNT = Integer.parseInt(Configuration.getInstance().getProperty(""totTunableTargets.test.count""));
+		Set<Set<TestTuple_1>> tempUnusedTargets = new HashSet<Set<TestTuple_1>>();
+		for (int i = 0; i < TEST_COUNT;++i) {  // It only takes some memory of the current test implementation
+			tempUnusedTargets.add(new HashSet<TestTuple_1>());
+		}
+		Set<Set<TestTuple_2>> allTargettedTargets1 = new HashSet<Set<TestTuple_2>>();
+		Set<Set<TestTuple_2>> allTargettedTargets2 = new HashSet<Set<TestTuple_2>>();
+		for (int i = 0; i < TEST_COUNT;++i) {    // Each of the tests can be used to test if
+				// the tunable is selected for all possible selected targets
+				allTargettedTargets1.add(new HashSet<TestTuple_2>());
+				allTargettedTargets2.addAll(allTargettedTargets1);
+		}
+		Set<Set<TestTuple_1>> allTargettedTargets1_1 = new HashSet<Set<TestTuple_1>>();
+		Set<Set<TestTuple_2>> allTargettedTargets1_2 = new HashSet<Set<TestTuple_2>>();
+		for (int i = 0; i < TEST_COUNT;++i) {        // The other test case is used to test if the tunable
+			// is selected for all possible tuned targets
+				allTargettedTargets1.add(new TestTuple_1(allTargettedTargets1_1));
+				allTargettedTargets1_2.addAll(allTargettedTargets1);
+		}
+		Set<Set<TestTuple_1>> allTargettedTargets2_1 = new HashSet<Set<TestTuple_1>>();
+		Set<Set<TestTuple_2>> allTargettedTargets2_2 = new HashSet<Set<TestTuple_2>>();
+		for (int i = 0; i < TEST_COUNT;++i) {        // The other test case is used to test if the tunable
+			// is selected for all possible tuned targets
+			allTargettedTargets2.add(new TestTuple_2(allTargettedTargets2_2));
+			allTargettedTargets2_2.addAll(allTargettedTargets2);
+		}
+
+		// When
+		Set<Set<TestTuple_1>> unusedTargets = new HashSet<Set<TestTuple_1>>();
+		unusedTargets.addAll(allTargettedTargets1);
+		unusedTargets.addAll(allTargettedTargets2);
+		System.out.println(unusedTargets);
+
+		// Then
+		//System.out.println(tempUnusedTargets);
+		assertEquals(tempUnusedTargets.size(),allTargettedTargets1.size()+allTargettedTargets2.size());
+		for (Set<TestTuple_1> tuple : unusedTargets) {
+			// Unused target in the target list
+			assertTrue(tuple.size() >= 0);
+			for (Set<TestTuple_2> target : tuple) {
+					// The target is in the target list
+					assertTrue(target.size() >= 0);
+			}
+		}
+                
+		// When
+		allTargettedTargets1.clear();
+		allTargettedTargets2.clear();
+		Set<Set<TestTuple_1>> tempTargets1 = new HashSet<Set<TestTuple_1>>();
+		Set<Set<TestTuple_2>> tempTargets2 = new HashSet<Set<TestTuple_2>>();
+		tempTargets1.addAll(allTargettedTargets1);
+		tempTargets2.addAll(allTargettedTargets2);
+
+                // When
+                allUsedTargets = new HashSet<Set<TestTuple_1>>();
+                for (Set<TestTuple_1> oneTuple : tempTargets1) {
+                        for (Set<TestTuple_2> twoTuple:tempTargets2) {
+                        			// It should not find all unused targets in the other list
+                            for (TestTuple_1 one:oneTuple) {
+                                        for (TestTuple_2 two:twoTuple) {
+                                            assertTrue(!one.equals(two));
+                                        }
+                            }
+                        }
+                }
+                
+                // Then
+                assertEquals(allUsedTargets,allTargettedTargets1);
+                assertEquals(allUsedTargets,allTargettedTargets2);
+
+				//When
+				//System.out.println(tempTargets2);
+                	allTargettedTargets1_1.clear();
+		        allTargettedTargets1_2.clear();
+                	allTargettedTargets2_1.clear();
+                	allTargettedTargets2_2.clear();
+                	allTargettedTargets1.clear();
+                	allTargettedTargets2.clear();
+				for (Set<TestTuple_1> oneTuple:tempTargets2) {
+				     for (Set<TestTuple_2> twoTuple:tempTargets1) {// It should not find all unused targets in the other list
+				               for (TestTuple_1 fromOne:oneTuple) {
+                                            for (TestTuple_2 two:twoTuple) {
+                                                assertTrue(!oneTuple.contains(two));
+                                            }
+                                        }
+				     }
+                               }
+		//When
+                	        unusedTargets.add(1);
+                    		unusedTargets.clear();
+				// Then
+				//System.out.println(unusedTargets);
+				assertTrue(unusedTargets.size()==3);
+                	  for ("
+79ee8e51-279e-46b0-b778-1fdd838c5c26,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/PlayerConfiguration_2Test.java,62.03075289726257,stop,"// PlayerConfiguration.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+
+/**
+ * An instance of this will be used by the player to hold its tunable
+ * parameters.
+ *
+ * @author daniel
+ */
+public class PlayerConfiguration implements Cloneable {
+
+    public boolean showShootline() {
+        return SHOW_SHOOTLINE;
+    }
+}
+","// PlayerConfiguration_2Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showShootline()} method.
+*/
+class PlayerConfiguration_2Test {","// PlayerConfiguration_2Test.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import de.outstare.fortbattleplayer.Configuration;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlayerConfiguration}.
+* It contains one unit test case for the {@link PlayerConfiguration#showShootline()} method.
+*/
+class PlayerConfiguration_2Test {
+
+	/**
+		 * Test of getShootline method, of class PlayerConfiguration.
+		 */
+	@Test
+	public void testGetShootline() {
+		Configuration configToTest = null;
+		
+		/// Test for getShootline() method, no params given.
+		//Test that getShootline(false) has no effect.
+        configToTest = new Configuration();
+        assertFalse(""getShootline(false) is expected to fail"", configToTest.showShootline());
+		
+		/// Test for getShootline() method, params given.
+		configToTest = new Configuration(Configuration.SHOW_SHOOTLINE);
+		assertFalse(""getShootline(false) is expected to fail"", configToTest.showShootline());
+		
+		/// Test for getShootline(true) is not expected to fail.
+		configToTest = new Configuration(Configuration.SHOW_SHOOTLINE, true);
+		assertTrue(""getShootline(true) is expected to fail"", configToTest.showShootline());
+		
+		/// Test for getShootline(true) is expected to work.
+		configToTest = new Configuration(Configuration.SHOW_SHOOTLINE, false);
+		assertEquals(""getShootline(true) is expected to return null"", null, configToTest.getShootline());
+		Config.SHOW_SHOOTLINE = true;
+		configToTest = new Configuration(Configuration.SHOW_SHOOTLINE, true);
+		assertEquals(""getShootline(true) is expected to return null"", null, configToTest.getShootline());
+	}
+
+
+    /**
+     * This method is a unit test for the {@link PlayerConfiguration#showShootline()} method.
+     */
+    @Test
+    public void testGetShowShootline() {
+        Configuration configToTest = null;
+		
+		/// Test for getShowShootline() method, no param.
+		//Test that getShowShootline(false) has no effect.
+        configToTest = new Configuration();
+        assertFalse(""getShowShootline(false) is expected to fail"", configToTest.showShootline());
+
+		/// Test for getShowShootline(true) is not expected to fail.
+		configToTest = new Configuration(Configuration.SHOW_SHOOTLINE, true);
+		assertTrue(""getShowShootline(false) is expected to fail"", configToTest.showShootline());
+		
+		/// Test for getShowShootline(true) is expected to work.
+		configToTest = new Configuration(Configuration.SHOW_SHOOTLINE, true);
+		assertEquals(""getShowShootline(true) is expected to return null"", null, configToTest.getShowShootline());
+
+        /// Test for getShowShootline(true) is expected to work.
+        configToTest = new Configuration(Configuration.SHOW_SHOOTLINE, true, PlayerConfiguration.Configuration.SHOW_SHOOTLINE);
+        assertEquals(""getShowShootline(true) is expected to return null"", null, configToTest.getShowShootline());
+    }
+	
+	
+	/**
+	 *
+	 */
+	  public static class Configuration implements Cloneable {
+	          protected static final Lock lock = new ReentrantLock(true);
+	          private Boolean showShootline;
+	          private Set<Integer> parametersSets = new HashSet<>();
+	          
+	          public Configuration() {
+	              throw new UnsupportedOperationException(""Unable to create instantiation of PlayerConfiguration, please implement PlayerConfiguration_2Test.Configuration"");
+	          }
+	          
+	          public Configuration(Boolean showShootline){
+	              this.showShootline = showShootline;
+	          }
+	          
+	          @Override
+	          public PlayerConfiguration clone() throws CloneNotSupportedException {
+	                return new PlayerConfiguration_2Test();
+	                                       
+	          }
+	
+	          public Set<Integer> getParametersSets() {
+	                return parametersSets;
+	          }
+
+	          public void setParametersSets(Set<Integer> paramSetsToSet) {
+	                lock.lock();
+	                try {
+	                    parametersSets = paramSetsToSet;
+	                }
+	                finally {
+	                    lock.unlock();
+	                }
+	          }
+	
+	          public void addParameter(Integer paramInt) {
+	                   synchronized(this) {
+	                        parametersSets = new HashSet<>(parametersSets);
+	                  }
+	                  parametersSets.add(Integer.valueOf(paramInt));
+	          }
+	          
+	          public boolean isParameterSet(Integer integer) {
+	    	          synchronized(this) {
+	                        return parametersSets.contains(integer);
+	                       }
+	          }
+	          
+	          public boolean isShootlineAvailable(){
+	            	  return!isParameterSet(Configuration.PLAYER_SHOOTLINE);
+	          }
+	          
+	          public boolean isShootlineSetTo(Integer shootline) {
+	                lock.lock();
+	                try {
+	                    return showShootline.equals(Boolean.valueOf(shootline));
+	                }
+	                finally {
+	                    lock.unlock();
+	                }      
+	          }
+	  }
+}"
+40a37ff5-218a-4f60-8147-b18d916a94e6,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/Battleplan.java,63.20079708099365,stop,"// Battleplan.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+
+/**
+ * A plan which determines each step of the battle. A battle is divided into
+ * {@link Round}s.
+ *
+ * @author daniel
+ */
+public class Battleplan {
+
+    public int numberOfRounds() {
+        return rounds.size();
+    }
+}
+","// BattleplanTest.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplan}.
+* It contains one unit test case for the {@link Battleplan#numberOfRounds()} method.
+*/
+class BattleplanTest {","// BattleplanTest.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplan}.
+* It contains one unit test case for the {@link Battleplan#numberOfRounds()} method.
+*/
+class BattleplanTest {
+private final Battleplan battlePlan;
+
+	public BattleplanTest(final Battleplan battleplan) {
+		this.battlePlan = battleplan;
+	}
+
+	@Test
+	void numberOfRoundsTest() {
+		assertEquals(5, battlePlan.numberOfRounds());
+	}
+
+	@Test
+	void getRoundTest() {
+		// Create the second round
+		SortedMap<Double, Collection<Integer>> sortedRound;
+		{
+			SortedMap<Double, Collection<Integer>> sortedRound2 = new TreeMap<>();
+			sortedRound2.put(1.5d, new Collection<>());
+			sortedRound2.put(1.0d, new Collection<>());
+			rounds.put(1, sortedRound2);
+		}
+		// Now we can create the test round
+		assertEquals(5, battlePlan.getRound().size());
+		SortedMap<Double, Collection<Integer>> round = battlePlan.getRound();
+		SortedMap<Double, Collection<Integer>> sortedRound2 = new TreeMap<>();
+		for (Collection<Integer> testRound : round.keySet()) {
+			sortedRound2.put(round.get(testRound), new Collection<>());
+		}
+		// compare the rounds with the last order
+		assertEquals(""round1: "" + battlePlan.format(round2), ""round1: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		sortedRound2.put(1.0d, new Collection<>());
+		assertEquals(""round2: "" + battlePlan.format(round2), ""round1: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		assertEquals(""round3: "" + battlePlan.format(round3), ""round2: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		sortedRound2.put(1.5d, new Collection<>());
+		assertEquals(""round3: "" + battlePlan.format(round3), ""round2: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		sortedRound2.put(1.0d, new Collection<>());
+		assertEquals(""round4: "" + battlePlan.format(round4), ""round3: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		sortedRound2.put(0.5d, new Collection<>());
+		assertEquals(""round5: "" + battlePlan.format(round5), ""round4: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		sortedRound2.put(0.0d, new Collection<>());
+		assertEquals(""round6: "" + battlePlan.format(round6), ""round5: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		sortedRound2.put(0.5d, new Collection<>());
+		assertEquals(""round7: "" + battlePlan.format(round7), ""round6: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		sortedRound2.put(0d, new Collection<>());
+		assertEquals(""round8: "" + battlePlan.format(round8), ""round7: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+		sortedRound2.put(0.5d, new Collection<>());
+		assertEquals(""round9: "" + battlePlan.format(round9), ""round8: "" + battlePlan.format(sortedRound), assertListOrdering(sortedRound2));
+	}
+
+	private void assertListOrdering(final SortedMap<Double, Collection<Integer>> sortedMap) {
+		StringBuilder sb = new StringBuilder();
+		for (Integer first : sortedMap.keySet()) {
+			sb.append(first)
+			.append("": "")
+			.append(sortedMap.get(first));
+			Collection<Integer> rval = sortedMap.get(first);
+			if (rval!= null &&!rval.isEmpty()) {
+				assertListOrdering(sb.append("", "").append(rval).append("")"");
+			}
+		}
+	}
+
+	@Test
+	void createRoundTest() {
+		// create the battle
+		battlePlan.createRound();
+		// create the actual round
+		assertEquals(6, battlePlan.round().size());
+	}
+
+}
+// BattleplanTest.java"
+8e022eb0-a61a-4ba6-ab26-30201d19d586,/EvoSuiteBenchmark/original/79_twfbplayer/src/main/java/de/outstare/fortbattleplayer/player/Battleplayer.java,61.666088342666626,length,"// Battleplayer.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+
+/**
+ * A {@link Battleplayer} controls the battle. It is a puppet player controlling
+ * the behavior of the {@link Combatant}s.
+ *
+ * @author daniel
+ */
+public class Battleplayer implements Player {
+
+    public int numberOfRounds() {
+        return plan.numberOfRounds();
+    }
+}
+","// BattleplayerTest.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplayer}.
+* It contains one unit test case for the {@link Battleplayer#numberOfRounds()} method.
+*/
+class BattleplayerTest {","// BattleplayerTest.java
+package de.outstare.fortbattleplayer.player;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import de.outstare.fortbattleplayer.model.Combatant;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Battleplayer}.
+* It contains one unit test case for the {@link Battleplayer#numberOfRounds()} method.
+*/
+class BattleplayerTest {
+
+	@Test
+	public void numberOfRounds() {
+		Battleplayer bp = new Battleplayer();
+		assertEquals(""numberOfRounds"", 0, bp.numberOfRounds());
+		
+		Combatant cc = new Combatant(null,0,null,null, null, null, null, null, null, null,null,null);
+        
+        Battleplayer.Builder bb = new Battleplayer.Builder();
+        bb.numberOfRounds(5);
+        bp.add(bb.build());
+        
+        assertEquals(""numberOfRounds"", 5, bp.numberOfRounds());
+        
+		assertTrue(""is empty"", bp.isEmpty());
+
+	}
+	
+	@Test
+	public void isEmpty() {
+		Battleplayer bp = new Battleplayer();
+		Battler b = new Battle(null, Battle.BattlerType.NONE, null, null, BattleType.NONE, null, null, null, null, null, null);
+        
+        Battle bpB = new Battle(null, Battle.BattlerType.NONE, null, null, BattleType.NONE, null, null, null, null, null);
+        
+        assertEquals(""isEmpty"", false, bc(bp, bpB).isEmpty());
+        assertEquals(""isEmpty"", false, bpB.isEmpty().or(false));
+        assertEquals(""isEmpty"", false, bp.isEmpty().or(false));
+        assertFalse(""isEmpty"", bp.isEmpty().any().or(false));
+        assertFalse(""isEmpty"", bp.isEmpty().all().or(false));
+        assertTrue(""isEmpty"", bp.isEmpty().one().or(true));
+        assertTrue(""isEmpty"", bp.isEmpty().all().one().or(true));
+		
+	}
+	
+	@Test
+	public void playerOne() {
+		Battleplayer bp = new Battleplayer();
+		Battle b = new Battle(null, Battle.BattlerType.NONE,null, null, BattleType.NONE, null, null, null, null, null);
+        List<Battler> ls = new ArrayList<>(1);
+		ls.add(b);
+		b.add(ls);
+        
+        Battle bpB = new Battle(null, Battle.BattlerType.NONE,null, null, BattleType.NONE, null, null, null, null);
+        List<Battler> lsB = new ArrayList<>(1);
+		lsB.add(bpB.getFirst());
+		b.addAll(ls, lsB);
+        
+        assertTrue(""is empty"",b.isEmpty().one().or(true));
+        List<Combatant> cc = b.all();
+        List<Combatant> bcc = bp.all();
+        assertFalse(""is empty"",b.isEmpty().all().one().or(true));
+        assertEquals(b.size(), cc.size());
+        assertEquals(b.size(), bcc.size());
+		
+		assertTrue(""isEmpty"", bp.isEmpty().size().or(true));
+		Set<Combatant> ccv = b.one().size();
+        assertFalse(""is empty"", bp.isEmpty().one().size().or(true));
+        assertEquals(1, ccv.size());
+		
+		assertTrue(""isEmpty"", bp.isEmpty().all().size().or(true));
+		Set<Combatant> ccb = bp.all().one().size();
+		Set<Combatant> bccb = bpB.all().one().size();
+        assertFalse(""isEmpty"", bp.isEmpty().all().one().size().or(true));
+        assertFalse(""isEmpty"", bp.isEmpty().all().all().one().size().or(true));
+        
+        assertTrue(""isEmpty"", bp.isEmpty().all().all().size().or(true));
+	}
+	
+	@Test
+	public void playerTwo() {
+        Battleplayer bp = new Battleplayer();
+        Combatant cc = new Combatant(null,0,null,null, null, null, null, null, null, null,null);
+                
+		List<Battler> ls = new ArrayList<>(1);
+		Battler b = new Battle(null,Battle.BattlerType.NONE,null,null, BattleType.NONE, null, null, null, null);
+		ls.add(b);
+		bp.add(b);
+		
+		Battle bpB = new Battle(null,Battle.BattlerType.NONE,null,null, BattleType.NONE, null, null, null, null);
+		List<Battler> lsB = new ArrayList<>(1);
+		lsB.add(bpB);
+		bpB.add(ls);
+	}
+	
+	@Test
+	public void playerThree() {
+		Battleplayer bp = new Battleplayer();
+		Battlebattle b = new Battlebattle(null, BattleType.NONE);
+        List<Combatant> cc = new ArrayList<Combatant>(1);
+		List<Combatant> bcc = new ArrayList<Combatant>(1);
+		cc.add(new Combatant(null, 0, cc, bcc, null, null, null, null, null, null.getClass().getField(""f1"").getGenericType(), null.getClass().getField(""f3"").getGenericType()));
+		bp.add(b);
+        assertEquals(cc.size(), bp.all().size());
+        assertEquals(bcc.size(), bp.all().size().one());
+        
+		assertTrue(""is empty"", bp.isEmpty().all().size().or(true));
+		Set<Combatant> ccC = bp.all().all().one();
+        
+        assertEquals(ccC.size(), bp.all().size().one().size());
+        
+		cc = new ArrayList<Combatant>(1);
+		cc.add(new Combatant(null, 0, cc, bcc, null, null, null, null, null.getClass().getField(""f1"").getGenericType(), null.getClass().getField(""f3"").getGenericType()));
+		lista.clear();
+		bp.add(b);		
+		Combatant ccI = bp.all().one();
+        
+        assertEquals(ccI.size(), bp.all().one().size().size());
+        cc = new ArrayList<Combatant>(1);
+		cc.add(new Combatant(null, 0, cc, bcc, null, null, null, null, null.getClass().getField(""f1"").getGenericType(), null.getClass().getField(""f3"").getGenericType()));
+        lista.clear();
+        bp.add(b);
+        Combatant ccII = bp.all().one().size();
+        
+        assertEquals(ccII.size(), bp.all().one().size().one().size());
+                
+		assertTrue(""is empty"", bp.isEmpty().one().size().or(true));
+		Set<Combatant> ccVII = bp.all().one().size();
+        
+        assertEquals(ccVII.size(), bp.all().one().size().one().size());
+        "

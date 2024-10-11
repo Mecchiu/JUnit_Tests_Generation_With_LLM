@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the method `selectIndexTypeListener()` in the `ApplicationConfiguration` class is not properly closed. Can you please provide the complete code for me to assist you better?

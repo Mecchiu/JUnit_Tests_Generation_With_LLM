@@ -1,0 +1,266 @@
+// ClassUtil_1Test.java
+package org.quickserver.util;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.quickserver.util.io.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClassUtil}.
+* It contains ten unit test cases for the {@link ClassUtil#getClassLoaderFromJars(String)} method.
+*/
+class ClassUtil_1Test {
+
+		private static Logger logger = Logger.getLogger(ClassUtil_1Test.class.getName());
+		
+		@Test
+		public void testGetClassLoaderFromJars() throws Exception {
+				ClassLoader classLoader = ClassUtil.getClassLoaderFromJars("lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/../lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/../lib/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/../lib/../lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/../lib/../lib/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/../lib/../lib/../lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/../lib/../lib/../lib/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/../lib/../lib/../lib/../lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJars("lib/../lib/../lib/../lib/../lib/");
+				assertNotNull(classLoader);
+		}
+}
+
+// ClassUtil_2Test.java
+package org.quickserver.util;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.quickserver.util.io.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClassUtil}.
+* It contains ten unit test cases for the {@link ClassUtil#getClassLoaderFromJar(String)} method.
+*/
+class ClassUtil_2Test {
+		
+		private static Logger logger = Logger.getLogger(ClassUtil_2Test.class.getName());
+		
+		@Test
+		public void testGetClassLoaderFromJar() throws Exception {
+				ClassLoader classLoader = ClassUtil.getClassLoaderFromJar("lib/quickserver-1.4.7.jar");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/quickserver-1.4.7.jar/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/../lib/quickserver-1.4.7.jar");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/../lib/quickserver-1.4.7.jar/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/../lib/../lib/quickserver-1.4.7.jar");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/../lib/../lib/quickserver-1.4.7.jar/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/../lib/../lib/../lib/quickserver-1.4.7.jar");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/../lib/../lib/../lib/quickserver-1.4.7.jar/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/../lib/../lib/../lib/../lib/quickserver-1.4.7.jar");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoaderFromJar("lib/../lib/../lib/../lib/../lib/quickserver-1.4.7.jar/");
+				assertNotNull(classLoader);
+		}
+}
+
+// ClassUtil_3Test.java
+package org.quickserver.util;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.quickserver.util.io.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClassUtil}.
+* It contains ten unit test cases for the {@link ClassUtil#getClassLoader(String)} method.
+*/
+class ClassUtil_3Test {
+		
+		private static Logger logger = Logger.getLogger(ClassUtil_3Test.class.getName());
+		
+		@Test
+		public void testGetClassLoader() throws Exception {
+				ClassLoader classLoader = ClassUtil.getClassLoader("lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/../lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/../lib/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/../lib/../lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/../lib/../lib/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/../lib/../lib/../lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/../lib/../lib/../lib/");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/../lib/../lib/../lib/../lib");
+				assertNotNull(classLoader);
+				
+				classLoader = ClassUtil.getClassLoader("lib/../lib/../lib/../lib/../lib/");
+				assertNotNull(classLoader);
+		}
+}
+
+// ClassUtil_4Test.java
+package org.quickserver.util;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.quickserver.util.io.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClassUtil}.
+* It contains ten unit test cases for the {@link ClassUtil#loadClass(ClassLoader, String[])} method.
+*/
+class ClassUtil_4Test {
+		
+		private static Logger logger = Logger.getLogger(ClassUtil_4Test.class.getName());
+		
+		@Test
+		public void testLoadClass() throws Exception {
+				ClassLoader classLoader = ClassUtil.getClassLoader("lib");
+				assertNotNull(classLoader);
+				
+				String[] classNames = { "org.quickserver.net.server.QuickServer" };
+				Map classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "org.quickserver.net.server.ClientCommandHandler" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "org.quickserver.net.server.ClientCommandHandler", "org.quickserver.net.server.ClientEventHandler" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "org.quickserver.net.server.ClientCommandHandler", "org.quickserver.net.server.ClientEventHandler", "org.quickserver.net.server.Authenticator" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "org.quickserver.net.server.ClientCommandHandler", "org.quickserver.net.server.ClientEventHandler", "org.quickserver.net.server.Authenticator", "org.quickserver.net.server.Authorizer" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "org.quickserver.net.server.ClientCommandHandler", "org.quickserver.net.server.ClientEventHandler", "org.quickserver.net.server.Authenticator", "org.quickserver.net.server.Authorizer", "org.quickserver.net.server.BasicServer" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "org.quickserver.net.server.ClientCommandHandler", "org.quickserver.net.server.ClientEventHandler", "org.quickserver.net.server.Authenticator", "org.quickserver.net.server.Authorizer", "org.quickserver.net.server.BasicServer", "org.quickserver.net.server.ClientInfo" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+		}
+}
+
+// ClassUtil_5Test.java
+package org.quickserver.util;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.quickserver.util.io.*;
+import java.util.logging.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ClassUtil}.
+* It contains ten unit test cases for the {@link ClassUtil#loadClass(ClassLoader, String[])} method.
+*/
+class ClassUtil_5Test {
+		
+		private static Logger logger = Logger.getLogger(ClassUtil_5Test.class.getName());
+		
+		@Test
+		public void testLoadClass() throws Exception {
+				ClassLoader classLoader = ClassUtil.getClassLoader("lib/quickserver-1.4.7.jar");
+				assertNotNull(classLoader);
+				
+				String[] classNames = { "org.quickserver.net.server.QuickServer" };
+				Map classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "org.quickserver.net.server.ClientCommandHandler" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "org.quickserver.net.server.ClientCommandHandler", "org.quickserver.net.server.ClientEventHandler" };
+				classHash = ClassUtil.loadClass(classLoader, classNames);
+				assertNotNull(classHash);
+				
+				classNames = new String[] { "org.quickserver.net.server.QuickServer", "org.quickserver.net.server.ClientHandler", "org.quickserver.net.server.ClientData", "

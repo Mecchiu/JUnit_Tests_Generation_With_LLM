@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems like the class `Element` has a method `lookupAttribute(String, String)` that is being tested in the `Element_0Test` class. However, there are no test cases written in the code you provided. Could you please provide the test cases so that I can assist you better?

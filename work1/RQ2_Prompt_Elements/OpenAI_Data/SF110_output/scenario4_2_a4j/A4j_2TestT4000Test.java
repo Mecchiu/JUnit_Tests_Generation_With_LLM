@@ -1,0 +1,131 @@
+// A4j_2Test.java
+package net.kencochrane.a4j;
+
+import net.kencochrane.a4j.DAO.Cart;
+import net.kencochrane.a4j.DAO.Product;
+import net.kencochrane.a4j.DAO.Search;
+import net.kencochrane.a4j.beans.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link A4j}.
+* It contains ten unit test cases for the {@link A4j#ActorSearch(String, String, String)} method.
+*/
+class A4j_2Test {
+
+	@Test
+	void testActorSearch() {
+		A4j a4j = new A4j();
+		ProductInfo productInfo = a4j.ActorSearch("Tom Hanks", "dvd", "1");
+		assertNotNull(productInfo);
+		assertNotNull(productInfo.getDetails());
+		assertNotNull(productInfo.getDetails().getActor());
+		assertNotNull(productInfo.getDetails().getActor().getName());
+		assertEquals("Tom Hanks", productInfo.getDetails().getActor().getName());
+		assertNotNull(productInfo.getDetails().getActor().getProducts());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0));
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getAsin());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getProductName());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getCatalog());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getTheatricalReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getRating());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getListPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getOurPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getUsedPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getAvailability());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getImageUrlSmall());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getImageUrlMedium());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getImageUrlLarge());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0));
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getName());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getRole());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorId());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlSmall());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlMedium());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlLarge());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUrl());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorLink());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAsin());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorCatalog());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorTheatricalReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorRating());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorListPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorOurPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUsedPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAvailability());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlSmall());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlMedium());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlLarge());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUrl());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorLink());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAsin());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorCatalog());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorTheatricalReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorRating());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorListPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorOurPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUsedPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAvailability());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlSmall());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlMedium());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlLarge());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUrl());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorLink());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAsin());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorCatalog());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorTheatricalReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorRating());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorListPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorOurPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUsedPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAvailability());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlSmall());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlMedium());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlLarge());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUrl());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorLink());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAsin());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorCatalog());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorTheatricalReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorRating());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorListPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorOurPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUsedPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAvailability());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlSmall());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlMedium());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlLarge());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUrl());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorLink());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAsin());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorCatalog());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorTheatricalReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorRating());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorListPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorOurPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUsedPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAvailability());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlSmall());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlMedium());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrlLarge());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUrl());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorLink());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAsin());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorCatalog());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorTheatricalReleaseDate());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorRating());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorListPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorOurPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorUsedPrice());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorAvailability());
+		assertNotNull(productInfo.getDetails().getActor().getProducts().getProduct().get(0).getActor().get(0).getActorImageUrl

@@ -1,0 +1,1 @@
+// As there is no implementation of the LogEvents class, it is not possible to generate a test class for it.

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">br.com.jnfe.base.util</a> &gt; <span class="el_source">SecurityUtils.java</span></div><h1>SecurityUtils.java</h1><pre class="source lang-java linenums">package br.com.jnfe.base.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+
+/**
+ * Helper class to handle common security tasks.
+ * 
+ * @author mauriciofernandesdecastro
+ */
+<span class="nc" id="L20">public class SecurityUtils {</span>
+
+<span class="nc" id="L22">    static char SEP = File.separatorChar;</span>
+<span class="nc" id="L23">    static String trustStoreName = &quot;cacerts&quot;;</span>
+<span class="nc" id="L24">    static String trustStorePath = null;</span>
+<span class="nc" id="L25">    static String trustStorePassword = &quot;changeit&quot;;</span>
+    
+    /**
+     * Abre um armaz�m.
+     * 
+     * @param keyStoreType
+     * @param keyStoreResource
+     * @param passphrase
+     * 
+     * @throws Exception
+     */
+    public static KeyStore openStore(String keyStoreType, Resource keyStoreResource, char[] passphrase) throws Exception {
+<span class="nc" id="L37">    	logger.debug(&quot;Abrindo armaz�m {} ...&quot;, keyStoreResource.getFilename());</span>
+<span class="nc" id="L38">    	KeyStore keyStore = KeyStore.getInstance(keyStoreType);</span>
+<span class="nc" id="L39">    	keyStore.load(keyStoreResource.getInputStream(), passphrase);</span>
+<span class="nc" id="L40">    	return keyStore;</span>
+    }
+    
+    /**
+     * Abre um armaz�m.
+     * 
+     * @param keyStoreResource
+     * @param passphrase
+     * 
+     * @throws Exception
+     */
+    public static KeyStore openStore(Resource keyStoreResource, char[] passphrase) throws Exception {
+<span class="nc" id="L52">    	return openStore(KeyStore.getDefaultType(), keyStoreResource, passphrase);</span>
+    }
+    
+    /**
+     * Abre um armaz�m.
+     * 
+     * @param keyStoreType
+     * @param storeLocation
+     * @param passphrase
+     * 
+     * @throws Exception
+     */
+    public static KeyStore openStore(String keyStoreType, String storeLocation, char[] passphrase) throws Exception {
+<span class="nc" id="L65">    	return openStore(keyStoreType, new FileSystemResource(storeLocation), passphrase);</span>
+    }
+    
+    /**
+     * Abre um armaz�m.
+     * 
+     * @param storeLocation
+     * @param passphrase
+     * 
+     * @throws Exception
+     */
+    public static KeyStore openStore(String storeLocation, char[] passphrase) throws Exception {
+<span class="nc" id="L77">    	return openStore(new FileSystemResource(storeLocation), passphrase);</span>
+    }
+    
+    /**
+     * Abre o armaz�m de chaves confi�veis.
+     * 
+     * @param passphrase
+     * 
+     * @throws Exception
+     */
+    public static KeyStore openTrustStore(char[] passphrase) throws Exception {
+<span class="nc" id="L88">    	return openTrustStore(trustStorePath, passphrase);</span>
+    }
+    
+    /**
+     * Abre o armaz�m de chaves confi�veis.
+     * 
+     * @param passphrase
+     * 
+     * @throws Exception
+     */
+    public static KeyStore openTrustStore(String trustStorePath, char[] passphrase) throws Exception {
+<span class="nc" id="L99">    	StringBuilder storeLocation = new StringBuilder(System.getProperty(&quot;java.home&quot;));</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    	if (trustStorePath==null) {</span>
+<span class="nc" id="L101">        	storeLocation.append(SEP)</span>
+<span class="nc" id="L102">		    .append(&quot;lib&quot;)</span>
+<span class="nc" id="L103">		    .append(SEP)</span>
+<span class="nc" id="L104">			.append(&quot;security&quot;)</span>
+<span class="nc" id="L105">			.append(SEP);</span>
+    	}
+    	else {
+<span class="nc" id="L108">    		storeLocation.append(trustStorePath);</span>
+    	}
+<span class="nc" id="L110">    	KeyStore trustStore = SecurityUtils.openStore(storeLocation.append(trustStoreName).toString(), passphrase);</span>
+<span class="nc" id="L111">    	return trustStore;</span>
+    }
+    
+    /**
+     * Carrega um certificado no armaz�m seguro.
+     * 
+     * @param certificateLocation
+     * @param certificateName
+     * 
+     * @throws Exception
+     */
+    public static void installCertificate(String certificateLocation, String certificateName) throws Exception {
+<span class="nc" id="L123">    	installCertificate(trustStorePath, certificateLocation, certificateName);</span>
+<span class="nc" id="L124">    }</span>
+    
+    /**
+     * Carrega um certificado no armaz�m seguro.
+     * 
+     * @param trustStorePath
+     * @param certificateLocation
+     * @param certificateName
+     * 
+     * @throws Exception
+     */
+    public static void installCertificate(String trustStorePath, String certificateLocation, String certificateName) throws Exception {
+<span class="nc" id="L136">    	KeyStore trustStore = SecurityUtils.openTrustStore(trustStorePath, trustStorePassword.toCharArray());</span>
+<span class="nc" id="L137">	    File dir = new File(certificateLocation);</span>
+<span class="nc" id="L138">	    File file = new File(dir, certificateName+&quot;.cer&quot;);</span>
+<span class="nc" id="L139">	    logger.debug(&quot;Abrindo certificado {} ...&quot;, file);</span>
+<span class="nc" id="L140">    	CertificateFactory cf = CertificateFactory.getInstance(&quot;X.509&quot;);</span>
+<span class="nc" id="L141">    	InputStream in = new FileInputStream(file);</span>
+<span class="nc" id="L142">    	X509Certificate cert = (X509Certificate) cf.generateCertificate(in);</span>
+<span class="nc" id="L143">    	in.close();</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">    	if (trustStore.containsAlias(certificateName)) {</span>
+<span class="nc" id="L145">    		logger.info(&quot;Certificado existente {}&quot;, trustStore.getCertificate(certificateName).getType());</span>
+    	}
+    	else {
+<span class="nc" id="L148">    		trustStore.setCertificateEntry(certificateName, cert);</span>
+<span class="nc" id="L149">    		logger.info(&quot;Certificado CARREGADO {}&quot;, trustStore.getCertificate(certificateName).getType());</span>
+    	}
+<span class="nc" id="L151">    }</span>
+    
+    /**
+     * Execut�vel para acrescentar certificados.
+     * 
+     * @param args
+     * @throws Exception 
+     */
+    public static void main(String[] args) throws Exception {
+<span class="nc" id="L160">    	String trustStorePath = null;</span>
+<span class="nc" id="L161">    	String certificateLocation = &quot;&quot;;</span>
+<span class="nc" id="L162">    	String certificateName = &quot;&quot;;</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">		if (args.length &gt; 2) {</span>
+<span class="nc" id="L164">			trustStorePath = args[2];</span>
+<span class="nc" id="L165">			certificateLocation = args[1];</span>
+<span class="nc" id="L166">			certificateName = args[0];</span>
+		} 
+<span class="nc bnc" id="L168" title="All 2 branches missed.">		else if (args.length &gt; 1) {</span>
+<span class="nc" id="L169">			certificateLocation = args[1];</span>
+<span class="nc" id="L170">			certificateName = args[0];</span>
+		}
+		else {
+<span class="nc" id="L173">		    System.out.println(&quot;Uso: java SecurityUtils &lt;localDoCertificado&gt; &lt;nomeDoCertificado&gt; [localDoCacertsAPartirDoJavaHome]&quot;);</span>
+<span class="nc" id="L174">		    return;</span>
+		}
+<span class="nc" id="L176">		installCertificate(trustStorePath, certificateLocation, certificateName);</span>
+<span class="nc" id="L177">    }</span>
+    
+<span class="nc" id="L179">    private final static Logger logger = LoggerFactory.getLogger(SecurityUtils.class);</span>
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `GameModel` class and its `GameModelTest` class are missing some important methods and functionalities. Can you please provide the complete code so I can assist you better?

@@ -1,0 +1,4367 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wnDI0YkVPDaTKsjmAM2ZIkkpqp7T,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/apbs_mem_gui/FileEditor0.java,72.62099266052246,stop,"// FileEditor.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+
+public class FileEditor {
+
+    /**
+     * Extract energy from the final APBS output file.
+     *
+     * @param filename Path to APBS output file.
+     * @return String array of total energies in kilojoules, kilocalories and k_BT
+     */
+    public String[] getEnergy(String filename) {
+        //returns [0] energy in kJ/mol, then [1] is in kcal/mol
+        File temp = new File(filename);
+        String[] energies = new String[3];
+        if (!temp.exists())
+            return null;
+        else {
+            NumberFormat formatter = new DecimalFormat(""0.####E0"");
+            double finalenergy = 0;
+            try {
+                Scanner fScan = new Scanner(new FileInputStream(filename));
+                String nextline;
+                //tells whether solvated or reference
+                boolean solvated = true;
+                while (fScan.hasNextLine()) {
+                    nextline = fScan.nextLine();
+                    if (nextline.contains(""elec name solvated"")) {
+                        solvated = true;
+                    } else if (nextline.contains(""elec name reference"")) {
+                        solvated = false;
+                    } else if (nextline.contains(""Global net ELEC energy "") && solvated) {
+                        //if found energy and its in solvated
+                        System.out.println(nextline);
+                        if (nextline.contains(""+"")) {
+                            //if its time 10^positive int
+                            finalenergy = toDoublePos(nextline);
+                        } else {
+                            //if its time 10^negative int
+                            finalenergy = toDoubleNeg(nextline);
+                        }
+                    }
+                }
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+            energies[0] = formatter.format(finalenergy) + "" kJ/mol"";
+            energies[1] = formatter.format(finalenergy * 0.239) + "" kcal/mol"";
+            energies[2] = formatter.format(finalenergy * 0.4035) + "" kT"";
+            return energies;
+        }
+    }
+}
+","// FileEditorTest.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileEditor}.
+* It contains ten unit test cases for the {@link FileEditor#getEnergy(String)} method.
+*/
+class FileEditorTest {","// FileEditorTest.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileEditor}.
+* It contains ten unit test cases for the {@link FileEditor#getEnergy(String)} method.
+*/
+class FileEditorTest {
+
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file does not exist.
+	 */
+	@Test
+	void testGetEnergy_FileNotExist() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_not_exist.txt"");
+		assertNull(result);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file is empty.
+	 */
+	@Test
+	void testGetEnergy_FileEmpty() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_empty.txt"");
+		assertNull(result);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file does not contain the energy.
+	 */
+	@Test
+	void testGetEnergy_FileNoEnergy() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_no_energy.txt"");
+		assertNull(result);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file contains the energy in the solvated section.
+	 */
+	@Test
+	void testGetEnergy_FileEnergySolvated() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_energy_solvated.txt"");
+		assertEquals(""-1.0E-01 kJ/mol"", result[0]);
+		assertEquals(""-2.39E-02 kcal/mol"", result[1]);
+		assertEquals(""-9.64E-02 kT"", result[2]);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file contains the energy in the reference section.
+	 */
+	@Test
+	void testGetEnergy_FileEnergyReference() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_energy_reference.txt"");
+		assertEquals(""-1.0E-01 kJ/mol"", result[0]);
+		assertEquals(""-2.39E-02 kcal/mol"", result[1]);
+		assertEquals(""-9.64E-02 kT"", result[2]);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file contains the energy in the solvated section and the reference section.
+	 */
+	@Test
+	void testGetEnergy_FileEnergySolvatedReference() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_energy_solvated_reference.txt"");
+		assertEquals(""-1.0E-01 kJ/mol"", result[0]);
+		assertEquals(""-2.39E-02 kcal/mol"", result[1]);
+		assertEquals(""-9.64E-02 kT"", result[2]);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file contains the energy in the reference section and the solvated section.
+	 */
+	@Test
+	void testGetEnergy_FileEnergyReferenceSolvated() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_energy_reference_solvated.txt"");
+		assertEquals(""-1.0E-01 kJ/mol"", result[0]);
+		assertEquals(""-2.39E-02 kcal/mol"", result[1]);
+		assertEquals(""-9.64E-02 kT"", result[2]);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file contains the energy in the solvated section and the reference section and the energy in the solvated section is larger than the energy in the reference section.
+	 */
+	@Test
+	void testGetEnergy_FileEnergySolvatedReferenceSolvatedLarger() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_energy_solvated_reference_solvated_larger.txt"");
+		assertEquals(""-1.0E-01 kJ/mol"", result[0]);
+		assertEquals(""-2.39E-02 kcal/mol"", result[1]);
+		assertEquals(""-9.64E-02 kT"", result[2]);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file contains the energy in the solvated section and the reference section and the energy in the reference section is larger than the energy in the solvated section.
+	 */
+	@Test
+	void testGetEnergy_FileEnergySolvatedReferenceReferenceLarger() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_energy_solvated_reference_reference_larger.txt"");
+		assertEquals(""-1.0E-01 kJ/mol"", result[0]);
+		assertEquals(""-2.39E-02 kcal/mol"", result[1]);
+		assertEquals(""-9.64E-02 kT"", result[2]);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file contains the energy in the solvated section and the reference section and the energy in the solvated section is equal to the energy in the reference section.
+	 */
+	@Test
+	void testGetEnergy_FileEnergySolvatedReferenceEqual() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_energy_solvated_reference_equal.txt"");
+		assertEquals(""-1.0E-01 kJ/mol"", result[0]);
+		assertEquals(""-2.39E-02 kcal/mol"", result[1]);
+		assertEquals(""-9.64E-02 kT"", result[2]);
+	}
+	
+	/**
+	 * Test case for {@link FileEditor#getEnergy(String)} method.
+	 * It tests the case when the file contains the energy in the solvated section and the reference section and the energy in the solvated section is equal to the energy in the reference section and the energy is negative.
+	 */
+	@Test
+	void testGetEnergy_FileEnergySolvatedReferenceEqualNegative() {
+		FileEditor fileEditor = new FileEditor();
+		String[] result = fileEditor.getEnergy(""test/apbs_mem_gui/test_files/test_file_energy_solvated_reference_equal_negative.txt"");
+		assertEquals(""-1.0E-01 kJ/mol"", result[0]);
+		assertEquals(""-2.39E-02 kcal/mol"", result[1]);
+		assertEquals(""-9.64E-02 kT"", result[2]);
+	}
+}"
+cmpl-6wnETK08R4FES0ZsxUcHZ2PHKbMwl,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/apbs_mem_gui/FileEditor1.java,100.48482465744019,stop,"// FileEditor.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+
+public class FileEditor {
+
+    /**
+     * Extract the energy from a calculation that has summed the component atom energies
+     * rather than simply taking the total. (pull_comps.c)
+     *
+     * @param filename Path to the file written by pull_comps with the energy sum.
+     * @return a double array of the total energy of each calculation (up to 6 calculations if there are 3 focus levels).
+     */
+    public double[] getCompEnergy(String filename) {
+        File temp = new File(filename);
+        if (!temp.exists())
+            return null;
+        else {
+            double[] finalenergy = new double[6];
+            int i = 0;
+            try {
+                Scanner fScan = new Scanner(new FileInputStream(filename));
+                String nextline;
+                double D;
+                while (fScan.hasNextLine()) {
+                    nextline = fScan.nextLine();
+                    System.out.println(nextline);
+                    if (!nextline.equals("""")) {
+                        if (nextline.contains(""+"")) {
+                            //if its time 10^positive int
+                            D = Double.parseDouble(nextline.substring(0, (nextline.lastIndexOf(""+"") - 1)));
+                            D *= Math.pow(10, Double.parseDouble(nextline.substring(nextline.indexOf(""+"") + 1)));
+                            //  /(temperature*0.008314472); // convert to kT
+                            finalenergy[i] = D;
+                        } else {
+                            //if its time 10^negative int
+                            D = Double.parseDouble(nextline.substring(0, (nextline.lastIndexOf(""-"") - 1)));
+                            D *= Math.pow(10, Double.parseDouble(nextline.substring(nextline.lastIndexOf(""-""))));
+                            //  /(temperature*0.008314472);
+                            finalenergy[i] = D;
+                        }
+                        i++;
+                    }
+                }
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+            return finalenergy;
+        }
+    }
+}
+","// FileEditorTest.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileEditor}.
+* It contains ten unit test cases for the {@link FileEditor#getCompEnergy(String)} method.
+*/
+class FileEditorTest {","// FileEditorTest.java
+package apbs_mem_gui;
+
+/**
+ * @author keithc
+ */
+import java.io.*;
+import java.util.Scanner;
+import java.text.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link FileEditor}.
+* It contains ten unit test cases for the {@link FileEditor#getCompEnergy(String)} method.
+*/
+class FileEditorTest {
+
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file does not exist.
+	*/
+	@Test
+	void testGetCompEnergy_FileNotExist() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_not_exist.txt"");
+		assertNull(result);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file is empty.
+	*/
+	@Test
+	void testGetCompEnergy_FileEmpty() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_empty.txt"");
+		assertNull(result);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only one line.
+	*/
+	@Test
+	void testGetCompEnergy_FileOneLine() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_one_line.txt"");
+		assertEquals(1, result.length);
+		assertEquals(1.0, result[0]);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only two lines.
+	*/
+	@Test
+	void testGetCompEnergy_FileTwoLines() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_two_lines.txt"");
+		assertEquals(2, result.length);
+		assertEquals(1.0, result[0]);
+		assertEquals(2.0, result[1]);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only three lines.
+	*/
+	@Test
+	void testGetCompEnergy_FileThreeLines() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_three_lines.txt"");
+		assertEquals(3, result.length);
+		assertEquals(1.0, result[0]);
+		assertEquals(2.0, result[1]);
+		assertEquals(3.0, result[2]);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only four lines.
+	*/
+	@Test
+	void testGetCompEnergy_FileFourLines() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_four_lines.txt"");
+		assertEquals(4, result.length);
+		assertEquals(1.0, result[0]);
+		assertEquals(2.0, result[1]);
+		assertEquals(3.0, result[2]);
+		assertEquals(4.0, result[3]);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only five lines.
+	*/
+	@Test
+	void testGetCompEnergy_FileFiveLines() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_five_lines.txt"");
+		assertEquals(5, result.length);
+		assertEquals(1.0, result[0]);
+		assertEquals(2.0, result[1]);
+		assertEquals(3.0, result[2]);
+		assertEquals(4.0, result[3]);
+		assertEquals(5.0, result[4]);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only six lines.
+	*/
+	@Test
+	void testGetCompEnergy_FileSixLines() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_six_lines.txt"");
+		assertEquals(6, result.length);
+		assertEquals(1.0, result[0]);
+		assertEquals(2.0, result[1]);
+		assertEquals(3.0, result[2]);
+		assertEquals(4.0, result[3]);
+		assertEquals(5.0, result[4]);
+		assertEquals(6.0, result[5]);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only seven lines.
+	*/
+	@Test
+	void testGetCompEnergy_FileSevenLines() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_seven_lines.txt"");
+		assertEquals(6, result.length);
+		assertEquals(1.0, result[0]);
+		assertEquals(2.0, result[1]);
+		assertEquals(3.0, result[2]);
+		assertEquals(4.0, result[3]);
+		assertEquals(5.0, result[4]);
+		assertEquals(6.0, result[5]);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only eight lines.
+	*/
+	@Test
+	void testGetCompEnergy_FileEightLines() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_eight_lines.txt"");
+		assertEquals(6, result.length);
+		assertEquals(1.0, result[0]);
+		assertEquals(2.0, result[1]);
+		assertEquals(3.0, result[2]);
+		assertEquals(4.0, result[3]);
+		assertEquals(5.0, result[4]);
+		assertEquals(6.0, result[5]);
+	}
+	
+	/**
+	* Test case for {@link FileEditor#getCompEnergy(String)} method.
+	* It tests the case when the file contains only nine lines.
+	*/
+	@Test
+	void testGetCompEnergy_FileNineLines() {
+		FileEditor fileEditor = new FileEditor();
+		double[] result = fileEditor.getCompEnergy(""test/test_files/test_file_nine_lines.txt"");
+		assertEquals(6, result.length);
+		assertEquals(1.0, result[0]);
+		assertEquals(2.0, result[1]);
+		assertEquals(3.0, result[2]);
+		assertEquals(4.0, result[3]);
+		assertEquals(5.0, result[4]);
+		assertEquals(6.0, result[5]);
+	}
+}"
+cmpl-6wnG53MFAr2VA6Asw56TrxuvTnYZo,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/apbs_mem_gui/Main.java,57.955190658569336,length,"// Main.java
+package apbs_mem_gui;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.io.*;
+import com.jgoodies.forms.layout.*;
+import com.jgoodies.forms.builder.*;
+import org.jmol.api.JmolViewer;
+import org.jmol.api.JmolAdapter;
+import org.jmol.popup.JmolPopup;
+
+/**
+ * @author Keith Callenberg, Gabriel de Forest
+ */
+public class Main {
+
+    /**
+     * Store the current GUI text field values in the inFile object.
+     *
+     * @return True if the operation was succesful, false otherwise.
+     */
+    public boolean SaveData() {
+        if (pqrFile1.getText().equals("""") || pqrFile1.getText() == null || gridDimx.getText().equals("""") || gridDimx.getText() == null || gridDimy.getText().equals("""") || gridDimy.getText() == null || gridDimz.getText().equals("""") || gridDimz.getText() == null || gridLen1a.getText().equals("""") || gridLen1a.getText() == null || gridLen2a.getText().equals("""") || gridLen2a.getText() == null || gridLen3a.getText().equals("""") || gridLen3a.getText() == null || countIon1Charge.getText().equals("""") || countIon1Charge.getText() == null || countIon1Con.getText().equals("""") || countIon1Con.getText() == null || countIon1Sz.getText().equals("""") || countIon1Sz.getText() == null || countIon2Charge.getText().equals("""") || countIon2Charge.getText() == null || countIon2Con.getText().equals("""") || countIon2Con.getText() == null || countIon2Sz.getText().equals("""") || countIon2Sz.getText() == null || proteinDi.getText().equals("""") || proteinDi.getText() == null || solventDi.getText().equals("""") || solventDi.getText() == null || srad.getText().equals("""") || srad.getText() == null || sdens.getText().equals("""") || sdens.getText() == null || temp.getText().equals("""") || temp.getText() == null) {
+            if (maxfocus > 0 && (gridLen1b.getText().equals("""") || gridLen1b.getText() == null || gridLen2b.getText().equals("""") || gridLen2b.getText() == null || gridLen3b.getText().equals("""") || gridLen3b.getText() == null)) {
+                if (maxfocus > 1 && (gridLen1c.getText().equals("""") || gridLen1c.getText() == null || gridLen2c.getText().equals("""") || gridLen2c.getText() == null || gridLen3c.getText().equals("""") || gridLen3c.getText() == null)) {
+                    if (file_loaded) {
+                        //if you arent opening it and it fails then fail
+                        JOptionPane.showMessageDialog(null, ""Fill in all values first"", """", JOptionPane.ERROR_MESSAGE);
+                        return false;
+                    }
+                }
+            }
+        }
+        //otherwise save data
+        inFile.setMol1(pqrFile1.getText());
+        inFile.setMol2(pqrFile2.getText());
+        inFile.setDime(new String(gridDimx.getText() + "" "" + gridDimy.getText() + "" "" + gridDimz.getText()));
+        inFile.setGlen(new String(gridLen1a.getText() + "" "" + gridLen2a.getText() + "" "" + gridLen3a.getText()), 0);
+        if (maxfocus > 0) {
+            inFile.setGlen(new String(gridLen1b.getText() + "" "" + gridLen2b.getText() + "" "" + gridLen3b.getText()), 1);
+        }
+        if (maxfocus == 2) {
+            inFile.setGlen(new String(gridLen1c.getText() + "" "" + gridLen2c.getText() + "" "" + gridLen3c.getText()), 2);
+        }
+        inFile.setIon1Charge(countIon1Charge.getText());
+        inFile.setIon1Conc(countIon1Con.getText());
+        inFile.setIon1Radius(countIon1Sz.getText());
+        inFile.setIon2Charge(countIon2Charge.getText());
+        inFile.setIon2Conc(countIon2Con.getText());
+        inFile.setIon2Radius(countIon2Sz.getText());
+        inFile.setProteinDi(new String(proteinDi.getText()));
+        inFile.setSolventDi(new String(solventDi.getText()));
+        inFile.setSrad(srad.getText());
+        inFile.setSdens(sdens.getText());
+        inFile.setTemp(temp.getText());
+        inFile.setType(calcTypeCombo.getSelectedIndex());
+        inFile.setPotential(potential.getText());
+        inFile.setLmem(Lmem.getText());
+        inFile.setZmem(zmem.getText());
+        inFile.setMdie(membraneDi.getText());
+        inFile.setIdie(idie.getText());
+        inFile.setGeo1(geoFactor1.getText());
+        inFile.setGeo2(geoFactor2.getText());
+        inFile.setGeo3(geoFactor3.getText());
+        inFile.setDrawPot(drawPot.isSelected());
+        if (boundaryCondCombo.getSelectedIndex() == 2) {
+            inFile.setBoundCond(new String(""mdh""));
+        } else if (boundaryCondCombo.getSelectedIndex() == 1) {
+            inFile.setBoundCond(new String(""sdh""));
+        } else if (boundaryCondCombo.getSelectedIndex() == 0) {
+            inFile.setBoundCond(new String(""zero""));
+        }
+        if (solMethodCombo.getSelectedIndex() == 1) {
+            inFile.setSolMethod(new String(""npbe""));
+        } else if (solMethodCombo.getSelectedIndex() == 0) {
+            inFile.setSolMethod(new String(""lpbe""));
+        }
+        if (centerCombo.getSelectedIndex() == 0) {
+            inFile.setCenter(new String(""0 0 0""));
+        } else if (centerCombo.getSelectedIndex() == 1) {
+            inFile.setCenter(new String(""mol 1""));
+        }
+        return true;
+    }
+}
+","// MainTest.java
+package apbs_mem_gui;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.io.*;
+import com.jgoodies.forms.layout.*;
+import com.jgoodies.forms.builder.*;
+import org.jmol.api.JmolViewer;
+import org.jmol.api.JmolAdapter;
+import org.jmol.popup.JmolPopup;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#SaveData()} method.
+*/
+class MainTest {","// MainTest.java
+package apbs_mem_gui;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.io.*;
+import com.jgoodies.forms.layout.*;
+import com.jgoodies.forms.builder.*;
+import org.jmol.api.JmolViewer;
+import org.jmol.api.JmolAdapter;
+import org.jmol.popup.JmolPopup;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#SaveData()} method.
+*/
+class MainTest {
+
+	/**
+	* Test case for {@link Main#SaveData()} method.
+	* It tests the case when all the text fields are filled.
+	*/
+	@Test
+	void testSaveData_AllFilled() {
+		Main main = new Main();
+		main.pqrFile1.setText(""pqrFile1"");
+		main.pqrFile2.setText(""pqrFile2"");
+		main.gridDimx.setText(""1"");
+		main.gridDimy.setText(""2"");
+		main.gridDimz.setText(""3"");
+		main.gridLen1a.setText(""4"");
+		main.gridLen2a.setText(""5"");
+		main.gridLen3a.setText(""6"");
+		main.gridLen1b.setText(""7"");
+		main.gridLen2b.setText(""8"");
+		main.gridLen3b.setText(""9"");
+		main.gridLen1c.setText(""10"");
+		main.gridLen2c.setText(""11"");
+		main.gridLen3c.setText(""12"");
+		main.countIon1Charge.setText(""13"");
+		main.countIon1Con.setText(""14"");
+		main.countIon1Sz.setText(""15"");
+		main.countIon2Charge.setText(""16"");
+		main.countIon2Con.setText(""17"");
+		main.countIon2Sz.setText(""18"");
+		main.proteinDi.setText(""19"");
+		main.solventDi.setText(""20"");
+		main.srad.setText(""21"");
+		main.sdens.setText(""22"");
+		main.temp.setText(""23"");
+		main.calcTypeCombo.setSelectedIndex(0);
+		main.potential.setText(""24"");
+		main.Lmem.setText(""25"");
+		main.zmem.setText(""26"");
+		main.membraneDi.setText(""27"");
+		main.idie.setText(""28"");
+		main.geoFactor1.setText(""29"");
+		main.geoFactor2.setText(""30"");
+		main.geoFactor3.setText(""31"");
+		main.drawPot.setSelected(true);
+		main.boundaryCondCombo.setSelectedIndex(0);
+		main.solMethodCombo.setSelectedIndex(0);
+		main.centerCombo.setSelectedIndex(0);
+		main.file_loaded = true;
+		main.maxfocus = 2;
+		assertTrue(main.SaveData());
+	}
+	
+	/**
+	* Test case for {@link Main#SaveData()} method.
+	* It tests the case when the text field pqrFile1 is empty.
+	*/
+	@Test
+	void testSaveData_pqrFile1Empty() {
+		Main main = new Main();
+		main.pqrFile1.setText("""");
+		main.pqrFile2.setText(""pqrFile2"");
+		main.gridDimx.setText(""1"");
+		main.gridDimy.setText(""2"");
+		main.gridDimz.setText(""3"");
+		main.gridLen1a.setText(""4"");
+		main.gridLen2a.setText(""5"");
+		main.gridLen3a.setText(""6"");
+		main.gridLen1b.setText(""7"");
+		main.gridLen2b.setText(""8"");
+		main.gridLen3b.setText(""9"");
+		main.gridLen1c.setText(""10"");
+		main.gridLen2c.setText(""11"");
+		main.gridLen3c.setText(""12"");
+		main.countIon1Charge.setText(""13"");
+		main.countIon1Con.setText(""14"");
+		main.countIon1Sz.setText(""15"");
+		main.countIon2Charge.setText(""16"");
+		main.countIon2Con.setText(""17"");
+		main.countIon2Sz.setText(""18"");
+		main.proteinDi.setText(""19"");
+		main.solventDi.setText(""20"");
+		main.srad.setText(""21"");
+		main.sdens.setText(""22"");
+		main.temp.setText(""23"");
+		main.calcTypeCombo.setSelectedIndex(0);
+		main.potential.setText(""24"");
+		main.Lmem.setText(""25"");
+		main.zmem.setText(""26"");
+		main.membraneDi.setText(""27"");
+		main.idie.setText(""28"");
+		main.geoFactor1.setText(""29"");
+		main.geoFactor2.setText(""30"");
+		main.geoFactor3.setText(""31"");
+		main.drawPot.setSelected(true);
+		main.boundaryCondCombo.setSelectedIndex(0);
+		main.solMethodCombo.setSelectedIndex(0);
+		main.centerCombo.setSelectedIndex(0);
+		main.file_loaded = true;
+		main.maxfocus = 2;
+		assertFalse(main.SaveData());
+	}
+	
+	/**
+	* Test case for {@link Main#SaveData()} method.
+	* It tests the case when the text field pqrFile1 is null.
+	*/
+	@Test
+	void testSaveData_pqrFile1Null() {
+		Main main = new Main();
+		main.pqrFile1.setText(null);
+		main.pqrFile2.setText(""pqrFile2"");
+		main.gridDimx.setText(""1"");
+		main.gridDimy.setText(""2"");
+		main.gridDimz.setText(""3"");
+		main.gridLen1a.setText(""4"");
+		main.gridLen2a.setText(""5"");
+		main.gridLen3a.setText(""6"");
+		main.gridLen1b.setText(""7"");
+		main.gridLen2b.setText(""8"");
+		main.gridLen3b.setText(""9"");
+		main.gridLen1c.setText(""10"");
+		main.gridLen2c.setText(""11"");
+		main.gridLen3c.setText(""12"");
+		main.countIon1Charge.setText(""13"");
+		main.countIon1Con.setText(""14"");
+		main.countIon1Sz.setText(""15"");
+		main.countIon2Charge.setText(""16"");
+		main.countIon2Con.setText(""17"");
+		main.countIon2Sz.setText(""18"");
+		main.proteinDi.setText(""19"");
+		main.solventDi.setText(""20"");
+		main.srad.setText(""21"");
+		main.sdens.setText(""22"");
+		main.temp.setText(""23"");
+		main.calcTypeCombo.setSelectedIndex(0);
+		main.potential.setText(""24"");
+		main.Lmem.setText(""25"");
+		main.zmem.setText(""26"");
+		main.membraneDi.setText(""27"");
+		main.idie.setText(""28"");
+		main.geoFactor1.setText(""29"");
+		main.geoFactor2.setText(""30"");
+		main.geoFactor3.setText(""31"");
+		main.drawPot.setSelected(true);
+		main.boundaryCondCombo.setSelectedIndex(0);
+		main.solMethodCombo.setSelectedIndex(0);
+		main.centerCombo.setSelectedIndex(0);
+		main.file_"
+cmpl-6wnH8RIMQA7IvIMknYNlLGm1ISYVm,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/ContourGenerator.java,98.4180109500885,length,"// ContourGenerator.java
+package jahuwaldt.plot;
+
+import java.util.*;
+
+/**
+ *  <p> An object used to generate a list of contour lines
+ *      or paths from a set of gridded three dimensional data.
+ *  </p>
+ *
+ *  <p> Based on contour_plot.c from NeXTcontour1.4 by Thomas H. Pulliam,
+ *      pulliam@rft29.nas.nasa.gov, MS 202A-1 NASA Ames Research Center,
+ *      Moffett Field, CA 94035.
+ *      I don't know how the original Fortran code looked like or where it came from,
+ *      other than that NeXTcontour1.4 is based on Pieter Bunings' PLOT3D package
+ *      for Computational Fluid Dynamics.
+ *  </p>
+ *
+ *  <p> Ported from C to Java by Joseph A. Huwaldt, November 16, 2000.  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  November 11, 2000
+ * @version November 23, 2000
+ */
+public class ContourGenerator {
+
+    /**
+     *  Returns true if the contour generation process is done.  False if it is not.
+     */
+    public boolean done() {
+        return cCalculated;
+    }
+}
+","// ContourGeneratorTest.java
+package jahuwaldt.plot;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ContourGenerator}.
+* It contains ten unit test cases for the {@link ContourGenerator#done()} method.
+*/
+class ContourGeneratorTest {","// ContourGeneratorTest.java
+package jahuwaldt.plot;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ContourGenerator}.
+* It contains ten unit test cases for the {@link ContourGenerator#done()} method.
+*/
+class ContourGeneratorTest {
+
+	/**
+	* Test case for the {@link ContourGenerator#done()} method.
+	*/
+	@Test
+	public void testDone() {
+		ContourGenerator cg = new ContourGenerator();
+		assertTrue(cg.done());
+	}
+}
+
+// ContourPath.java
+package jahuwaldt.plot;
+
+import java.util.*;
+
+/**
+ *  <p> A class that represents a contour path.  A contour path is a
+ *      list of points that make up a contour line.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  November 11, 2000
+ * @version November 23, 2000
+ */
+public class ContourPath {
+
+    /**
+     *  The list of points that make up this contour path.
+     */
+    private List<ContourPoint> points;
+
+    /**
+     *  Constructs a contour path with no points.
+     */
+    public ContourPath() {
+        points = new ArrayList<ContourPoint>();
+    }
+
+    /**
+     *  Adds a point to the end of this contour path.
+     */
+    public void addPoint(ContourPoint point) {
+        points.add(point);
+    }
+
+    /**
+     *  Returns the number of points in this contour path.
+     */
+    public int getNumPoints() {
+        return points.size();
+    }
+
+    /**
+     *  Returns the point at the specified index.
+     */
+    public ContourPoint getPoint(int index) {
+        return points.get(index);
+    }
+
+    /**
+     *  Returns the list of points that make up this contour path.
+     */
+    public List<ContourPoint> getPoints() {
+        return points;
+    }
+}
+
+// ContourPoint.java
+package jahuwaldt.plot;
+
+import java.util.*;
+
+/**
+ *  <p> A class that represents a point on a contour line.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  November 11, 2000
+ * @version November 23, 2000
+ */
+public class ContourPoint {
+
+    /**
+     *  The x coordinate of this point.
+     */
+    private double x;
+
+    /**
+     *  The y coordinate of this point.
+     */
+    private double y;
+
+    /**
+     *  Constructs a contour point with the specified coordinates.
+     */
+    public ContourPoint(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    /**
+     *  Returns the x coordinate of this point.
+     */
+    public double getX() {
+        return x;
+    }
+
+    /**
+     *  Returns the y coordinate of this point.
+     */
+    public double getY() {
+        return y;
+    }
+}
+
+// ContourPlot.java
+package jahuwaldt.plot;
+
+import java.util.*;
+
+/**
+ *  <p> A class that represents a contour plot.  A contour plot is a
+ *      list of contour paths.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  November 11, 2000
+ * @version November 23, 2000
+ */
+public class ContourPlot {
+
+    /**
+     *  The list of contour paths that make up this contour plot.
+     */
+    private List<ContourPath> paths;
+
+    /**
+     *  Constructs a contour plot with no contour paths.
+     */
+    public ContourPlot() {
+        paths = new ArrayList<ContourPath>();
+    }
+
+    /**
+     *  Adds a contour path to the end of this contour plot.
+     */
+    public void addPath(ContourPath path) {
+        paths.add(path);
+    }
+
+    /**
+     *  Returns the number of contour paths in this contour plot.
+     */
+    public int getNumPaths() {
+        return paths.size();
+    }
+
+    /**
+     *  Returns the contour path at the specified index.
+     */
+    public ContourPath getPath(int index) {
+        return paths.get(index);
+    }
+
+    /**
+     *  Returns the list of contour paths that make up this contour plot.
+     */
+    public List<ContourPath> getPaths() {
+        return paths;
+    }
+}
+
+// ContourPlotTest.java
+package jahuwaldt.plot;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ContourPlot}.
+* It contains ten unit test cases for the {@link ContourPlot#getNumPaths()} method.
+*/
+class ContourPlotTest {
+		
+	/**
+	* Test case for the {@link ContourPlot#getNumPaths()} method.
+	*/
+	@Test
+	public void testGetNumPaths() {
+		ContourPlot cp = new ContourPlot();
+		assertEquals(0, cp.getNumPaths());
+	}
+}
+
+// ContourPlotter.java
+package jahuwaldt.plot;
+
+import java.util.*;
+
+/**
+ *  <p> A class that generates a contour plot from a set of gridded
+ *      three dimensional data.
+ *  </p>
+ *
+ *  <p> Based on contour_plot.c from NeXTcontour1.4 by Thomas H. Pulliam,
+ *      pulliam@rft29.nas.nasa.gov, MS 202A-1 NASA Ames Research Center,
+ *      Moffett Field, CA 94035.
+ *      I don't know how the original Fortran code looked like or where it came from,
+ *      other than that NeXTcontour1.4 is based on Pieter Bunings' PLOT3D package
+ *      for Computational Fluid Dynamics.
+ *  </p>
+ *
+ *  <p> Ported from C to Java by Joseph A. Huwaldt, November 16, 2000.  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  November 11, 2000
+ * @version November 23, 2000
+ */
+public class ContourPlotter {
+
+    /**
+     *  The number of contour levels to generate.
+     */
+    private int numLevels;
+
+    /**
+     *  The minimum value of the data.
+     */
+    private double minValue;
+
+    /**
+     *  The maximum value of the data.
+     */
+    private double maxValue;
+
+    /**
+     *  The minimum x coordinate of the data.
+     */
+    private double minX;
+
+    /**
+     *  The maximum x coordinate of the data.
+     */
+    private double maxX;
+
+    /**
+     *  The minimum y coordinate of the data.
+     */
+    private double minY;
+
+    /**
+     *  The maximum y coordinate of the data.
+     */
+    private double maxY;
+
+    /**
+     *  The number of x coordinates in the data.
+     */
+    private int numX;
+
+    /**
+     *  The number of y coordinates in the data.
+     */
+    private int numY;
+
+    /**
+     *  The data values.
+     */
+    private double[][] data;
+
+    /**
+     *  The contour levels.
+     */
+    private double[] levels;
+
+    /**
+     *  The contour plot.
+     */
+    private ContourPlot plot;
+
+    /**
+     *  Constructs a contour plotter with the specified data.
+     */
+    public ContourPlotter(double[][] data, double minX, double maxX, double minY, double maxY) {
+        this.data = data;
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minY = minY;
+        this.maxY = maxY;
+        numX"
+cmpl-6wnIj1TnthlXDoC8Yr5RAppUhoWRV,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/LinearAxisScale0.java,82.95113182067871,length,"// LinearAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides linear scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LinearAxisScale extends Object implements PlotAxisScale {
+
+    /**
+     *  Method that returns the default lower bounds for
+     *  this axis scale.  Returns -1.0.
+     */
+    public double lowerBounds() {
+        return -1.0;
+    }
+}
+","// LinearAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains ten unit test cases for the {@link LinearAxisScale#lowerBounds()} method.
+*/
+class LinearAxisScaleTest {","// LinearAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains ten unit test cases for the {@link LinearAxisScale#lowerBounds()} method.
+*/
+class LinearAxisScaleTest {
+
+	/**
+	* Test method for {@link LinearAxisScale#lowerBounds()}.
+	*/
+	@Test
+	void testLowerBounds() {
+		LinearAxisScale scale = new LinearAxisScale();
+		assertEquals(-1.0, scale.lowerBounds(), 0.0);
+	}
+}
+
+// LogAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides logarithmic scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LogAxisScale extends Object implements PlotAxisScale {
+
+    /**
+     *  Method that returns the default lower bounds for
+     *  this axis scale.  Returns 0.1.
+     */
+    public double lowerBounds() {
+        return 0.1;
+    }
+}
+
+// LogAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogAxisScale}.
+* It contains ten unit test cases for the {@link LogAxisScale#lowerBounds()} method.
+*/
+class LogAxisScaleTest {
+		
+	/**
+	* Test method for {@link LogAxisScale#lowerBounds()}.
+	*/
+	@Test
+	void testLowerBounds() {
+		LogAxisScale scale = new LogAxisScale();
+		assertEquals(0.1, scale.lowerBounds(), 0.0);
+	}
+}
+
+// PlotAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This interface defines the methods that must be implemented
+ *      by any object that is to be used as a plot axis scale.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public interface PlotAxisScale {
+
+    /**
+     *  Method that returns the default lower bounds for
+     *  this axis scale.
+     */
+    public double lowerBounds();
+}
+
+// PlotAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotAxisScale}.
+* It contains ten unit test cases for the {@link PlotAxisScale#lowerBounds()} method.
+*/
+class PlotAxisScaleTest {
+		
+	/**
+	* Test method for {@link PlotAxisScale#lowerBounds()}.
+	*/
+	@Test
+	void testLowerBounds() {
+		PlotAxisScale scale = new PlotAxisScale() {
+			public double lowerBounds() {
+				return -1.0;
+			}
+		};
+		assertEquals(-1.0, scale.lowerBounds(), 0.0);
+	}
+}
+
+// PlotAxis.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
+/**
+ *  <p> This class represents a plot axis.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class PlotAxis extends Object {
+
+    /**
+     *  The default axis label font.
+     */
+    public static final Font DEFAULT_LABEL_FONT = new Font(""SansSerif"", Font.PLAIN, 12);
+
+    /**
+     *  The default axis label color.
+     */
+    public static final Color DEFAULT_LABEL_COLOR = Color.black;
+
+    /**
+     *  The default axis line color.
+     */
+    public static final Color DEFAULT_LINE_COLOR = Color.black;
+
+    /**
+     *  The default axis tick mark color.
+     */
+    public static final Color DEFAULT_TICK_COLOR = Color.black;
+
+    /**
+     *  The default axis tick mark length.
+     */
+    public static final int DEFAULT_TICK_LENGTH = 5;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_SPACING = 10;
+
+    /**
+     *  The default axis tick mark font.
+     */
+    public static final Font DEFAULT_TICK_FONT = new Font(""SansSerif"", Font.PLAIN, 10);
+
+    /**
+     *  The default axis tick mark color.
+     */
+    public static final Color DEFAULT_TICK_LABEL_COLOR = Color.black;
+
+    /**
+     *  The default axis tick mark label format.
+     */
+    public static final NumberFormat DEFAULT_TICK_LABEL_FORMAT = new DecimalFormat(""0.0"");
+
+    /**
+     *  The default axis tick mark label spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_SPACING = 10;
+
+    /**
+     *  The default axis tick mark label orientation.
+     */
+    public static final int DEFAULT_TICK_LABEL_ORIENTATION = PlotConstants.HORIZONTAL;
+
+    /**
+     *  The default axis tick mark label justification.
+     */
+    public static final int DEFAULT_TICK_LABEL_JUSTIFICATION = PlotConstants.CENTER;
+
+    /**
+     *  The default axis tick mark label offset.
+     */
+    public static final int DEFAULT_TICK_LABEL_OFFSET = 0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_RADIANS = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_DEGREES = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_GRADIANS = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_TURNS = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_REVOLUTIONS = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_CYCLES = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_ROTATIONS = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_GONIANS = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+    public static final double DEFAULT_TICK_LABEL_ROTATION_GRADS = 0.0;
+
+    /**
+     *  The default axis tick mark label rotation.
+     */
+   "
+cmpl-6wnK4BUeGOqNs1rsCuN8qdw7BKiaP,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/LinearAxisScale1.java,90.29588413238525,length,"// LinearAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides linear scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LinearAxisScale extends Object implements PlotAxisScale {
+
+    /**
+     *  Method that returns the default upper bounds for
+     *  this axis scale.  Returns 1.0.
+     */
+    public double upperBounds() {
+        return 1.0;
+    }
+}
+","// LinearAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains ten unit test cases for the {@link LinearAxisScale#upperBounds()} method.
+*/
+class LinearAxisScaleTest {","// LinearAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains ten unit test cases for the {@link LinearAxisScale#upperBounds()} method.
+*/
+class LinearAxisScaleTest {
+
+	/**
+	* Test method for {@link LinearAxisScale#upperBounds()}.
+	*/
+	@Test
+	void testUpperBounds() {
+		LinearAxisScale scale = new LinearAxisScale();
+		assertEquals(1.0, scale.upperBounds(), ""Upper bounds should be 1.0."");
+	}
+}
+
+// LogAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides logarithmic scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LogAxisScale extends Object implements PlotAxisScale {
+
+    /**
+     *  Method that returns the default upper bounds for
+     *  this axis scale.  Returns 10.0.
+     */
+    public double upperBounds() {
+        return 10.0;
+    }
+}
+
+// LogAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LogAxisScale}.
+* It contains ten unit test cases for the {@link LogAxisScale#upperBounds()} method.
+*/
+class LogAxisScaleTest {
+		
+	/**
+	* Test method for {@link LogAxisScale#upperBounds()}.
+	*/
+	@Test
+	void testUpperBounds() {
+		LogAxisScale scale = new LogAxisScale();
+		assertEquals(10.0, scale.upperBounds(), ""Upper bounds should be 10.0."");
+	}
+}
+
+// PlotAxis.java
+package jahuwaldt.plot;
+
+import java.awt.*;
+import java.awt.geom.*;
+
+/**
+ *  <p> This class represents a plot axis.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt   </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class PlotAxis extends Object {
+
+    /**
+     *  The default axis label.
+     */
+    public static final String DEFAULT_LABEL = """";
+
+    /**
+     *  The default axis label font.
+     */
+    public static final Font DEFAULT_LABEL_FONT = new Font(""Helvetica"", Font.PLAIN, 12);
+
+    /**
+     *  The default axis label color.
+     */
+    public static final Color DEFAULT_LABEL_COLOR = Color.black;
+
+    /**
+     *  The default axis label location.
+     */
+    public static final int DEFAULT_LABEL_LOCATION = PlotConstants.BOTTOM;
+
+    /**
+     *  The default axis label offset.
+     */
+    public static final int DEFAULT_LABEL_OFFSET = 5;
+
+    /**
+     *  The default axis tick mark length.
+     */
+    public static final int DEFAULT_TICK_LENGTH = 5;
+
+    /**
+     *  The default axis tick mark color.
+     */
+    public static final Color DEFAULT_TICK_COLOR = Color.black;
+
+    /**
+     *  The default axis tick mark font.
+     */
+    public static final Font DEFAULT_TICK_FONT = new Font(""Helvetica"", Font.PLAIN, 10);
+
+    /**
+     *  The default axis tick mark color.
+     */
+    public static final Color DEFAULT_TICK_LABEL_COLOR = Color.black;
+
+    /**
+     *  The default axis tick mark label offset.
+     */
+    public static final int DEFAULT_TICK_LABEL_OFFSET = 5;
+
+    /**
+     *  The default axis tick mark label format.
+     */
+    public static final String DEFAULT_TICK_LABEL_FORMAT = ""%.2f"";
+
+    /**
+     *  The default axis line color.
+     */
+    public static final Color DEFAULT_LINE_COLOR = Color.black;
+
+    /**
+     *  The default axis line width.
+     */
+    public static final float DEFAULT_LINE_WIDTH = 1.0f;
+
+    /**
+     *  The default axis line style.
+     */
+    public static final int DEFAULT_LINE_STYLE = PlotConstants.SOLID;
+
+    /**
+     *  The default axis scale.
+     */
+    public static final PlotAxisScale DEFAULT_SCALE = new LinearAxisScale();
+
+    /**
+     *  The default axis minimum value.
+     */
+    public static final double DEFAULT_MIN = 0.0;
+
+    /**
+     *  The default axis maximum value.
+     */
+    public static final double DEFAULT_MAX = 1.0;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final double DEFAULT_TICK_SPACING = 0.1;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_COUNT = 10;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LOCATION = PlotConstants.BOTH;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_LOCATION = PlotConstants.BOTH;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_COUNT = 10;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_STYLE = PlotConstants.DECIMAL;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_ROTATION = 0;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_PRECISION = 2;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT = 0;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_LOCATION = PlotConstants.TOP;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_SIGN = PlotConstants.POSITIVE;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_FONT = PlotConstants.NORMAL;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_COLOR = Color.black;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_OFFSET = 5;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_SIZE = 10;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_STYLE = Font.PLAIN;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_ROTATION = 0;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_PRECISION = 2;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_EXPONENT = 0;
+
+    /**
+     *  The default axis tick mark spacing.
+     */
+    public static final int DEFAULT_TICK_LABEL_EXPONENT_"
+cmpl-6wnLW7aXpJ8UHx66ObOaZ0YfPoIY8,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/LinearAxisScale2.java,84.43974375724792,length,"// LinearAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides linear scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LinearAxisScale extends Object implements PlotAxisScale {
+
+    /**
+     *  Method that returns an AxisLimitData object that contains
+     *  the preferred axis limits and tick mark spacing for the
+     *  specified range of data values for this linear axis scale.
+     *
+     * @param aLB The lower bounds of the data plotted on this axis.
+     * @param aUB The upper bounds of the data plotted on this axis.
+     */
+    public AxisLimitData findGoodLimits(double aLB, double aUB) {
+        //	The lower limit and tick mark spacing being calculated.
+        double s = 0., r = 0.;
+        //	Make sure we don't have a degenerate case.
+        if (Math.abs(aUB - aLB) <= 0.000001) {
+            if (aUB > 0.) {
+                aUB = 2. * aUB;
+                aLB = 0.;
+            } else if (aLB < 0) {
+                aLB = 2. * aLB;
+                aUB = 0.;
+            }
+            if (Math.abs(aUB - aLB) <= 0.000001) {
+                aLB = lowerBounds();
+                aUB = upperBounds();
+            }
+        }
+        if (DEBUG) {
+            System.out.println(""In findGoodLimits()..."");
+            System.out.println(""   aLB = "" + aLB + "", aUB = "" + aUB);
+        }
+        //	Object used to return results.
+        AxisLimitData limData = new AxisLimitData();
+        boolean done = false;
+        while (!done) {
+            done = true;
+            double ub = aUB;
+            double lb = aLB;
+            double delta = ub - lb;
+            //	Scale up by s, a power of 10, so range (delta) exceeds 1.
+            s = 1.;
+            while (delta * s < 10.) s *= 10.;
+            //	Find power of 10 quantum, r, such that delta/10 <= r < delta.
+            r = 1. / s;
+            while (10. * r < delta) r *= 10.;
+            //	Set r=(1,2,5)*10**n so that 3-5 quanta cover range.
+            if (r >= delta / 2.)
+                r /= 2.;
+            else if (r < delta / 5.)
+                r *= 2.;
+            limData.ub = modceil(ub, r);
+            limData.lb = modfloor(lb, r);
+            //	If lower bound is <= r and > 0, then repeat.
+            if (limData.lb <= r && limData.lb > 0.) {
+                aLB = 0.;
+                done = false;
+                //	If upper bound >= -r and < 0, then repeat.
+            } else if (limData.ub >= -r && limData.ub < 0.) {
+                aUB = 0.;
+                done = false;
+            }
+        }
+        //	Save off tick mark spacing.
+        limData.quantum = r;
+        if (DEBUG) {
+            System.out.println(""    limData.lb = "" + limData.lb + "", limData.ub = "" + limData.ub + "", limData.quantum = "" + limData.quantum);
+        }
+        return limData;
+    }
+}
+","// LinearAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains ten unit test cases for the {@link LinearAxisScale#findGoodLimits(double, double)} method.
+*/
+class LinearAxisScaleTest {","// LinearAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains ten unit test cases for the {@link LinearAxisScale#findGoodLimits(double, double)} method.
+*/
+class LinearAxisScaleTest {
+
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits1() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 0.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(0.0, result.ub, 0.0);
+		assertEquals(0.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits2() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 1.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(1.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits3() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 2.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(2.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits4() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 3.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(3.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits5() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 4.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(4.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits6() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 5.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(5.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits7() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 6.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(6.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits8() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 7.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(7.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits9() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 8.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(8.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+	/**
+	* Test case for {@link LinearAxisScale#findGoodLimits(double, double)} method.
+	*/
+	@Test
+	void testFindGoodLimits10() {
+		LinearAxisScale scale = new LinearAxisScale();
+		AxisLimitData result = scale.findGoodLimits(0.0, 9.0);
+		assertEquals(0.0, result.lb, 0.0);
+		assertEquals(9.0, result.ub, 0.0);
+		assertEquals(1.0, result.quantum, 0.0);
+	}
+	
+}
+
+// LogAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides logarithmic scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LogAxisScale extends Object implements PlotAxisScale {
+
+    /**
+     *  Method that returns an AxisLimitData object that contains
+     *  the preferred axis limits and tick mark spacing for the
+     *  specified range of data values for this logarithmic axis scale.
+     *
+     * @param aLB The lower bounds of the data plotted on this axis.
+     * @param aUB The upper bounds of the data plotted on this axis.
+     */
+    public AxisLimitData findGoodLimits(double aLB, double aUB) {
+        //	The lower limit and tick mark spacing being calculated.
+        double s = 0., r = 0.;
+        //	Make sure we don't have a degenerate case.
+        if (Math.abs(aUB - aLB) <= 0.000001) {
+            if (aUB > 0.) {
+                aUB = 2. * aUB;
+                aLB = 0.;
+            } else if (aLB < 0) {
+                aLB = 2. * aLB;
+                aUB = 0.;
+            }
+            if (Math.abs(aUB - aLB) <= 0.000001) {
+                aLB = lowerBounds();
+                aUB = upperBounds();
+            }
+        }
+        if (DEBUG) {
+            System.out.println(""In findGoodLimits()..."");
+            System.out.println(""   aLB = "" + aLB + "", aUB = "" + aUB);
+        }
+        //	Object used to return results.
+        AxisLimitData limData = new AxisLimitData();
+        boolean done = false;
+        while (!done) {
+            done = true;
+            double ub = aUB;
+            double lb = aLB;
+            double delta = ub"
+cmpl-6wnMtU4Q2tS9hRkaPy6YClm6YIJ1A,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/LinearAxisScale3.java,66.8661994934082,length,"// LinearAxisScale.java
+package jahuwaldt.plot;
+
+/**
+ *  <p> This object provides linear scaling for plot axes.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version January 10, 2001
+ */
+public class LinearAxisScale extends Object implements PlotAxisScale {
+
+    /**
+     *  Find the position and size (in screen coordinates) of tick
+     *  marks for a given axis scale.
+     *
+     * @param quantum Tick mark step size for the axis using this scale.
+     * @param aLB Lower bounds of axis using this scale.
+     * @param aUB Upper bounds of axis using this scale.
+     * @param xA Scaling coefficient for this axis.
+     * @param xB Scaling coefficient for this axis.
+     * @return An TickMarkData object containing the tick mark positions, lengths,
+     *          and data values at each tick mark.
+     */
+    public TickMarkData calcTickMarks(double quantum, double aLB, double aUB, double xA, double xB) {
+        double xl = 0;
+        double xu = 0;
+        double q = quantum;
+        if (q > 0.) {
+            xl = modfloor(aLB, q);
+            xu = modfloor(aUB - q / 10., q / 5.) + q / 10.;
+        } else {
+            xl = modfloor(aUB, q);
+            xu = modfloor(aLB + q / 10., q / 5.) - q / 10.;
+        }
+        //	Determine the number of tick marks.
+        int xn = (int) ((xu - xl) / (Math.abs(quantum) / 5.));
+        if (DEBUG) {
+            System.out.println(""In calcTickMarks()..."");
+            System.out.println(""    quantum = "" + quantum + "", aLB = "" + aLB + "", aUB = "" + aUB);
+            System.out.println(""    xA = "" + xA + "", xB = "" + xB);
+            System.out.println(""    xl = "" + xl + "", xu = "" + xu);
+            System.out.println(""    xn = "" + xn);
+        }
+        //	Allocate memory for tick mark arrays.
+        int[] mark = new int[xn];
+        int[] lmark = new int[xn];
+        float[] markValue = new float[xn];
+        xn = 0;
+        int i = 0;
+        for (double x = xl; x <= xu; x += Math.abs(quantum) / 5., ++i) {
+            //	Bounds check.
+            if (q > 0.)
+                if (x <= aLB || x >= aUB)
+                    continue;
+            if (q < 0.)
+                if (x >= aLB || x <= aUB)
+                    continue;
+            //	Store tick mark.
+            mark[xn] = (int) (func(x) * xA + xB);
+            markValue[xn] = (float) x;
+            if (i % 5 != 0)
+                //	Minor tick mark.
+                lmark[xn++] = PlotAxis.kTick;
+            else
+                //	Major tick mark.
+                lmark[xn++] = 3 * PlotAxis.kTick;
+        }
+        if (DEBUG) {
+            System.out.println(""Tick mark values:"");
+            int length = markValue.length;
+            for (i = 0; i < length; ++i) System.out.print(""   "" + markValue[i]);
+            System.out.println();
+        }
+        //	Create a tick mark data object and pass it out.
+        TickMarkData data = new TickMarkData();
+        data.mark = mark;
+        data.lmark = lmark;
+        data.markValue = markValue;
+        return data;
+    }
+}
+","// LinearAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains ten unit test cases for the {@link LinearAxisScale#calcTickMarks(double, double, double, double, double)} method.
+*/
+class LinearAxisScaleTest {","// LinearAxisScaleTest.java
+package jahuwaldt.plot;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link LinearAxisScale}.
+* It contains ten unit test cases for the {@link LinearAxisScale#calcTickMarks(double, double, double, double, double)} method.
+*/
+class LinearAxisScaleTest {
+
+	/**
+	* Test case 1 for {@link LinearAxisScale#calcTickMarks(double, double, double, double, double)}.
+	*/
+	@Test
+	public void testCalcTickMarks1() {
+		double quantum = 1.0;
+		double aLB = 0.0;
+		double aUB = 10.0;
+		double xA = 1.0;
+		double xB = 0.0;
+		TickMarkData data = new LinearAxisScale().calcTickMarks(quantum, aLB, aUB, xA, xB);
+		assertEquals(data.mark.length, 11);
+		assertEquals(data.lmark.length, 11);
+		assertEquals(data.markValue.length, 11);
+		assertEquals(data.mark[0], 0);
+		assertEquals(data.lmark[0], 3 * PlotAxis.kTick);
+		assertEquals(data.markValue[0], 0.0f);
+		assertEquals(data.mark[1], 1);
+		assertEquals(data.lmark[1], PlotAxis.kTick);
+		assertEquals(data.markValue[1], 0.2f);
+		assertEquals(data.mark[2], 2);
+		assertEquals(data.lmark[2], PlotAxis.kTick);
+		assertEquals(data.markValue[2], 0.4f);
+		assertEquals(data.mark[3], 3);
+		assertEquals(data.lmark[3], PlotAxis.kTick);
+		assertEquals(data.markValue[3], 0.6f);
+		assertEquals(data.mark[4], 4);
+		assertEquals(data.lmark[4], PlotAxis.kTick);
+		assertEquals(data.markValue[4], 0.8f);
+		assertEquals(data.mark[5], 5);
+		assertEquals(data.lmark[5], 3 * PlotAxis.kTick);
+		assertEquals(data.markValue[5], 1.0f);
+		assertEquals(data.mark[6], 6);
+		assertEquals(data.lmark[6], PlotAxis.kTick);
+		assertEquals(data.markValue[6], 1.2f);
+		assertEquals(data.mark[7], 7);
+		assertEquals(data.lmark[7], PlotAxis.kTick);
+		assertEquals(data.markValue[7], 1.4f);
+		assertEquals(data.mark[8], 8);
+		assertEquals(data.lmark[8], PlotAxis.kTick);
+		assertEquals(data.markValue[8], 1.6f);
+		assertEquals(data.mark[9], 9);
+		assertEquals(data.lmark[9], PlotAxis.kTick);
+		assertEquals(data.markValue[9], 1.8f);
+		assertEquals(data.mark[10], 10);
+		assertEquals(data.lmark[10], 3 * PlotAxis.kTick);
+		assertEquals(data.markValue[10], 2.0f);
+	}
+	
+	/**
+	* Test case 2 for {@link LinearAxisScale#calcTickMarks(double, double, double, double, double)}.
+	*/
+	@Test
+	public void testCalcTickMarks2() {
+		double quantum = 1.0;
+		double aLB = 0.0;
+		double aUB = 10.0;
+		double xA = 1.0;
+		double xB = 5.0;
+		TickMarkData data = new LinearAxisScale().calcTickMarks(quantum, aLB, aUB, xA, xB);
+		assertEquals(data.mark.length, 11);
+		assertEquals(data.lmark.length, 11);
+		assertEquals(data.markValue.length, 11);
+		assertEquals(data.mark[0], 5);
+		assertEquals(data.lmark[0], 3 * PlotAxis.kTick);
+		assertEquals(data.markValue[0], 0.0f);
+		assertEquals(data.mark[1], 6);
+		assertEquals(data.lmark[1], PlotAxis.kTick);
+		assertEquals(data.markValue[1], 0.2f);
+		assertEquals(data.mark[2], 7);
+		assertEquals(data.lmark[2], PlotAxis.kTick);
+		assertEquals(data.markValue[2], 0.4f);
+		assertEquals(data.mark[3], 8);
+		assertEquals(data.lmark[3], PlotAxis.kTick);
+		assertEquals(data.markValue[3], 0.6f);
+		assertEquals(data.mark[4], 9);
+		assertEquals(data.lmark[4], PlotAxis.kTick);
+		assertEquals(data.markValue[4], 0.8f);
+		assertEquals(data.mark[5], 10);
+		assertEquals(data.lmark[5], 3 * PlotAxis.kTick);
+		assertEquals(data.markValue[5], 1.0f);
+		assertEquals(data.mark[6], 11);
+		assertEquals(data.lmark[6], PlotAxis.kTick);
+		assertEquals(data.markValue[6], 1.2f);
+		assertEquals(data.mark[7], 12);
+		assertEquals(data.lmark[7], PlotAxis.kTick);
+		assertEquals(data.markValue[7], 1.4f);
+		assertEquals(data.mark[8], 13);
+		assertEquals(data.lmark[8], PlotAxis.kTick);
+		assertEquals(data.markValue[8], 1.6f);
+		assertEquals(data.mark[9], 14);
+		assertEquals(data.lmark[9], PlotAxis.kTick);
+		assertEquals(data.markValue[9], 1.8f);
+		assertEquals(data.mark[10], 15);
+		assertEquals(data.lmark[10], 3 * PlotAxis.kTick);
+		assertEquals(data.markValue[10], 2.0f);
+	}
+	
+	/**
+	* Test case 3 for {@link LinearAxisScale#calcTickMarks(double, double, double, double, double)}.
+	*/
+	@Test
+	public void testCalcTickMarks3() {
+		double quantum = 1.0;
+		double aLB = 0.0;
+		double aUB = 10.0;
+		double xA = 2.0;
+		double xB = 0.0;
+		TickMarkData data = new LinearAxisScale().calcTickMarks(quantum, aLB, aUB, xA, xB);
+		assertEquals(data.mark.length, 11);
+		assertEquals(data.lmark.length, 11);
+		assertEquals(data.markValue.length, 11);
+		assertEquals(data.mark[0], 0);
+		assertEquals(data.lmark[0], 3 * PlotAxis.kTick);
+		assertEquals(data.markValue[0], 0.0f);
+		assertEquals(data.mark[1], 2);
+		assertEquals(data.lmark[1], PlotAxis.kTick);
+		assertEquals(data.markValue[1], 0.2f);
+		assertEquals(data.mark[2], 4);
+		assertEquals(data.lmark[2], PlotAxis.kTick);
+		assertEquals(data.mark"
+cmpl-6wnNxXgdw4Bb4YrRciN0IfzM9b6yl,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotDatum0.java,86.8747992515564,length,"// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns true if this data point has an error bar.
+     */
+    public boolean hasErrorBar() {
+        return errBarFlg;
+    }
+}
+","// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatumTest {","// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatumTest {
+
+	/**
+	* Test case for {@link PlotDatum#hasErrorBar()} method.
+	*/
+	@Test
+	void testHasErrorBar() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.hasErrorBar());
+	}
+}
+
+// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns true if this data point has an error bar.
+     */
+    public boolean hasErrorBar() {
+        return errBarFlg;
+    }
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#hasErrorBar()} method.
+	*/
+	@Test
+	void testHasErrorBar() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.hasErrorBar());
+	}
+}
+
+// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns true if this data point has an error bar.
+     */
+    public boolean hasErrorBar() {
+        return errBarFlg;
+    }
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#hasErrorBar()} method.
+	*/
+	@Test
+	void testHasErrorBar() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.hasErrorBar());
+	}
+}
+
+// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns true if this data point has an error bar.
+     */
+    public boolean hasErrorBar() {
+        return errBarFlg;
+    }
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#hasErrorBar()} method.
+	*/
+	@Test
+	void testHasErrorBar() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.hasErrorBar());
+	}
+}
+
+// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns true if this data point has an error bar.
+     */
+    public boolean hasErrorBar() {
+        return errBarFlg;
+    }
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#hasErrorBar()} method.
+	*/
+	@Test
+	void testHasErrorBar() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.hasErrorBar());
+	}
+}
+
+// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns true if this data point has an error bar.
+     */
+    public boolean hasErrorBar() {
+        return errBarFlg;
+    }
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#hasErrorBar()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#hasErrorBar()} method.
+	*/
+	@Test
+	void testHasErrorBar() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.hasErrorBar());
+	}
+}
+
+// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+"
+cmpl-6wnPMlkCQBZz1GdeoyzeHw0kvGSD5,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotDatum1.java,107.59409427642822,length,"// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+
+/**
+ *  <p> This class represents a single data point on a plot
+ *      and includes all the information required by each point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  June 1, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum extends Object implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Return true if this datum is connected to the previous one by a line
+     *  and false if it is not.
+     */
+    public boolean connected() {
+        return conFlg;
+    }
+}
+","// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {","// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#connected()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#connected()} method.
+	*/
+	@Test
+	void testConnected() {
+		PlotDatum datum = new PlotDatum();
+		assertFalse(datum.connected());
+	}
+}
+
+// PlotDatumTest.java"
+cmpl-6wnR6QW01Rs5P25X164UbXpJ5drbc,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRun0.java,19.475888967514038,,"// PlotRun.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single run of data in a plot.
+ *      A run is an array or list of PlotDatum objects.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version December 12, 2000
+ */
+public class PlotRun extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns the number of PlotDatum objects in this run.
+     *
+     * @return The number of plot data objects in this run.
+     */
+    public int size() {
+        return data.size();
+    }
+}
+","// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#size()} method.
+*/
+class PlotRunTest {","// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#size()} method.
+*/
+class PlotRunTest {
+
+	/**
+	* Test case for {@link PlotRun#size()}.
+	*/
+	@Test
+	void testSize() {
+		PlotRun run = new PlotRun();
+		assertEquals(0, run.size());
+		
+		run.add(new PlotDatum(1.0, 2.0));
+		assertEquals(1, run.size());
+		
+		run.add(new PlotDatum(3.0, 4.0));
+		assertEquals(2, run.size());
+		
+		run.add(new PlotDatum(5.0, 6.0));
+		assertEquals(3, run.size());
+		
+		run.add(new PlotDatum(7.0, 8.0));
+		assertEquals(4, run.size());
+		
+		run.add(new PlotDatum(9.0, 10.0));
+		assertEquals(5, run.size());
+		
+		run.add(new PlotDatum(11.0, 12.0));
+		assertEquals(6, run.size());
+		
+		run.add(new PlotDatum(13.0, 14.0));
+		assertEquals(7, run.size());
+		
+		run.add(new PlotDatum(15.0, 16.0));
+		assertEquals(8, run.size());
+		
+		run.add(new PlotDatum(17.0, 18.0));
+		assertEquals(9, run.size());
+		
+		run.add(new PlotDatum(19.0, 20.0));
+		assertEquals(10, run.size());
+	}
+}"
+cmpl-6wnS9xhFDUIU1XULp0f0etoM0AszX,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRun1.java,35.21543264389038,stop,"// PlotRun.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single run of data in a plot.
+ *      A run is an array or list of PlotDatum objects.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version December 12, 2000
+ */
+public class PlotRun extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns the PlotDatum object at the specified position
+     *  in this run.
+     *
+     * @param index The index of the plot data object to return.
+     * @return The PlotDatum object at the specified position
+     *           in this run.
+     */
+    public Object get(int index) {
+        return data.get(index);
+    }
+}
+","// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#get(int)} method.
+*/
+class PlotRunTest {","// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#get(int)} method.
+*/
+class PlotRunTest {
+
+	/**
+	* Test case for {@link PlotRun#get(int)} method.
+	*/
+	@Test
+	void testGet() {
+		PlotRun run = new PlotRun();
+		assertEquals(0, run.size());
+		
+		PlotDatum datum = new PlotDatum(1.0, 2.0);
+		run.add(datum);
+		assertEquals(1, run.size());
+		assertEquals(datum, run.get(0));
+		
+		datum = new PlotDatum(3.0, 4.0);
+		run.add(datum);
+		assertEquals(2, run.size());
+		assertEquals(datum, run.get(1));
+		
+		datum = new PlotDatum(5.0, 6.0);
+		run.add(datum);
+		assertEquals(3, run.size());
+		assertEquals(datum, run.get(2));
+		
+		datum = new PlotDatum(7.0, 8.0);
+		run.add(datum);
+		assertEquals(4, run.size());
+		assertEquals(datum, run.get(3));
+		
+		datum = new PlotDatum(9.0, 10.0);
+		run.add(datum);
+		assertEquals(5, run.size());
+		assertEquals(datum, run.get(4));
+		
+		datum = new PlotDatum(11.0, 12.0);
+		run.add(datum);
+		assertEquals(6, run.size());
+		assertEquals(datum, run.get(5));
+		
+		datum = new PlotDatum(13.0, 14.0);
+		run.add(datum);
+		assertEquals(7, run.size());
+		assertEquals(datum, run.get(6));
+		
+		datum = new PlotDatum(15.0, 16.0);
+		run.add(datum);
+		assertEquals(8, run.size());
+		assertEquals(datum, run.get(7));
+		
+		datum = new PlotDatum(17.0, 18.0);
+		run.add(datum);
+		assertEquals(9, run.size());
+		assertEquals(datum, run.get(8));
+		
+		datum = new PlotDatum(19.0, 20.0);
+		run.add(datum);
+		assertEquals(10, run.size());
+		assertEquals(datum, run.get(9));
+	}
+}"
+cmpl-6wnTCWUiRJg49IzRVkHz28d1nqfqh,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRun2.java,93.44553661346436,length,"// PlotRun.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single run of data in a plot.
+ *      A run is an array or list of PlotDatum objects.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version December 12, 2000
+ */
+public class PlotRun extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Remove the plot data object at the specified position in
+     *  this run.  Shifts any subsequent data elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  data element that was removed from this run.
+     *
+     * @param index The index of the plot data element to remove.
+     * @return The PlotDatum object previously at the specified position.
+     */
+    public Object remove(int index) {
+        return data.remove(index);
+    }
+}
+","// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#remove(int)} method.
+*/
+class PlotRunTest {","// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#remove(int)} method.
+*/
+class PlotRunTest {
+
+	/**
+	* Test case for {@link PlotRun#remove(int)} method.
+	* It tests the case when the index is negative.
+	*/
+	@Test
+	void testRemove_NegativeIndex() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1, 1));
+		run.add(new PlotDatum(2, 2));
+		run.add(new PlotDatum(3, 3));
+		run.add(new PlotDatum(4, 4));
+		run.add(new PlotDatum(5, 5));
+		run.add(new PlotDatum(6, 6));
+		run.add(new PlotDatum(7, 7));
+		run.add(new PlotDatum(8, 8));
+		run.add(new PlotDatum(9, 9));
+		run.add(new PlotDatum(10, 10));
+		
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			run.remove(-1);
+		});
+	}
+	
+	/**
+	* Test case for {@link PlotRun#remove(int)} method.
+	* It tests the case when the index is greater than the size of the list.
+	*/
+	@Test
+	void testRemove_IndexGreaterThanSize() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1, 1));
+		run.add(new PlotDatum(2, 2));
+		run.add(new PlotDatum(3, 3));
+		run.add(new PlotDatum(4, 4));
+		run.add(new PlotDatum(5, 5));
+		run.add(new PlotDatum(6, 6));
+		run.add(new PlotDatum(7, 7));
+		run.add(new PlotDatum(8, 8));
+		run.add(new PlotDatum(9, 9));
+		run.add(new PlotDatum(10, 10));
+		
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			run.remove(11);
+		});
+	}
+	
+	/**
+	* Test case for {@link PlotRun#remove(int)} method.
+	* It tests the case when the index is equal to the size of the list.
+	*/
+	@Test
+	void testRemove_IndexEqualToSize() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1, 1));
+		run.add(new PlotDatum(2, 2));
+		run.add(new PlotDatum(3, 3));
+		run.add(new PlotDatum(4, 4));
+		run.add(new PlotDatum(5, 5));
+		run.add(new PlotDatum(6, 6));
+		run.add(new PlotDatum(7, 7));
+		run.add(new PlotDatum(8, 8));
+		run.add(new PlotDatum(9, 9));
+		run.add(new PlotDatum(10, 10));
+		
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			run.remove(10);
+		});
+	}
+	
+	/**
+	* Test case for {@link PlotRun#remove(int)} method.
+	* It tests the case when the index is zero.
+	*/
+	@Test
+	void testRemove_IndexZero() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1, 1));
+		run.add(new PlotDatum(2, 2));
+		run.add(new PlotDatum(3, 3));
+		run.add(new PlotDatum(4, 4));
+		run.add(new PlotDatum(5, 5));
+		run.add(new PlotDatum(6, 6));
+		run.add(new PlotDatum(7, 7));
+		run.add(new PlotDatum(8, 8));
+		run.add(new PlotDatum(9, 9));
+		run.add(new PlotDatum(10, 10));
+		
+		PlotDatum removed = (PlotDatum) run.remove(0);
+		assertEquals(1, removed.getX());
+		assertEquals(1, removed.getY());
+		assertEquals(9, run.size());
+		assertEquals(2, ((PlotDatum) run.get(0)).getX());
+		assertEquals(2, ((PlotDatum) run.get(0)).getY());
+		assertEquals(10, ((PlotDatum) run.get(8)).getX());
+		assertEquals(10, ((PlotDatum) run.get(8)).getY());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#remove(int)} method.
+	* It tests the case when the index is equal to the size of the list minus one.
+	*/
+	@Test
+	void testRemove_IndexEqualToSizeMinusOne() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1, 1));
+		run.add(new PlotDatum(2, 2));
+		run.add(new PlotDatum(3, 3));
+		run.add(new PlotDatum(4, 4));
+		run.add(new PlotDatum(5, 5));
+		run.add(new PlotDatum(6, 6));
+		run.add(new PlotDatum(7, 7));
+		run.add(new PlotDatum(8, 8));
+		run.add(new PlotDatum(9, 9));
+		run.add(new PlotDatum(10, 10));
+		
+		PlotDatum removed = (PlotDatum) run.remove(9);
+		assertEquals(10, removed.getX());
+		assertEquals(10, removed.getY());
+		assertEquals(9, run.size());
+		assertEquals(1, ((PlotDatum) run.get(0)).getX());
+		assertEquals(1, ((PlotDatum) run.get(0)).getY());
+		assertEquals(9, ((PlotDatum) run.get(8)).getX());
+		assertEquals(9, ((PlotDatum) run.get(8)).getY());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#remove(int)} method.
+	* It tests the case when the index is in the middle of the list.
+	*/
+	@Test
+	void testRemove_IndexInMiddle() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1, 1));
+		run.add(new PlotDatum(2, 2));
+		run.add(new PlotDatum(3, 3));
+		run.add(new PlotDatum(4, 4));
+		run.add(new PlotDatum(5, 5));
+		run.add(new PlotDatum(6, 6));
+		run.add(new PlotDatum(7, 7));
+		run.add(new PlotDatum(8, 8));
+		run.add(new PlotDatum(9, 9));
+		run.add(new PlotDatum(10, 10));
+		
+		PlotDatum removed = (PlotDatum) run.remove(5);
+		assertEquals(6, removed.getX());
+		assertEquals(6, removed.getY());
+		assertEquals(9, run.size());
+		assertEquals(1, ((PlotDatum) run.get(0)).getX());
+		assertEquals(1, ((PlotDatum) run.get(0)).getY());
+		assertEquals(10, ((PlotDatum) run.get(8)).getX());
+		assertEquals(10, ((PlotDatum) run.get(8)).getY());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#remove(int)} method.
+	* It"
+cmpl-6wnUh9RiBc367wRP4XqVVPNOn9SXi,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRun3.java,90.73304867744446,length,"// PlotRun.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single run of data in a plot.
+ *      A run is an array or list of PlotDatum objects.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version December 12, 2000
+ */
+public class PlotRun extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Return an enumeration of all the plot data elements in
+     *  this run.
+     *
+     * @return An interation of all the PlotDatum objects in this run.
+     */
+    public Iterator iterator() {
+        return data.iterator();
+    }
+}
+","// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#iterator()} method.
+*/
+class PlotRunTest {","// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#iterator()} method.
+*/
+class PlotRunTest {
+
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0));
+		run.add(new PlotDatum(3.0, 4.0));
+		run.add(new PlotDatum(5.0, 6.0));
+		Iterator<PlotDatum> it = run.iterator();
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(1.0, 2.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(3.0, 4.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(5.0, 6.0), it.next());
+		assertFalse(it.hasNext());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator2() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0));
+		run.add(new PlotDatum(3.0, 4.0));
+		run.add(new PlotDatum(5.0, 6.0));
+		Iterator<PlotDatum> it = run.iterator();
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(1.0, 2.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(3.0, 4.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(5.0, 6.0), it.next());
+		assertFalse(it.hasNext());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator3() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0));
+		run.add(new PlotDatum(3.0, 4.0));
+		run.add(new PlotDatum(5.0, 6.0));
+		Iterator<PlotDatum> it = run.iterator();
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(1.0, 2.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(3.0, 4.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(5.0, 6.0), it.next());
+		assertFalse(it.hasNext());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator4() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0));
+		run.add(new PlotDatum(3.0, 4.0));
+		run.add(new PlotDatum(5.0, 6.0));
+		Iterator<PlotDatum> it = run.iterator();
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(1.0, 2.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(3.0, 4.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(5.0, 6.0), it.next());
+		assertFalse(it.hasNext());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator5() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0));
+		run.add(new PlotDatum(3.0, 4.0));
+		run.add(new PlotDatum(5.0, 6.0));
+		Iterator<PlotDatum> it = run.iterator();
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(1.0, 2.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(3.0, 4.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(5.0, 6.0), it.next());
+		assertFalse(it.hasNext());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator6() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0));
+		run.add(new PlotDatum(3.0, 4.0));
+		run.add(new PlotDatum(5.0, 6.0));
+		Iterator<PlotDatum> it = run.iterator();
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(1.0, 2.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(3.0, 4.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(5.0, 6.0), it.next());
+		assertFalse(it.hasNext());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator7() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0));
+		run.add(new PlotDatum(3.0, 4.0));
+		run.add(new PlotDatum(5.0, 6.0));
+		Iterator<PlotDatum> it = run.iterator();
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(1.0, 2.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(3.0, 4.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(5.0, 6.0), it.next());
+		assertFalse(it.hasNext());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator8() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0));
+		run.add(new PlotDatum(3.0, 4.0));
+		run.add(new PlotDatum(5.0, 6.0));
+		Iterator<PlotDatum> it = run.iterator();
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(1.0, 2.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(3.0, 4.0), it.next());
+		assertTrue(it.hasNext());
+		assertEquals(new PlotDatum(5.0, 6.0), it.next());
+		assertFalse(it.hasNext());
+	}
+	
+	/**
+	* Test case for {@link PlotRun#iterator()} method.
+	*/
+	@Test
+	void testIterator9() {
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 2.0"
+cmpl-6wnWAxZCLIyKNKKqdaRvvOZJAp6bC,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRunList0.java,85.80163717269897,length,"// PlotRunList.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a list of runs of data in a plot.
+ *      A run is an array or list of PlotDatum objects.  A run
+ *      list is an array or list of runs.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotRunList extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns the number of PlotRun objects in this run list.
+     *
+     * @return The number of plot run objects in this run list.
+     */
+    public int size() {
+        return data.size();
+    }
+}
+","// PlotRunListTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains ten unit test cases for the {@link PlotRunList#size()} method.
+*/
+class PlotRunListTest {","// PlotRunListTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains ten unit test cases for the {@link PlotRunList#size()} method.
+*/
+class PlotRunListTest {
+
+	/**
+	* Test case for {@link PlotRunList#size()}.
+	*/
+	@Test
+	void testSize() {
+		PlotRunList runList = new PlotRunList();
+		assertEquals(0, runList.size());
+		
+		PlotRun run = new PlotRun();
+		runList.add(run);
+		assertEquals(1, runList.size());
+		
+		runList.add(run);
+		assertEquals(2, runList.size());
+		
+		runList.add(run);
+		assertEquals(3, runList.size());
+		
+		runList.add(run);
+		assertEquals(4, runList.size());
+		
+		runList.add(run);
+		assertEquals(5, runList.size());
+		
+		runList.add(run);
+		assertEquals(6, runList.size());
+		
+		runList.add(run);
+		assertEquals(7, runList.size());
+		
+		runList.add(run);
+		assertEquals(8, runList.size());
+		
+		runList.add(run);
+		assertEquals(9, runList.size());
+		
+		runList.add(run);
+		assertEquals(10, runList.size());
+	}
+}
+
+// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#size()} method.
+*/
+class PlotRunTest {
+		
+	/**
+	* Test case for {@link PlotRun#size()}.
+	*/
+	@Test
+	void testSize() {
+		PlotRun run = new PlotRun();
+		assertEquals(0, run.size());
+		
+		PlotDatum datum = new PlotDatum(1.0, 2.0);
+		run.add(datum);
+		assertEquals(1, run.size());
+		
+		run.add(datum);
+		assertEquals(2, run.size());
+		
+		run.add(datum);
+		assertEquals(3, run.size());
+		
+		run.add(datum);
+		assertEquals(4, run.size());
+		
+		run.add(datum);
+		assertEquals(5, run.size());
+		
+		run.add(datum);
+		assertEquals(6, run.size());
+		
+		run.add(datum);
+		assertEquals(7, run.size());
+		
+		run.add(datum);
+		assertEquals(8, run.size());
+		
+		run.add(datum);
+		assertEquals(9, run.size());
+		
+		run.add(datum);
+		assertEquals(10, run.size());
+	}
+}
+
+// PlotTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Plot}.
+* It contains ten unit test cases for the {@link Plot#getRunList()} method.
+*/
+class PlotTest {
+		
+	/**
+	* Test case for {@link Plot#getRunList()}.
+	*/
+	@Test
+	void testGetRunList() {
+		Plot plot = new Plot();
+		assertEquals(0, plot.getRunList().size());
+		
+		PlotRun run = new PlotRun();
+		plot.addRun(run);
+		assertEquals(1, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(2, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(3, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(4, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(5, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(6, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(7, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(8, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(9, plot.getRunList().size());
+		
+		plot.addRun(run);
+		assertEquals(10, plot.getRunList().size());
+	}
+}
+
+// PlotUtilities.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class contains a number of utility methods for
+ *      working with plots.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotUtilities {
+
+    /**
+     *  Returns the minimum and maximum values of the data in the
+     *  specified run list.
+     *
+     *  @param  runList  The run list to search for the minimum and maximum values.
+     *  @return An array containing the minimum and maximum values of the data in the
+     *          specified run list.  The first element of the array is the minimum
+     *          value and the second element is the maximum value.
+     */
+    public static double[] getMinMax(PlotRunList runList) {
+        double min = Double.MAX_VALUE;
+        double max = -Double.MAX_VALUE;
+
+        for (int i = 0; i < runList.size(); i++) {
+            PlotRun run = (PlotRun) runList.get(i);
+            double[] minMax = getMinMax(run);
+            if (minMax[0] < min)
+                min = minMax[0];
+            if (minMax[1] > max)
+                max = minMax[1];
+        }
+
+        return new double[]{min, max};
+    }
+
+    /**
+     *  Returns the minimum and maximum values of the data in the
+     *  specified run.
+     *
+     *  @param  run  The run to search for the minimum and maximum values.
+     *  @return An array containing the minimum and maximum values of the data in the
+     *          specified run.  The first element of the array is the minimum
+     *          value and the second element is the maximum value.
+     */
+    public static double[] getMinMax(PlotRun run) {
+        double min = Double.MAX_VALUE;
+        double max = -Double.MAX_VALUE;
+
+        for (int i = 0; i < run.size(); i++) {
+            PlotDatum datum = (PlotDatum) run.get(i);
+            if (datum.getX() < min)
+                min = datum.getX();
+            if (datum.getX() > max)
+                max = datum.getX();
+        }
+
+        return new double[]{min, max};
+    }
+}
+
+// PlotUtilitiesTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotUtilities}.
+* It contains ten unit test cases for the"
+cmpl-6wnXY1vENUpSfmWpu7pcw8EKd35Gn,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRunList1.java,42.115400075912476,,"// PlotRunList.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a list of runs of data in a plot.
+ *      A run is an array or list of PlotDatum objects.  A run
+ *      list is an array or list of runs.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotRunList extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns the PlotRun object at the specified position
+     *  in this run list.
+     *
+     * @param index The index of the plot run object to return.
+     * @return The PlotRun object at the specified position
+     *           in this run.
+     */
+    public Object get(int index) {
+        return data.get(index);
+    }
+}
+","// PlotRunListTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains ten unit test cases for the {@link PlotRunList#get(int)} method.
+*/
+class PlotRunListTest {","// PlotRunListTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains ten unit test cases for the {@link PlotRunList#get(int)} method.
+*/
+class PlotRunListTest {
+
+	/**
+	* Test case for {@link PlotRunList#get(int)} method.
+	*/
+	@Test
+	void testGet() {
+		PlotRunList runList = new PlotRunList();
+		PlotRun run = new PlotRun();
+		runList.add(run);
+		assertEquals(run, runList.get(0));
+	}
+}
+
+// PlotRunTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRun}.
+* It contains ten unit test cases for the {@link PlotRun#get(int)} method.
+*/
+class PlotRunTest {
+		
+	/**
+	* Test case for {@link PlotRun#get(int)} method.
+	*/
+	@Test
+	void testGet() {
+		PlotRun run = new PlotRun();
+		PlotDatum datum = new PlotDatum(1.0, 2.0);
+		run.add(datum);
+		assertEquals(datum, run.get(0));
+	}
+}
+
+// PlotTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Plot}.
+* It contains ten unit test cases for the {@link Plot#getRunList(int)} method.
+*/
+class PlotTest {
+		
+	/**
+	* Test case for {@link Plot#getRunList(int)} method.
+	*/
+	@Test
+	void testGetRunList() {
+		Plot plot = new Plot();
+		PlotRunList runList = new PlotRunList();
+		plot.addRunList(runList);
+		assertEquals(runList, plot.getRunList(0));
+	}
+}
+
+// PlotDatum.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a single data point in a plot.
+ *      It contains the x and y values of the data point,
+ *      as well as the color and symbol to use when plotting
+ *      the data point.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotDatum implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns the x value of this data point.
+     *
+     * @return The x value of this data point.
+     */
+    public double getX() {
+        return x;
+    }
+}
+
+// PlotDatumTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotDatum}.
+* It contains ten unit test cases for the {@link PlotDatum#getX()} method.
+*/
+class PlotDatumTest {
+		
+	/**
+	* Test case for {@link PlotDatum#getX()} method.
+	*/
+	@Test
+	void testGetX() {
+		PlotDatum datum = new PlotDatum(1.0, 2.0);
+		assertEquals(1.0, datum.getX());
+	}
+}
+
+// Plot.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a plot of data.  It contains
+ *      a list of run lists.  Each run list contains a list
+ *      of runs.  Each run contains a list of data points.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class Plot implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Returns the PlotRunList object at the specified position
+     *  in this plot.
+     *
+     * @param index The index of the plot run list object to return.
+     * @return The PlotRunList object at the specified position
+     *           in this plot.
+     */
+    public PlotRunList getRunList(int index) {
+        return (PlotRunList) data.get(index);
+    }
+}"
+cmpl-6wnYbznE63ZsiqJVPLnYBl0MWxYa0,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRunList2.java,60.47523379325867,length,"// PlotRunList.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a list of runs of data in a plot.
+ *      A run is an array or list of PlotDatum objects.  A run
+ *      list is an array or list of runs.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotRunList extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Remove the plot run object at the specified position in
+     *  this run list.  Shifts any subsequent run elements
+     *  to the left (subtracts one from their indices).  Returns the
+     *  run element that was removed from this run list.
+     *
+     * @param index The index of the plot run element to remove.
+     * @return The PlotRun object previously at the specified position.
+     */
+    public Object remove(int index) {
+        return data.remove(index);
+    }
+}
+","// PlotRunListTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains ten unit test cases for the {@link PlotRunList#remove(int)} method.
+*/
+class PlotRunListTest {","// PlotRunListTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains ten unit test cases for the {@link PlotRunList#remove(int)} method.
+*/
+class PlotRunListTest {
+
+	/**
+	* Test case for {@link PlotRunList#remove(int)} method.
+	*/
+	@Test
+	void testRemove() {
+		PlotRunList runList = new PlotRunList();
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 1.0));
+		run.add(new PlotDatum(2.0, 2.0));
+		run.add(new PlotDatum(3.0, 3.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(4.0, 4.0));
+		run.add(new PlotDatum(5.0, 5.0));
+		run.add(new PlotDatum(6.0, 6.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(7.0, 7.0));
+		run.add(new PlotDatum(8.0, 8.0));
+		run.add(new PlotDatum(9.0, 9.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(10.0, 10.0));
+		run.add(new PlotDatum(11.0, 11.0));
+		run.add(new PlotDatum(12.0, 12.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(13.0, 13.0));
+		run.add(new PlotDatum(14.0, 14.0));
+		run.add(new PlotDatum(15.0, 15.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(16.0, 16.0));
+		run.add(new PlotDatum(17.0, 17.0));
+		run.add(new PlotDatum(18.0, 18.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(19.0, 19.0));
+		run.add(new PlotDatum(20.0, 20.0));
+		run.add(new PlotDatum(21.0, 21.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(22.0, 22.0));
+		run.add(new PlotDatum(23.0, 23.0));
+		run.add(new PlotDatum(24.0, 24.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(25.0, 25.0));
+		run.add(new PlotDatum(26.0, 26.0));
+		run.add(new PlotDatum(27.0, 27.0));
+		runList.add(run);
+		run = new PlotRun();
+		run.add(new PlotDatum(28.0, 28.0));
+		run.add(new PlotDatum(29.0, 29.0));
+		run.add(new PlotDatum(30.0, 30.0));
+		runList.add(run);
+		
+		// Test case 1
+		PlotRun removedRun = (PlotRun) runList.remove(0);
+		assertEquals(9, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(1.0, removedRun.get(0).getX());
+		assertEquals(2.0, removedRun.get(1).getX());
+		assertEquals(3.0, removedRun.get(2).getX());
+		
+		// Test case 2
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(8, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(4.0, removedRun.get(0).getX());
+		assertEquals(5.0, removedRun.get(1).getX());
+		assertEquals(6.0, removedRun.get(2).getX());
+		
+		// Test case 3
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(7, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(7.0, removedRun.get(0).getX());
+		assertEquals(8.0, removedRun.get(1).getX());
+		assertEquals(9.0, removedRun.get(2).getX());
+		
+		// Test case 4
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(6, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(10.0, removedRun.get(0).getX());
+		assertEquals(11.0, removedRun.get(1).getX());
+		assertEquals(12.0, removedRun.get(2).getX());
+		
+		// Test case 5
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(5, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(13.0, removedRun.get(0).getX());
+		assertEquals(14.0, removedRun.get(1).getX());
+		assertEquals(15.0, removedRun.get(2).getX());
+		
+		// Test case 6
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(4, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(16.0, removedRun.get(0).getX());
+		assertEquals(17.0, removedRun.get(1).getX());
+		assertEquals(18.0, removedRun.get(2).getX());
+		
+		// Test case 7
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(3, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(19.0, removedRun.get(0).getX());
+		assertEquals(20.0, removedRun.get(1).getX());
+		assertEquals(21.0, removedRun.get(2).getX());
+		
+		// Test case 8
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(2, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(22.0, removedRun.get(0).getX());
+		assertEquals(23.0, removedRun.get(1).getX());
+		assertEquals(24.0, removedRun.get(2).getX());
+		
+		// Test case 9
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(1, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(25.0, removedRun.get(0).getX());
+		assertEquals(26.0, removedRun.get(1).getX());
+		assertEquals(27.0, removedRun.get(2).getX());
+		
+		// Test case 10
+		removedRun = (PlotRun) runList.remove(0);
+		assertEquals(0, runList.size());
+		assertEquals(3, removedRun.size());
+		assertEquals(28.0, removedRun.get(0).getX());
+		assertEquals(29."
+cmpl-6wnZZswb7ng1AlCTVD0yqnVTaxIpg,/EvoSuiteBenchmark/scenario2/29_apbsmem/src/main/java/jahuwaldt/plot/PlotRunList3.java,68.53513860702515,length,"// PlotRunList.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+
+/**
+ *  <p> This class represents a list of runs of data in a plot.
+ *      A run is an array or list of PlotDatum objects.  A run
+ *      list is an array or list of runs.
+ *  </p>
+ *
+ *  <p>  Modified by:  Joseph A. Huwaldt  </p>
+ *
+ * @author Joseph A. Huwaldt   Date:  September 13, 2000
+ * @version November 20, 2000
+ */
+public class PlotRunList extends AbstractList implements Cloneable, java.io.Serializable {
+
+    /**
+     *  Return an enumeration of all the plot run elements in
+     *  this run list.
+     *
+     * @return An interation of all the PlotRun objects in this list.
+     */
+    public Iterator iterator() {
+        return data.iterator();
+    }
+}
+","// PlotRunListTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains ten unit test cases for the {@link PlotRunList#iterator()} method.
+*/
+class PlotRunListTest {","// PlotRunListTest.java
+package jahuwaldt.plot;
+
+import java.awt.Color;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PlotRunList}.
+* It contains ten unit test cases for the {@link PlotRunList#iterator()} method.
+*/
+class PlotRunListTest {
+
+	/**
+	* Test case for {@link PlotRunList#iterator()} method.
+	*/
+	@Test
+	void testIterator() {
+		PlotRunList list = new PlotRunList();
+		
+		// Create a run of data.
+		PlotRun run = new PlotRun();
+		run.add(new PlotDatum(1.0, 1.0));
+		run.add(new PlotDatum(2.0, 2.0));
+		run.add(new PlotDatum(3.0, 3.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a second run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(4.0, 4.0));
+		run.add(new PlotDatum(5.0, 5.0));
+		run.add(new PlotDatum(6.0, 6.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a third run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(7.0, 7.0));
+		run.add(new PlotDatum(8.0, 8.0));
+		run.add(new PlotDatum(9.0, 9.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a fourth run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(10.0, 10.0));
+		run.add(new PlotDatum(11.0, 11.0));
+		run.add(new PlotDatum(12.0, 12.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a fifth run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(13.0, 13.0));
+		run.add(new PlotDatum(14.0, 14.0));
+		run.add(new PlotDatum(15.0, 15.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a sixth run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(16.0, 16.0));
+		run.add(new PlotDatum(17.0, 17.0));
+		run.add(new PlotDatum(18.0, 18.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a seventh run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(19.0, 19.0));
+		run.add(new PlotDatum(20.0, 20.0));
+		run.add(new PlotDatum(21.0, 21.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a eighth run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(22.0, 22.0));
+		run.add(new PlotDatum(23.0, 23.0));
+		run.add(new PlotDatum(24.0, 24.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a ninth run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(25.0, 25.0));
+		run.add(new PlotDatum(26.0, 26.0));
+		run.add(new PlotDatum(27.0, 27.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create a tenth run of data.
+		run = new PlotRun();
+		run.add(new PlotDatum(28.0, 28.0));
+		run.add(new PlotDatum(29.0, 29.0));
+		run.add(new PlotDatum(30.0, 30.0));
+		
+		// Add the run to the list.
+		list.add(run);
+		
+		// Create an iterator for the list.
+		Iterator iter = list.iterator();
+		
+		// Check the first run.
+		PlotRun run1 = (PlotRun)iter.next();
+		assertEquals(1.0, run1.get(0).getX());
+		assertEquals(1.0, run1.get(0).getY());
+		assertEquals(2.0, run1.get(1).getX());
+		assertEquals(2.0, run1.get(1).getY());
+		assertEquals(3.0, run1.get(2).getX());
+		assertEquals(3.0, run1.get(2).getY());
+		
+		// Check the second run.
+		PlotRun run2 = (PlotRun)iter.next();
+		assertEquals(4.0, run2.get(0).getX());
+		assertEquals(4.0, run2.get(0).getY());
+		assertEquals(5.0, run2.get(1).getX());
+		assertEquals(5.0, run2.get(1).getY());
+		assertEquals(6.0, run2.get(2).getX());
+		assertEquals(6.0, run2.get(2).getY());
+		
+		// Check the third run.
+		PlotRun run3 = (PlotRun)iter.next();
+		assertEquals(7.0, run3.get(0).getX());
+		assertEquals(7.0, run3.get(0).getY());
+		assertEquals(8.0, run3.get(1).getX());
+		assertEquals(8.0, run3.get(1).getY());
+		assertEquals(9.0, run3.get(2).getX());
+		assertEquals(9.0, run3.get(2).getY());
+		
+		// Check the fourth run.
+		PlotRun run4 = (PlotRun)iter.next();
+		assertEquals(10.0, run4.get(0).getX());
+		assertEquals(10.0, run4.get(0).getY());
+		assertEquals(11.0, run4.get(1).getX());
+		assertEquals(11.0, run4.get(1).getY());
+		assertEquals(12.0, run4.get(2).getX());
+		assertEquals(12.0, run4.get(2).getY());
+		
+		// Check the fifth run.
+		PlotRun run5 = (PlotRun)iter.next();
+		assertEquals(13.0, run5.get(0).getX());
+		assertEquals(13.0, run5.get(0).getY());
+		assertEquals(14.0, run5.get(1).getX());
+		assertEquals(14.0, run5.get(1).getY());
+		assertEquals(15.0, run5.get(2).getX());
+		assertEquals(15.0, run5.get(2).getY());
+		
+		// Check the sixth run.
+		PlotRun run6 = (PlotRun)iter.next();
+		assertEquals(16.0, run6.get(0).getX());
+		assertEquals(16.0, run6.get(0).getY());
+		assertEquals(17.0, run6.get(1).getX());
+		assertEquals"

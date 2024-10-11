@@ -1,0 +1,5232 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+cmpl-6wRTRs9lfx1xwpj7woVgyEgOvfiwW,/EvoSuiteBenchmark/original/56_jhandballmoves/src/main/java/visu/handball/moves/Main_0Test.java,69.24600052833557,length,"// Main.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+
+/**
+ * Hauptklasse zum Starten der Anwendung plus den Zugriff auf die entsprechenden Objekt-Instanzen
+ * @author tommy
+ */
+public class Main {
+
+    private static SaveAction saveAction;
+
+    private static CloseAction closeAction;
+
+    private static SetMoveNameAction setNameAction;
+
+    private static JFrame window;
+
+    private static Field field;
+
+    private static CommentView commentView;
+
+    private static ColorModel colorModel;
+
+    /**
+     * Liefert die Instanz des ColorModels
+     *
+     * @return colorModel
+     */
+    public static ColorModel getColorModel() {
+        return colorModel;
+    }
+
+    /**
+     * Main-Methode zum Starten der Anwendung
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(//$NON-NLS-1$
+            Resources.getString(""error.lookAndFell""));
+        }
+        //$NON-NLS-1$
+        window = new JFrame(Resources.getString(""app.title""));
+        //$NON-NLS-1$ //$NON-NLS-2$
+        window.setIconImage(createImageIcon(""images/icon.gif"", """").getImage());
+        JPanel content = new JPanel(new BorderLayout());
+        JDesktopPane desktop = new JDesktopPane();
+        window.setContentPane(content);
+        content.add(desktop, BorderLayout.CENTER);
+        desktop.setBackground(new Color(255, 255, 174));
+        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        // Create HandballModel
+        HandballModel handballModel = createHandballModel();
+        // Create ColorModel
+        colorModel = new ColorModel();
+        // Statusbar
+        StatusBar statusBar = createStatusBar(handballModel);
+        content.add(statusBar, BorderLayout.SOUTH);
+        // Create Menu
+        JMenuBar menu = createHandballMenu(handballModel);
+        window.setJMenuBar(menu);
+        // Create HandballField
+        field = new Field(handballModel, colorModel);
+        JInternalFrame handballField = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""field.title""), //$NON-NLS-1$
+        false, false, false, true);
+        handballField.setLocation(10, 10);
+        handballField.add(field);
+        handballField.setVisible(true);
+        handballField.pack();
+        desktop.add(handballField);
+        // Create MouseController
+        MouseController mouse = new MouseController(handballModel, handballField);
+        field.addMouseListener(mouse);
+        field.addMouseMotionListener(mouse);
+        // Add Statusbar as Listener
+        field.addMouseMotionListener(statusBar);
+        // Create ToolBar
+        PlayerToolBar playerBar = new PlayerToolBar(handballModel);
+        content.add(playerBar, BorderLayout.NORTH);
+        // Create EventView
+        JPanel tablePanel = createTablePanel(handballModel);
+        JInternalFrame eventView = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""events.title""), //$NON-NLS-1$
+        true, false, false, true);
+        eventView.add(tablePanel);
+        eventView.setLocation(20 + handballField.getWidth(), 10);
+        eventView.setVisible(true);
+        eventView.setSize(450, 400);
+        desktop.add(eventView);
+        // Create CommentView
+        //$NON-NLS-1$
+        commentView = new CommentView(Resources.getString(""comment.title""));
+        commentView.setLocation(20 + handballField.getWidth(), 420);
+        commentView.setSize(450, handballField.getHeight() - eventView.getHeight() - 10);
+        commentView.setVisible(true);
+        //Controller für CommentView erzeugen
+        new CommentController(handballModel, commentView);
+        desktop.add(commentView);
+        window.setSize(1000, 700);
+        locateOnScreenCenter(window);
+        window.addWindowListener(new WindowAdapter() {
+
+            public void windowClosing(WindowEvent e) {
+                Main.getCloseAction().actionPerformed(null);
+            }
+        });
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        window.setVisible(true);
+    }
+
+    private static JMenuBar createHandballMenu(HandballModel handballModel) {
+        JMenuBar mbar;
+        JMenu menuDatei, menuHilfe, menuEinstellungen;
+        // Hauptmenue einrichten
+        mbar = new JMenuBar();
+        //$NON-NLS-1$
+        menuDatei = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.file""));
+        //$NON-NLS-1$
+        menuEinstellungen = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.settings""));
+        //$NON-NLS-1$
+        menuHilfe = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.about""));
+        // Einträge fuer Datei
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        NewAction(handballModel));
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        OpenAction(handballModel));
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        saveAction = new SaveAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", saveAction);
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        setNameAction = new SetMoveNameAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", setNameAction);
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        //Drucken einfügen
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        PrintActualSequenzAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new PrintMoveAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new CreateMovePdfAction(handballModel));
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        closeAction = new CloseAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", closeAction);
+        // Einträge für Einstellungen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuEinstellungen, """", new ChangeColorsAction());
+        // Einträge für Hilfe
+        //$NON-NLS-1$
+        JMenuHelper.//$NON-NLS-1$
+        addMenuItem(//$NON-NLS-1$
+        menuHilfe, //$NON-NLS-1$
+        """", new AboutAction());
+        return mbar;
+    }
+
+    private static JPanel createTablePanel(HandballModel handballModel) {
+        TableHandballModel tableModel = new TableHandballModel(handballModel);
+        JTable table = new JTable(tableModel);
+        table.setDefaultRenderer(Object.class, new EventTableCellRenderer());
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        EventTableCellDelayEditor delayEditor = new EventTableCellDelayEditor();
+        table.getColumnModel().getColumn(3).setCellEditor(delayEditor);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(new TableSelectionListener(tableModel));
+        JPanel panel = new JPanel(new BorderLayout());
+        //$NON-NLS-1$
+        JToolBar toolBar = new JToolBar(Resources.getString(""toolbar.title""));
+        toolBar.add(new NewMoveEventAction(handballModel));
+        toolBar.add(new NewSequenceAction(handballModel));
+        toolBar.add(new NewPassEventAction(handballModel));
+        toolBar.add(new DeleteEventAction(handballModel));
+        toolBar.addSeparator();
+        toolBar.add(new StartOneSequenceAnimationAction(handballModel));
+        toolBar.add(new StartAnimationAction(handballModel));
+        toolBar.add(new PauseAnimationAction(handballModel));
+        toolBar.add(new StopAnimationAction(handballModel));
+        JScrollPane scroll = new JScrollPane(table);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(toolBar, BorderLayout.PAGE_START);
+        return panel;
+    }
+
+    private static StatusBar createStatusBar(HandballModel model) {
+        StatusBar statusBar = new StatusBar(model);
+        return statusBar;
+    }
+
+    /**
+     * Basierend auf der relativen Pfad (relativ zum Ort dieser Klasse) und der Beschreibung
+     * wird ein Grafik geladen und ein ImageIcon-Objekt erstellt.
+     * @param path
+     * @param description
+     *
+     * @return imageIcon
+     */
+    public static ImageIcon createImageIcon(String path, String description) {
+        URL url = Main.class.getResource(path);
+        return new ImageIcon(url, description);
+    }
+
+    /**
+     * Erzeugt auf Basis eines relativen Pfads (relativ zum Ort dieser Klasse) eine URL.
+     * @param path
+     *
+     * @return url
+     */
+    public static URL getResource(String path) {
+        return Main.class.getResource(path);
+    }
+
+    /**
+     * Methode um Component-Objekte (z.B. Fenster) in der Mitte des Bildschirms zu positionieren
+     * @param component
+     */
+    public static void locateOnScreenCenter(Component component) {
+        Dimension paneSize = component.getSize();
+        Dimension screenSize = component.getToolkit().getScreenSize();
+        component.setLocation((screenSize.width - paneSize.width) / 2, (screenSize.height - paneSize.height) / 2);
+    }
+
+    private static HandballModel createHandballModel() {
+        HandballModel model = new HandballModel();
+        return model;
+    }
+
+    /**
+     * Die Instanz des Anwendungsfensters
+     *
+     * @return window
+     */
+    public static JFrame getWindow() {
+        return window;
+    }
+
+    /**
+     * Instanz des Spielfeld-Panels
+     *
+     * @return panel
+     */
+    public static Field getField() {
+        return field;
+    }
+
+    /**
+     * Instanz der Speichern-Aktion
+     *
+     * @return saveAction
+     */
+    public static SaveAction getSaveAction() {
+        return saveAction;
+    }
+
+    public static SetMoveNameAction getSetNameAction() {
+        return setNameAction;
+    }
+
+    /**
+     * Instanz der Schlie�en-Aktion
+     *
+     * @return close Action
+     */
+    public static CloseAction getCloseAction() {
+        return closeAction;
+    }
+
+    /**
+     * Methode um eine tiefe Objektkopie per Serialisierung zu erzeugen!
+     *
+     * @param oldObj (muss Serializable implementieren)
+     * @return tiefe Kopie
+     * @throws Exception
+     */
+    public static Object deepCopy(Object oldObj) throws Exception {
+        Object clone = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(oldObj);
+            oos.flush();
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+            clone = ois.readObject();
+            oos.close();
+            ois.close();
+        } catch (Exception e) {
+            //$NON-NLS-1$
+            System.out.println(""Exception in ObjectCloner = "" + e);
+            throw (e);
+        }
+        return clone;
+    }
+
+    /**
+     * Liefert die Version der Anwendung als String
+     *
+     * @return version
+     */
+    public static String getVersion() {
+        //$NON-NLS-1$
+        return ""1.0.5"";
+    }
+}
+","// Main_0Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getColorModel()} method.
+*/
+class Main_0Test {","// Main_0Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getColorModel()} method.
+*/
+class Main_0Test {
+
+		/**
+		* Test case for the {@link Main#getColorModel()} method.
+		*/
+		@Test
+		void testGetColorModel() {
+				// TODO: implement test
+		}
+}
+
+// Main_1Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getColorModel()} method.
+*/
+class Main_1Test {
+		
+		/**
+		* Test case for the {@link Main#getColorModel()} method.
+		*/
+		@Test
+		void testGetColorModel() {
+				// TODO: implement test
+		}
+}
+
+// Main_2Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getColorModel()} method.
+*/
+class Main_2Test {
+		
+		/**
+		* Test case for the {@link Main#getColorModel()} method.
+		*/
+		@Test
+		void testGetColorModel() {
+				// TODO: implement test
+		}
+}
+
+// Main_3"
+cmpl-6wRUYXdj7ELKEnC7VRQSVoK1ptm4Y,/EvoSuiteBenchmark/original/56_jhandballmoves/src/main/java/visu/handball/moves/Main_3Test.java,67.0523145198822,length,"// Main.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+
+/**
+ * Hauptklasse zum Starten der Anwendung plus den Zugriff auf die entsprechenden Objekt-Instanzen
+ * @author tommy
+ */
+public class Main {
+
+    private static SaveAction saveAction;
+
+    private static CloseAction closeAction;
+
+    private static SetMoveNameAction setNameAction;
+
+    private static JFrame window;
+
+    private static Field field;
+
+    private static CommentView commentView;
+
+    private static ColorModel colorModel;
+
+    /**
+     * Liefert die Instanz des ColorModels
+     *
+     * @return colorModel
+     */
+    public static ColorModel getColorModel() {
+        return colorModel;
+    }
+
+    /**
+     * Main-Methode zum Starten der Anwendung
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(//$NON-NLS-1$
+            Resources.getString(""error.lookAndFell""));
+        }
+        //$NON-NLS-1$
+        window = new JFrame(Resources.getString(""app.title""));
+        //$NON-NLS-1$ //$NON-NLS-2$
+        window.setIconImage(createImageIcon(""images/icon.gif"", """").getImage());
+        JPanel content = new JPanel(new BorderLayout());
+        JDesktopPane desktop = new JDesktopPane();
+        window.setContentPane(content);
+        content.add(desktop, BorderLayout.CENTER);
+        desktop.setBackground(new Color(255, 255, 174));
+        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        // Create HandballModel
+        HandballModel handballModel = createHandballModel();
+        // Create ColorModel
+        colorModel = new ColorModel();
+        // Statusbar
+        StatusBar statusBar = createStatusBar(handballModel);
+        content.add(statusBar, BorderLayout.SOUTH);
+        // Create Menu
+        JMenuBar menu = createHandballMenu(handballModel);
+        window.setJMenuBar(menu);
+        // Create HandballField
+        field = new Field(handballModel, colorModel);
+        JInternalFrame handballField = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""field.title""), //$NON-NLS-1$
+        false, false, false, true);
+        handballField.setLocation(10, 10);
+        handballField.add(field);
+        handballField.setVisible(true);
+        handballField.pack();
+        desktop.add(handballField);
+        // Create MouseController
+        MouseController mouse = new MouseController(handballModel, handballField);
+        field.addMouseListener(mouse);
+        field.addMouseMotionListener(mouse);
+        // Add Statusbar as Listener
+        field.addMouseMotionListener(statusBar);
+        // Create ToolBar
+        PlayerToolBar playerBar = new PlayerToolBar(handballModel);
+        content.add(playerBar, BorderLayout.NORTH);
+        // Create EventView
+        JPanel tablePanel = createTablePanel(handballModel);
+        JInternalFrame eventView = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""events.title""), //$NON-NLS-1$
+        true, false, false, true);
+        eventView.add(tablePanel);
+        eventView.setLocation(20 + handballField.getWidth(), 10);
+        eventView.setVisible(true);
+        eventView.setSize(450, 400);
+        desktop.add(eventView);
+        // Create CommentView
+        //$NON-NLS-1$
+        commentView = new CommentView(Resources.getString(""comment.title""));
+        commentView.setLocation(20 + handballField.getWidth(), 420);
+        commentView.setSize(450, handballField.getHeight() - eventView.getHeight() - 10);
+        commentView.setVisible(true);
+        //Controller für CommentView erzeugen
+        new CommentController(handballModel, commentView);
+        desktop.add(commentView);
+        window.setSize(1000, 700);
+        locateOnScreenCenter(window);
+        window.addWindowListener(new WindowAdapter() {
+
+            public void windowClosing(WindowEvent e) {
+                Main.getCloseAction().actionPerformed(null);
+            }
+        });
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        window.setVisible(true);
+    }
+
+    private static JMenuBar createHandballMenu(HandballModel handballModel) {
+        JMenuBar mbar;
+        JMenu menuDatei, menuHilfe, menuEinstellungen;
+        // Hauptmenue einrichten
+        mbar = new JMenuBar();
+        //$NON-NLS-1$
+        menuDatei = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.file""));
+        //$NON-NLS-1$
+        menuEinstellungen = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.settings""));
+        //$NON-NLS-1$
+        menuHilfe = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.about""));
+        // Einträge fuer Datei
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        NewAction(handballModel));
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        OpenAction(handballModel));
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        saveAction = new SaveAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", saveAction);
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        setNameAction = new SetMoveNameAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", setNameAction);
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        //Drucken einfügen
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        PrintActualSequenzAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new PrintMoveAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new CreateMovePdfAction(handballModel));
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        closeAction = new CloseAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", closeAction);
+        // Einträge für Einstellungen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuEinstellungen, """", new ChangeColorsAction());
+        // Einträge für Hilfe
+        //$NON-NLS-1$
+        JMenuHelper.//$NON-NLS-1$
+        addMenuItem(//$NON-NLS-1$
+        menuHilfe, //$NON-NLS-1$
+        """", new AboutAction());
+        return mbar;
+    }
+
+    private static JPanel createTablePanel(HandballModel handballModel) {
+        TableHandballModel tableModel = new TableHandballModel(handballModel);
+        JTable table = new JTable(tableModel);
+        table.setDefaultRenderer(Object.class, new EventTableCellRenderer());
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        EventTableCellDelayEditor delayEditor = new EventTableCellDelayEditor();
+        table.getColumnModel().getColumn(3).setCellEditor(delayEditor);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(new TableSelectionListener(tableModel));
+        JPanel panel = new JPanel(new BorderLayout());
+        //$NON-NLS-1$
+        JToolBar toolBar = new JToolBar(Resources.getString(""toolbar.title""));
+        toolBar.add(new NewMoveEventAction(handballModel));
+        toolBar.add(new NewSequenceAction(handballModel));
+        toolBar.add(new NewPassEventAction(handballModel));
+        toolBar.add(new DeleteEventAction(handballModel));
+        toolBar.addSeparator();
+        toolBar.add(new StartOneSequenceAnimationAction(handballModel));
+        toolBar.add(new StartAnimationAction(handballModel));
+        toolBar.add(new PauseAnimationAction(handballModel));
+        toolBar.add(new StopAnimationAction(handballModel));
+        JScrollPane scroll = new JScrollPane(table);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(toolBar, BorderLayout.PAGE_START);
+        return panel;
+    }
+
+    private static StatusBar createStatusBar(HandballModel model) {
+        StatusBar statusBar = new StatusBar(model);
+        return statusBar;
+    }
+
+    /**
+     * Basierend auf der relativen Pfad (relativ zum Ort dieser Klasse) und der Beschreibung
+     * wird ein Grafik geladen und ein ImageIcon-Objekt erstellt.
+     * @param path
+     * @param description
+     *
+     * @return imageIcon
+     */
+    public static ImageIcon createImageIcon(String path, String description) {
+        URL url = Main.class.getResource(path);
+        return new ImageIcon(url, description);
+    }
+
+    /**
+     * Erzeugt auf Basis eines relativen Pfads (relativ zum Ort dieser Klasse) eine URL.
+     * @param path
+     *
+     * @return url
+     */
+    public static URL getResource(String path) {
+        return Main.class.getResource(path);
+    }
+
+    /**
+     * Methode um Component-Objekte (z.B. Fenster) in der Mitte des Bildschirms zu positionieren
+     * @param component
+     */
+    public static void locateOnScreenCenter(Component component) {
+        Dimension paneSize = component.getSize();
+        Dimension screenSize = component.getToolkit().getScreenSize();
+        component.setLocation((screenSize.width - paneSize.width) / 2, (screenSize.height - paneSize.height) / 2);
+    }
+
+    private static HandballModel createHandballModel() {
+        HandballModel model = new HandballModel();
+        return model;
+    }
+
+    /**
+     * Die Instanz des Anwendungsfensters
+     *
+     * @return window
+     */
+    public static JFrame getWindow() {
+        return window;
+    }
+
+    /**
+     * Instanz des Spielfeld-Panels
+     *
+     * @return panel
+     */
+    public static Field getField() {
+        return field;
+    }
+
+    /**
+     * Instanz der Speichern-Aktion
+     *
+     * @return saveAction
+     */
+    public static SaveAction getSaveAction() {
+        return saveAction;
+    }
+
+    public static SetMoveNameAction getSetNameAction() {
+        return setNameAction;
+    }
+
+    /**
+     * Instanz der Schlie�en-Aktion
+     *
+     * @return close Action
+     */
+    public static CloseAction getCloseAction() {
+        return closeAction;
+    }
+
+    /**
+     * Methode um eine tiefe Objektkopie per Serialisierung zu erzeugen!
+     *
+     * @param oldObj (muss Serializable implementieren)
+     * @return tiefe Kopie
+     * @throws Exception
+     */
+    public static Object deepCopy(Object oldObj) throws Exception {
+        Object clone = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(oldObj);
+            oos.flush();
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+            clone = ois.readObject();
+            oos.close();
+            ois.close();
+        } catch (Exception e) {
+            //$NON-NLS-1$
+            System.out.println(""Exception in ObjectCloner = "" + e);
+            throw (e);
+        }
+        return clone;
+    }
+
+    /**
+     * Liefert die Version der Anwendung als String
+     *
+     * @return version
+     */
+    public static String getVersion() {
+        //$NON-NLS-1$
+        return ""1.0.5"";
+    }
+}
+","// Main_3Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getWindow()} method.
+*/
+class Main_3Test {","// Main_3Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getWindow()} method.
+*/
+class Main_3Test {
+
+		/**
+		* Test case for the {@link Main#getWindow()} method.
+		*/
+		@Test
+		void testGetWindow() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getField()} method.
+		*/
+		@Test
+		void testGetField() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getSaveAction()} method.
+		*/
+		@Test
+		void testGetSaveAction() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getSetNameAction()} method.
+		*/
+		@Test
+		void testGetSetNameAction() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getCloseAction()} method.
+		*/
+		@Test
+		void testGetCloseAction() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#createImageIcon(String, String)} method.
+		*/
+		@Test
+		void testCreateImageIcon() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getResource(String)} method.
+		*/
+		@Test
+		void testGetResource() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#locateOnScreenCenter(Component)} method.
+		*/
+		@Test
+		void testLocateOnScreenCenter() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#createHandballModel()} method.
+		*/
+		@Test
+		void testCreateHandballModel() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getVersion()} method.
+		*/
+		@Test
+		void testGetVersion() {
+				// TODO: implement test
+		}
+}
+
+// Main_4Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getVersion()} method.
+*/
+class Main_4Test {
+		
+		/**
+		* Test case for the {@link Main#getWindow()} method.
+		*/
+		@Test
+		void testGetWindow() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getField()} method.
+		*/
+		@Test
+		void testGetField() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getSaveAction()} method.
+		*/
+		@Test
+		void testGetSaveAction() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getSetNameAction()} method.
+		*/
+		@Test
+		void testGetSetNameAction() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getCloseAction()} method.
+		*/
+		@Test
+		void testGetCloseAction() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#createImageIcon(String, String)} method.
+		*/
+		@Test
+		void testCreateImageIcon() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#getResource(String)} method.
+		*/
+		@Test
+		void testGetResource() {
+				// TODO: implement test
+		}
+		
+		/**
+		* Test case for the {@link Main#locateOnScreenCenter(Component)} method.
+		*/
+		@Test
+		void testLocateOnScreenCenter() {
+				"
+cmpl-6wRVderOPANyeEwTLmhgID0I5hX85,/EvoSuiteBenchmark/original/56_jhandballmoves/src/main/java/visu/handball/moves/Main_4Test.java,99.63040089607239,length,"// Main.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+
+/**
+ * Hauptklasse zum Starten der Anwendung plus den Zugriff auf die entsprechenden Objekt-Instanzen
+ * @author tommy
+ */
+public class Main {
+
+    private static SaveAction saveAction;
+
+    private static CloseAction closeAction;
+
+    private static SetMoveNameAction setNameAction;
+
+    private static JFrame window;
+
+    private static Field field;
+
+    private static CommentView commentView;
+
+    private static ColorModel colorModel;
+
+    /**
+     * Liefert die Instanz des ColorModels
+     *
+     * @return colorModel
+     */
+    public static ColorModel getColorModel() {
+        return colorModel;
+    }
+
+    /**
+     * Main-Methode zum Starten der Anwendung
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(//$NON-NLS-1$
+            Resources.getString(""error.lookAndFell""));
+        }
+        //$NON-NLS-1$
+        window = new JFrame(Resources.getString(""app.title""));
+        //$NON-NLS-1$ //$NON-NLS-2$
+        window.setIconImage(createImageIcon(""images/icon.gif"", """").getImage());
+        JPanel content = new JPanel(new BorderLayout());
+        JDesktopPane desktop = new JDesktopPane();
+        window.setContentPane(content);
+        content.add(desktop, BorderLayout.CENTER);
+        desktop.setBackground(new Color(255, 255, 174));
+        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        // Create HandballModel
+        HandballModel handballModel = createHandballModel();
+        // Create ColorModel
+        colorModel = new ColorModel();
+        // Statusbar
+        StatusBar statusBar = createStatusBar(handballModel);
+        content.add(statusBar, BorderLayout.SOUTH);
+        // Create Menu
+        JMenuBar menu = createHandballMenu(handballModel);
+        window.setJMenuBar(menu);
+        // Create HandballField
+        field = new Field(handballModel, colorModel);
+        JInternalFrame handballField = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""field.title""), //$NON-NLS-1$
+        false, false, false, true);
+        handballField.setLocation(10, 10);
+        handballField.add(field);
+        handballField.setVisible(true);
+        handballField.pack();
+        desktop.add(handballField);
+        // Create MouseController
+        MouseController mouse = new MouseController(handballModel, handballField);
+        field.addMouseListener(mouse);
+        field.addMouseMotionListener(mouse);
+        // Add Statusbar as Listener
+        field.addMouseMotionListener(statusBar);
+        // Create ToolBar
+        PlayerToolBar playerBar = new PlayerToolBar(handballModel);
+        content.add(playerBar, BorderLayout.NORTH);
+        // Create EventView
+        JPanel tablePanel = createTablePanel(handballModel);
+        JInternalFrame eventView = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""events.title""), //$NON-NLS-1$
+        true, false, false, true);
+        eventView.add(tablePanel);
+        eventView.setLocation(20 + handballField.getWidth(), 10);
+        eventView.setVisible(true);
+        eventView.setSize(450, 400);
+        desktop.add(eventView);
+        // Create CommentView
+        //$NON-NLS-1$
+        commentView = new CommentView(Resources.getString(""comment.title""));
+        commentView.setLocation(20 + handballField.getWidth(), 420);
+        commentView.setSize(450, handballField.getHeight() - eventView.getHeight() - 10);
+        commentView.setVisible(true);
+        //Controller für CommentView erzeugen
+        new CommentController(handballModel, commentView);
+        desktop.add(commentView);
+        window.setSize(1000, 700);
+        locateOnScreenCenter(window);
+        window.addWindowListener(new WindowAdapter() {
+
+            public void windowClosing(WindowEvent e) {
+                Main.getCloseAction().actionPerformed(null);
+            }
+        });
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        window.setVisible(true);
+    }
+
+    private static JMenuBar createHandballMenu(HandballModel handballModel) {
+        JMenuBar mbar;
+        JMenu menuDatei, menuHilfe, menuEinstellungen;
+        // Hauptmenue einrichten
+        mbar = new JMenuBar();
+        //$NON-NLS-1$
+        menuDatei = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.file""));
+        //$NON-NLS-1$
+        menuEinstellungen = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.settings""));
+        //$NON-NLS-1$
+        menuHilfe = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.about""));
+        // Einträge fuer Datei
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        NewAction(handballModel));
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        OpenAction(handballModel));
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        saveAction = new SaveAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", saveAction);
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        setNameAction = new SetMoveNameAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", setNameAction);
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        //Drucken einfügen
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        PrintActualSequenzAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new PrintMoveAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new CreateMovePdfAction(handballModel));
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        closeAction = new CloseAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", closeAction);
+        // Einträge für Einstellungen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuEinstellungen, """", new ChangeColorsAction());
+        // Einträge für Hilfe
+        //$NON-NLS-1$
+        JMenuHelper.//$NON-NLS-1$
+        addMenuItem(//$NON-NLS-1$
+        menuHilfe, //$NON-NLS-1$
+        """", new AboutAction());
+        return mbar;
+    }
+
+    private static JPanel createTablePanel(HandballModel handballModel) {
+        TableHandballModel tableModel = new TableHandballModel(handballModel);
+        JTable table = new JTable(tableModel);
+        table.setDefaultRenderer(Object.class, new EventTableCellRenderer());
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        EventTableCellDelayEditor delayEditor = new EventTableCellDelayEditor();
+        table.getColumnModel().getColumn(3).setCellEditor(delayEditor);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(new TableSelectionListener(tableModel));
+        JPanel panel = new JPanel(new BorderLayout());
+        //$NON-NLS-1$
+        JToolBar toolBar = new JToolBar(Resources.getString(""toolbar.title""));
+        toolBar.add(new NewMoveEventAction(handballModel));
+        toolBar.add(new NewSequenceAction(handballModel));
+        toolBar.add(new NewPassEventAction(handballModel));
+        toolBar.add(new DeleteEventAction(handballModel));
+        toolBar.addSeparator();
+        toolBar.add(new StartOneSequenceAnimationAction(handballModel));
+        toolBar.add(new StartAnimationAction(handballModel));
+        toolBar.add(new PauseAnimationAction(handballModel));
+        toolBar.add(new StopAnimationAction(handballModel));
+        JScrollPane scroll = new JScrollPane(table);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(toolBar, BorderLayout.PAGE_START);
+        return panel;
+    }
+
+    private static StatusBar createStatusBar(HandballModel model) {
+        StatusBar statusBar = new StatusBar(model);
+        return statusBar;
+    }
+
+    /**
+     * Basierend auf der relativen Pfad (relativ zum Ort dieser Klasse) und der Beschreibung
+     * wird ein Grafik geladen und ein ImageIcon-Objekt erstellt.
+     * @param path
+     * @param description
+     *
+     * @return imageIcon
+     */
+    public static ImageIcon createImageIcon(String path, String description) {
+        URL url = Main.class.getResource(path);
+        return new ImageIcon(url, description);
+    }
+
+    /**
+     * Erzeugt auf Basis eines relativen Pfads (relativ zum Ort dieser Klasse) eine URL.
+     * @param path
+     *
+     * @return url
+     */
+    public static URL getResource(String path) {
+        return Main.class.getResource(path);
+    }
+
+    /**
+     * Methode um Component-Objekte (z.B. Fenster) in der Mitte des Bildschirms zu positionieren
+     * @param component
+     */
+    public static void locateOnScreenCenter(Component component) {
+        Dimension paneSize = component.getSize();
+        Dimension screenSize = component.getToolkit().getScreenSize();
+        component.setLocation((screenSize.width - paneSize.width) / 2, (screenSize.height - paneSize.height) / 2);
+    }
+
+    private static HandballModel createHandballModel() {
+        HandballModel model = new HandballModel();
+        return model;
+    }
+
+    /**
+     * Die Instanz des Anwendungsfensters
+     *
+     * @return window
+     */
+    public static JFrame getWindow() {
+        return window;
+    }
+
+    /**
+     * Instanz des Spielfeld-Panels
+     *
+     * @return panel
+     */
+    public static Field getField() {
+        return field;
+    }
+
+    /**
+     * Instanz der Speichern-Aktion
+     *
+     * @return saveAction
+     */
+    public static SaveAction getSaveAction() {
+        return saveAction;
+    }
+
+    public static SetMoveNameAction getSetNameAction() {
+        return setNameAction;
+    }
+
+    /**
+     * Instanz der Schlie�en-Aktion
+     *
+     * @return close Action
+     */
+    public static CloseAction getCloseAction() {
+        return closeAction;
+    }
+
+    /**
+     * Methode um eine tiefe Objektkopie per Serialisierung zu erzeugen!
+     *
+     * @param oldObj (muss Serializable implementieren)
+     * @return tiefe Kopie
+     * @throws Exception
+     */
+    public static Object deepCopy(Object oldObj) throws Exception {
+        Object clone = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(oldObj);
+            oos.flush();
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+            clone = ois.readObject();
+            oos.close();
+            ois.close();
+        } catch (Exception e) {
+            //$NON-NLS-1$
+            System.out.println(""Exception in ObjectCloner = "" + e);
+            throw (e);
+        }
+        return clone;
+    }
+
+    /**
+     * Liefert die Version der Anwendung als String
+     *
+     * @return version
+     */
+    public static String getVersion() {
+        //$NON-NLS-1$
+        return ""1.0.5"";
+    }
+}
+","// Main_4Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getField()} method.
+*/
+class Main_4Test {","// Main_4Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getField()} method.
+*/
+class Main_4Test {
+
+		/**
+		* Test case for {@link Main#getField()}.
+		*/
+		@Test
+		void testGetField() {
+				// TODO: implement test
+		}
+}
+
+// Main_4Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getField()} method.
+*/
+class Main_4Test {
+		
+		/**
+		* Test case for {@link Main#getField()}.
+		*/
+		@Test
+		void testGetField() {
+				// TODO: implement test
+		}
+}
+
+// Main_4Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getField()} method.
+*/
+class Main_4Test {
+		
+		/**
+		* Test case for {@link Main#getField()}.
+		*/
+		@Test
+		void testGetField() {
+				// TODO: implement test
+		}
+}
+
+// Main_4Test.java
+package visu.handball.moves;
+
+import"
+cmpl-6wRXF1aZQwqjHm1xdaaAhwd0IpbM8,/EvoSuiteBenchmark/original/56_jhandballmoves/src/main/java/visu/handball/moves/Main_5Test.java,114.35404849052429,length,"// Main.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+
+/**
+ * Hauptklasse zum Starten der Anwendung plus den Zugriff auf die entsprechenden Objekt-Instanzen
+ * @author tommy
+ */
+public class Main {
+
+    private static SaveAction saveAction;
+
+    private static CloseAction closeAction;
+
+    private static SetMoveNameAction setNameAction;
+
+    private static JFrame window;
+
+    private static Field field;
+
+    private static CommentView commentView;
+
+    private static ColorModel colorModel;
+
+    /**
+     * Liefert die Instanz des ColorModels
+     *
+     * @return colorModel
+     */
+    public static ColorModel getColorModel() {
+        return colorModel;
+    }
+
+    /**
+     * Main-Methode zum Starten der Anwendung
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(//$NON-NLS-1$
+            Resources.getString(""error.lookAndFell""));
+        }
+        //$NON-NLS-1$
+        window = new JFrame(Resources.getString(""app.title""));
+        //$NON-NLS-1$ //$NON-NLS-2$
+        window.setIconImage(createImageIcon(""images/icon.gif"", """").getImage());
+        JPanel content = new JPanel(new BorderLayout());
+        JDesktopPane desktop = new JDesktopPane();
+        window.setContentPane(content);
+        content.add(desktop, BorderLayout.CENTER);
+        desktop.setBackground(new Color(255, 255, 174));
+        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        // Create HandballModel
+        HandballModel handballModel = createHandballModel();
+        // Create ColorModel
+        colorModel = new ColorModel();
+        // Statusbar
+        StatusBar statusBar = createStatusBar(handballModel);
+        content.add(statusBar, BorderLayout.SOUTH);
+        // Create Menu
+        JMenuBar menu = createHandballMenu(handballModel);
+        window.setJMenuBar(menu);
+        // Create HandballField
+        field = new Field(handballModel, colorModel);
+        JInternalFrame handballField = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""field.title""), //$NON-NLS-1$
+        false, false, false, true);
+        handballField.setLocation(10, 10);
+        handballField.add(field);
+        handballField.setVisible(true);
+        handballField.pack();
+        desktop.add(handballField);
+        // Create MouseController
+        MouseController mouse = new MouseController(handballModel, handballField);
+        field.addMouseListener(mouse);
+        field.addMouseMotionListener(mouse);
+        // Add Statusbar as Listener
+        field.addMouseMotionListener(statusBar);
+        // Create ToolBar
+        PlayerToolBar playerBar = new PlayerToolBar(handballModel);
+        content.add(playerBar, BorderLayout.NORTH);
+        // Create EventView
+        JPanel tablePanel = createTablePanel(handballModel);
+        JInternalFrame eventView = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""events.title""), //$NON-NLS-1$
+        true, false, false, true);
+        eventView.add(tablePanel);
+        eventView.setLocation(20 + handballField.getWidth(), 10);
+        eventView.setVisible(true);
+        eventView.setSize(450, 400);
+        desktop.add(eventView);
+        // Create CommentView
+        //$NON-NLS-1$
+        commentView = new CommentView(Resources.getString(""comment.title""));
+        commentView.setLocation(20 + handballField.getWidth(), 420);
+        commentView.setSize(450, handballField.getHeight() - eventView.getHeight() - 10);
+        commentView.setVisible(true);
+        //Controller für CommentView erzeugen
+        new CommentController(handballModel, commentView);
+        desktop.add(commentView);
+        window.setSize(1000, 700);
+        locateOnScreenCenter(window);
+        window.addWindowListener(new WindowAdapter() {
+
+            public void windowClosing(WindowEvent e) {
+                Main.getCloseAction().actionPerformed(null);
+            }
+        });
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        window.setVisible(true);
+    }
+
+    private static JMenuBar createHandballMenu(HandballModel handballModel) {
+        JMenuBar mbar;
+        JMenu menuDatei, menuHilfe, menuEinstellungen;
+        // Hauptmenue einrichten
+        mbar = new JMenuBar();
+        //$NON-NLS-1$
+        menuDatei = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.file""));
+        //$NON-NLS-1$
+        menuEinstellungen = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.settings""));
+        //$NON-NLS-1$
+        menuHilfe = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.about""));
+        // Einträge fuer Datei
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        NewAction(handballModel));
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        OpenAction(handballModel));
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        saveAction = new SaveAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", saveAction);
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        setNameAction = new SetMoveNameAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", setNameAction);
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        //Drucken einfügen
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        PrintActualSequenzAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new PrintMoveAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new CreateMovePdfAction(handballModel));
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        closeAction = new CloseAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", closeAction);
+        // Einträge für Einstellungen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuEinstellungen, """", new ChangeColorsAction());
+        // Einträge für Hilfe
+        //$NON-NLS-1$
+        JMenuHelper.//$NON-NLS-1$
+        addMenuItem(//$NON-NLS-1$
+        menuHilfe, //$NON-NLS-1$
+        """", new AboutAction());
+        return mbar;
+    }
+
+    private static JPanel createTablePanel(HandballModel handballModel) {
+        TableHandballModel tableModel = new TableHandballModel(handballModel);
+        JTable table = new JTable(tableModel);
+        table.setDefaultRenderer(Object.class, new EventTableCellRenderer());
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        EventTableCellDelayEditor delayEditor = new EventTableCellDelayEditor();
+        table.getColumnModel().getColumn(3).setCellEditor(delayEditor);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(new TableSelectionListener(tableModel));
+        JPanel panel = new JPanel(new BorderLayout());
+        //$NON-NLS-1$
+        JToolBar toolBar = new JToolBar(Resources.getString(""toolbar.title""));
+        toolBar.add(new NewMoveEventAction(handballModel));
+        toolBar.add(new NewSequenceAction(handballModel));
+        toolBar.add(new NewPassEventAction(handballModel));
+        toolBar.add(new DeleteEventAction(handballModel));
+        toolBar.addSeparator();
+        toolBar.add(new StartOneSequenceAnimationAction(handballModel));
+        toolBar.add(new StartAnimationAction(handballModel));
+        toolBar.add(new PauseAnimationAction(handballModel));
+        toolBar.add(new StopAnimationAction(handballModel));
+        JScrollPane scroll = new JScrollPane(table);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(toolBar, BorderLayout.PAGE_START);
+        return panel;
+    }
+
+    private static StatusBar createStatusBar(HandballModel model) {
+        StatusBar statusBar = new StatusBar(model);
+        return statusBar;
+    }
+
+    /**
+     * Basierend auf der relativen Pfad (relativ zum Ort dieser Klasse) und der Beschreibung
+     * wird ein Grafik geladen und ein ImageIcon-Objekt erstellt.
+     * @param path
+     * @param description
+     *
+     * @return imageIcon
+     */
+    public static ImageIcon createImageIcon(String path, String description) {
+        URL url = Main.class.getResource(path);
+        return new ImageIcon(url, description);
+    }
+
+    /**
+     * Erzeugt auf Basis eines relativen Pfads (relativ zum Ort dieser Klasse) eine URL.
+     * @param path
+     *
+     * @return url
+     */
+    public static URL getResource(String path) {
+        return Main.class.getResource(path);
+    }
+
+    /**
+     * Methode um Component-Objekte (z.B. Fenster) in der Mitte des Bildschirms zu positionieren
+     * @param component
+     */
+    public static void locateOnScreenCenter(Component component) {
+        Dimension paneSize = component.getSize();
+        Dimension screenSize = component.getToolkit().getScreenSize();
+        component.setLocation((screenSize.width - paneSize.width) / 2, (screenSize.height - paneSize.height) / 2);
+    }
+
+    private static HandballModel createHandballModel() {
+        HandballModel model = new HandballModel();
+        return model;
+    }
+
+    /**
+     * Die Instanz des Anwendungsfensters
+     *
+     * @return window
+     */
+    public static JFrame getWindow() {
+        return window;
+    }
+
+    /**
+     * Instanz des Spielfeld-Panels
+     *
+     * @return panel
+     */
+    public static Field getField() {
+        return field;
+    }
+
+    /**
+     * Instanz der Speichern-Aktion
+     *
+     * @return saveAction
+     */
+    public static SaveAction getSaveAction() {
+        return saveAction;
+    }
+
+    public static SetMoveNameAction getSetNameAction() {
+        return setNameAction;
+    }
+
+    /**
+     * Instanz der Schlie�en-Aktion
+     *
+     * @return close Action
+     */
+    public static CloseAction getCloseAction() {
+        return closeAction;
+    }
+
+    /**
+     * Methode um eine tiefe Objektkopie per Serialisierung zu erzeugen!
+     *
+     * @param oldObj (muss Serializable implementieren)
+     * @return tiefe Kopie
+     * @throws Exception
+     */
+    public static Object deepCopy(Object oldObj) throws Exception {
+        Object clone = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(oldObj);
+            oos.flush();
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+            clone = ois.readObject();
+            oos.close();
+            ois.close();
+        } catch (Exception e) {
+            //$NON-NLS-1$
+            System.out.println(""Exception in ObjectCloner = "" + e);
+            throw (e);
+        }
+        return clone;
+    }
+
+    /**
+     * Liefert die Version der Anwendung als String
+     *
+     * @return version
+     */
+    public static String getVersion() {
+        //$NON-NLS-1$
+        return ""1.0.5"";
+    }
+}
+","// Main_5Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getSaveAction()} method.
+*/
+class Main_5Test {","// Main_5Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getSaveAction()} method.
+*/
+class Main_5Test {
+
+		/**
+		* Test case for {@link Main#getSaveAction()} method.
+		*/
+		@Test
+		void testGetSaveAction() {
+				// TODO: implement test
+		}
+}
+
+// Main_6Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getSetNameAction()} method.
+*/
+class Main_6Test {
+		
+		/**
+		* Test case for {@link Main#getSetNameAction()} method.
+		*/
+		@Test
+		void testGetSetNameAction() {
+				// TODO: implement test
+		}
+}
+
+// Main_7Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getCloseAction()} method.
+*/
+class Main_7Test {
+		
+		/**
+		* Test case for {@link Main#getCloseAction()} method.
+		*/
+		@Test
+		void testGetCloseAction() {
+				// TODO: implement test
+		}
+}
+
+// Main_8"
+cmpl-6wRZ5m4YPGNbCHKNj1TiPp4BfkmGH,/EvoSuiteBenchmark/original/56_jhandballmoves/src/main/java/visu/handball/moves/Main_7Test.java,71.07568025588989,length,"// Main.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+
+/**
+ * Hauptklasse zum Starten der Anwendung plus den Zugriff auf die entsprechenden Objekt-Instanzen
+ * @author tommy
+ */
+public class Main {
+
+    private static SaveAction saveAction;
+
+    private static CloseAction closeAction;
+
+    private static SetMoveNameAction setNameAction;
+
+    private static JFrame window;
+
+    private static Field field;
+
+    private static CommentView commentView;
+
+    private static ColorModel colorModel;
+
+    /**
+     * Liefert die Instanz des ColorModels
+     *
+     * @return colorModel
+     */
+    public static ColorModel getColorModel() {
+        return colorModel;
+    }
+
+    /**
+     * Main-Methode zum Starten der Anwendung
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(//$NON-NLS-1$
+            Resources.getString(""error.lookAndFell""));
+        }
+        //$NON-NLS-1$
+        window = new JFrame(Resources.getString(""app.title""));
+        //$NON-NLS-1$ //$NON-NLS-2$
+        window.setIconImage(createImageIcon(""images/icon.gif"", """").getImage());
+        JPanel content = new JPanel(new BorderLayout());
+        JDesktopPane desktop = new JDesktopPane();
+        window.setContentPane(content);
+        content.add(desktop, BorderLayout.CENTER);
+        desktop.setBackground(new Color(255, 255, 174));
+        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        // Create HandballModel
+        HandballModel handballModel = createHandballModel();
+        // Create ColorModel
+        colorModel = new ColorModel();
+        // Statusbar
+        StatusBar statusBar = createStatusBar(handballModel);
+        content.add(statusBar, BorderLayout.SOUTH);
+        // Create Menu
+        JMenuBar menu = createHandballMenu(handballModel);
+        window.setJMenuBar(menu);
+        // Create HandballField
+        field = new Field(handballModel, colorModel);
+        JInternalFrame handballField = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""field.title""), //$NON-NLS-1$
+        false, false, false, true);
+        handballField.setLocation(10, 10);
+        handballField.add(field);
+        handballField.setVisible(true);
+        handballField.pack();
+        desktop.add(handballField);
+        // Create MouseController
+        MouseController mouse = new MouseController(handballModel, handballField);
+        field.addMouseListener(mouse);
+        field.addMouseMotionListener(mouse);
+        // Add Statusbar as Listener
+        field.addMouseMotionListener(statusBar);
+        // Create ToolBar
+        PlayerToolBar playerBar = new PlayerToolBar(handballModel);
+        content.add(playerBar, BorderLayout.NORTH);
+        // Create EventView
+        JPanel tablePanel = createTablePanel(handballModel);
+        JInternalFrame eventView = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""events.title""), //$NON-NLS-1$
+        true, false, false, true);
+        eventView.add(tablePanel);
+        eventView.setLocation(20 + handballField.getWidth(), 10);
+        eventView.setVisible(true);
+        eventView.setSize(450, 400);
+        desktop.add(eventView);
+        // Create CommentView
+        //$NON-NLS-1$
+        commentView = new CommentView(Resources.getString(""comment.title""));
+        commentView.setLocation(20 + handballField.getWidth(), 420);
+        commentView.setSize(450, handballField.getHeight() - eventView.getHeight() - 10);
+        commentView.setVisible(true);
+        //Controller für CommentView erzeugen
+        new CommentController(handballModel, commentView);
+        desktop.add(commentView);
+        window.setSize(1000, 700);
+        locateOnScreenCenter(window);
+        window.addWindowListener(new WindowAdapter() {
+
+            public void windowClosing(WindowEvent e) {
+                Main.getCloseAction().actionPerformed(null);
+            }
+        });
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        window.setVisible(true);
+    }
+
+    private static JMenuBar createHandballMenu(HandballModel handballModel) {
+        JMenuBar mbar;
+        JMenu menuDatei, menuHilfe, menuEinstellungen;
+        // Hauptmenue einrichten
+        mbar = new JMenuBar();
+        //$NON-NLS-1$
+        menuDatei = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.file""));
+        //$NON-NLS-1$
+        menuEinstellungen = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.settings""));
+        //$NON-NLS-1$
+        menuHilfe = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.about""));
+        // Einträge fuer Datei
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        NewAction(handballModel));
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        OpenAction(handballModel));
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        saveAction = new SaveAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", saveAction);
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        setNameAction = new SetMoveNameAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", setNameAction);
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        //Drucken einfügen
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        PrintActualSequenzAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new PrintMoveAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new CreateMovePdfAction(handballModel));
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        closeAction = new CloseAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", closeAction);
+        // Einträge für Einstellungen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuEinstellungen, """", new ChangeColorsAction());
+        // Einträge für Hilfe
+        //$NON-NLS-1$
+        JMenuHelper.//$NON-NLS-1$
+        addMenuItem(//$NON-NLS-1$
+        menuHilfe, //$NON-NLS-1$
+        """", new AboutAction());
+        return mbar;
+    }
+
+    private static JPanel createTablePanel(HandballModel handballModel) {
+        TableHandballModel tableModel = new TableHandballModel(handballModel);
+        JTable table = new JTable(tableModel);
+        table.setDefaultRenderer(Object.class, new EventTableCellRenderer());
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        EventTableCellDelayEditor delayEditor = new EventTableCellDelayEditor();
+        table.getColumnModel().getColumn(3).setCellEditor(delayEditor);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(new TableSelectionListener(tableModel));
+        JPanel panel = new JPanel(new BorderLayout());
+        //$NON-NLS-1$
+        JToolBar toolBar = new JToolBar(Resources.getString(""toolbar.title""));
+        toolBar.add(new NewMoveEventAction(handballModel));
+        toolBar.add(new NewSequenceAction(handballModel));
+        toolBar.add(new NewPassEventAction(handballModel));
+        toolBar.add(new DeleteEventAction(handballModel));
+        toolBar.addSeparator();
+        toolBar.add(new StartOneSequenceAnimationAction(handballModel));
+        toolBar.add(new StartAnimationAction(handballModel));
+        toolBar.add(new PauseAnimationAction(handballModel));
+        toolBar.add(new StopAnimationAction(handballModel));
+        JScrollPane scroll = new JScrollPane(table);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(toolBar, BorderLayout.PAGE_START);
+        return panel;
+    }
+
+    private static StatusBar createStatusBar(HandballModel model) {
+        StatusBar statusBar = new StatusBar(model);
+        return statusBar;
+    }
+
+    /**
+     * Basierend auf der relativen Pfad (relativ zum Ort dieser Klasse) und der Beschreibung
+     * wird ein Grafik geladen und ein ImageIcon-Objekt erstellt.
+     * @param path
+     * @param description
+     *
+     * @return imageIcon
+     */
+    public static ImageIcon createImageIcon(String path, String description) {
+        URL url = Main.class.getResource(path);
+        return new ImageIcon(url, description);
+    }
+
+    /**
+     * Erzeugt auf Basis eines relativen Pfads (relativ zum Ort dieser Klasse) eine URL.
+     * @param path
+     *
+     * @return url
+     */
+    public static URL getResource(String path) {
+        return Main.class.getResource(path);
+    }
+
+    /**
+     * Methode um Component-Objekte (z.B. Fenster) in der Mitte des Bildschirms zu positionieren
+     * @param component
+     */
+    public static void locateOnScreenCenter(Component component) {
+        Dimension paneSize = component.getSize();
+        Dimension screenSize = component.getToolkit().getScreenSize();
+        component.setLocation((screenSize.width - paneSize.width) / 2, (screenSize.height - paneSize.height) / 2);
+    }
+
+    private static HandballModel createHandballModel() {
+        HandballModel model = new HandballModel();
+        return model;
+    }
+
+    /**
+     * Die Instanz des Anwendungsfensters
+     *
+     * @return window
+     */
+    public static JFrame getWindow() {
+        return window;
+    }
+
+    /**
+     * Instanz des Spielfeld-Panels
+     *
+     * @return panel
+     */
+    public static Field getField() {
+        return field;
+    }
+
+    /**
+     * Instanz der Speichern-Aktion
+     *
+     * @return saveAction
+     */
+    public static SaveAction getSaveAction() {
+        return saveAction;
+    }
+
+    public static SetMoveNameAction getSetNameAction() {
+        return setNameAction;
+    }
+
+    /**
+     * Instanz der Schlie�en-Aktion
+     *
+     * @return close Action
+     */
+    public static CloseAction getCloseAction() {
+        return closeAction;
+    }
+
+    /**
+     * Methode um eine tiefe Objektkopie per Serialisierung zu erzeugen!
+     *
+     * @param oldObj (muss Serializable implementieren)
+     * @return tiefe Kopie
+     * @throws Exception
+     */
+    public static Object deepCopy(Object oldObj) throws Exception {
+        Object clone = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(oldObj);
+            oos.flush();
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+            clone = ois.readObject();
+            oos.close();
+            ois.close();
+        } catch (Exception e) {
+            //$NON-NLS-1$
+            System.out.println(""Exception in ObjectCloner = "" + e);
+            throw (e);
+        }
+        return clone;
+    }
+
+    /**
+     * Liefert die Version der Anwendung als String
+     *
+     * @return version
+     */
+    public static String getVersion() {
+        //$NON-NLS-1$
+        return ""1.0.5"";
+    }
+}
+","// Main_7Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getCloseAction()} method.
+*/
+class Main_7Test {","// Main_7Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getCloseAction()} method.
+*/
+class Main_7Test {
+
+		/**
+		* Test case for {@link Main#getCloseAction()} method.
+		*/
+		@Test
+		void testGetCloseAction() {
+				// TODO: implement test
+		}
+}
+
+// Main_8Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getSetNameAction()} method.
+*/
+class Main_8Test {
+		
+		/**
+		* Test case for {@link Main#getSetNameAction()} method.
+		*/
+		@Test
+		void testGetSetNameAction() {
+				// TODO: implement test
+		}
+}
+
+// Main_9Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getVersion()} method.
+*/
+class Main_9Test {
+		
+		/**
+		* Test case for {@link Main#getVersion()} method.
+		*/
+		@Test
+		void testGetVersion() {
+				// TODO: implement test
+		}
+}
+
+// Main_Test.java
+"
+cmpl-6wRaE8Pxggx8fTZdVj4juvqhvsHPA,/EvoSuiteBenchmark/original/56_jhandballmoves/src/main/java/visu/handball/moves/Main_8Test.java,70.58146333694458,length,"// Main.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+
+/**
+ * Hauptklasse zum Starten der Anwendung plus den Zugriff auf die entsprechenden Objekt-Instanzen
+ * @author tommy
+ */
+public class Main {
+
+    private static SaveAction saveAction;
+
+    private static CloseAction closeAction;
+
+    private static SetMoveNameAction setNameAction;
+
+    private static JFrame window;
+
+    private static Field field;
+
+    private static CommentView commentView;
+
+    private static ColorModel colorModel;
+
+    /**
+     * Liefert die Instanz des ColorModels
+     *
+     * @return colorModel
+     */
+    public static ColorModel getColorModel() {
+        return colorModel;
+    }
+
+    /**
+     * Main-Methode zum Starten der Anwendung
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(//$NON-NLS-1$
+            Resources.getString(""error.lookAndFell""));
+        }
+        //$NON-NLS-1$
+        window = new JFrame(Resources.getString(""app.title""));
+        //$NON-NLS-1$ //$NON-NLS-2$
+        window.setIconImage(createImageIcon(""images/icon.gif"", """").getImage());
+        JPanel content = new JPanel(new BorderLayout());
+        JDesktopPane desktop = new JDesktopPane();
+        window.setContentPane(content);
+        content.add(desktop, BorderLayout.CENTER);
+        desktop.setBackground(new Color(255, 255, 174));
+        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        // Create HandballModel
+        HandballModel handballModel = createHandballModel();
+        // Create ColorModel
+        colorModel = new ColorModel();
+        // Statusbar
+        StatusBar statusBar = createStatusBar(handballModel);
+        content.add(statusBar, BorderLayout.SOUTH);
+        // Create Menu
+        JMenuBar menu = createHandballMenu(handballModel);
+        window.setJMenuBar(menu);
+        // Create HandballField
+        field = new Field(handballModel, colorModel);
+        JInternalFrame handballField = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""field.title""), //$NON-NLS-1$
+        false, false, false, true);
+        handballField.setLocation(10, 10);
+        handballField.add(field);
+        handballField.setVisible(true);
+        handballField.pack();
+        desktop.add(handballField);
+        // Create MouseController
+        MouseController mouse = new MouseController(handballModel, handballField);
+        field.addMouseListener(mouse);
+        field.addMouseMotionListener(mouse);
+        // Add Statusbar as Listener
+        field.addMouseMotionListener(statusBar);
+        // Create ToolBar
+        PlayerToolBar playerBar = new PlayerToolBar(handballModel);
+        content.add(playerBar, BorderLayout.NORTH);
+        // Create EventView
+        JPanel tablePanel = createTablePanel(handballModel);
+        JInternalFrame eventView = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""events.title""), //$NON-NLS-1$
+        true, false, false, true);
+        eventView.add(tablePanel);
+        eventView.setLocation(20 + handballField.getWidth(), 10);
+        eventView.setVisible(true);
+        eventView.setSize(450, 400);
+        desktop.add(eventView);
+        // Create CommentView
+        //$NON-NLS-1$
+        commentView = new CommentView(Resources.getString(""comment.title""));
+        commentView.setLocation(20 + handballField.getWidth(), 420);
+        commentView.setSize(450, handballField.getHeight() - eventView.getHeight() - 10);
+        commentView.setVisible(true);
+        //Controller für CommentView erzeugen
+        new CommentController(handballModel, commentView);
+        desktop.add(commentView);
+        window.setSize(1000, 700);
+        locateOnScreenCenter(window);
+        window.addWindowListener(new WindowAdapter() {
+
+            public void windowClosing(WindowEvent e) {
+                Main.getCloseAction().actionPerformed(null);
+            }
+        });
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        window.setVisible(true);
+    }
+
+    private static JMenuBar createHandballMenu(HandballModel handballModel) {
+        JMenuBar mbar;
+        JMenu menuDatei, menuHilfe, menuEinstellungen;
+        // Hauptmenue einrichten
+        mbar = new JMenuBar();
+        //$NON-NLS-1$
+        menuDatei = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.file""));
+        //$NON-NLS-1$
+        menuEinstellungen = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.settings""));
+        //$NON-NLS-1$
+        menuHilfe = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.about""));
+        // Einträge fuer Datei
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        NewAction(handballModel));
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        OpenAction(handballModel));
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        saveAction = new SaveAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", saveAction);
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        setNameAction = new SetMoveNameAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", setNameAction);
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        //Drucken einfügen
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        PrintActualSequenzAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new PrintMoveAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new CreateMovePdfAction(handballModel));
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        closeAction = new CloseAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", closeAction);
+        // Einträge für Einstellungen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuEinstellungen, """", new ChangeColorsAction());
+        // Einträge für Hilfe
+        //$NON-NLS-1$
+        JMenuHelper.//$NON-NLS-1$
+        addMenuItem(//$NON-NLS-1$
+        menuHilfe, //$NON-NLS-1$
+        """", new AboutAction());
+        return mbar;
+    }
+
+    private static JPanel createTablePanel(HandballModel handballModel) {
+        TableHandballModel tableModel = new TableHandballModel(handballModel);
+        JTable table = new JTable(tableModel);
+        table.setDefaultRenderer(Object.class, new EventTableCellRenderer());
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        EventTableCellDelayEditor delayEditor = new EventTableCellDelayEditor();
+        table.getColumnModel().getColumn(3).setCellEditor(delayEditor);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(new TableSelectionListener(tableModel));
+        JPanel panel = new JPanel(new BorderLayout());
+        //$NON-NLS-1$
+        JToolBar toolBar = new JToolBar(Resources.getString(""toolbar.title""));
+        toolBar.add(new NewMoveEventAction(handballModel));
+        toolBar.add(new NewSequenceAction(handballModel));
+        toolBar.add(new NewPassEventAction(handballModel));
+        toolBar.add(new DeleteEventAction(handballModel));
+        toolBar.addSeparator();
+        toolBar.add(new StartOneSequenceAnimationAction(handballModel));
+        toolBar.add(new StartAnimationAction(handballModel));
+        toolBar.add(new PauseAnimationAction(handballModel));
+        toolBar.add(new StopAnimationAction(handballModel));
+        JScrollPane scroll = new JScrollPane(table);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(toolBar, BorderLayout.PAGE_START);
+        return panel;
+    }
+
+    private static StatusBar createStatusBar(HandballModel model) {
+        StatusBar statusBar = new StatusBar(model);
+        return statusBar;
+    }
+
+    /**
+     * Basierend auf der relativen Pfad (relativ zum Ort dieser Klasse) und der Beschreibung
+     * wird ein Grafik geladen und ein ImageIcon-Objekt erstellt.
+     * @param path
+     * @param description
+     *
+     * @return imageIcon
+     */
+    public static ImageIcon createImageIcon(String path, String description) {
+        URL url = Main.class.getResource(path);
+        return new ImageIcon(url, description);
+    }
+
+    /**
+     * Erzeugt auf Basis eines relativen Pfads (relativ zum Ort dieser Klasse) eine URL.
+     * @param path
+     *
+     * @return url
+     */
+    public static URL getResource(String path) {
+        return Main.class.getResource(path);
+    }
+
+    /**
+     * Methode um Component-Objekte (z.B. Fenster) in der Mitte des Bildschirms zu positionieren
+     * @param component
+     */
+    public static void locateOnScreenCenter(Component component) {
+        Dimension paneSize = component.getSize();
+        Dimension screenSize = component.getToolkit().getScreenSize();
+        component.setLocation((screenSize.width - paneSize.width) / 2, (screenSize.height - paneSize.height) / 2);
+    }
+
+    private static HandballModel createHandballModel() {
+        HandballModel model = new HandballModel();
+        return model;
+    }
+
+    /**
+     * Die Instanz des Anwendungsfensters
+     *
+     * @return window
+     */
+    public static JFrame getWindow() {
+        return window;
+    }
+
+    /**
+     * Instanz des Spielfeld-Panels
+     *
+     * @return panel
+     */
+    public static Field getField() {
+        return field;
+    }
+
+    /**
+     * Instanz der Speichern-Aktion
+     *
+     * @return saveAction
+     */
+    public static SaveAction getSaveAction() {
+        return saveAction;
+    }
+
+    public static SetMoveNameAction getSetNameAction() {
+        return setNameAction;
+    }
+
+    /**
+     * Instanz der Schlie�en-Aktion
+     *
+     * @return close Action
+     */
+    public static CloseAction getCloseAction() {
+        return closeAction;
+    }
+
+    /**
+     * Methode um eine tiefe Objektkopie per Serialisierung zu erzeugen!
+     *
+     * @param oldObj (muss Serializable implementieren)
+     * @return tiefe Kopie
+     * @throws Exception
+     */
+    public static Object deepCopy(Object oldObj) throws Exception {
+        Object clone = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(oldObj);
+            oos.flush();
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+            clone = ois.readObject();
+            oos.close();
+            ois.close();
+        } catch (Exception e) {
+            //$NON-NLS-1$
+            System.out.println(""Exception in ObjectCloner = "" + e);
+            throw (e);
+        }
+        return clone;
+    }
+
+    /**
+     * Liefert die Version der Anwendung als String
+     *
+     * @return version
+     */
+    public static String getVersion() {
+        //$NON-NLS-1$
+        return ""1.0.5"";
+    }
+}
+","// Main_8Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#deepCopy(Object)} method.
+*/
+class Main_8Test {","// Main_8Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#deepCopy(Object)} method.
+*/
+class Main_8Test {
+
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link HandballModel}.
+		*/
+		@Test
+		void testDeepCopy_HandballModel() throws Exception {
+				HandballModel model = new HandballModel();
+				HandballModel clone = (HandballModel) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link ColorModel}.
+		*/
+		@Test
+		void testDeepCopy_ColorModel() throws Exception {
+				ColorModel model = new ColorModel();
+				ColorModel clone = (ColorModel) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link TableHandballModel}.
+		*/
+		@Test
+		void testDeepCopy_TableHandballModel() throws Exception {
+				TableHandballModel model = new TableHandballModel(new HandballModel());
+				TableHandballModel clone = (TableHandballModel) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link TableSelectionListener}.
+		*/
+		@Test
+		void testDeepCopy_TableSelectionListener() throws Exception {
+				TableSelectionListener model = new TableSelectionListener(new TableHandballModel(new HandballModel()));
+				TableSelectionListener clone = (TableSelectionListener) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link EventTableCellRenderer}.
+		*/
+		@Test
+		void testDeepCopy_EventTableCellRenderer() throws Exception {
+				EventTableCellRenderer model = new EventTableCellRenderer();
+				EventTableCellRenderer clone = (EventTableCellRenderer) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link EventTableCellDelayEditor}.
+		*/
+		@Test
+		void testDeepCopy_EventTableCellDelayEditor() throws Exception {
+				EventTableCellDelayEditor model = new EventTableCellDelayEditor();
+				EventTableCellDelayEditor clone = (EventTableCellDelayEditor) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link StatusBar}.
+		*/
+		@Test
+		void testDeepCopy_StatusBar() throws Exception {
+				StatusBar model = new StatusBar(new HandballModel());
+				StatusBar clone = (StatusBar) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link PlayerToolBar}.
+		*/
+		@Test
+		void testDeepCopy_PlayerToolBar() throws Exception {
+				PlayerToolBar model = new PlayerToolBar(new HandballModel());
+				PlayerToolBar clone = (PlayerToolBar) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link CommentView}.
+		*/
+		@Test
+		void testDeepCopy_CommentView() throws Exception {
+				CommentView model = new CommentView("""");
+				CommentView clone = (CommentView) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+		/**
+		* Test case for {@link Main#deepCopy(Object)} method.
+		* Tested object is {@link Field}.
+		*/
+		@Test
+		void testDeepCopy_Field() throws Exception {
+				Field model = new Field(new HandballModel(), new ColorModel());
+				Field clone = (Field) Main.deepCopy(model);
+				assertNotSame(model, clone);
+				assertEquals(model, clone);
+		}
+		
+}
+
+// MouseController.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves.controller;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JInternalFrame;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.MoveEvent;
+import visu.handball.moves.model.MoveEvent.EventType;
+import visu.handball.moves.model.MoveEvent.Player;
+import visu.handball.moves.model.MoveEvent.PlayerPosition;
+import visu.handball.moves.model.MoveEvent.PlayerState;
+import visu.handball.moves.model.MoveEvent.PlayerType;
+import visu.handball.moves.model.MoveEvent.Team;
+import visu.handball.moves.model.MoveEvent.TeamState;
+import visu.handball.moves.model.MoveEvent.TeamType;
+import visu.handball.moves.model.MoveEvent.Time;
+import visu.handball.moves.model.MoveEvent.TimeType;
+import visu.handball.moves.model.MoveEvent.Zone;
+import visu.handball.moves.views.Field;
+
+/**
+ * Controller für die Maus-Eingaben
+ * @author tommy
+ */
+public class MouseController implements MouseListener, MouseMotionListener {
+
+    private HandballModel model;
+
+    private JInternalFrame frame;
+
+    private List<Move"
+cmpl-6wRbNrtEbLOklRkbTMizwJBFeyZei,/EvoSuiteBenchmark/original/56_jhandballmoves/src/main/java/visu/handball/moves/Main_9Test.java,61.919934034347534,length,"// Main.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+
+/**
+ * Hauptklasse zum Starten der Anwendung plus den Zugriff auf die entsprechenden Objekt-Instanzen
+ * @author tommy
+ */
+public class Main {
+
+    private static SaveAction saveAction;
+
+    private static CloseAction closeAction;
+
+    private static SetMoveNameAction setNameAction;
+
+    private static JFrame window;
+
+    private static Field field;
+
+    private static CommentView commentView;
+
+    private static ColorModel colorModel;
+
+    /**
+     * Liefert die Instanz des ColorModels
+     *
+     * @return colorModel
+     */
+    public static ColorModel getColorModel() {
+        return colorModel;
+    }
+
+    /**
+     * Main-Methode zum Starten der Anwendung
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(//$NON-NLS-1$
+            Resources.getString(""error.lookAndFell""));
+        }
+        //$NON-NLS-1$
+        window = new JFrame(Resources.getString(""app.title""));
+        //$NON-NLS-1$ //$NON-NLS-2$
+        window.setIconImage(createImageIcon(""images/icon.gif"", """").getImage());
+        JPanel content = new JPanel(new BorderLayout());
+        JDesktopPane desktop = new JDesktopPane();
+        window.setContentPane(content);
+        content.add(desktop, BorderLayout.CENTER);
+        desktop.setBackground(new Color(255, 255, 174));
+        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        // Create HandballModel
+        HandballModel handballModel = createHandballModel();
+        // Create ColorModel
+        colorModel = new ColorModel();
+        // Statusbar
+        StatusBar statusBar = createStatusBar(handballModel);
+        content.add(statusBar, BorderLayout.SOUTH);
+        // Create Menu
+        JMenuBar menu = createHandballMenu(handballModel);
+        window.setJMenuBar(menu);
+        // Create HandballField
+        field = new Field(handballModel, colorModel);
+        JInternalFrame handballField = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""field.title""), //$NON-NLS-1$
+        false, false, false, true);
+        handballField.setLocation(10, 10);
+        handballField.add(field);
+        handballField.setVisible(true);
+        handballField.pack();
+        desktop.add(handballField);
+        // Create MouseController
+        MouseController mouse = new MouseController(handballModel, handballField);
+        field.addMouseListener(mouse);
+        field.addMouseMotionListener(mouse);
+        // Add Statusbar as Listener
+        field.addMouseMotionListener(statusBar);
+        // Create ToolBar
+        PlayerToolBar playerBar = new PlayerToolBar(handballModel);
+        content.add(playerBar, BorderLayout.NORTH);
+        // Create EventView
+        JPanel tablePanel = createTablePanel(handballModel);
+        JInternalFrame eventView = new //$NON-NLS-1$
+        JInternalFrame(//$NON-NLS-1$
+        Resources.getString(""events.title""), //$NON-NLS-1$
+        true, false, false, true);
+        eventView.add(tablePanel);
+        eventView.setLocation(20 + handballField.getWidth(), 10);
+        eventView.setVisible(true);
+        eventView.setSize(450, 400);
+        desktop.add(eventView);
+        // Create CommentView
+        //$NON-NLS-1$
+        commentView = new CommentView(Resources.getString(""comment.title""));
+        commentView.setLocation(20 + handballField.getWidth(), 420);
+        commentView.setSize(450, handballField.getHeight() - eventView.getHeight() - 10);
+        commentView.setVisible(true);
+        //Controller für CommentView erzeugen
+        new CommentController(handballModel, commentView);
+        desktop.add(commentView);
+        window.setSize(1000, 700);
+        locateOnScreenCenter(window);
+        window.addWindowListener(new WindowAdapter() {
+
+            public void windowClosing(WindowEvent e) {
+                Main.getCloseAction().actionPerformed(null);
+            }
+        });
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        window.setVisible(true);
+    }
+
+    private static JMenuBar createHandballMenu(HandballModel handballModel) {
+        JMenuBar mbar;
+        JMenu menuDatei, menuHilfe, menuEinstellungen;
+        // Hauptmenue einrichten
+        mbar = new JMenuBar();
+        //$NON-NLS-1$
+        menuDatei = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.file""));
+        //$NON-NLS-1$
+        menuEinstellungen = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.settings""));
+        //$NON-NLS-1$
+        menuHilfe = JMenuHelper.addMenuBarItem(mbar, Resources.getString(""menu.about""));
+        // Einträge fuer Datei
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        NewAction(handballModel));
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        OpenAction(handballModel));
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        saveAction = new SaveAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", saveAction);
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        setNameAction = new SetMoveNameAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", setNameAction);
+        //Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        //Drucken einfügen
+        JMenuHelper.addMenuItem(menuDatei, """", new //$NON-NLS-1$
+        PrintActualSequenzAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new PrintMoveAction(handballModel));
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", new CreateMovePdfAction(handballModel));
+        // Separator einfügen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, ""-"");
+        closeAction = new CloseAction(handballModel);
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuDatei, """", closeAction);
+        // Einträge für Einstellungen
+        //$NON-NLS-1$
+        JMenuHelper.addMenuItem(menuEinstellungen, """", new ChangeColorsAction());
+        // Einträge für Hilfe
+        //$NON-NLS-1$
+        JMenuHelper.//$NON-NLS-1$
+        addMenuItem(//$NON-NLS-1$
+        menuHilfe, //$NON-NLS-1$
+        """", new AboutAction());
+        return mbar;
+    }
+
+    private static JPanel createTablePanel(HandballModel handballModel) {
+        TableHandballModel tableModel = new TableHandballModel(handballModel);
+        JTable table = new JTable(tableModel);
+        table.setDefaultRenderer(Object.class, new EventTableCellRenderer());
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        EventTableCellDelayEditor delayEditor = new EventTableCellDelayEditor();
+        table.getColumnModel().getColumn(3).setCellEditor(delayEditor);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(new TableSelectionListener(tableModel));
+        JPanel panel = new JPanel(new BorderLayout());
+        //$NON-NLS-1$
+        JToolBar toolBar = new JToolBar(Resources.getString(""toolbar.title""));
+        toolBar.add(new NewMoveEventAction(handballModel));
+        toolBar.add(new NewSequenceAction(handballModel));
+        toolBar.add(new NewPassEventAction(handballModel));
+        toolBar.add(new DeleteEventAction(handballModel));
+        toolBar.addSeparator();
+        toolBar.add(new StartOneSequenceAnimationAction(handballModel));
+        toolBar.add(new StartAnimationAction(handballModel));
+        toolBar.add(new PauseAnimationAction(handballModel));
+        toolBar.add(new StopAnimationAction(handballModel));
+        JScrollPane scroll = new JScrollPane(table);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(toolBar, BorderLayout.PAGE_START);
+        return panel;
+    }
+
+    private static StatusBar createStatusBar(HandballModel model) {
+        StatusBar statusBar = new StatusBar(model);
+        return statusBar;
+    }
+
+    /**
+     * Basierend auf der relativen Pfad (relativ zum Ort dieser Klasse) und der Beschreibung
+     * wird ein Grafik geladen und ein ImageIcon-Objekt erstellt.
+     * @param path
+     * @param description
+     *
+     * @return imageIcon
+     */
+    public static ImageIcon createImageIcon(String path, String description) {
+        URL url = Main.class.getResource(path);
+        return new ImageIcon(url, description);
+    }
+
+    /**
+     * Erzeugt auf Basis eines relativen Pfads (relativ zum Ort dieser Klasse) eine URL.
+     * @param path
+     *
+     * @return url
+     */
+    public static URL getResource(String path) {
+        return Main.class.getResource(path);
+    }
+
+    /**
+     * Methode um Component-Objekte (z.B. Fenster) in der Mitte des Bildschirms zu positionieren
+     * @param component
+     */
+    public static void locateOnScreenCenter(Component component) {
+        Dimension paneSize = component.getSize();
+        Dimension screenSize = component.getToolkit().getScreenSize();
+        component.setLocation((screenSize.width - paneSize.width) / 2, (screenSize.height - paneSize.height) / 2);
+    }
+
+    private static HandballModel createHandballModel() {
+        HandballModel model = new HandballModel();
+        return model;
+    }
+
+    /**
+     * Die Instanz des Anwendungsfensters
+     *
+     * @return window
+     */
+    public static JFrame getWindow() {
+        return window;
+    }
+
+    /**
+     * Instanz des Spielfeld-Panels
+     *
+     * @return panel
+     */
+    public static Field getField() {
+        return field;
+    }
+
+    /**
+     * Instanz der Speichern-Aktion
+     *
+     * @return saveAction
+     */
+    public static SaveAction getSaveAction() {
+        return saveAction;
+    }
+
+    public static SetMoveNameAction getSetNameAction() {
+        return setNameAction;
+    }
+
+    /**
+     * Instanz der Schlie�en-Aktion
+     *
+     * @return close Action
+     */
+    public static CloseAction getCloseAction() {
+        return closeAction;
+    }
+
+    /**
+     * Methode um eine tiefe Objektkopie per Serialisierung zu erzeugen!
+     *
+     * @param oldObj (muss Serializable implementieren)
+     * @return tiefe Kopie
+     * @throws Exception
+     */
+    public static Object deepCopy(Object oldObj) throws Exception {
+        Object clone = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(oldObj);
+            oos.flush();
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+            clone = ois.readObject();
+            oos.close();
+            ois.close();
+        } catch (Exception e) {
+            //$NON-NLS-1$
+            System.out.println(""Exception in ObjectCloner = "" + e);
+            throw (e);
+        }
+        return clone;
+    }
+
+    /**
+     * Liefert die Version der Anwendung als String
+     *
+     * @return version
+     */
+    public static String getVersion() {
+        //$NON-NLS-1$
+        return ""1.0.5"";
+    }
+}
+","// Main_9Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getVersion()} method.
+*/
+class Main_9Test {","// Main_9Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getVersion()} method.
+*/
+class Main_9Test {
+
+		/**
+		* Test case for {@link Main#getVersion()}.
+		*/
+		@Test
+		void testGetVersion() {
+				assertEquals(""1.0.5"", Main.getVersion());
+		}
+}
+
+// Main_8Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getVersion()} method.
+*/
+class Main_8Test {
+		
+		/**
+		* Test case for {@link Main#getVersion()}.
+		*/
+		@Test
+		void testGetVersion() {
+				assertEquals(""1.0.5"", Main.getVersion());
+		}
+}
+
+// Main_7Test.java
+package visu.handball.moves;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import visu.handball.moves.actions.AboutAction;
+import visu.handball.moves.actions.ChangeColorsAction;
+import visu.handball.moves.actions.CloseAction;
+import visu.handball.moves.actions.CreateMovePdfAction;
+import visu.handball.moves.actions.DeleteEventAction;
+import visu.handball.moves.actions.NewAction;
+import visu.handball.moves.actions.NewMoveEventAction;
+import visu.handball.moves.actions.NewPassEventAction;
+import visu.handball.moves.actions.NewSequenceAction;
+import visu.handball.moves.actions.OpenAction;
+import visu.handball.moves.actions.PauseAnimationAction;
+import visu.handball.moves.actions.PrintActualSequenzAction;
+import visu.handball.moves.actions.PrintMoveAction;
+import visu.handball.moves.actions.SaveAction;
+import visu.handball.moves.actions.SetMoveNameAction;
+import visu.handball.moves.actions.StartAnimationAction;
+import visu.handball.moves.actions.StartOneSequenceAnimationAction;
+import visu.handball.moves.actions.StopAnimationAction;
+import visu.handball.moves.controller.CommentController;
+import visu.handball.moves.controller.JMenuHelper;
+import visu.handball.moves.controller.MouseController;
+import visu.handball.moves.model.ColorModel;
+import visu.handball.moves.model.HandballModel;
+import visu.handball.moves.model.TableHandballModel;
+import visu.handball.moves.model.TableSelectionListener;
+import visu.handball.moves.resources.Resources;
+import visu.handball.moves.views.CommentView;
+import visu.handball.moves.views.EventTableCellDelayEditor;
+import visu.handball.moves.views.EventTableCellRenderer;
+import visu.handball.moves.views.Field;
+import visu.handball.moves.views.PlayerToolBar;
+import visu.handball.moves.views.StatusBar;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Main}.
+* It contains ten unit test cases for the {@link Main#getVersion()} method.
+*/
+class Main_7Test {
+		
+		/**
+		* Test case for {@link Main#getVersion()}.
+		*/
+		@Test
+		void testGetVersion() {
+				assertEquals(""1.0.5"", Main.getVersion());
+	"
+cmpl-6wRcNQSLJpqE2Jcap4PWSw8ArNLa0,/EvoSuiteBenchmark/original/56_jhandballmoves/src/main/java/visu/handball/moves/controller/JMenuHelper_0Test.java,56.30275893211365,length,"// JMenuHelper.java
+/*
+ * Created on 31.08.2006
+ * Created by Richard Doerfler, Thomas Halm
+ * Copyright (C) 2006  Richard Doerfler, Thomas Halm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package visu.handball.moves.controller;
+
+import java.awt.event.*;
+import javax.swing.*;
+
+public class JMenuHelper {
+
+    /**
+     * Add an element to the menubar.
+     *
+     * @param menuBar a JMenuBar
+     * @param s a String
+     *
+     * @return added JMenu
+     */
+    public static JMenu addMenuBarItem(JMenuBar menuBar, String s) {
+        JMenu menu;
+        /**
+         * Suche nach '_' und nimm das nächste Zeichen als Mnemonic,
+         * sonst: normales Menu
+         */
+        if (s.indexOf(""_"") > -1) {
+            int pos = s.indexOf(""_"");
+            char c = s.charAt(pos + 1);
+            StringBuffer sb = new StringBuffer(s).delete(pos, pos + 1);
+            menu = new JMenu(sb.toString());
+            menu.setMnemonic(c);
+        } else
+            menu = new JMenu(s);
+        menuBar.add(menu);
+        return menu;
+    }
+
+    private static JMenuItem processAction(Action a) {
+        if (a != null) {
+            return new JMenuItem(a);
+        } else {
+            return new JMenuItem();
+        }
+    }
+
+    /**
+     * Setze das Zeichen nach '_' als Mnemonic des MenuItems
+     * @param s
+     */
+    private static void processMnemonic(JMenuItem menuItem, String s) {
+        if (s.indexOf(""_"") > -1) {
+            int pos = s.indexOf(""_"");
+            char c = s.charAt(pos + 1);
+            StringBuffer sb = new StringBuffer(s).delete(pos, pos + 1);
+            menuItem.setName(sb.toString());
+            menuItem.setMnemonic(c);
+        }
+    }
+
+    /**
+     * Insert a JMenuItem to a given JMenu.
+     *
+     * @param m
+     *            a JMenu
+     * @param s
+     *            a String
+     * @param keyChar
+     *            a char
+     * @param al
+     *            an ActionListener
+     *
+     * @return a JMenuItem
+     */
+    public static JMenuItem addMenuItem(JMenu m, String s, char keyChar, Action a, ActionListener al) {
+        if (s.startsWith(""-"")) {
+            m.addSeparator();
+            return null;
+        }
+        JMenuItem menuItem = processAction(a);
+        processMnemonic(menuItem, s);
+        //füge den Short-Cut hinzu
+        if (keyChar != 0)
+            menuItem.setAccelerator(KeyStroke.getKeyStroke(keyChar, InputEvent.CTRL_MASK));
+        //Actionslistener anmelden
+        if (al != null)
+            menuItem.addActionListener(al);
+        //dem Menu hinzufügen
+        m.add(menuItem);
+        return menuItem;
+    }
+
+    public static JMenuItem addMenuItem(JMenu m, String s, char c) {
+        return addMenuItem(m, s, c, null, null);
+    }
+
+    public static JMenuItem addMenuItem(JMenu m, String s) {
+        return addMenuItem(m, s, (char) 0, null, null);
+    }
+
+    public static JMenuItem addMenuItem(JMenu m, String s, ActionListener al) {
+        return addMenuItem(m, s, (char) 0, null, al);
+    }
+
+    public static JMenuItem addMenuItem(JMenu m, String s, Action a) {
+        return addMenuItem(m, s, (char) 0, a, null);
+    }
+
+    public static JMenuItem addMenuItem(JMenu m, String s, char c, Action a) {
+        return addMenuItem(m, s, c, a, null);
+    }
+}
+","// JMenuHelper_0Test.java
+package visu.handball.moves.controller;
+
+import java.awt.event.*;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JMenuHelper}.
+* It contains ten unit test cases for the {@link JMenuHelper#addMenuBarItem(JMenuBar, String)} method.
+*/
+class JMenuHelper_0Test {","// JMenuHelper_0Test.java
+package visu.handball.moves.controller;
+
+import java.awt.event.*;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JMenuHelper}.
+* It contains ten unit test cases for the {@link JMenuHelper#addMenuBarItem(JMenuBar, String)} method.
+*/
+class JMenuHelper_0Test {
+
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_0() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_1() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_2() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_3() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_4() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_5() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_6() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_7() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_8() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuBarItem(JMenuBar, String)}.
+	* It tests if the method returns a JMenu.
+	*/
+	@Test
+	void testAddMenuBarItem_9() {
+		JMenuBar menuBar = new JMenuBar();
+		String s = """";
+		JMenu result = JMenuHelper.addMenuBarItem(menuBar, s);
+		assertTrue(result instanceof JMenu);
+	}
+	
+}
+
+// JMenuHelper_1Test.java
+package visu.handball.moves.controller;
+
+import java.awt.event.*;
+import javax.swing.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JMenuHelper}.
+* It contains ten unit test cases for the {@link JMenuHelper#addMenuItem(JMenu, String, char, Action, ActionListener)} method.
+*/
+class JMenuHelper_1Test {
+		
+	/**
+	* Test case for {@link JMenuHelper#addMenuItem(JMenu, String, char, Action, ActionListener)}.
+	* It tests if the method returns a JMenuItem.
+	*/
+	@Test
+	void testAddMenuItem_0() {
+		JMenu m = new JMenu();
+		String s = """";
+		char keyChar = ' ';
+		Action a = null;
+		ActionListener al = null;
+		JMenuItem result = JMenuHelper.addMenuItem(m, s, keyChar, a, al);
+		assertTrue(result instanceof JMenuItem);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuItem(JMenu, String, char, Action, ActionListener)}.
+	* It tests if the method returns a JMenuItem.
+	*/
+	@Test
+	void testAddMenuItem_1() {
+		JMenu m = new JMenu();
+		String s = """";
+		char keyChar = ' ';
+		Action a = null;
+		ActionListener al = null;
+		JMenuItem result = JMenuHelper.addMenuItem(m, s, keyChar, a, al);
+		assertTrue(result instanceof JMenuItem);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuItem(JMenu, String, char, Action, ActionListener)}.
+	* It tests if the method returns a JMenuItem.
+	*/
+	@Test
+	void testAddMenuItem_2() {
+		JMenu m = new JMenu();
+		String s = """";
+		char keyChar = ' ';
+		Action a = null;
+		ActionListener al = null;
+		JMenuItem result = JMenuHelper.addMenuItem(m, s, keyChar, a, al);
+		assertTrue(result instanceof JMenuItem);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuItem(JMenu, String, char, Action, ActionListener)}.
+	* It tests if the method returns a JMenuItem.
+	*/
+	@Test
+	void testAddMenuItem_3() {
+		JMenu m = new JMenu();
+		String s = """";
+		char keyChar = ' ';
+		Action a = null;
+		ActionListener al = null;
+		JMenuItem result = JMenuHelper.addMenuItem(m, s, keyChar, a, al);
+		assertTrue(result instanceof JMenuItem);
+	}
+	
+	/**
+	* Test case for {@link JMenuHelper#addMenuItem(JMenu, String, char, Action, ActionListener)}.
+"

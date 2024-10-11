@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the implementation of the `DefaultHomeInputStream` class is missing. Can you provide the complete code for both `DefaultHomeInputStream` and `DefaultHomeInputStreamTest`?

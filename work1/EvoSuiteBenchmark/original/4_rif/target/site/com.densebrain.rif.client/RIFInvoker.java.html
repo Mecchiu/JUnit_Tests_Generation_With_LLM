@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RIFInvoker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">com.densebrain.rif.client</a> &gt; <span class="el_source">RIFInvoker.java</span></div><h1>RIFInvoker.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.densebrain.rif.client;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+
+import org.apache.bcel.Constants;
+import org.apache.bcel.generic.ArrayType;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.ClassGen;
+import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.FieldGen;
+import org.apache.bcel.generic.InstructionConstants;
+import org.apache.bcel.generic.InstructionFactory;
+import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.Type;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.densebrain.rif.client.service.RIFService;
+import com.densebrain.rif.client.service.types.Invoke;
+import com.densebrain.rif.client.service.types.InvokeResponse;
+import com.densebrain.rif.util.ObjectUtility;
+
+/**
+ * The RIFInvoker is the class that actually builds the dynamic 
+ * interface proxies and invokes the calls between the host and 
+ * the client.
+ * 
+ *  Sample Code:
+ *  
+ *  &lt;code&gt;
+ *  RIFInvoker invoker = RIFManagerFactory.getInvoker(YourRemoteInterface.class);
+ *  YourRemoteInterface yourRemoteInterface = (YourRemoteInterface) invoker.getImpl();
+ *    
+ *  or
+ *  
+ *  YourRemoteInterface yourRemoteInterface = (YourRemoteInterface) 
+ *  	RIFManagerFactory.getImpl(YourRemoteInterface.class);
+ *  &lt;/code&gt;
+ * 
+ * @author Jonathan Glanz
+ *
+ */
+public class RIFInvoker&lt;I extends Object&gt; implements Constants {
+	
+<span class="nc" id="L76">	private static final Log log = LogFactory.getLog(RIFInvoker.class);</span>
+	
+	private RIFManager manager;
+	private Class interfaceClazz;
+	private I impl;
+	
+	/**
+	 * The default constructor accepts the manager that it is invoking for as 
+	 * well as the interface that it will proxy for and then it builds a dynamically
+	 * generated proxy to the interface leveraging the implmentation provided by
+	 * the server.
+	 * 
+	 * @param manager - The RIFManager that it will use to invoke the remote service
+	 * @param interfaceClazz - The interface that it will proxy to the server
+	 * @throws RemoteException - If there is any issue building the proxy then an exception is raised.
+	 */
+<span class="nc" id="L92">	protected RIFInvoker(RIFManager manager, Class interfaceClazz) throws RemoteException {</span>
+<span class="nc" id="L93">		this.manager = manager;</span>
+<span class="nc" id="L94">		this.interfaceClazz = interfaceClazz;</span>
+		
+<span class="nc" id="L96">		buildImpl();</span>
+<span class="nc" id="L97">	}</span>
+	
+	/**
+	 * The buiuldImpl() method is the method that actually examines the interface that this 
+	 * invoker will proxy for and builds the dynamic implmentation of the interface.
+	 * 
+	 * Then it instantiates the newly created class and the new instance is available through getImpl()
+	 * 
+	 * @throws RemoteException
+	 */
+	private void buildImpl() throws RemoteException {
+<span class="nc bnc" id="L108" title="All 2 branches missed.">		if (interfaceClazz == null) throw new RemoteException(&quot;Interface class can not be null&quot;);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">		if (!interfaceClazz.isInterface()) throw new RemoteException(&quot;Interface class must be an interface&quot;);</span>
+		
+<span class="nc" id="L111">		Method[] methods = interfaceClazz.getMethods();</span>
+		Method method;
+<span class="nc bnc" id="L113" title="All 2 branches missed.">		for (int i = 0; i &lt; methods.length;i++) {</span>
+<span class="nc" id="L114">			method = methods[i];</span>
+			
+<span class="nc" id="L116">			checkRemoteExceptionDeclared(method);</span>
+		}
+		
+<span class="nc" id="L119">		String implName = interfaceClazz.getName() + &quot;RIFImpl&quot;;</span>
+<span class="nc" id="L120">		ClassGen cg = new ClassGen(implName, &quot;java.lang.Object&quot;,</span>
+<span class="nc" id="L121">				&quot;&lt;generated&gt;&quot;, ACC_PUBLIC | ACC_SUPER, new String[] { interfaceClazz.getName() });</span>
+		
+<span class="nc" id="L123">		ConstantPoolGen cp = cg.getConstantPool(); // cg creates constant pool		</span>
+		InstructionList il;
+<span class="nc" id="L125">		InstructionFactory instructionFactory = new InstructionFactory(cg, cp);</span>
+		
+		//Create Invoker Field
+		FieldGen field;
+<span class="nc" id="L129">	    field = new FieldGen(ACC_PRIVATE, new ObjectType(RIFInvoker.class.getName()), &quot;invoker&quot;, cp);</span>
+<span class="nc" id="L130">	    cg.addField(field.getField());</span>
+	    
+	    
+	    //Create Constructor
+<span class="nc" id="L134">	    il = new InstructionList();</span>
+<span class="nc" id="L135">	    MethodGen methodGen = new MethodGen(ACC_PUBLIC, Type.VOID, new Type[] { new ObjectType(RIFInvoker.class.getName()) }, new String[] { &quot;invoker&quot; }, &quot;&lt;init&gt;&quot;, implName, il, cp);</span>
+
+<span class="nc" id="L137">	    il.append(InstructionFactory.createLoad(Type.OBJECT, 0));</span>
+<span class="nc" id="L138">	    il.append(instructionFactory.createInvoke(&quot;java.lang.Object&quot;, &quot;&lt;init&gt;&quot;, Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));</span>
+<span class="nc" id="L139">	    il.append(InstructionFactory.createLoad(Type.OBJECT, 0));</span>
+<span class="nc" id="L140">	    il.append(InstructionFactory.createLoad(Type.OBJECT, 1));</span>
+<span class="nc" id="L141">	    il.append(instructionFactory.createFieldAccess(implName, &quot;invoker&quot;, new ObjectType(RIFInvoker.class.getName()), Constants.PUTFIELD));</span>
+<span class="nc" id="L142">	    il.append(InstructionFactory.createReturn(Type.VOID));</span>
+<span class="nc" id="L143">	    methodGen.setMaxStack();</span>
+<span class="nc" id="L144">	    methodGen.setMaxLocals();</span>
+<span class="nc" id="L145">	    cg.addMethod(methodGen.getMethod());</span>
+<span class="nc" id="L146">	    il.dispose();</span>
+	    
+	    //Create methods
+<span class="nc bnc" id="L149" title="All 2 branches missed.">	    for (int i = 0; i &lt; methods.length;i++) {</span>
+<span class="nc" id="L150">	    	method = methods[i];</span>
+	    	
+<span class="nc" id="L152">	    	Class[] paramClassTypes = method.getParameterTypes();</span>
+<span class="nc" id="L153">	    	String[] paramNames = new String[paramClassTypes.length];</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">	    	for (int j = 0; j &lt; paramClassTypes.length;j++) {</span>
+<span class="nc" id="L155">	    		paramNames[j] = &quot;arg&quot; + j;</span>
+	    	}
+	    	
+<span class="nc" id="L158">	    	Type[] paramTypes = new Type[paramClassTypes.length];</span>
+<span class="nc" id="L159">	    	int paramCount = paramTypes.length;</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">	    	for (int j = 0; j &lt; paramTypes.length;j++) {</span>
+<span class="nc" id="L161">	    		Class paramClassType = paramClassTypes[j];</span>
+<span class="nc" id="L162">	    		paramTypes[j] = Type.getType(paramClassType);</span>
+	    	}
+	    	
+<span class="nc" id="L165">	    	Class returnTypeClazz = method.getReturnType();</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">	    	Type returnType = (method.getReturnType() == null) ? Type.VOID : Type.getType(returnTypeClazz);</span>
+	    	
+	    	
+	    	
+<span class="nc" id="L170">	    	il = new InstructionList();</span>
+<span class="nc" id="L171">		    methodGen = new MethodGen(ACC_PUBLIC, returnType, paramTypes, paramNames, method.getName(), implName, il, cp);</span>
+
+<span class="nc" id="L173">		    il.append(new org.apache.bcel.generic.PUSH(cp, paramCount));</span>
+<span class="nc" id="L174">		    il.append(instructionFactory.createNewArray(Type.OBJECT, (short) 1));</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">		    for (int j = 0; j &lt; paramCount;j++) {</span>
+<span class="nc" id="L176">		    	il.append(InstructionConstants.DUP);</span>
+<span class="nc" id="L177">			    il.append(new org.apache.bcel.generic.PUSH(cp, j));</span>
+<span class="nc" id="L178">			    il.append(InstructionFactory.createLoad(Type.OBJECT, j+1));</span>
+<span class="nc" id="L179">			    il.append(InstructionConstants.AASTORE);</span>
+		    }
+<span class="nc" id="L181">		    il.append(InstructionFactory.createStore(Type.OBJECT, paramCount+1));</span>
+		    
+<span class="nc" id="L183">		    il.append(InstructionFactory.createLoad(Type.OBJECT, 0));</span>
+<span class="nc" id="L184">		    il.append(instructionFactory.createFieldAccess(</span>
+		    		implName, 
+		    		&quot;invoker&quot;, 
+<span class="nc" id="L187">		    		new ObjectType(RIFInvoker.class.getName()), </span>
+		    		Constants.GETFIELD));
+		    
+<span class="nc" id="L190">		    il.append(new org.apache.bcel.generic.PUSH(cp, method.getName()));</span>
+<span class="nc" id="L191">		    il.append(InstructionFactory.createLoad(Type.OBJECT, paramCount+1));</span>
+<span class="nc" id="L192">		    il.append(instructionFactory.createInvoke(</span>
+<span class="nc" id="L193">		    		RIFInvoker.class.getName(), </span>
+		    		&quot;invoke&quot;, 
+		    		Type.OBJECT, 
+		    		new Type[] { Type.STRING, new ArrayType(Type.OBJECT, 1) }, 
+		    		Constants.INVOKEVIRTUAL));
+		    
+		    //il.append(instructionFactory.createCheckCast(Type.STRING));
+		    
+<span class="nc bnc" id="L201" title="All 2 branches missed.">		    if (!Type.VOID.equals(returnType)) {</span>
+<span class="nc bnc" id="L202" title="All 4 branches missed.">		    	if (returnTypeClazz != null &amp;&amp; returnTypeClazz.isPrimitive()) {</span>
+		    		//il.append(InstructionFactory.createLoad(Type.OBJECT, 1));
+<span class="nc" id="L204">				    il.append(instructionFactory.createInvoke(&quot;java.lang.Object&quot;, &quot;toString&quot;, Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">				    if (Boolean.TYPE.equals(returnTypeClazz)) {</span>
+<span class="nc" id="L206">				    	il.append(instructionFactory.createInvoke(&quot;java.lang.Boolean&quot;, &quot;valueOf&quot;, new ObjectType(&quot;java.lang.Boolean&quot;), new Type[] { Type.STRING }, Constants.INVOKESTATIC));</span>
+<span class="nc" id="L207">				    	il.append(instructionFactory.createInvoke(&quot;java.lang.Boolean&quot;, &quot;booleanValue&quot;, Type.BOOLEAN, Type.NO_ARGS, Constants.INVOKEVIRTUAL));</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">				    } else if (Long.TYPE.equals(returnTypeClazz)) </span>
+<span class="nc" id="L209">				    	il.append(instructionFactory.createInvoke(&quot;java.lang.Long&quot;, &quot;parseLong&quot;, Type.LONG, new Type[] { Type.STRING }, Constants.INVOKESTATIC));</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">				    else if (Integer.TYPE.equals(returnTypeClazz)) </span>
+<span class="nc" id="L211">				    	il.append(instructionFactory.createInvoke(&quot;java.lang.Integer&quot;, &quot;parseInt&quot;, Type.INT, new Type[] { Type.STRING }, Constants.INVOKESTATIC));</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">				    else if (Short.TYPE.equals(returnTypeClazz)) </span>
+<span class="nc" id="L213">				    	il.append(instructionFactory.createInvoke(&quot;java.lang.Short&quot;, &quot;parseShort&quot;, Type.SHORT, new Type[] { Type.STRING }, Constants.INVOKESTATIC));</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">				    else if (Float.TYPE.equals(returnTypeClazz)) </span>
+<span class="nc" id="L215">				    	il.append(instructionFactory.createInvoke(&quot;java.lang.Float&quot;, &quot;parseFloat&quot;, Type.FLOAT, new Type[] { Type.STRING }, Constants.INVOKESTATIC));</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">				    else if (Double.TYPE.equals(returnTypeClazz))</span>
+<span class="nc" id="L217">				    	il.append(instructionFactory.createInvoke(&quot;java.lang.Double&quot;, &quot;parseDouble&quot;, Type.DOUBLE, new Type[] { Type.STRING }, Constants.INVOKESTATIC));</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">				    else if (Byte.TYPE.equals(returnTypeClazz)) </span>
+<span class="nc" id="L219">				    	il.append(instructionFactory.createInvoke(&quot;java.lang.Byte&quot;, &quot;parseByte&quot;, Type.INT, new Type[] { Type.STRING }, Constants.INVOKESTATIC));</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">				    else if (Character.TYPE.equals(returnTypeClazz)) </span>
+<span class="nc" id="L221">				    	throw new IllegalArgumentException(&quot;Return type char is not currently supported&quot;);</span>
+		    	} else {
+<span class="nc" id="L223">			    	il.append(instructionFactory.createCast(Type.OBJECT, returnType));			    	</span>
+		    	}
+		    }
+<span class="nc" id="L226">		    il.append(InstructionFactory.createReturn(returnType));</span>
+		    
+<span class="nc" id="L228">		    methodGen.setMaxStack();</span>
+<span class="nc" id="L229">		    methodGen.setMaxLocals();</span>
+<span class="nc" id="L230">		    cg.addMethod(methodGen.getMethod());</span>
+<span class="nc" id="L231">		    il.dispose();</span>
+	    }
+	    
+<span class="nc" id="L234">	    manager.getClassLoader().registerClass(implName, cg.getJavaClass().getBytes());</span>
+	    
+	    try {
+<span class="nc" id="L237">	    	Class implClass = Class.forName(implName, true, manager.getClassLoader());</span>
+<span class="nc" id="L238">	    	Constructor constructor = implClass.getConstructor(new Class[] { RIFInvoker.class });</span>
+<span class="nc" id="L239">	    	impl = (I) constructor.newInstance(new Object[] { this });</span>
+<span class="nc" id="L240">	    } catch (Exception e) {</span>
+<span class="nc" id="L241">	    	log.error(&quot;Error while instantiating &quot; + implName + &quot; for &quot; + interfaceClazz.getName(), e);</span>
+<span class="nc" id="L242">	    	throw new RemoteException(&quot;Error while instantiating &quot; + implName + &quot; for &quot; + interfaceClazz.getName(), e);</span>
+<span class="nc" id="L243">	    }</span>
+<span class="nc" id="L244">	}	</span>
+
+	
+	/**
+	 * Retrieves the instance of the interface implmentation that was dynamically generated
+	 * 
+	 * @return - the implementation of the interface that this class is implementing
+	 */
+	public I getImpl() {
+<span class="nc" id="L253">		return impl;</span>
+	}
+	
+	public Object invoke(String methodName, Object[] params) throws RemoteException {
+<span class="nc" id="L257">		RIFService service = manager.getService();</span>
+		
+<span class="nc" id="L259">		Invoke invoke = new Invoke();</span>
+<span class="nc" id="L260">		invoke.setClassName(interfaceClazz.getName());</span>
+<span class="nc" id="L261">		invoke.setMethodName(methodName);</span>
+		try {
+<span class="nc" id="L263">			invoke.setSerializedParams(ObjectUtility.encodeBytes(ObjectUtility.serializeObject(params)));</span>
+<span class="nc" id="L264">		} catch (IOException ioe) {</span>
+<span class="nc" id="L265">			throw new RemoteException(&quot;Unable to serialize parameters&quot;, ioe);</span>
+<span class="nc" id="L266">		}</span>
+<span class="nc" id="L267">		InvokeResponse invokeResponse = service.invoke(invoke);</span>
+<span class="nc" id="L268">		String serializedResponse = invokeResponse.get_return();</span>
+		try {
+<span class="nc" id="L270">			return ObjectUtility.deserializeObjectBase64Encoded(serializedResponse);</span>
+<span class="nc" id="L271">		} catch (IOException ioe) {</span>
+<span class="nc" id="L272">			throw new RemoteException(&quot;Unable to deserialize return value: &quot; + ioe.getMessage(), ioe);</span>
+		}
+	}
+	
+	private void checkRemoteExceptionDeclared(Method method) throws RemoteException{
+<span class="nc" id="L277">		Class[] exceptionTypes = method.getExceptionTypes();</span>
+<span class="nc" id="L278">		boolean exists = false;</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">		for (int i = 0; i &lt; exceptionTypes.length;i++) {</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">			if (RemoteException.class.equals(exceptionTypes[i])) {</span>
+<span class="nc" id="L281">				exists = true;</span>
+<span class="nc" id="L282">				break;</span>
+			}
+		}
+		
+<span class="nc bnc" id="L286" title="All 2 branches missed.">		if (!exists) throw new RemoteException(&quot;Method &quot; + method.getName() + &quot; does not declare RemoteException as a throwable&quot;);</span>
+<span class="nc" id="L287">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

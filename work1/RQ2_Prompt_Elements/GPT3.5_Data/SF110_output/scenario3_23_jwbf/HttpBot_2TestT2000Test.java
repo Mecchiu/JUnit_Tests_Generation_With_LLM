@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `getPage` method in the `HttpBot` class is not implemented. Can you provide the complete implementation of the `getPage` method so that I can assist you in writing the test cases for it?

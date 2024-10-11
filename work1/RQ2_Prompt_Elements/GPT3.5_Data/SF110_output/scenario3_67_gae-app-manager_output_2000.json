@@ -1,0 +1,52 @@
+[
+{
+    "id": "chatcmpl-6yWJWIUxJDCIKvYF1lrLaR55Qz3nT",
+    "object": "chat.completion",
+    "created": 1679881914,
+    "model": "gpt-3.5-turbo-0301",
+    "usage": {
+        "prompt_tokens": 317,
+        "completion_tokens": 936,
+        "total_tokens": 1253
+    },
+    "choices": [
+        {
+            "message": {
+                "role": "assistant",
+                "content": "// Here's an example implementation of the Manager class and its test class:\n\n// Manager.java\npackage net.sf.gaeappmanager.google.appengine;\n\nimport org.apache.http.HttpResponse;\nimport org.apache.http.client.methods.HttpGet;\nimport org.apache.http.impl.client.DefaultHttpClient;\n\n/**\n * Google App Engine application manager.\n *\n * @author Alois Belaska\n */\npublic class Manager {\n\n    /**\n     * Retrieve quota details of application deployed in Google App Engine.\n     *\n     * @param userid full gmail address for user\n     * @param password gmail account password\n     * @param source name of application requesting quota details\n     * @param application appspot application name\n     * @return quota details of application\n     * @throws Exception in case of failure\n     */\n    public static QuotaDetails retrieveAppQuotaDetails(String userid, String password, String source, String application) throws Exception {\n        // Log in to the user's Google account\n        LogonHelper logonHelper = new LogonHelper();\n        logonHelper.login(userid, password);\n\n        // Construct the URL to retrieve the quota details\n        String url = \"https://appengine.google.com/api/appversion/get_quotas?app_id=\" + application;\n\n        // Set up the HTTP request\n        HttpGet request = new HttpGet(url);\n        request.setHeader(\"Authorization\", \"GoogleLogin auth=\" + logonHelper.getAuthToken());\n        request.setHeader(\"User-Agent\", source);\n\n        // Send the HTTP request and get the response\n        DefaultHttpClient httpClient = new DefaultHttpClient();\n        HttpResponse response = httpClient.execute(request);\n\n        // Parse the response and return the quota details\n        QuotaDetails quotaDetails = QuotaDetails.parse(response.getEntity().getContent());\n        return quotaDetails;\n    }\n}\n\n// ManagerTest.java\npackage net.sf.gaeappmanager.google.appengine;\n\nimport org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.*;\n\n/**\n * Test class of {@link Manager}.\n * It contains ten unit test cases for the {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.\n */\nclass ManagerTest {\n\n    @Test\n    void testRetrieveAppQuotaDetails() throws Exception {\n        // Test case 1: Valid input\n        QuotaDetails quotaDetails = Manager.retrieveAppQuotaDetails(\"user@gmail.com\", \"password\", \"MyApp\", \"myapp\");\n        assertNotNull(quotaDetails);\n        assertEquals(1000000, quotaDetails.getDailyBudget());\n        assertEquals(1000000, quotaDetails.getDailyUsage());\n        assertEquals(10000000, quotaDetails.getStorageLimit());\n        assertEquals(1000000, quotaDetails.getStorageUsage());\n\n        // Test case 2: Invalid user ID\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"\", \"password\", \"MyApp\", \"myapp\");\n        });\n\n        // Test case 3: Invalid password\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"user@gmail.com\", \"\", \"MyApp\", \"myapp\");\n        });\n\n        // Test case 4: Invalid source\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"user@gmail.com\", \"password\", \"\", \"myapp\");\n        });\n\n        // Test case 5: Invalid application\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"user@gmail.com\", \"password\", \"MyApp\", \"\");\n        });\n\n        // Test case 6: Non-existent application\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"user@gmail.com\", \"password\", \"MyApp\", \"nonexistentapp\");\n        });\n\n        // Test case 7: Insufficient permissions\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"user2@gmail.com\", \"password2\", \"MyApp\", \"myapp\");\n        });\n\n        // Test case 8: Server error\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"user@gmail.com\", \"password\", \"MyApp\", \"servererror\");\n        });\n\n        // Test case 9: Network error\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"user@gmail.com\", \"password\", \"MyApp\", \"networkerror\");\n        });\n\n        // Test case 10: Timeout\n        assertThrows(Exception.class, () -> {\n            Manager.retrieveAppQuotaDetails(\"user@gmail.com\", \"password\", \"MyApp\", \"timeout\");\n        });\n    }\n}"
+            },
+            "finish_reason": "stop",
+            "index": 0
+        }
+    ],
+    "time_taken": 36.865143060684204,
+    "prompt_id": "/EvoSuiteBenchmark/original/67_gae-app-manager/src/main/java/net/sf/gaeappmanager/google/appengine/Manager.java",
+    "original_code": "// Manager.java\npackage net.sf.gaeappmanager.google.appengine;\n\nimport net.sf.gaeappmanager.google.LogonHelper;\nimport org.apache.http.HttpResponse;\nimport org.apache.http.client.methods.HttpGet;\nimport org.apache.http.impl.client.DefaultHttpClient;\n\n/**\n * Google App Engine application manager.\n *\n * @author Alois Belaska\n */\npublic class Manager {\n\n    /**\n     * Retrieve quota details of application deployed in Google App Engine.\n     *\n     * @param userid full gmail address for user\n     * @param password gmail account password\n     * @param source name of application requesting quota details\n     * @param application appspot application name\n     * @return quota details of application\n     * @throws Exception in case of failure\n     */\n    public static QuotaDetails retrieveAppQuotaDetails(String userid, String password, String source, String application) throws Exception;\n}\n",
+    "test_prompt": "// ManagerTest.java\npackage net.sf.gaeappmanager.google.appengine;\n\nimport net.sf.gaeappmanager.google.LogonHelper;\nimport org.apache.http.HttpResponse;\nimport org.apache.http.client.methods.HttpGet;\nimport org.apache.http.impl.client.DefaultHttpClient;\nimport org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.*;\n\n/**\n* Test class of {@link Manager}.\n* It contains ten unit test cases for the {@link Manager#retrieveAppQuotaDetails(String, String, String, String)} method.\n*/\nclass ManagerTest {"
+},
+{
+    "id": "chatcmpl-6yWKZdsvbI6Bfc5mgkxC685mVqZvk",
+    "object": "chat.completion",
+    "created": 1679881979,
+    "model": "gpt-3.5-turbo-0301",
+    "usage": {
+        "prompt_tokens": 499,
+        "completion_tokens": 52,
+        "total_tokens": 551
+    },
+    "choices": [
+        {
+            "message": {
+                "role": "assistant",
+                "content": "I'm sorry, but the code you provided is incomplete. It seems that the `loginToGoogleAppEngine` method in the `LogonHelper` class is not implemented. Can you provide the complete implementation of this method so I can assist you better?"
+            },
+            "finish_reason": "stop",
+            "index": 0
+        }
+    ],
+    "time_taken": 2.461927890777588,
+    "prompt_id": "/EvoSuiteBenchmark/original/67_gae-app-manager/src/main/java/net/sf/gaeappmanager/google/LogonHelper.java",
+    "original_code": "// LogonHelper.java\npackage net.sf.gaeappmanager.google;\n\nimport java.io.BufferedReader;\nimport java.io.InputStream;\nimport java.io.InputStreamReader;\nimport java.io.LineNumberReader;\nimport java.util.ArrayList;\nimport java.util.List;\nimport org.apache.http.HttpResponse;\nimport org.apache.http.NameValuePair;\nimport org.apache.http.client.entity.UrlEncodedFormEntity;\nimport org.apache.http.client.methods.HttpGet;\nimport org.apache.http.client.methods.HttpPost;\nimport org.apache.http.cookie.Cookie;\nimport org.apache.http.impl.client.DefaultHttpClient;\nimport org.apache.http.message.BasicNameValuePair;\nimport org.apache.http.protocol.HTTP;\n\n/**\n * Google login helper.\n *\n * Based on work of Cheers Geoff.\n *\n * http://groups.google.com/group/google-appengine\n * -java/browse_thread/thread/c96d4fff73117e1d?pli=1\n *\n * @author Alois Belaska\n */\npublic class LogonHelper {\n\n    /**\n     * Returns the ACSID string to be set as the Cookie field in the request\n     * header.\n     *\n     * @param userid full gmail address for user\n     * @param password password\n     * @param source name of application requesting quota details\n     * @return the ACSID field value\n     * @throws Exception if any error occurs getting the ACSID\n     */\n    public static String loginToGoogleAppEngine(String userid, String password, String source) throws Exception;\n}\n",
+    "test_prompt": "// LogonHelperTest.java\npackage net.sf.gaeappmanager.google;\n\nimport java.io.BufferedReader;\nimport java.io.InputStream;\nimport java.io.InputStreamReader;\nimport java.io.LineNumberReader;\nimport java.util.ArrayList;\nimport java.util.List;\nimport org.apache.http.HttpResponse;\nimport org.apache.http.NameValuePair;\nimport org.apache.http.client.entity.UrlEncodedFormEntity;\nimport org.apache.http.client.methods.HttpGet;\nimport org.apache.http.client.methods.HttpPost;\nimport org.apache.http.cookie.Cookie;\nimport org.apache.http.impl.client.DefaultHttpClient;\nimport org.apache.http.message.BasicNameValuePair;\nimport org.apache.http.protocol.HTTP;\nimport org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.*;\n\n/**\n* Test class of {@link LogonHelper}.\n* It contains ten unit test cases for the {@link LogonHelper#loginToGoogleAppEngine(String, String, String)} method.\n*/\nclass LogonHelperTest {"
+}
+]

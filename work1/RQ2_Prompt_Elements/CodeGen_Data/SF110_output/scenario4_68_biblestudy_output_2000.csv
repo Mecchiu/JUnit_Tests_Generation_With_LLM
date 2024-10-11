@@ -1,0 +1,630 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+32ba2a3b-e91d-40bb-8a13-dc64470a43d2,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/servlet/HTMLOutputStream.java,62.61625099182129,length,"// HTMLOutputStream.java
+package bible.servlet;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.net.*;
+
+/**
+ * A container for output streams with its own buffers
+ *
+ * @author Luke Samaha
+ */
+public class HTMLOutputStream {
+
+    public HTMLOutputStream(HttpServletResponse response) throws IOException {
+    }
+
+    public void print(String str);
+
+    public void print(int n);
+
+    public void println(String str);
+
+    public void println(int n);
+
+    public void flush() throws IOException;
+
+    public int getSize();
+
+    public PrintWriter getPW();
+
+    /**
+     * @author James Stauffer
+     * @return String the contents of the buffer.
+     */
+    public String reset();
+
+    public String toString();
+
+    //  Private instance variables
+    private HttpServletResponse response = null;
+
+    private boolean binary = false;
+
+    private ByteArrayOutputStream baos = null;
+
+    private PrintWriter pw = null;
+}
+","// HTMLOutputStreamTest.java
+package bible.servlet;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.net.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HTMLOutputStream}.
+* It contains one unit test case for the {@link HTMLOutputStream#reset()} method.
+*/
+class HTMLOutputStreamTest {","// HTMLOutputStreamTest.java
+package bible.servlet;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.net.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HTMLOutputStream}.
+* It contains one unit test case for the {@link HTMLOutputStream#reset()} method.
+*/
+class HTMLOutputStreamTest {
+
+    @Test
+    public void test() {
+    	
+    	HTMLOutputStream.print(""Hello, world!"");
+    	
+    	try {
+    		response.addHeader(""text/html"", ""Hello, Ola"");
+    		byte b[] = new byte[10];
+    		FileOutputStream out = new FileOutputStream(""HTMLOutputStreamTest"") {
+    			public int write(int b) {
+    				return super.write(b);
+    			}
+    		};
+    		out.write(b);
+    		out.flush();
+    	} catch (IOException e) {
+    		assertEquals(e.getMessage(), ""Unable to write to stream."");
+    	}
+    	
+    	assertEquals(""Hello, Ola"", response.getMessage());
+
+
+    }
+
+    void println(String str) {
+    	String s1 = str;
+		try {
+			response.addHeader(""text/html"", ""<li>""+s1+""</li>"");
+			response.addHeader(""text/html"", ""<a href=\""/\"">http://www.google.com</a>"");
+			response.addHeader(""text/html"", ""<img src=\""/public/images/logo.png\"" alt=\""Log\""/><a href=\""/\"">http://www.google.com</a>"");
+			response.addHeader(""text/html"", ""<a href=\""http://google.com\"">http://www.google.com</a>"");
+			response.addHeader(""text/html"", ""<body>""+str+""</body>"");
+	
+			response.addHeader(""Content-Length"",
+									String.valueOf(response.getContentLength()));
+			response.addHeader(""Content-Type"",
+									response.getContentType());
+	
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			PrintStream out = new PrintStream(""HTMLOutputStreamTest.out"", ""UTF-8"");
+			response.setContentType(""text/html"");
+			baos = baos;
+			out.print(response);
+			out.flush();
+			
+			if (response.getContentType().endsWith(""; charset=UTF-8"")) {
+				Document doc = response.getDocument();
+				NodeList nodeList = doc.getChildNodes();
+				int length = nodeList.getLength();
+				for (int i = 0; i < length; i++) {
+					Node child = nodeList.item(i);
+					if (child.getNodeType()!= Node.ELEMENT_NODE) {
+						continue;
+					}
+					String content = child.getNodeValue();
+					byte [] bytes = toByteArray(content);
+					out = new PrintStream(""HTMLOutputStreamTest.out"", ""UTF-8"");
+					baos = baos;
+					out.print(doc.asXML());
+					out.flush();
+					
+					if (content.indexOf(""<"")!= 0) {
+						continue;
+					}
+					
+					int startPos = content.indexOf(""</"") + 1;
+					int endPos = content.indexOf(""<a "");
+					if (endPos == -1) {
+						continue;
+					}
+					String headStart = content.substring(0, startPos);
+					String headContent = content.substring(startPos, endPos);
+
+					headContent = headStart + content + headContent;
+					
+					content = HeadLine.insertAt(content, startPos);
+					
+					byte [] contentBytes = toByteArray(headContent);
+					out = new PrintStream(""HTMLOutputStreamTest.out"", ""UTF-8"");
+					baos = baos;
+					out.print(headStart + headContent);
+					out.print(headContent);
+					out.print(content);
+					out.print(headContent);
+					out.flush();
+					
+					if (headContent.indexOf(""</"" + content.substring(startPos) + ""/>"")!= -1) {
+						if (content.indexOf(""</</content>"")!= -1) {
+							content += ""<\n>\n</\n>"";
+						}
+					} else {
+						if (content.indexOf(""</</content>"")!= -1) {
+							content += ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n"";
+						} else {
+							content += content + ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n""
+									+ ""<\n"";
+						}
+					}					
+					baos = baos;
+					out.print(content);
+					
+					Document.removeChild(doc, child);
+		    
+			} else {
+				response.addHeader(""content-length"",
+									String.valueOf(response.getContentLength()));
+				response.setContentType(""text/html; charset=UTF-8"");
+				response.setContentType(""text/html"");
+				outputToBuffer(response, baos);
+			}
+			}
+/////////////////////////////////////////////////////////////////////////////////////////
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    /**
+     * @param response the {@link HttpServletResponse} to be added to
+     * @param baos the {@link ByteArrayOutputStream}
+     * @throws IOException cannot be thrown
+     */
+    private void outputToBuffer(HttpServletResponse response, ByteArrayOutputStream baos) throws IOException {
+    	int contentLength = response.getContentLength();
+    	int pos = 0;
+    	int newpos = 0;
+        response.setContentType(""text/html"");
+    	while (pos < contentLength) {
+    		response.setContentLength(pos + 524);
+    		pos = response.getContentLength();
+    		pos += 524;
+    	}
+		response.setContentLength(""524""); // should use max length
+		pos = response.getContentLength();
+		String content = baos.toString();
+		content = ""<!DOCTYPE html PUBLIC \""-//W3C//DTD XHTML 1.0 Strict//EN\"" \""http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\"">\n""
+				+ ""<html xmlns=\""http://www.w3.org/1999/xhtml\"">\n""
+				+ ""<head>\n""
+				+ ""<meta http-equiv=\""Content-Language\"" content=\""en-us\"" />\n""
+				+ ""</head>\n""
+				+ ""<body>\n""
+				+ ""  <p>This is the contents of the HTML document.</p>\n""
+				+ ""  <p>\n""
+				+ ""    <ul>\n""
+				+ ""      <li"
+e684b054-5ed0-40fe-b606-5b4370a83170,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/util/Queue_0Test.java,38.456624269485474,stop,"// Queue.java
+package bible.util;
+
+import java.util.*;
+
+/**
+ * Queue is a storage class to link together <b>Node</b> objects which are
+ * stored in a first in first out storage system.
+ *
+ * @see Node
+ * @version 1.0
+ * @author LaMoine Zielieke, James Stauffer
+ */
+public class Queue {
+
+    public final static int NO_MAXIMUM = -1;
+
+    /**
+     * number of items in this list
+     */
+    private int numItems;
+
+    private int maxNumItems;
+
+    private int maxCapacity;
+
+    /**
+     * first Node in list
+     */
+    private Node first;
+
+    /**
+     * last Node in list
+     */
+    private Node last;
+
+    /**
+     * Constructor creating an empty Queue.  All variables are set to zero
+     * or null.
+     */
+    public Queue() {
+    }
+
+    /**
+     * Constructor creating an empty Queue.  All variables are set to zero
+     * or null.
+     */
+    public Queue(int capacity) {
+    }
+
+    /**
+     * See if the queue is empty.
+     * @return     <code>true</code> if Queue is empty;
+     *             <code>false</code> otherwise.
+     */
+    public boolean isEmpty();
+
+    /**
+     * Insert an object into the end of the queue
+     *
+     * @param someObject  the Object to store
+     */
+    public void enqueue(Object someObject);
+
+    /**
+     * Remove an object from the front of the Queue
+     *
+     * @return       Object if Queue is not empty
+     *               otherwise print message to dos window
+     * @see GameQuestion
+     */
+    public synchronized Object dequeue();
+
+    /**
+     *  Removes all nodes where Node.value.equals(object).
+     */
+    public synchronized int remove(Object object);
+
+    /**
+     *  Moves element to back of que.
+     */
+    public synchronized void refreshElement(Object object);
+
+    /**
+     * See how many items are in the queue.
+     *
+     * @return integer value of number of items in queue
+     */
+    public int getNumberItems();
+
+    /**
+     * The peak number of items in the Queue.
+     *
+     * @return peak number of items in queue
+     */
+    public int getPeakNumberItems();
+
+    /**
+     * The Queue is stepped through one node at a time and the
+     * QuestionNumber is inserted into a Vector.This action copies
+     * unused question numbers from queue into temp vector.
+     *
+     * @return   Vector of unused question numbers. In this way when
+     *           a new vector of randomized numbers is created the nunbers
+     *           already in the queue will not be duplicated.  If number
+     *           396 is in the queue we do not want 396 to appear in the
+     *           new randomized vector.  This method is only called in
+     *           <b>DataBase</b>
+     * @see      Database#load
+     * @see      GameQuestion
+     */
+    public Vector getObjects();
+
+    /**
+     *  Returns true if the first should be removed.
+     */
+    public boolean maxCapacityExceeded();
+
+    public String toString();
+
+    /**
+     * Node objects hold the Object to be stored and the next node in our linked list.
+     * In this way we can access the next node in our <b>Queue</b>.
+     *
+     * @version   2.0
+     * @author    LaMoine Zielieke
+     */
+    class Node {
+
+        /**
+         * The next Node in the chain.
+         */
+        Node next;
+
+        /**
+         * The Object this node stores.
+         */
+        Object value;
+
+        /**
+         * @param  obj   the Object to be inserted into the node.
+         */
+        public Node(Object obj) {
+            value = obj;
+        }
+    }
+}
+","// Queue_0Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#dequeue()} method.
+*/
+class Queue_0Test {","// Queue_0Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#dequeue()} method.
+*/
+class Queue_0Test {
+
+    @Test
+    public void dequeue() {
+        Queue queue = new Queue();
+        System.out.println(""After the Queue"");
+        queue.dequeue();
+        System.out.println(""Dequeued from the Queue"");
+    }
+
+
+    @Test
+    public void maxCapacityExceeded() {
+        Queue queue = new Queue(1024);
+        System.out.println(""Max Capacity Exceeded"");
+        queue.maxCapacityExceeded();
+        System.out.println(""Max capacity Exceeded called"");
+    }
+}
+// Queue_1Test.java"
+a65d63e3-01a5-4fe9-a132-2790d8b4a54d,/EvoSuiteBenchmark/original/68_biblestudy/src/main/java/bible/util/Queue_1Test.java,29.967912673950195,stop,"// Queue.java
+package bible.util;
+
+import java.util.*;
+
+/**
+ * Queue is a storage class to link together <b>Node</b> objects which are
+ * stored in a first in first out storage system.
+ *
+ * @see Node
+ * @version 1.0
+ * @author LaMoine Zielieke, James Stauffer
+ */
+public class Queue {
+
+    public final static int NO_MAXIMUM = -1;
+
+    /**
+     * number of items in this list
+     */
+    private int numItems;
+
+    private int maxNumItems;
+
+    private int maxCapacity;
+
+    /**
+     * first Node in list
+     */
+    private Node first;
+
+    /**
+     * last Node in list
+     */
+    private Node last;
+
+    /**
+     * Constructor creating an empty Queue.  All variables are set to zero
+     * or null.
+     */
+    public Queue() {
+    }
+
+    /**
+     * Constructor creating an empty Queue.  All variables are set to zero
+     * or null.
+     */
+    public Queue(int capacity) {
+    }
+
+    /**
+     * See if the queue is empty.
+     * @return     <code>true</code> if Queue is empty;
+     *             <code>false</code> otherwise.
+     */
+    public boolean isEmpty();
+
+    /**
+     * Insert an object into the end of the queue
+     *
+     * @param someObject  the Object to store
+     */
+    public void enqueue(Object someObject);
+
+    /**
+     * Remove an object from the front of the Queue
+     *
+     * @return       Object if Queue is not empty
+     *               otherwise print message to dos window
+     * @see GameQuestion
+     */
+    public synchronized Object dequeue();
+
+    /**
+     *  Removes all nodes where Node.value.equals(object).
+     */
+    public synchronized int remove(Object object);
+
+    /**
+     *  Moves element to back of que.
+     */
+    public synchronized void refreshElement(Object object);
+
+    /**
+     * See how many items are in the queue.
+     *
+     * @return integer value of number of items in queue
+     */
+    public int getNumberItems();
+
+    /**
+     * The peak number of items in the Queue.
+     *
+     * @return peak number of items in queue
+     */
+    public int getPeakNumberItems();
+
+    /**
+     * The Queue is stepped through one node at a time and the
+     * QuestionNumber is inserted into a Vector.This action copies
+     * unused question numbers from queue into temp vector.
+     *
+     * @return   Vector of unused question numbers. In this way when
+     *           a new vector of randomized numbers is created the nunbers
+     *           already in the queue will not be duplicated.  If number
+     *           396 is in the queue we do not want 396 to appear in the
+     *           new randomized vector.  This method is only called in
+     *           <b>DataBase</b>
+     * @see      Database#load
+     * @see      GameQuestion
+     */
+    public Vector getObjects();
+
+    /**
+     *  Returns true if the first should be removed.
+     */
+    public boolean maxCapacityExceeded();
+
+    public String toString();
+
+    /**
+     * Node objects hold the Object to be stored and the next node in our linked list.
+     * In this way we can access the next node in our <b>Queue</b>.
+     *
+     * @version   2.0
+     * @author    LaMoine Zielieke
+     */
+    class Node {
+
+        /**
+         * The next Node in the chain.
+         */
+        Node next;
+
+        /**
+         * The Object this node stores.
+         */
+        Object value;
+
+        /**
+         * @param  obj   the Object to be inserted into the node.
+         */
+        public Node(Object obj) {
+            value = obj;
+        }
+    }
+}
+","// Queue_1Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#maxCapacityExceeded()} method.
+*/
+class Queue_1Test {","// Queue_1Test.java
+package bible.util;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Queue}.
+* It contains one unit test case for the {@link Queue#maxCapacityExceeded()} method.
+*/
+class Queue_1Test {
+
+    /**
+     * Test method for <code>maxCapacityExceeded()</code>
+     */
+    @Test
+    public void test1() {
+        Queue queue = new Queue(300);
+        int i = (int)(Math.random()*6);
+        queue.enqueue(String.valueOf(i));
+        /*
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+
+               queue.enqueue(String.valueOf(i));
+               queue.enqueue(String.valueOf(i));
+        */
+        assertEquals(""Queue is Exceeded"", true, queue.maxCapacityExceeded());
+    }
+
+}// class Queue_1Test
+"

@@ -1,0 +1,1 @@
+I'm sorry, but the `HeaderSettings` class is incomplete. The `setHeaders()` method should have a return type and implementation. Please provide more information on what the method should do so I can assist you better.

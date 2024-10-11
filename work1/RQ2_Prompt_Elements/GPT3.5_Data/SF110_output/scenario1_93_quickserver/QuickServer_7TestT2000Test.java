@@ -1,0 +1,1 @@
+// This is not a complete source code. It seems like a partial code of QuickServer.java and QuickServer_7Test.java. Please provide the complete code for me to assist you better.

@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the `FileFollower` class has a method `removeOutputDestination`, but the method's implementation is missing. Can you provide the complete implementation of the `removeOutputDestination` method?

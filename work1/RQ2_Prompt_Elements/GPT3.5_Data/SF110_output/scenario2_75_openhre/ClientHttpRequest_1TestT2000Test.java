@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems that the class `ClientHttpRequest` has only one method `post(Map)` and there is no implementation for it. Additionally, the test class `ClientHttpRequest_1Test` is empty and does not contain any test cases. Please provide the complete code so I can assist you better.

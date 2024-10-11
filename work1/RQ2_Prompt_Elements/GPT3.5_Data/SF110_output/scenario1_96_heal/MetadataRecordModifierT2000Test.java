@@ -1,0 +1,1 @@
+I can help you generate the test cases for the `MetadataRecordModifier` class. However, the code you provided is incomplete and missing some important parts. Can you please provide the complete code for the `MetadataRecordModifier` class?

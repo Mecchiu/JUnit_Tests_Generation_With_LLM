@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RIFService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">com.densebrain.rif.server</a> &gt; <span class="el_source">RIFService.java</span></div><h1>RIFService.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2006, Densebrain, Inc
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, 
+ *   	this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, 
+ *   	this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the Densebrain, Inc nor the names of its contributors 
+ *   	may be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS 
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.densebrain.rif.server;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.rmi.RemoteException;
+
+import org.apache.axis2.util.Base64;
+
+/**
+ * This is the WebService, which is hosted on Axis2 that marshalls the remote calls
+ * between the client RIFInvoker and the Server RIFImplementationManager.
+ * 
+ * @see com.densebrain.rif.client.RIFInvoker
+ * @see com.densebrain.rif.server.RIFImplementationManager
+ * 
+ * @author Jonathan Glanz
+ *
+ */
+<span class="nc" id="L48">public class RIFService {</span>
+	
+	/**
+	 * Types namespace for the web service
+	 */
+	public static final String TYPES_NAMESPACE = &quot;http://densebrain.com/rif/client/service/types&quot;;
+	
+	/**
+	 * Target namespace for the web service
+	 */
+	public static final String TARGET_NAMESPACE = &quot;http://densebrain.com/rif/client/service&quot;;
+	
+	
+	/**
+	 * The invoke ws method, which marshalls the call to the RIFImplementationManager
+	 * 
+	 * @param interfaceName - the registered interface to invoke the method on
+	 * @param methodName - method to invoke on the registered interface
+	 * @param serializedParams - serialized parameters to reconstruct and pass to the RIFImplementationManager
+	 * @return
+	 * @throws RemoteException
+	 */
+	public String invoke(String interfaceName, String methodName, String serializedParams) throws RemoteException {
+<span class="nc" id="L71">		byte[] paramBytes = Base64.decode(serializedParams);</span>
+		Object[] params;
+		try {
+<span class="nc" id="L74">			ByteArrayInputStream bais = new ByteArrayInputStream(paramBytes);</span>
+<span class="nc" id="L75">			ObjectInputStream ois = new ObjectInputStream(bais);</span>
+			
+<span class="nc" id="L77">			params = (Object[]) ois.readObject();</span>
+			
+<span class="nc" id="L79">			ois.close();</span>
+<span class="nc" id="L80">			bais.close();</span>
+<span class="nc" id="L81">		} catch (Exception e) {</span>
+<span class="nc" id="L82">			throw new RemoteException(&quot;Unable to deserialize parameters: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L83">		}</span>
+		
+<span class="nc" id="L85">		Object result = RIFImplementationManager.getInstance().invoke(interfaceName, methodName, params);</span>
+		
+		try {
+<span class="nc" id="L88">			ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L89">			ObjectOutputStream oos = new ObjectOutputStream(baos);</span>
+			
+<span class="nc" id="L91">			oos.writeObject(result);</span>
+			
+<span class="nc" id="L93">			oos.close();</span>
+<span class="nc" id="L94">			byte[] resultBytes = baos.toByteArray();</span>
+<span class="nc" id="L95">			return Base64.encode(resultBytes);</span>
+<span class="nc" id="L96">		} catch (Exception e) {</span>
+<span class="nc" id="L97">			throw new RemoteException(&quot;Unable to serialize result: &quot; + e.getMessage());</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

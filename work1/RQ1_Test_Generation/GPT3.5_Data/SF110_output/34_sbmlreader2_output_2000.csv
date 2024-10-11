@@ -1,0 +1,675 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-A5UJBVYsiWD0zYNwsVolOV4BkJOqi,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLFilter_0Test.java,3.9902729988098145,stop,"// SBMLFilter.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+
+//import java.util.Properties;
+/**
+ * SBMLReader extends CyFileFilter for integration into the Cytoscape ImportHandler
+ * framework.
+ */
+public class SBMLFilter extends CyFileFilter {
+
+    /**
+     * XGMML Files are Graphs.
+     */
+    private static String fileNature = ImportHandler.GRAPH_NATURE;
+
+    /**
+     * File Extensions.
+     */
+    private static String[] fileExtensions = { ""xml"", ""sbml"" };
+
+    /**
+     * Filter Description.
+     */
+    private static String description = ""SBML files"";
+
+    /**
+     * Constructor.
+     */
+    public SBMLFilter() {
+        super(fileExtensions, description, fileNature);
+    }
+
+    /**
+     * Indicates which files the SBMLFilter accepts.
+     * <p/>
+     * This method will return true only if:
+     * <UL>
+     * <LI>File ends in .xml or .sbml;  and
+     * <LI>File headers includes the www.sbml.org namespace declaration.
+     * </UL>
+     *
+     * @param file File
+     * @return true or false.
+     */
+    public boolean accept(File file) {
+        String fileName = file.getName();
+        boolean firstPass = false;
+        //  First test:  file must end with one of the registered file extensions.
+        for (int i = 0; i < fileExtensions.length; i++) {
+            if (fileName.endsWith(fileExtensions[i])) {
+                firstPass = true;
+            }
+        }
+        if (firstPass) {
+            //  Second test:  file header must contain the biopax declaration
+            try {
+                String header = getHeader(file);
+                if (header.indexOf(""www.sbml.org"") > 0) {
+                    return true;
+                }
+            } catch (IOException e) {
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the appropirate GraphReader object.
+     * If the libsbml is not available use the old sbml library.
+     *
+     * @author Matthias Koenig
+     * @param fileName File Name.
+     * @return GraphReader Object.
+     */
+    public GraphReader getReader(String fileName) {
+        System.out.println(""Getting SBML reader ..."");
+        try {
+            // Test if libsbml library is available
+            System.loadLibrary(""sbmlj"");
+            /* Extra check to be sure we have access to libSBML: */
+            Class.forName(""org.sbml.libsbml.libsbml"");
+            // Use the libSBML based parser
+            System.out.println(""... using 'libsbml parser'"");
+            return new SBMLGraphReader2(fileName);
+        } catch (Exception e) {
+            // If any error occurs use the classic SBML Reader
+            return new SBMLGraphReader(fileName);
+        }
+    }
+}
+","// SBMLFilter_0Test.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#accept(File)} method.
+*/
+class SBMLFilter_0Test {","```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class SBMLFilter_0Test {
+
+    @Test
+    void testAcceptFileWithXmlExtension() {
+        // Test case for accepting file with .xml extension
+    }
+
+    @Test
+    void testAcceptFileWithSbmlExtension() {
+        // Test case for accepting file with .sbml extension
+    }
+
+    @Test
+    void testRejectFileWithIncorrectExtension() {
+        // Test case for rejecting file with incorrect extension
+    }
+
+    @Test
+    void testAcceptFileWithSbmlNamespaceInHeader() {
+        // Test case for accepting file with www.sbml.org namespace in header
+    }
+
+    @Test
+    void testRejectFileWithoutSbmlNamespaceInHeader() {
+        // Test case for rejecting file without www.sbml.org namespace in header
+    }
+
+    @Test
+    void testRejectFileWithInvalidHeader() {
+        // Test case for rejecting file with invalid header
+    }
+
+    @Test
+    void testRejectNullFile() {
+        // Test case for rejecting null file
+    }
+
+    @Test
+    void testRejectEmptyFile() {
+        // Test case for rejecting empty file
+    }
+
+    @Test
+    void testRejectNonExistentFile() {
+        // Test case for rejecting non-existent file
+    }
+
+    @Test
+    void testRejectDirectory() {
+        // Test case for rejecting directory
+    }
+}
+```
+```"
+chatcmpl-A5UKFQiC0DwxFxFjHFmGUrStIwAxO,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLFilter_1Test.java,5.014325857162476,stop,"// SBMLFilter.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+
+//import java.util.Properties;
+/**
+ * SBMLReader extends CyFileFilter for integration into the Cytoscape ImportHandler
+ * framework.
+ */
+public class SBMLFilter extends CyFileFilter {
+
+    /**
+     * XGMML Files are Graphs.
+     */
+    private static String fileNature = ImportHandler.GRAPH_NATURE;
+
+    /**
+     * File Extensions.
+     */
+    private static String[] fileExtensions = { ""xml"", ""sbml"" };
+
+    /**
+     * Filter Description.
+     */
+    private static String description = ""SBML files"";
+
+    /**
+     * Constructor.
+     */
+    public SBMLFilter() {
+        super(fileExtensions, description, fileNature);
+    }
+
+    /**
+     * Indicates which files the SBMLFilter accepts.
+     * <p/>
+     * This method will return true only if:
+     * <UL>
+     * <LI>File ends in .xml or .sbml;  and
+     * <LI>File headers includes the www.sbml.org namespace declaration.
+     * </UL>
+     *
+     * @param file File
+     * @return true or false.
+     */
+    public boolean accept(File file) {
+        String fileName = file.getName();
+        boolean firstPass = false;
+        //  First test:  file must end with one of the registered file extensions.
+        for (int i = 0; i < fileExtensions.length; i++) {
+            if (fileName.endsWith(fileExtensions[i])) {
+                firstPass = true;
+            }
+        }
+        if (firstPass) {
+            //  Second test:  file header must contain the biopax declaration
+            try {
+                String header = getHeader(file);
+                if (header.indexOf(""www.sbml.org"") > 0) {
+                    return true;
+                }
+            } catch (IOException e) {
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the appropirate GraphReader object.
+     * If the libsbml is not available use the old sbml library.
+     *
+     * @author Matthias Koenig
+     * @param fileName File Name.
+     * @return GraphReader Object.
+     */
+    public GraphReader getReader(String fileName) {
+        System.out.println(""Getting SBML reader ..."");
+        try {
+            // Test if libsbml library is available
+            System.loadLibrary(""sbmlj"");
+            /* Extra check to be sure we have access to libSBML: */
+            Class.forName(""org.sbml.libsbml.libsbml"");
+            // Use the libSBML based parser
+            System.out.println(""... using 'libsbml parser'"");
+            return new SBMLGraphReader2(fileName);
+        } catch (Exception e) {
+            // If any error occurs use the classic SBML Reader
+            return new SBMLGraphReader(fileName);
+        }
+    }
+}
+","// SBMLFilter_1Test.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#getReader(String)} method.
+*/
+class SBMLFilter_1Test {","```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class SBMLFilter_1Test {
+
+    @Test
+    void testGetReader_LibSBMLAvailable() {
+        // Test when libSBML is available
+    }
+
+    @Test
+    void testGetReader_LibSBMLNotAvailable() {
+        // Test when libSBML is not available
+    }
+
+    @Test
+    void testGetReader_ExceptionThrown() {
+        // Test when an exception is thrown
+    }
+
+    @Test
+    void testGetReader_ReturnsSBMLGraphReader2() {
+        // Test if getReader returns SBMLGraphReader2 when libSBML is available
+    }
+
+    @Test
+    void testGetReader_ReturnsSBMLGraphReader() {
+        // Test if getReader returns SBMLGraphReader when libSBML is not available
+    }
+
+    @Test
+    void testAccept_FileEndsWithXml() {
+        // Test accept method when file ends with .xml
+    }
+
+    @Test
+    void testAccept_FileEndsWithSbml() {
+        // Test accept method when file ends with .sbml
+    }
+
+    @Test
+    void testAccept_FileDoesNotEndWithXmlOrSbml() {
+        // Test accept method when file does not end with .xml or .sbml
+    }
+
+    @Test
+    void testAccept_FileHeaderContainsSbmlNamespace() {
+        // Test accept method when file header contains www.sbml.org namespace
+    }
+
+}
+```
+```"
+chatcmpl-A5ULHdV4IhxbB2XZrYeGGVv9EsKJs,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLVisualStyleFactory.java,3.2188522815704346,stop,"// SBMLVisualStyleFactory.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.*;
+import cytoscape.visual.*;
+import cytoscape.visual.calculators.*;
+import cytoscape.visual.mappings.*;
+import java.awt.Color;
+
+/**
+ * VisualStyleFactory.java
+ * This class defines the visualstyle in Cytoscape for the SBMLReader plugin.
+ *
+ * @author W.P.A. Ligtenberg, Eindhoven University of Technology
+ */
+public class SBMLVisualStyleFactory {
+
+    /**
+     */
+    public static final String SBMLReader_VS = ""SBMLReader Style"";
+
+    /**
+     */
+    public static final String NODE_TYPE_ATT = ""sbml type"";
+
+    /**
+     */
+    public static final String EDGE_TYPE_ATT = ""interaction"";
+
+    /**
+     *  DOCUMENT ME!
+     *
+     * @param network DOCUMENT ME!
+     *
+     * @return  DOCUMENT ME!
+     */
+    public static VisualStyle createVisualStyle(CyNetwork network) {
+        VisualMappingManager vmManager = Cytoscape.getVisualMappingManager();
+        NodeAppearanceCalculator nodeAppCalc = new NodeAppearanceCalculator();
+        EdgeAppearanceCalculator edgeAppCalc = new EdgeAppearanceCalculator();
+        CalculatorCatalog calculatorCatalog = vmManager.getCalculatorCatalog();
+        // ------------------------------ Set node shapes ---------------------------//
+        DiscreteMapping disMapping = new DiscreteMapping(NodeShape.RECT, ObjectMapping.NODE_MAPPING);
+        disMapping.setControllingAttributeName(NODE_TYPE_ATT, network, false);
+        disMapping.putMapValue(""species"", NodeShape.DIAMOND);
+        disMapping.putMapValue(""reaction"", NodeShape.ELLIPSE);
+        Calculator shapeCalculator = new BasicCalculator(""SBMLReader Shape Calculator"", disMapping, VisualPropertyType.NODE_SHAPE);
+        nodeAppCalc.setCalculator(shapeCalculator);
+        // ------------------------------ Set the label ------------------------------//
+        // Display the value for geneName as a label
+        String cName = ""sbml name"";
+        Calculator nlc = calculatorCatalog.getCalculator(VisualPropertyType.NODE_LABEL, cName);
+        if (nlc == null) {
+            PassThroughMapping m = new PassThroughMapping(new String(), cName);
+            nlc = new BasicCalculator(cName, m, VisualPropertyType.NODE_LABEL);
+        }
+        nodeAppCalc.setCalculator(nlc);
+        //--------------------- Set the size of the nodes --------------------------//
+        //Discrete mapping on nodeType
+        Double speciesNodeSize = new Double(30);
+        Double reactionNodeSize = new Double(30);
+        DiscreteMapping sizeMapping = new DiscreteMapping(reactionNodeSize, ObjectMapping.NODE_MAPPING);
+        sizeMapping.setControllingAttributeName(NODE_TYPE_ATT, network, false);
+        sizeMapping.putMapValue(""species"", speciesNodeSize);
+        sizeMapping.putMapValue(""reaction"", reactionNodeSize);
+        Calculator sizeCalculator = new BasicCalculator(""SBMLReader Size Calculator"", sizeMapping, VisualPropertyType.NODE_SIZE);
+        nodeAppCalc.setCalculator(sizeCalculator);
+        nodeAppCalc.setNodeSizeLocked(true);
+        // ------------------------------ Set edge arrow shape ---------------------------//
+        DiscreteMapping arrowMapping = new DiscreteMapping(ArrowShape.DELTA, ObjectMapping.NODE_MAPPING);
+        arrowMapping.setControllingAttributeName(EDGE_TYPE_ATT, network, false);
+        arrowMapping.putMapValue(""reaction-product"", ArrowShape.ARROW);
+        arrowMapping.putMapValue(""reaction-reactant"", ArrowShape.NONE);
+        arrowMapping.putMapValue(""reaction-modifier"", ArrowShape.CIRCLE);
+        Calculator edgeArrowCalculator = new BasicCalculator(""SBMLReader Edge Arrow Calculator"", arrowMapping, VisualPropertyType.EDGE_SRCARROW_SHAPE);
+        edgeAppCalc.setCalculator(edgeArrowCalculator);
+        // ------------------------------ Set edge colour ---------------------------//
+        DiscreteMapping edgeColorMapping = new DiscreteMapping(Color.BLACK, ObjectMapping.NODE_MAPPING);
+        edgeColorMapping.setControllingAttributeName(EDGE_TYPE_ATT, network, false);
+        edgeColorMapping.putMapValue(""reaction-product"", Color.GREEN);
+        edgeColorMapping.putMapValue(""reaction-reactant"", Color.RED);
+        edgeColorMapping.putMapValue(""reaction-modifier"", Color.BLACK);
+        Calculator edgeColorCalculator = new BasicCalculator(""SBMLReader Edge Color Calculator"", edgeColorMapping, VisualPropertyType.EDGE_COLOR);
+        edgeAppCalc.setCalculator(edgeColorCalculator);
+        //------------------------- Create a visual style -------------------------------//
+        GlobalAppearanceCalculator gac = vmManager.getVisualStyle().getGlobalAppearanceCalculator();
+        VisualStyle visualStyle = new VisualStyle(SBMLReader_VS, nodeAppCalc, edgeAppCalc, gac);
+        return visualStyle;
+    }
+}
+","// SBMLVisualStyleFactoryTest.java
+package sbmlreader2;
+
+/*
+ Copyright (c) 2006, 2007, The Cytoscape Consortium (www.cytoscape.org)
+
+ The Cytoscape Consortium is:
+ - Institute for Systems Biology
+ - University of California San Diego
+ - Memorial Sloan-Kettering Cancer Center
+ - Institut Pasteur
+ - Agilent Technologies
+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 2.1 of the License, or
+ any later version.
+
+ This library is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  The software and
+ documentation provided hereunder is on an ""as is"" basis, and the
+ Institute for Systems Biology and the Whitehead Institute
+ have no obligations to provide maintenance, support,
+ updates, enhancements or modifications.  In no event shall the
+ Institute for Systems Biology and the Whitehead Institute
+ be liable to any party for direct, indirect, special,
+ incidental or consequential damages, including lost profits, arising
+ out of the use of this software and its documentation, even if the
+ Institute for Systems Biology and the Whitehead Institute
+ have been advised of the possibility of such damage.  See
+ the GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+import cytoscape.*;
+import cytoscape.visual.*;
+import cytoscape.visual.calculators.*;
+import cytoscape.visual.mappings.*;
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLVisualStyleFactory}.
+* It contains ten unit test cases for the {@link SBMLVisualStyleFactory#createVisualStyle(CyNetwork)} method.
+*/
+class SBMLVisualStyleFactoryTest {","```java
+import cytoscape.CyNetwork;
+import cytoscape.Cytoscape;
+import cytoscape.visual.ArrowShape;
+import cytoscape.visual.VisualStyle;
+import cytoscape.visual.calculators.BasicCalculator;
+import cytoscape.visual.calculators.Calculator;
+import cytoscape.visual.calculators.GlobalAppearanceCalculator;
+import cytoscape.visual.calculators.NodeAppearanceCalculator;
+import cytoscape.visual.calculators.ObjectMapping;
+import cytoscape.visual.calculators.PassThroughMapping;
+import cytoscape.visual.calculators.VisualPropertyType;
+import cytoscape.visual.mappings.DiscreteMapping;
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class of {@link SBMLVisualStyleFactory}.
+ * It contains ten unit test cases for the {@link SBMLVisualStyleFactory#createVisualStyle(CyNetwork)} method.
+ */
+class SBMLVisualStyleFactoryTest {
+
+    @Test
+    void testCreateVisualStyle() {
+        // Test cases for createVisualStyle method
+        // Add your test cases here
+    }
+}
+```
+```"

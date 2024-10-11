@@ -1,0 +1,267 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-6yNRnTU8cQWE3BVd5nNq4uFY45Lth,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLFilter_0Test.java,25.93228769302368,stop,"// SBMLFilter.java
+package sbmlreader2;
+
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * SBMLReader extends CyFileFilter for integration into the Cytoscape ImportHandler
+ * framework.
+ */
+public class SBMLFilter extends CyFileFilter {
+
+    public boolean accept(File file) {
+        String fileName = file.getName();
+        boolean firstPass = false;
+        //  First test:  file must end with one of the registered file extensions.
+        for (int i = 0; i < fileExtensions.length; i++) {
+            if (fileName.endsWith(fileExtensions[i])) {
+                firstPass = true;
+            }
+        }
+        if (firstPass) {
+            //  Second test:  file header must contain the biopax declaration
+            try {
+                String header = getHeader(file);
+                if (header.indexOf(""www.sbml.org"") > 0) {
+                    return true;
+                }
+            } catch (IOException e) {
+            }
+        }
+        return false;
+    }
+}
+","// SBMLFilter_0Test.java
+package sbmlreader2;
+
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#accept(File)} method.
+*/
+class SBMLFilter_0Test {","// Test case 1: Test if the accept method returns true for a valid SBML file
+@Test
+public void testAcceptValidSBMLFile() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File sbmlFile = new File(""validSBML.xml"");
+    assertTrue(sbmlFilter.accept(sbmlFile));
+}
+
+// Test case 2: Test if the accept method returns false for a non-SBML file
+@Test
+public void testAcceptNonSBMLFile() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File nonSBMLFile = new File(""nonSBML.txt"");
+    assertFalse(sbmlFilter.accept(nonSBMLFile));
+}
+
+// Test case 3: Test if the accept method returns false for a file with an unsupported extension
+@Test
+public void testAcceptUnsupportedExtension() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File unsupportedFile = new File(""unsupported.xyz"");
+    assertFalse(sbmlFilter.accept(unsupportedFile));
+}
+
+// Test case 4: Test if the accept method returns true for a file with a supported extension
+@Test
+public void testAcceptSupportedExtension() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File supportedFile = new File(""supported.xml"");
+    assertTrue(sbmlFilter.accept(supportedFile));
+}
+
+// Test case 5: Test if the accept method returns false for a file with an unsupported header
+@Test
+public void testAcceptUnsupportedHeader() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File unsupportedHeaderFile = new File(""unsupportedHeader.xml"");
+    assertFalse(sbmlFilter.accept(unsupportedHeaderFile));
+}
+
+// Test case 6: Test if the accept method returns true for a file with a supported header
+@Test
+public void testAcceptSupportedHeader() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File supportedHeaderFile = new File(""supportedHeader.xml"");
+    assertTrue(sbmlFilter.accept(supportedHeaderFile));
+}
+
+// Test case 7: Test if the accept method returns false for a file with an empty header
+@Test
+public void testAcceptEmptyHeader() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File emptyHeaderFile = new File(""emptyHeader.xml"");
+    assertFalse(sbmlFilter.accept(emptyHeaderFile));
+}
+
+// Test case 8: Test if the accept method returns false for a file with a null header
+@Test
+public void testAcceptNullHeader() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File nullHeaderFile = new File(""nullHeader.xml"");
+    assertFalse(sbmlFilter.accept(nullHeaderFile));
+}
+
+// Test case 9: Test if the accept method returns false for a null file
+@Test
+public void testAcceptNullFile() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File nullFile = null;
+    assertFalse(sbmlFilter.accept(nullFile));
+}
+
+// Test case 10: Test if the accept method returns false for an empty file
+@Test
+public void testAcceptEmptyFile() {
+    SBMLFilter sbmlFilter = new SBMLFilter();
+    File emptyFile = new File(""empty.xml"");
+    assertFalse(sbmlFilter.accept(emptyFile));
+}
+}"
+chatcmpl-6yNSqqSalHEsDv3ecuXYEJ6jtFplP,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLFilter_1Test.java,0.8117928504943848,stop,"// SBMLFilter.java
+package sbmlreader2;
+
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * SBMLReader extends CyFileFilter for integration into the Cytoscape ImportHandler
+ * framework.
+ */
+public class SBMLFilter extends CyFileFilter {
+
+    public GraphReader getReader(String fileName) {
+        System.out.println(""Getting SBML reader ..."");
+        try {
+            // Test if libsbml library is available
+            System.loadLibrary(""sbmlj"");
+            /* Extra check to be sure we have access to libSBML: */
+            Class.forName(""org.sbml.libsbml.libsbml"");
+            // Use the libSBML based parser
+            System.out.println(""... using 'libsbml parser'"");
+            return new SBMLGraphReader2(fileName);
+        } catch (Exception e) {
+            // If any error occurs use the classic SBML Reader
+            return new SBMLGraphReader(fileName);
+        }
+    }
+}
+","// SBMLFilter_1Test.java
+package sbmlreader2;
+
+import cytoscape.data.ImportHandler;
+import cytoscape.data.readers.GraphReader;
+import cytoscape.util.CyFileFilter;
+import java.io.File;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLFilter}.
+* It contains ten unit test cases for the {@link SBMLFilter#getReader(String)} method.
+*/
+class SBMLFilter_1Test {",// No code provided. Please provide the code for the test cases.
+chatcmpl-6yNTtrA9P6U388zjXTHo3sBs6AlcU,/EvoSuiteBenchmark/original/34_sbmlreader2/src/main/java/sbmlreader2/SBMLVisualStyleFactory.java,1.9428703784942627,stop,"// SBMLVisualStyleFactory.java
+package sbmlreader2;
+
+import cytoscape.*;
+import cytoscape.visual.*;
+import cytoscape.visual.calculators.*;
+import cytoscape.visual.mappings.*;
+import java.awt.Color;
+
+/**
+ * VisualStyleFactory.java
+ * This class defines the visualstyle in Cytoscape for the SBMLReader plugin.
+ *
+ * @author W.P.A. Ligtenberg, Eindhoven University of Technology
+ */
+public class SBMLVisualStyleFactory {
+
+    public static VisualStyle createVisualStyle(CyNetwork network) {
+        VisualMappingManager vmManager = Cytoscape.getVisualMappingManager();
+        NodeAppearanceCalculator nodeAppCalc = new NodeAppearanceCalculator();
+        EdgeAppearanceCalculator edgeAppCalc = new EdgeAppearanceCalculator();
+        CalculatorCatalog calculatorCatalog = vmManager.getCalculatorCatalog();
+        // ------------------------------ Set node shapes ---------------------------//
+        DiscreteMapping disMapping = new DiscreteMapping(NodeShape.RECT, ObjectMapping.NODE_MAPPING);
+        disMapping.setControllingAttributeName(NODE_TYPE_ATT, network, false);
+        disMapping.putMapValue(""species"", NodeShape.DIAMOND);
+        disMapping.putMapValue(""reaction"", NodeShape.ELLIPSE);
+        Calculator shapeCalculator = new BasicCalculator(""SBMLReader Shape Calculator"", disMapping, VisualPropertyType.NODE_SHAPE);
+        nodeAppCalc.setCalculator(shapeCalculator);
+        // ------------------------------ Set the label ------------------------------//
+        // Display the value for geneName as a label
+        String cName = ""sbml name"";
+        Calculator nlc = calculatorCatalog.getCalculator(VisualPropertyType.NODE_LABEL, cName);
+        if (nlc == null) {
+            PassThroughMapping m = new PassThroughMapping(new String(), cName);
+            nlc = new BasicCalculator(cName, m, VisualPropertyType.NODE_LABEL);
+        }
+        nodeAppCalc.setCalculator(nlc);
+        //--------------------- Set the size of the nodes --------------------------//
+        //Discrete mapping on nodeType
+        Double speciesNodeSize = new Double(30);
+        Double reactionNodeSize = new Double(30);
+        DiscreteMapping sizeMapping = new DiscreteMapping(reactionNodeSize, ObjectMapping.NODE_MAPPING);
+        sizeMapping.setControllingAttributeName(NODE_TYPE_ATT, network, false);
+        sizeMapping.putMapValue(""species"", speciesNodeSize);
+        sizeMapping.putMapValue(""reaction"", reactionNodeSize);
+        Calculator sizeCalculator = new BasicCalculator(""SBMLReader Size Calculator"", sizeMapping, VisualPropertyType.NODE_SIZE);
+        nodeAppCalc.setCalculator(sizeCalculator);
+        nodeAppCalc.setNodeSizeLocked(true);
+        // ------------------------------ Set edge arrow shape ---------------------------//
+        DiscreteMapping arrowMapping = new DiscreteMapping(ArrowShape.DELTA, ObjectMapping.NODE_MAPPING);
+        arrowMapping.setControllingAttributeName(EDGE_TYPE_ATT, network, false);
+        arrowMapping.putMapValue(""reaction-product"", ArrowShape.ARROW);
+        arrowMapping.putMapValue(""reaction-reactant"", ArrowShape.NONE);
+        arrowMapping.putMapValue(""reaction-modifier"", ArrowShape.CIRCLE);
+        Calculator edgeArrowCalculator = new BasicCalculator(""SBMLReader Edge Arrow Calculator"", arrowMapping, VisualPropertyType.EDGE_SRCARROW_SHAPE);
+        edgeAppCalc.setCalculator(edgeArrowCalculator);
+        // ------------------------------ Set edge colour ---------------------------//
+        DiscreteMapping edgeColorMapping = new DiscreteMapping(Color.BLACK, ObjectMapping.NODE_MAPPING);
+        edgeColorMapping.setControllingAttributeName(EDGE_TYPE_ATT, network, false);
+        edgeColorMapping.putMapValue(""reaction-product"", Color.GREEN);
+        edgeColorMapping.putMapValue(""reaction-reactant"", Color.RED);
+        edgeColorMapping.putMapValue(""reaction-modifier"", Color.BLACK);
+        Calculator edgeColorCalculator = new BasicCalculator(""SBMLReader Edge Color Calculator"", edgeColorMapping, VisualPropertyType.EDGE_COLOR);
+        edgeAppCalc.setCalculator(edgeColorCalculator);
+        //------------------------- Create a visual style -------------------------------//
+        GlobalAppearanceCalculator gac = vmManager.getVisualStyle().getGlobalAppearanceCalculator();
+        VisualStyle visualStyle = new VisualStyle(SBMLReader_VS, nodeAppCalc, edgeAppCalc, gac);
+        return visualStyle;
+    }
+}
+","// SBMLVisualStyleFactoryTest.java
+package sbmlreader2;
+
+import cytoscape.*;
+import cytoscape.visual.*;
+import cytoscape.visual.calculators.*;
+import cytoscape.visual.mappings.*;
+import java.awt.Color;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link SBMLVisualStyleFactory}.
+* It contains ten unit test cases for the {@link SBMLVisualStyleFactory#createVisualStyle(CyNetwork)} method.
+*/
+class SBMLVisualStyleFactoryTest {","I'm sorry, but the code you provided is incomplete. It seems to be missing the actual test cases for the `createVisualStyle` method. Can you please provide the complete code for the `SBMLVisualStyleFactoryTest` class?"

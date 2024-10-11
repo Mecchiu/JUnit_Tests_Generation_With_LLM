@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimpleSecurityHandlerBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">br.com.jnfe.base.service</a> &gt; <span class="el_source">SimpleSecurityHandlerBean.java</span></div><h1>SimpleSecurityHandlerBean.java</h1><pre class="source lang-java linenums">/* Copyright 2005 I Serv Consultoria Empresarial Ltda.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package br.com.jnfe.base.service;
+
+import java.io.FileInputStream;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Enumeration;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+
+/**
+ * Uma inst�ncia de &lt;code&gt;SecurityHandler&lt;/code&gt; que utiliza propriedades
+ * pr�-configuradas.
+ * 
+ * @author Mauricio Fernandes de Castro
+ */
+public class SimpleSecurityHandlerBean extends AbstractSecurityHandlerBean {
+
+	/**
+	 * Construtor vazio.
+	 */
+<span class="nc" id="L40">	public SimpleSecurityHandlerBean() {</span>
+<span class="nc" id="L41">	}</span>
+
+	/**
+	 * Construtor.
+	 * 
+	 * @param alias
+	 * @param password
+	 */
+<span class="nc" id="L49">	public SimpleSecurityHandlerBean(String alias, String password) {</span>
+<span class="nc" id="L50">		this.alias = alias;</span>
+<span class="nc" id="L51">		this.password = password.toCharArray();</span>
+<span class="nc" id="L52">	}</span>
+
+	public void handle(Element parentElement, Element elementToSign, SecurityCallBack action) {
+<span class="nc" id="L55">		PrivateKey privateKey = null;</span>
+<span class="nc" id="L56">		Certificate certificate = null;</span>
+		try {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">			if (getKeyStore() != null) {</span>
+<span class="nc" id="L59">				logger.debug(&quot;Recuperando credenciais de armaz�m tipo {}.&quot;, getKeyStore().getType());</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">				if (getKeyStore().containsAlias(alias)) {</span>
+<span class="nc" id="L61">					privateKey = (PrivateKey) getKeyStore().getKey(alias, password);</span>
+<span class="nc" id="L62">					logger.debug(&quot;Chave particular recuperada no formato: {}.&quot;, privateKey.getFormat());</span>
+<span class="nc" id="L63">					certificate = getKeyStore().getCertificate(alias);</span>
+<span class="nc" id="L64">					logger.debug(&quot;Certificado recuperado: {}.&quot;, ((X509Certificate) certificate).getSubjectDN());</span>
+				} else {
+<span class="nc" id="L66">					throw new IllegalArgumentException(</span>
+							&quot;Armaz�m configurado pelo bean 'keyStore' n�o cont�m o certificado '&quot;
+									+ alias
+									+ &quot;'. &quot;
+									+ &quot;Tente outro 'alias' ou reconfigure jnfe-core-context.xml para evitar a cria��o do bean 'keyStore', &quot;
+									+ &quot;for�ando o sistema a usar o armaz�m principal.&quot;);
+				}
+			} else {
+<span class="nc" id="L74">				logger.debug(&quot;Recuperando credenciais da primeira chave do armaz�m principal em {}.&quot;,</span>
+<span class="nc" id="L75">								System.getProperty(&quot;javax.net.ssl.keyStore&quot;));</span>
+<span class="nc" id="L76">				KeyStore ksKeys = KeyStore.getInstance(System.getProperty(&quot;javax.net.ssl.keyStoreType&quot;));</span>
+<span class="nc" id="L77">				ksKeys.load(new FileInputStream(System</span>
+<span class="nc" id="L78">						.getProperty(&quot;javax.net.ssl.keyStore&quot;)), System</span>
+<span class="nc" id="L79">						.getProperty(&quot;javax.net.ssl.keyStorePassword&quot;)</span>
+<span class="nc" id="L80">						.toCharArray());</span>
+<span class="nc" id="L81">				Enumeration&lt;String&gt; aliases = ksKeys.aliases();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">				if (aliases.hasMoreElements()) {</span>
+<span class="nc" id="L83">					String transportAlias = aliases.nextElement();</span>
+<span class="nc" id="L84">					certificate = ksKeys.getCertificate(transportAlias);</span>
+<span class="nc" id="L85">					logger.debug(&quot;Certificado: {}.&quot;, ((X509Certificate) certificate).getSubjectDN());</span>
+<span class="nc" id="L86">					privateKey = (PrivateKey) ksKeys.getKey(transportAlias, password);</span>
+<span class="nc" id="L87">				} else {</span>
+<span class="nc" id="L88">					throw new IllegalArgumentException(&quot;Armaz�m principal n�o cont�m um certificado v�lido.&quot;);</span>
+				}
+			}
+<span class="nc" id="L91">		} catch (Exception e) {</span>
+<span class="nc" id="L92">			logger.error(&quot;Imposs�vel recuperar credenciais&quot;, e);</span>
+<span class="nc" id="L93">		}</span>
+<span class="nc" id="L94">		action.doInSecurityContext(parentElement, elementToSign, certificate, privateKey);</span>
+<span class="nc" id="L95">	}</span>
+
+	/**
+	 * Assegura valores padr�o para apelido e senha.
+	 */
+	public void afterPropertiesSet() throws Exception {
+<span class="nc bnc" id="L101" title="All 2 branches missed.">		if (alias == null) {</span>
+<span class="nc" id="L102">			alias = &quot;teste&quot;;</span>
+<span class="nc" id="L103">			logger.warn(&quot;Utilzando apelido 'teste' para localizar chave particular no armaz�m de clientes&quot;);</span>
+		}
+<span class="nc bnc" id="L105" title="All 2 branches missed.">		if (password == null) {</span>
+<span class="nc" id="L106">			password = &quot;teste&quot;.toCharArray();</span>
+<span class="nc" id="L107">			logger.warn(&quot;Utilzando senha 'teste' para abrir chave particular no armaz�m de clientes&quot;);</span>
+		}
+<span class="nc" id="L109">	}</span>
+
+	private String alias;
+	private char[] password;
+
+	/**
+	 * Apelido dado � chave particular no armaz�m de clientes.
+	 * 
+	 * @param alias
+	 */
+	public void setAlias(String alias) {
+<span class="nc" id="L120">		this.alias = alias;</span>
+<span class="nc" id="L121">	}</span>
+
+	/**
+	 * Senha da chave particular no armaz�m de clientes.
+	 * 
+	 * @param alias
+	 */
+	public void setPassword(char[] password) {
+<span class="nc" id="L129">		this.password = password;</span>
+<span class="nc" id="L130">	}</span>
+
+<span class="nc" id="L132">	protected static final Logger logger = LoggerFactory.getLogger(SimpleSecurityHandlerBean.class);</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

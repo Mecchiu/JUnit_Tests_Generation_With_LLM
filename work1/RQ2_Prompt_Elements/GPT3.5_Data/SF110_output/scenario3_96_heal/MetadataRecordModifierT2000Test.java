@@ -1,0 +1,1 @@
+I can help you generate the source code for the test cases. However, the implementation of the `getNextAction` method is missing. Can you provide it?

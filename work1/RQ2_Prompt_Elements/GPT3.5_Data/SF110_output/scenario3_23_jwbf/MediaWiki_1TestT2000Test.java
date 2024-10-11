@@ -1,0 +1,1 @@
+I'm sorry, but your code is incomplete. It seems like you have started defining the test class for the `MediaWiki` class, but you have not completed it. Can you please provide the complete code so that I can assist you better?

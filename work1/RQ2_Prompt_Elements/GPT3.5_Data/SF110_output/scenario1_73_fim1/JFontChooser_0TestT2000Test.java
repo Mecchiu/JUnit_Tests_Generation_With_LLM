@@ -1,0 +1,1 @@
+I'm sorry, but the code you provided is incomplete. It seems to be missing some important parts, such as the implementation of the FontTracker class and the createDialog method. Please provide the complete code so I can assist you better.

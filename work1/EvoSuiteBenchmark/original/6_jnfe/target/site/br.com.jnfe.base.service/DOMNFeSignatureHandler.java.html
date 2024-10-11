@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DOMNFeSignatureHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Ant Example</a> &gt; <a href="index.source.html" class="el_package">br.com.jnfe.base.service</a> &gt; <span class="el_source">DOMNFeSignatureHandler.java</span></div><h1>DOMNFeSignatureHandler.java</h1><pre class="source lang-java linenums">/* Copyright 2005 I Serv Consultoria Empresarial Ltda.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package br.com.jnfe.base.service;
+
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+
+import javax.annotation.Resource;
+import javax.xml.crypto.XMLStructure;
+import javax.xml.crypto.dom.DOMStructure;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+/**
+ * Implementa��o da interface &lt;code&gt;SignatureHandler&lt;/code&gt; usando DOM.
+ * 
+ * @author Mauricio Fernandes de Castro
+ */
+<span class="nc" id="L35">public class DOMNFeSignatureHandler implements SignatureHandler {</span>
+	
+	/**
+	 * Assina com o aux�lio de securityHandler e signatureBuilder.
+	 * 
+	 * @param sourceToSign
+	 * @param tagNameToSign
+	 * 
+	 * @throws Exception
+	 */
+	public void sign(XMLStructure sourceStructure, String tagNameToSign) throws Exception {
+<span class="nc" id="L46">		Element sourceElement = (Element) ((DOMStructure) sourceStructure).getNode();</span>
+<span class="nc" id="L47">		sourceElement.normalize();</span>
+<span class="nc" id="L48">		logger.debug(&quot;Pronto para extrair {} para assinatura de {}.&quot;, tagNameToSign, sourceElement);</span>
+<span class="nc" id="L49">		NodeList elementsToSign = sourceElement.getElementsByTagName(tagNameToSign);</span>
+<span class="nc bnc" id="L50" title="All 4 branches missed.">		if (elementsToSign!=null &amp;&amp; elementsToSign.getLength()&gt;0) {</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">			for (int i = 0; i &lt; elementsToSign.getLength(); i++) {</span>
+<span class="nc" id="L52">				Element elementToSign = (Element) elementsToSign.item(i);</span>
+<span class="nc" id="L53">				Element parentElement = (Element) elementToSign.getParentNode();</span>
+<span class="nc" id="L54">				logger.debug(&quot;Pronto para invocar 'securityHandler' para assinar {} #{}.&quot;, elementToSign.getTagName(), i);</span>
+<span class="nc" id="L55">				securityHandler.handle(parentElement, elementToSign , new SecurityCallBack() {</span>
+					public void doInSecurityContext(Element parentElement, Element elementToSign, Certificate certificate, PrivateKey privateKey) {
+<span class="nc" id="L57">						signatureBuilder.build(elementToSign, parentElement, certificate, privateKey);</span>
+<span class="nc" id="L58">					}</span>
+				});
+			}
+		}
+		else {
+<span class="nc" id="L63">			logger.warn(&quot;N�o foi encontrada a tag {} para assinar.&quot;, tagNameToSign);</span>
+		}
+<span class="nc" id="L65">	}</span>
+	
+	// collabs
+	
+	private SecurityHandler securityHandler;
+	private SignatureBuilder&lt;Element&gt; signatureBuilder;
+	
+	@Resource
+	public void setSecurityHandler(SecurityHandler securityHandler) {
+<span class="nc" id="L74">		this.securityHandler = securityHandler;</span>
+<span class="nc" id="L75">	}</span>
+	
+	@Resource
+	public void setSignatureBuilder(SignatureBuilder&lt;Element&gt; signatureBuilder) {
+<span class="nc" id="L79">		this.signatureBuilder = signatureBuilder;</span>
+<span class="nc" id="L80">	}</span>
+	
+<span class="nc" id="L82">	private static final Logger logger = LoggerFactory.getLogger(DOMNFeSignatureHandler.class);</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

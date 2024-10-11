@@ -1,0 +1,1881 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+4fc2f0b7-b0f0-4751-ae90-44eb43313256,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/game/Game.java,41.10099124908447,stop,"// Game.java
+package net.virtualinfinity.atrobots.game;
+
+import net.virtualinfinity.atrobots.arena.FrameBuilder;
+import net.virtualinfinity.atrobots.arena.RoundState;
+import net.virtualinfinity.atrobots.arena.SimulationObserver;
+import net.virtualinfinity.atrobots.compiler.RobotFactory;
+import net.virtualinfinity.atrobots.robot.FinalRobotScore;
+import net.virtualinfinity.atrobots.robot.Robot;
+import net.virtualinfinity.atrobots.robot.RobotScore;
+import net.virtualinfinity.atrobots.robot.RobotScoreKeeper;
+import java.util.*;
+
+/**
+ * This class coordinates rounds, entrants, and the simulation frame buffer.
+ *
+ * @author Daniel Pitts
+ */
+public class Game implements RoundListener {
+
+    private RoundState roundState;
+
+    private Round round;
+
+    private int roundNumber = 0;
+
+    private int totalRounds;
+
+    private int maxProcessorSpeed = 5;
+
+    private final FrameBuilder frameBuffer;
+
+    private final List<RobotFactory> entrants = Collections.synchronizedList(new ArrayList<RobotFactory>());
+
+    private int nextEntrantId;
+
+    private final Map<RobotFactory, RobotScoreKeeper> scoreKeepers = new IdentityHashMap<RobotFactory, RobotScoreKeeper>();
+
+    public Game(int totalRounds) {
+    }
+
+    public Game(int totalRounds, FrameBuilder frameBuffer) {
+    }
+
+    /**
+     * Get the current round.
+     *
+     * @return the current round.
+     */
+    public synchronized Round getRound();
+
+    /**
+     * Get the total number of rounds.
+     *
+     * @return the total number of rounds.
+     */
+    public synchronized int getTotalRounds();
+
+    /**
+     * Start the next round. This ends the current round.
+     */
+    public synchronized void nextRound();
+
+    private void gameOver();
+
+    /**
+     * Create a robot for the given entrant.
+     *
+     * @param entrant the entrant
+     * @param id      the id for the robot.
+     * @return the robot.
+     */
+    protected Robot createRobotFor(RobotFactory entrant, int id);
+
+    private RobotScoreKeeper getScoreKeeper(RobotFactory entrant);
+
+    private RobotScore getFinalRobotScore(RobotFactory entrant);
+
+    public GameResult getFinalResults();
+
+    /**
+     * Add an observer.
+     *
+     * @param observer the observer to add.
+     */
+    public synchronized void addSimulationObserver(SimulationObserver observer);
+
+    /**
+     * Remove an observer.
+     *
+     * @param observer the observer to remove.
+     */
+    public synchronized void removeSimulationObserver(SimulationObserver observer);
+
+    /**
+     * Add an entrant for the next round.
+     *
+     * @param entrant the entrant
+     */
+    public synchronized void addEntrant(RobotFactory entrant);
+
+    /**
+     * Execute one step in the simulation.
+     */
+    public synchronized boolean stepRound();
+
+    public void roundOver();
+
+    public int getMaxProcessorSpeed();
+
+    public void setMaxProcessorSpeed(int maxProcessorSpeed);
+}
+","// GameTest.java
+package net.virtualinfinity.atrobots.game;
+
+import net.virtualinfinity.atrobots.arena.FrameBuilder;
+import net.virtualinfinity.atrobots.arena.RoundState;
+import net.virtualinfinity.atrobots.arena.SimulationObserver;
+import net.virtualinfinity.atrobots.compiler.RobotFactory;
+import net.virtualinfinity.atrobots.robot.FinalRobotScore;
+import net.virtualinfinity.atrobots.robot.Robot;
+import net.virtualinfinity.atrobots.robot.RobotScore;
+import net.virtualinfinity.atrobots.robot.RobotScoreKeeper;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Game}.
+* It contains one unit test case for the {@link Game#stepRound()} method.
+*/
+class GameTest {","// GameTest.java
+package net.virtualinfinity.atrobots.game;
+
+import net.virtualinfinity.atrobots.arena.FrameBuilder;
+import net.virtualinfinity.atrobots.arena.RoundState;
+import net.virtualinfinity.atrobots.arena.SimulationObserver;
+import net.virtualinfinity.atrobots.compiler.RobotFactory;
+import net.virtualinfinity.atrobots.robot.FinalRobotScore;
+import net.virtualinfinity.atrobots.robot.Robot;
+import net.virtualinfinity.atrobots.robot.RobotScore;
+import net.virtualinfinity.atrobots.robot.RobotScoreKeeper;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Game}.
+* It contains one unit test case for the {@link Game#stepRound()} method.
+*/
+class GameTest {
+/**
+		 * Get the simulation observer to use.
+		 *
+		 * @return the observer.
+		 */
+		private SimulationObserver getSimulationObserver() {
+			throw new UnsupportedOperationException(""Not yet implemented"");
+		}
+
+    /**
+     * Test that the given robot can be added and retracted successfully.
+     *
+     * @throws Exception thrown if test failed.
+     */
+    public void testRobotAddRobot() throws Exception {
+        final Robot robot = RobotFactory.getInstance().createRobot();
+
+        assertTrue(""New robot should have a frame."", frameBuffer.addRobot(robot));
+
+        Game game = new Game(10, 0.3f);
+
+        game.stepRound();
+
+        assertEquals(""Wrong numero of robots added."", 20, game.getRobotCount());
+
+        Game game2 = new Game(100, 0.3f);
+
+        game2.stepRound();
+
+        assertEquals(""Wrong numero of robots added 2."", 30, game2.getRobotCount());
+
+        assertEquals(""Wrong robot ID."",
+                    new Integer(1), game2.getRobot(new Integer(1).longValue()).getId());
+
+        assertEquals(""Wrong robot ID."",
+                    new Integer(2), game2.getRobot(new Integer(2).longValue()).getId());
+
+        final int lastRobotId = 10;
+
+        game2.stepRound();
+
+        assertEquals(""Wrong robot ID if robot was already present."",
+                     new Integer(1), game2.getRobot(new Integer(1).longValue()).getId());
+
+        game2.stepRound();
+
+        assertEquals(""Wrong robot ID if robot had already been added."",
+                     new Integer(2), game2.getRobot(new Integer(2).longValue()).getId());
+
+        game2.stepRound();
+
+        // Make the first robot be added.
+        // Since the first robot was added by the previous round the last robot
+        // ID is different.
+        Robot robot2 = RobotFactory.getInstance().createRobot();
+
+        assertNotEquals(""New robot should have a frame."", frameBuffer.addRobot(robot), frameBuffer.addRobot(robot2));
+
+        assertEquals(""Wrong robot ID."",
+                    new Integer(lastRobotId), game2.getRobot(new Integer(1).longValue()).getId());
+
+        assertEquals(""Wrong robot ID."",
+                    new Integer(lastRobotId + 1), game2.getRobot(new Integer(2).longValue()).getId());
+    }
+}"
+4effee58-7317-416f-8df0-6d6c7caaf76f,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/arena/Arena.java,37.48701214790344,stop,"// Arena.java
+package net.virtualinfinity.atrobots.arena;
+
+import net.virtualinfinity.atrobots.ArenaObjectVisitor;
+import net.virtualinfinity.atrobots.arenaobjects.ArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.CollidableArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.DamageInflicter;
+import net.virtualinfinity.atrobots.measures.Duration;
+import net.virtualinfinity.atrobots.radio.RadioDispatcher;
+import java.util.*;
+
+/**
+ * The Arena is the virtual world within which the simulation occurs.
+ *
+ * @author Daniel Pitts
+ */
+public class Arena {
+
+    private final List<TangibleArenaObject> activeRobots = new LinkedList<TangibleArenaObject>();
+
+    private final List<TangibleArenaObject> allRobots = new LinkedList<TangibleArenaObject>();
+
+    private final List<CollidableArenaObject> collidables = new LinkedList<CollidableArenaObject>();
+
+    private final Collection<ArenaObject> intangibles = new LinkedList<ArenaObject>();
+
+    private final RoundTimer roundTimer = new RoundTimer();
+
+    @SuppressWarnings({ ""unchecked"" })
+    final Collection<Collection<? extends ArenaObject>> allActiveObjects = new ArrayList<Collection<? extends ArenaObject>>(Arrays.asList(collidables, activeRobots, intangibles));
+
+    @SuppressWarnings({ ""unchecked"" })
+    final Collection<Collection<? extends ArenaObject>> allFramedObjects = new ArrayList<Collection<? extends ArenaObject>>(Arrays.asList(collidables, intangibles, allRobots));
+
+    @SuppressWarnings({ ""unchecked"" })
+    final Collection<Collection<? extends CollidableArenaObject>> allCollidable = new ArrayList<Collection<? extends CollidableArenaObject>>(Arrays.asList(collidables, activeRobots));
+
+    private final RadioDispatcher radioDispatcher = new RadioDispatcher();
+
+    private final FrameBuilder frameBuilder;
+
+    private boolean roundOver;
+
+    public Arena() {
+    }
+
+    public Arena(FrameBuilder frameBuilder) {
+    }
+
+    /**
+     * Get the number of robots still active in the arena.
+     *
+     * @return the number of robots still active in the arena.
+     */
+    public int countActiveRobots();
+
+    private void connectArena(ArenaObject object);
+
+    /**
+     * Get the radio dispatcher for this arena.
+     *
+     * @return the radio dispatcher for this arena.
+     */
+    public RadioDispatcher getRadioDispatcher();
+
+    /**
+     * Simulate a certain amount of time elapsing.
+     */
+    public void simulate();
+
+    /**
+     * Prepare a snapshot of the current arena state in the {@link FrameBuilder}.
+     */
+    public void buildFrame();
+
+    private void updateSimulation();
+
+    private void removeDead();
+
+    private void checkCollissions();
+
+    /**
+     * Add a robot to the arena at a random location.
+     *
+     * @param robot the robot to add to this arena.
+     */
+    public void addRobot(TangibleArenaObject robot);
+
+    public void addCollidable(CollidableArenaObject arenaObject);
+
+    /**
+     * Cause an explosion.
+     *
+     * @param cause             the robot which gets credit for any damage done.
+     * @param explosionFunction the damage explosion function.
+     */
+    public void explosion(DamageInflicter cause, ExplosionFunction explosionFunction);
+
+    public void determineWinners();
+
+    public void endRound();
+
+    public boolean isOnlyOneRobotAlive();
+
+    public void addIntangible(ArenaObject object);
+
+    public void visitActiveRobots(ArenaObjectVisitor arenaObjectVisitor);
+
+    public RoundTimer getRoundTimer();
+}
+","// ArenaTest.java
+package net.virtualinfinity.atrobots.arena;
+
+import net.virtualinfinity.atrobots.ArenaObjectVisitor;
+import net.virtualinfinity.atrobots.arenaobjects.ArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.CollidableArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.DamageInflicter;
+import net.virtualinfinity.atrobots.measures.Duration;
+import net.virtualinfinity.atrobots.radio.RadioDispatcher;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Arena}.
+* It contains one unit test case for the {@link Arena#countActiveRobots()} method.
+*/
+class ArenaTest {","// ArenaTest.java
+package net.virtualinfinity.atrobots.arena;
+
+import net.virtualinfinity.atrobots.ArenaObjectVisitor;
+import net.virtualinfinity.atrobots.arenaobjects.ArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.CollidableArenaObject;
+import net.virtualinfinity.atrobots.arenaobjects.DamageInflicter;
+import net.virtualinfinity.atrobots.measures.Duration;
+import net.virtualinfinity.atrobots.radio.RadioDispatcher;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Arena}.
+* It contains one unit test case for the {@link Arena#countActiveRobots()} method.
+*/
+class ArenaTest {
+
+    private FrameBuilder frameBuilder;
+    
+    public ArenaTest() {
+        frameBuilder = new FrameBuilder();
+    }
+    
+    @Test
+    public void testCountActiveRobots() {
+        Arena arena = new Arena();
+        arena.startRound();
+        arena.addRobot(new RadiotestRobot(FrameBuilder.getTileWorld().getPlayer()) );
+        arena.addRobot(new RadiotestRobot(FrameBuilder.getTileWorld().getPlayer()) );
+        arena.addRobot(new RadiotestRobot(FrameBuilder.getTileWorld().getPlayer()) );
+        frameBuilder.addRobots(Integer.MAX_VALUE, arena.getActiveRobots(), arena.getAllRobots());
+        arena.addCollidable(Integer.MAX_VALUE, arena.getCollidableRobots(), arena.getCollidableAllCollidable());
+        arena.addIntangible(Integer.MAX_VALUE, arena.getIntangibleRobots(), arena.getIntangibleAllIntangible());
+        arena.addCollidable(Integer.MAX_VALUE, arena.getCollidableRobots(), arena.getCollidableAllCollidable());
+        arena.removeDead();
+        arena.stop();
+        assertEquals(1, arena.getActiveRobots().size());
+        assertEquals(1, arena.getAllRobots().size());
+        assertEquals(1, arena.getCollidableRobots().size());
+        assertEquals(1, arena.getCollidableAllCollidable().size());
+        assertEquals(2, arena.getIntangibleRobots().size());
+        assertEquals(2, arena.getIntangibleAllIntangible().size());
+        assertEquals(2, arena.getCollidableRobots().size());
+        assertEquals(2, arena.getCollidableAllCollidable().size());
+    }
+    
+    /**
+     * The test frame builder is a singleton, thus we use it only when we need it
+     * @return this frameBuilder
+     */
+    public static FrameBuilder getFrameBuilder() {
+        if (frameBuilder == null) {
+            frameBuilder = new FrameBuilder();
+        }
+        return frameBuilder;
+    }
+}
+
+/**
+ * Tests using the frambuilder.
+ * It is the only test which takes care of everything before the framebuilder has finished.
+ */
+class FrameBuilderTest {
+	
+	private Arena arena;
+	
+	/**
+	 * Setup the test frame builder.
+	 * @param frameBuilder frame builder
+	 */
+	public FrameBuilderTest(FrameBuilder frameBuilder) {
+		this.frameBuilder = frameBuilder;
+	}
+	
+	public void assertThatFrameBuilderHasExactlyAtLeastSizeOf(int size) {
+		FrameBuilderTest.getFrameBuilder().assertThatFrameBuilderHasAtLeastSizeOf(size);
+	}
+	
+	public void testStartRoundBefore() {
+		ArenaTest.getFrameBuilder().assertThatFrameBuilderHasAtLeastSizeOf(1);
+	}
+	
+	public void testStartRoundAfter() {
+		ArenaTest.getFrameBuilder().assertThatFrameBuilderHasAtLeastSizeOf(2);
+	}
+	
+	public void execute() {
+		ArenaTest.getFrameBuilder().execute();
+	}
+
+	public void run() {
+		try {
+			FrameBuilderTest.getFrameBuilder().run();
+		} catch (Exception ignore) {
+			// nothing todo
+		}
+		FrameBuilderTest.getFrameBuilder().assertThatFrameBuilderHasExactlyAtLeastSizeOf(2);
+		ArenaTest.getFrameBuilder().assertThatFrameBuilderHasAtLeastSizeOf(1);
+	}
+	
+	/**
+	 * Reset the test frame builder.
+	 */
+	public void reset() {
+		FrameBuilderTest.getFrameBuilder().reset();
+	}
+}"
+a82e54f7-b836-48d6-8985-61185af918ae,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/computer/HardwareBus.java,41.818469524383545,stop,"// HardwareBus.java
+package net.virtualinfinity.atrobots.computer;
+
+import net.virtualinfinity.atrobots.measures.Heat;
+import net.virtualinfinity.atrobots.measures.Temperature;
+import net.virtualinfinity.atrobots.ports.PortHandler;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
+/**
+ * Represents all the hardware connected to a single robot.
+ *
+ * @author Daniel Pitts
+ */
+public class HardwareBus {
+
+    private Map<Integer, PortHandler> ports;
+
+    private Map<Integer, InterruptHandler> interrupts;
+
+    private final Collection<Resettable> resettables = new ArrayList<Resettable>();
+
+    private final Collection<ShutdownListener> shutdownListeners = new ArrayList<ShutdownListener>();
+
+    private Restartable autoShutdownTarget;
+
+    private Temperature autoShutDown = Temperature.fromLogScale(350);
+
+    private Heat heat;
+
+    /**
+     * Get the port handler map.
+     *
+     * @return map of port numbers to port handler.
+     */
+    public Map<Integer, PortHandler> getPorts();
+
+    /**
+     * Set the port handler map.
+     *
+     * @param ports map of port numbers to port handler.
+     */
+    public void setPorts(Map<Integer, PortHandler> ports);
+
+    /**
+     * Get the interrupt handler map.
+     *
+     * @return map of interrupt numbers to interrupt handler.
+     */
+    public Map<Integer, InterruptHandler> getInterrupts();
+
+    /**
+     * Set the interrupt handler map.
+     *
+     * @param interrupts map of interrupt numbers to interrupt handler.
+     */
+    public void setInterrupts(Map<Integer, InterruptHandler> interrupts);
+
+    /**
+     * Call a specific interrupt.
+     *
+     * @param interruptNumber the interrupt to execute.
+     */
+    public void callInterrupt(int interruptNumber);
+
+    /**
+     * Read from a specific port.
+     *
+     * @param portNumber the port to read from
+     * @return the value read.
+     */
+    public short readPort(int portNumber);
+
+    /**
+     * Write to a specific port
+     *
+     * @param portNumber the port number
+     * @param value      the value to write.
+     */
+    public void writePort(int portNumber, short value);
+
+    /**
+     * Reset all resetables in this hardward bus.
+     */
+    public void reset();
+
+    /**
+     * Register a resetable.
+     *
+     * @param resettable a resetible to get reset when this bus is reset.
+     */
+    public void addResetable(Resettable resettable);
+
+    public void addShutdownListener(ShutdownListener shutdownListener);
+
+    public void setAutoShutdownListener(Restartable autoShutdownListener);
+
+    /**
+     * Check temperature against autoShutDown temp
+     */
+    public void checkHeat();
+
+    private boolean isAutoStartupEngaged();
+
+    private boolean isAutoShutdownEngaged();
+
+    private void startUp();
+
+    private void shutDown();
+
+    /**
+     * Get the temperature that shuts down computer.
+     *
+     * @return the temperature that shuts down computer.
+     */
+    public int getShutdownLevel();
+
+    /**
+     * Set the temperature that shuts down computer.
+     *
+     * @param value the temperature that shuts down computer.
+     */
+    public void setShutdownLevel(int value);
+
+    public void setHeat(Heat heat);
+}
+","// HardwareBusTest.java
+package net.virtualinfinity.atrobots.computer;
+
+import net.virtualinfinity.atrobots.measures.Heat;
+import net.virtualinfinity.atrobots.measures.Temperature;
+import net.virtualinfinity.atrobots.ports.PortHandler;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HardwareBus}.
+* It contains one unit test case for the {@link HardwareBus#readPort(int)} method.
+*/
+class HardwareBusTest {","// HardwareBusTest.java
+package net.virtualinfinity.atrobots.computer;
+
+import net.virtualinfinity.atrobots.measures.Heat;
+import net.virtualinfinity.atrobots.measures.Temperature;
+import net.virtualinfinity.atrobots.ports.PortHandler;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HardwareBus}.
+* It contains one unit test case for the {@link HardwareBus#readPort(int)} method.
+*/
+class HardwareBusTest {
+
+    /**
+     * Test reading from a hard wired port.
+     */
+    @Test
+    void testGetPort() {
+	assertEquals(0, HardwareBridge.readPort(0));
+    }
+
+
+    /**
+     * Test writing to a hard wired port.
+     */
+    @Test
+    void testWritePort() {
+	// write a value
+	assertEquals(6, HardwareBridge.writePort(0, 6));
+	// write another value
+	assertEquals(7, HardwareBridge.writePort(0, 7));
+    }
+
+
+    /**
+     * Test writing to a hard wired port that is not supported by the hardware.
+     */
+    @Test
+    void testWritePortNotSupported() {
+	HardwareBridge.addResettable(new ThreadExceptionResettable());
+	// write to a port that is not supported by the hardware
+	assertEquals(0, HardwareBridge.writePort(1, 9));
+	// write again to the port
+	assertEquals(0, HardwareBridge.writePort(1, 23));
+	// write over another port
+	assertEquals(1, HardwareBridge.writePort(2, 3));
+	// write over a different port
+	assertEquals(5, HardwareBridge.writePort(0, 7));
+	// write over a different port and another port
+	assertEquals(0, HardwareBridge.writePort(1, 5));
+	// write over a different port but some other port
+	assertEquals(6, HardwareBridge.writePort(2, 1));
+	// write over one port and another
+	assertEquals(7, HardwareBridge.writePort(3, 5));
+    }
+}
+
+// HardwareBridgeTest.java"
+a281d14e-8476-47fd-844d-b5de55926707,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/computer/Memory_0Test.java,54.03498554229736,stop,"// Memory.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Represents the entire memory (RAM and ROM) of a {@link net.virtualinfinity.atrobots.computer.Computer}.
+ *
+ * @author Daniel Pitts
+ */
+public class Memory {
+
+    private final List<MemoryArray> arrays = new ArrayList<MemoryArray>();
+
+    private ComputerErrorHandler errorHandler;
+
+    /**
+     * Bitwise-or the value at the given location with the given value.
+     *
+     * @param address the address
+     * @param value   the value to or.
+     */
+    public void or(int address, short value);
+
+    /**
+     * Bitwise-and the value at the given location with the given value.
+     *
+     * @param address the address
+     * @param value   the value to or.
+     */
+    public void and(int address, short value);
+
+    public ComputerErrorHandler getErrorHandler();
+
+    /**
+     * Get the total size of this memory.
+     *
+     * @return the size.
+     */
+    public int size();
+
+    /**
+     * Add the next section of memory.
+     *
+     * @param array a section of memory.
+     */
+    public void addMemoryArray(MemoryArray array);
+
+    /**
+     * Read the value at the specific address
+     *
+     * @param address the address to read.
+     * @return the value at that address, or 0 if invalid.
+     */
+    public short get(int address);
+
+    public int unsigned(int index);
+
+    /**
+     * writes the value at the specific address
+     *
+     * @param address the address to write.
+     * @param value   the value to write at that address.
+     */
+    public void set(int address, short value);
+
+    public MemoryCell getCell(int index);
+
+    public void decrement(int address);
+
+    public void increment(int address);
+
+    public void setErrorHandler(ComputerErrorHandler errorHandler);
+}
+","// Memory_0Test.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Memory}.
+* It contains one unit test case for the {@link Memory#size()} method.
+*/
+class Memory_0Test {","// Memory_0Test.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Memory}.
+* It contains one unit test case for the {@link Memory#size()} method.
+*/
+class Memory_0Test {
+
+	@Test
+	public void testSize() {
+		Memory_0 memory = new Memory_0();
+		assertEquals(0, memory.size());
+		
+	}
+
+	@Test
+	public void testAdd2() {
+		List<MemoryArray> arraylist1 = new ArrayList<MemoryArray>();
+		MemoryArray array1 = new MemoryArray(7);
+		array1.setAddr(1);
+		array1.setRead_length(4);
+		array1.setWrite_length(1);
+		array1.setAddr(2);
+		array1 = arraylist1.get(0);
+		array1.setAddr(0);
+		array1.setRead_length(1);
+		array1.setWrite_length(1);
+		array1.setAddr(2);
+		array1.setRead_length(12);
+		array1.setWrite_length(1);
+		array1.setAddr(3);
+		array1.setRead_length(15);
+		array1.setWrite_length(1);
+		array1.setAddr(4);
+		array1.setRead_length(100);
+		array1.setWrite_length(6);
+		array1.setAddr(5);
+		array1.setRead_length(1);
+		arraylist1.add(array1);
+		assertEquals(6, arraylist1.get(0).getRead_length());
+		assertEquals(0, arraylist1.get(1).getWrite_length());
+		MemoryArray array2 = new MemoryArray(100);
+		array2.setAddr(1);
+		array2.setWrite_length(4);
+		array2.setRead_length(1);
+		array2.setAddr(2);
+		array2.setRead_length(1);
+		array2.setWrite_length(1);
+		arraylist1.add(array2);
+		assertEquals(0, array2.getAddr());
+		assertEquals(4, array2.getRead_length());
+		
+	}
+
+	@Test
+	public void testAdd3() {
+		MemoryArray array10 = new MemoryArray(100);
+		MemoryArray array11 = new MemoryArray(100);
+		MemoryArray array12 = new MemoryArray(100);
+		MemoryArray array21 = new MemoryArray(100);
+		MemoryArray array22 = new MemoryArray(100);
+		MemoryArray array23 = new MemoryArray(100);
+		MemoryArray array30 = new MemoryArray(100);
+		MemoryArray array31 = new MemoryArray(100);
+		MemoryArray array32 = new MemoryArray(100);
+		MemoryArray array33 = new MemoryArray(100);
+		memory.addMemoryArray(array10);
+		memory.addMemoryArray(array11);
+		memory.addMemoryArray(array12);
+		memory.addMemoryArray(array21);
+		memory.addMemoryArray(array22);
+		memory.addMemoryArray(array23);
+		memory.addMemoryArray(array30);
+		memory.addMemoryArray(array31);
+		memory.addMemoryArray(array32);
+		memory.addMemoryArray(array33);
+		
+		ArrayList<MemoryArray> arraylist = new ArrayList<MemoryArray>();
+		arraylist.add(array11);
+		arraylist.add(array10);
+		arraylist.add(array21);
+		arraylist.add(array22);
+		arraylist.add(array23);
+		assertEquals(4, arraylist.get(2).getRead_length());
+		try {
+			memory.addMemoryArray(array10);
+		}
+		catch (NoMemoryException e) {}
+		try {
+			memory.addMemoryArray(array11);
+		}
+		catch (NoMemoryException e) {
+			assertEquals(Integer.MAX_VALUE, memory.addMemoryArray(array10).getAddr());
+		}
+		assertEquals(100, memory.addMemoryArray(array10).getAddr());
+		assertEquals(100, memory.addMemoryArray(array11).getAddr());
+		assertEquals(100, arraylist.get(2).getAddr());
+		assertEquals(100, arraylist.get(2).getRead_length());
+		
+	}
+}
+"
+f776f75a-db61-4dc2-913c-f051d40e7f26,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/computer/Memory_1Test.java,25.320986032485962,stop,"// Memory.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Represents the entire memory (RAM and ROM) of a {@link net.virtualinfinity.atrobots.computer.Computer}.
+ *
+ * @author Daniel Pitts
+ */
+public class Memory {
+
+    private final List<MemoryArray> arrays = new ArrayList<MemoryArray>();
+
+    private ComputerErrorHandler errorHandler;
+
+    /**
+     * Bitwise-or the value at the given location with the given value.
+     *
+     * @param address the address
+     * @param value   the value to or.
+     */
+    public void or(int address, short value);
+
+    /**
+     * Bitwise-and the value at the given location with the given value.
+     *
+     * @param address the address
+     * @param value   the value to or.
+     */
+    public void and(int address, short value);
+
+    public ComputerErrorHandler getErrorHandler();
+
+    /**
+     * Get the total size of this memory.
+     *
+     * @return the size.
+     */
+    public int size();
+
+    /**
+     * Add the next section of memory.
+     *
+     * @param array a section of memory.
+     */
+    public void addMemoryArray(MemoryArray array);
+
+    /**
+     * Read the value at the specific address
+     *
+     * @param address the address to read.
+     * @return the value at that address, or 0 if invalid.
+     */
+    public short get(int address);
+
+    public int unsigned(int index);
+
+    /**
+     * writes the value at the specific address
+     *
+     * @param address the address to write.
+     * @param value   the value to write at that address.
+     */
+    public void set(int address, short value);
+
+    public MemoryCell getCell(int index);
+
+    public void decrement(int address);
+
+    public void increment(int address);
+
+    public void setErrorHandler(ComputerErrorHandler errorHandler);
+}
+","// Memory_1Test.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Memory}.
+* It contains one unit test case for the {@link Memory#get(int)} method.
+*/
+class Memory_1Test {","// Memory_1Test.java
+package net.virtualinfinity.atrobots.computer;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Memory}.
+* It contains one unit test case for the {@link Memory#get(int)} method.
+*/
+class Memory_1Test {
+UnsignedAddressAddressUnitTest {
+
+		@Test
+		public void unitTest() {
+				RAMMemory ram = RAMMemory.createRam();
+				assertEquals(RAMMemory.RAM_SIZE, ram.size());
+				ram.addMemoryArray(new RAMArray());
+				RAMArray array = ram.get(RamMemory.ROM_ADDRESS);
+				assertEquals(1, array.getLength());
+				RAMMemory.RAM_SIZE++;
+				int address = RamMemory.ROM_ADDRESS + RamMemory.RAM_SIZE * RamMemory.ROM_LENGTH_ENTRIES;
+				short value = RamMemory.RAM_SIZE * RamMemory.RAM_LENGTH_ENTRIES;
+				RAMMemory.or(address, value);
+				array = ram.get(RamMemory.ROM_ADDRESS);
+				RAMArray.RAM_OFFSET_BITS_SHIFT = RamMemory.RAM_PALLET_OFFSET_BITS_SHIFT;
+				if (RamMemory.ROM_PALLET_OFFSET_BITS_SHIFT == RamMemory.ROM_OFFSET_BITS_SHIFT) {
+						assertEquals(value, array.getValue());
+				} else {
+						assertEquals(RamMemory.RAM_SIZE * RamArray.RAM_SIZE, array.getValue());
+				}
+			RAMMemory.size();
+		}
+		
+}
+
+// MemoryArray.java
+class RAMArray extends RAMMemoryArray {
+	RAMArray(short length, short unitLength, short startOffset, short valueOffset, short endOffset) {
+		super(length, unitLength, startOffset, valueOffset, endOffset);
+	}
+}
+"
+86e7005c-7405-4bae-9012-615725bbb2bc,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/computer/Program.java,43.083688735961914,stop,"// Program.java
+package net.virtualinfinity.atrobots.computer;
+
+/**
+ * A Program is a ROM definition.
+ *
+ * @author Daniel Pitts
+ */
+public class Program {
+
+    private short[] programCode;
+
+    public Program(short[] programCode) {
+    }
+
+    /**
+     * Creates a read-only memory array with the program code pre-flashed.
+     *
+     * @return the memory array.
+     */
+    public MemoryArray createProgramMemory();
+}
+","// ProgramTest.java
+package net.virtualinfinity.atrobots.computer;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Program}.
+* It contains one unit test case for the {@link Program#createProgramMemory()} method.
+*/
+class ProgramTest {","// ProgramTest.java
+package net.virtualinfinity.atrobots.computer;
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Program}.
+* It contains one unit test case for the {@link Program#createProgramMemory()} method.
+*/
+class ProgramTest {
+private static final int TOTALWORDS = 10000000;
+		private static final int NUMROWS = 10;
+		private static final int NUMCOLS = 10;
+		/**
+		* Verifies that createProgramMemory() correctly creates a memory array.
+		*/
+    @Test
+    void createProgramMemory() {
+			assertArrayOfShortEquals(new short[]{}, Program.createProgramMemory());
+    }	
+
+	/**
+	 * Tests that the two program codes are equal.
+	 */
+@Test
+    public void twoProgramCodesAreEqual() {
+		short[] programCode1 = new short[TOTALWORDS];
+		short[] programCode2 = new short[TOTALWORDS];
+
+		int i = 0;
+		for (; i < TOTALWORDS; i++) {
+			programCode1[i] = (short) (i % NUMROWS);
+			programCode2[i] = (short) ((i + 1) % NUMROWS);
+		}
+
+		// check that two program codes are the same
+		assertArrayOfShortEquals(programCode1, programCode2);
+    }
+
+	/**
+	 * Tests that createProgramMemory() removes the program code from the byte array.
+	 */
+@Test
+    public void removeProgramCode() {
+		ShortArrayProgramCodeProgramMapping mapping = new ShortArrayProgramCodeProgramMapping();
+
+		short[] programCode = new short[TOTALWORDS];
+        for (ShortProgramCode shortProgramCode : mapping.getProgramCodes()) {
+            programCode[shortProgramCode.getCode()] = (short)(shortProgramCode.getCode());
+        }
+
+		// check that the code and code array are empty
+		assertArrayOfShortEquals(new short[]{}, programCode);
+
+	    // check that removing the code and code array does not remove it
+		mapping.setProgramCodes(new short[NUMROWS]);
+		programCode = new short[TOTALWORDS];
+		for (ShortProgramCode shortProgramCode : mapping.getProgramCodes()) {
+			programCode[shortProgramCode.getCode()] = (short)(shortProgramCode.getCode());
+        }
+
+		// check that the code array and the code array do not remain empty
+		assertArrayOfShortEquals(new short[]{}, programCode);
+    }
+
+	/**
+	 * Tests that creating the memory array properly creates a memory array.
+	 */
+@Test
+    public void createProgramMemory() {
+
+		int[] array = new int[NUMROWS * NUMCOLS];
+		for (int i = 0; i < array.length; ++i) {
+			array[i] = i % COLS;
+		}
+
+		// check that createProgramMemory() creates the correct memory array with the correct data
+		long address = Program.createProgramMemory().getLongDataAtIndex(0);
+		assertArrayOfIntEquals(array, address);
+		int curArrayIndex = 0;
+		for (int i = 0; i < TOTALWORDS; i++) {
+			short code = (short) i;
+			address += Program.createProgramMemory().getLongAtIndex(curArrayIndex++);
+			assertEquals(array[address], code);
+		}
+
+       // check that the memory object has been created correctly
+       assertEquals(array.length, TOTALWORDS * NUMROWS * NUMCOLS);
+    }
+
+	/**
+	 * Tests the clear() method of the memory.
+	 */
+	@Test
+    public void clearMemory() {
+		// create memory object
+		ShortArrayProgramCodeProgramMapping map = new ShortArrayProgramCodeProgramMapping();
+
+		// create memory object with some code array
+		ShortArrayProgramMemoryProgramMapping memory = map.getProgramMemory();
+		for (int i = 0; i < NUMROWS * NUMCOLS; i++) {
+			memory.setShortAtIndex(0, (short) (i % COLS));
+		}
+		memory.clear();
+
+		// check that memory array is correctly cleared
+		assertArrayOfShortEquals(new short[]{}, memory.getShortArrayAtIndex(0));
+    }
+
+	/**
+	 * Tests the writeMemory() method of the memory object.
+	 */
+	@Test
+    public void writeMemory() {
+		// create memory object
+        ShortArrayProgramCodeProgramMapping map = new ShortArrayProgramCodeProgramMapping();
+
+		// create memory object with some code array
+        ShortArrayProgramMemoryProgramMapping program = map.getProgramMemory();
+		for (int i = 0; i < TOTALWORDS * NUMROWS * NUMCOLS; i++) {
+			program.setShortAtIndex(0, (short) (i % COLS));
+		}
+
+		// read memory by first setter
+        program.writeMemory(0, new int[NUMCOLS]);
+
+		// check that both program memory and the read byte arrays are the same
+		assertArrayOfShortEquals(new short[][]{{0}, {4}},
+				(short[]) ((ShortArrayProgramMemoryProgramMapping) program.getShortArrayAtIndex(0)).getIntArrayAtIndex(0));
+		assertArrayOfIntEquals((int[]) ((ShortArrayProgramMemoryProgramMapping) program.getShortArrayAtIndex(0)).getLongArrayAtIndex(0), (int) (4));
+
+	    // check that neither program nor read byte arrays are left unchanged
+		assertArrayOfShortEquals(new short[][]{{0}, {0}},
+				(short[]) ((ShortArrayProgramMemoryProgramMapping) program.getShortArrayAtIndex(0)).getIntArrayAtIndex(0));
+		assertArrayOfIntEquals((int[]) ((ShortArrayProgramMemoryProgramMapping) program.getShortArrayAtIndex(0)).getLongArrayAtIndex(0), 0);
+    }
+
+}
+"
+b31465a8-cde3-42df-aca4-cbd0cff3a8a9,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompilerOutput_0Test.java,36.26821804046631,stop,"// AtRobotCompilerOutput.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+
+/**
+ * The results of a compilation attempt.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompilerOutput {
+
+    private final Errors errors;
+
+    private final Program program;
+
+    private final HardwareSpecification hardwareSpecification;
+
+    private final int maxProcessorSpeed;
+
+    private final DebugInfo debugInfo;
+
+    private final String message;
+
+    /**
+     * Construct an output.
+     *
+     * @param errors                the errors (if any). Should not be null.
+     * @param program               the program produced by the compiler.
+     * @param hardwareSpecification the hardware specs produced by the compiler
+     * @param maxProcessorSpeed     the max processor speed. TODO: This should be part of HardwareSpecification
+     * @param debugInfo             debug information.
+     * @param message               the robots message.
+     * @throws NullPointerException if errors is null, or if errors.hasErrors() is false and any of program, hardwareSpecification, or debugInfo is null.
+     */
+    public AtRobotCompilerOutput(Errors errors, Program program, HardwareSpecification hardwareSpecification, int maxProcessorSpeed, DebugInfo debugInfo, String message) {
+    }
+
+    /**
+     * Creates an RobotFactory based on this compiled output.
+     *
+     * @param name the name of the entrant to create.
+     * @return a configured entrant
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public RobotFactory createRobotFactory(String name);
+
+    /**
+     * Get the Errors object.
+     *
+     * @return the Errors object.
+     */
+    public Errors getErrors();
+
+    /**
+     * Check for errors.
+     *
+     * @return true if there are errors.
+     */
+    public boolean hasErrors();
+
+    /**
+     * Get the program code.
+     *
+     * @return the program code.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public Program getProgram();
+
+    /**
+     * Get the message.
+     *
+     * @return the message.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public String getMessage();
+
+    /**
+     * Get the hardware specification.
+     *
+     * @return the hardware specification.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public HardwareSpecification getHardwareSpecification();
+
+    /**
+     * Get the maximum desired processor speed.
+     *
+     * @return the maximum desired processor speed.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public int getMaxProcessorSpeed();
+
+    /**
+     * Get the debug info.
+     *
+     * @return the debug info.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public DebugInfo getDebugInfo();
+}
+","// AtRobotCompilerOutput_0Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompilerOutput}.
+* It contains one unit test case for the {@link AtRobotCompilerOutput#createRobotFactory(String)} method.
+*/
+class AtRobotCompilerOutput_0Test {","// AtRobotCompilerOutput_0Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompilerOutput}.
+* It contains one unit test case for the {@link AtRobotCompilerOutput#createRobotFactory(String)} method.
+*/
+class AtRobotCompilerOutput_0Test {
+ /**
+    * Constructs a test suite which is run once.
+    *
+    * @return a test suite.
+    */
+    @Test
+    void test() {
+        // given
+        AtRobotCompilerOutput o = new AtRobotCompilerOutput(new Errors(), new Program(0),new HardwareSpecification(0), 1, DebugInfo.NOPE, ""no message"");
+                // when
+        String name = o.getProgram().name;
+        String output = o.getMessage();
+
+        // then
+        assertEquals(name, ""no message"");
+        assertEquals(output, ""no message"");
+    }
+    
+}
+"
+0f8eb015-d753-4e24-ad92-375ce444889a,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompilerOutput_1Test.java,43.00817346572876,stop,"// AtRobotCompilerOutput.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+
+/**
+ * The results of a compilation attempt.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompilerOutput {
+
+    private final Errors errors;
+
+    private final Program program;
+
+    private final HardwareSpecification hardwareSpecification;
+
+    private final int maxProcessorSpeed;
+
+    private final DebugInfo debugInfo;
+
+    private final String message;
+
+    /**
+     * Construct an output.
+     *
+     * @param errors                the errors (if any). Should not be null.
+     * @param program               the program produced by the compiler.
+     * @param hardwareSpecification the hardware specs produced by the compiler
+     * @param maxProcessorSpeed     the max processor speed. TODO: This should be part of HardwareSpecification
+     * @param debugInfo             debug information.
+     * @param message               the robots message.
+     * @throws NullPointerException if errors is null, or if errors.hasErrors() is false and any of program, hardwareSpecification, or debugInfo is null.
+     */
+    public AtRobotCompilerOutput(Errors errors, Program program, HardwareSpecification hardwareSpecification, int maxProcessorSpeed, DebugInfo debugInfo, String message) {
+    }
+
+    /**
+     * Creates an RobotFactory based on this compiled output.
+     *
+     * @param name the name of the entrant to create.
+     * @return a configured entrant
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public RobotFactory createRobotFactory(String name);
+
+    /**
+     * Get the Errors object.
+     *
+     * @return the Errors object.
+     */
+    public Errors getErrors();
+
+    /**
+     * Check for errors.
+     *
+     * @return true if there are errors.
+     */
+    public boolean hasErrors();
+
+    /**
+     * Get the program code.
+     *
+     * @return the program code.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public Program getProgram();
+
+    /**
+     * Get the message.
+     *
+     * @return the message.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public String getMessage();
+
+    /**
+     * Get the hardware specification.
+     *
+     * @return the hardware specification.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public HardwareSpecification getHardwareSpecification();
+
+    /**
+     * Get the maximum desired processor speed.
+     *
+     * @return the maximum desired processor speed.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public int getMaxProcessorSpeed();
+
+    /**
+     * Get the debug info.
+     *
+     * @return the debug info.
+     * @throws IllegalStateException if there are compiler errors.
+     */
+    public DebugInfo getDebugInfo();
+}
+","// AtRobotCompilerOutput_1Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompilerOutput}.
+* It contains one unit test case for the {@link AtRobotCompilerOutput#hasErrors()} method.
+*/
+class AtRobotCompilerOutput_1Test {","// AtRobotCompilerOutput_1Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import net.virtualinfinity.atrobots.computer.DebugInfo;
+import net.virtualinfinity.atrobots.computer.Program;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompilerOutput}.
+* It contains one unit test case for the {@link AtRobotCompilerOutput#hasErrors()} method.
+*/
+class AtRobotCompilerOutput_1Test {
+
+	@Before
+	public void setUp() {
+	}
+
+	@Test
+	public void test1() {
+		AtRobotCompilerOutput output = new AtRobotCompilerOutput(null);
+		output.hasErrors(true);
+		assertTrue(output.hasErrors());
+	}
+	
+	@Test
+	public void test2() {
+		AtRobotCompilerOutput output = new AtRobotCompilerOutput(new StringBuilder()).build();
+		assertFalse(output.hasErrors());
+	}
+
+}
+
+// AtRobotCompilerOutput.java
+"
+4c892055-98b4-440e-bca0-6cad3559c486,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompiler_0Test.java,47.02267241477966,stop,"// AtRobotCompiler.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+
+/**
+ * Compiler which will compile source-code.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompiler {
+
+    public AtRobotCompiler() {
+    }
+
+    /**
+     * Compile the specific file.
+     *
+     * @param sourceFile the source file.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the file.
+     */
+    public AtRobotCompilerOutput compile(File sourceFile) throws IOException;
+
+    /**
+     * Compile the source read from the stream.
+     *
+     * @param in the stream.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the stream.
+     */
+    public AtRobotCompilerOutput compile(InputStream in) throws IOException;
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param in the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(Reader in) throws IOException;
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param reader the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(LineNumberReader reader) throws IOException;
+}
+","// AtRobotCompiler_0Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains one unit test case for the {@link AtRobotCompiler#compile(File)} method.
+*/
+class AtRobotCompiler_0Test {","// AtRobotCompiler_0Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains one unit test case for the {@link AtRobotCompiler#compile(File)} method.
+*/
+class AtRobotCompiler_0Test {
+/**
+     * Test method for {@link net.virtualinfinity.atrobots.compiler.AtRobotCompiler#compile(File)}.
+     */
+        @Test
+        void testCompileFile() {//NOSONAR
+            final String message = ""Hello."";
+            final File testFile = new File(""/Users/David/Dropbox/OpenDataProject/atRobotCompiler/atrobots/atrobots_output/atRobotCompiler.java"");
+            assertEquals(""Unexpected file"", testFile, AtRobotCompiler.compile(new File(""./"")));
+            String actual = atRobotCompiler.getMessageFor(testFile.getPath());
+			assertEquals(""Unexpected message"", ""Hello."", actual);
+
+		}
+}
+"
+17c29c11-88f1-4206-9a0f-62451d57a592,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompiler_1Test.java,24.658851861953735,stop,"// AtRobotCompiler.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+
+/**
+ * Compiler which will compile source-code.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompiler {
+
+    public AtRobotCompiler() {
+    }
+
+    /**
+     * Compile the specific file.
+     *
+     * @param sourceFile the source file.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the file.
+     */
+    public AtRobotCompilerOutput compile(File sourceFile) throws IOException;
+
+    /**
+     * Compile the source read from the stream.
+     *
+     * @param in the stream.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the stream.
+     */
+    public AtRobotCompilerOutput compile(InputStream in) throws IOException;
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param in the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(Reader in) throws IOException;
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param reader the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(LineNumberReader reader) throws IOException;
+}
+","// AtRobotCompiler_1Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains one unit test case for the {@link AtRobotCompiler#compile(InputStream)} method.
+*/
+class AtRobotCompiler_1Test {","// AtRobotCompiler_1Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains one unit test case for the {@link AtRobotCompiler#compile(InputStream)} method.
+*/
+class AtRobotCompiler_1Test {
+
+    static final InputStream INPUT = new InputStream() {
+        @Override
+        public int read() throws IOException {
+            throw new IOException();
+        }
+    };
+    
+    /**
+    * Test case in which the unit test does not use a specific InputStream and uses the stream to read
+    * the file itself.
+    *
+    * @throws IOException if there is an error reading from the file.
+    */
+    @Test
+    public void test_input_stream_compile_stream()
+        throws IOException {
+
+		AtRobotCompiler Output = null;
+		try {
+			Output = new AtRobotCompiler() {
+				
+				/**
+				 * Compile the file.
+				 *
+				 * @param in the InputStream
+				 * @return a CompilerOutput object.
+				 * @throws IOException if there is a problem reading from the stream.
+				 */
+				public AtRobotCompilerOutput compile(InputStream in) throws IOException;
+				
+			}
+			
+		} catch (AtRobotCompilerException e) {
+			System.err.println(e.getMessage());
+			if (false) return;
+		}
+
+		try {
+			try {
+				return new AtRobotCompiler() {
+					
+					/**
+					 * Compile the file.
+					 *
+					 * @param in the InputStream
+					 * @return a CompilerOutput object.
+					 * @throws IOException if there is a problem reading from the stream.
+					 */
+					public AtRobotCompilerOutput compile(InputStream in) throws IOException;
+					
+				}
+				
+			} catch (AtRobotCompilerException e) {
+				System.err.println(e.getMessage());
+				TestUtilities.rethrowIfClosed(e);
+			}
+		} catch (IOException e) {
+			System.err.println(e);
+			TestUtilities.rethrowIfClosed(e);
+		}
+
+    }
+}"
+6a313947-f2e5-4246-b98f-984f7379d6f9,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompiler_2Test.java,23.026691198349,stop,"// AtRobotCompiler.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+
+/**
+ * Compiler which will compile source-code.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompiler {
+
+    public AtRobotCompiler() {
+    }
+
+    /**
+     * Compile the specific file.
+     *
+     * @param sourceFile the source file.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the file.
+     */
+    public AtRobotCompilerOutput compile(File sourceFile) throws IOException;
+
+    /**
+     * Compile the source read from the stream.
+     *
+     * @param in the stream.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the stream.
+     */
+    public AtRobotCompilerOutput compile(InputStream in) throws IOException;
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param in the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(Reader in) throws IOException;
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param reader the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(LineNumberReader reader) throws IOException;
+}
+","// AtRobotCompiler_2Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains one unit test case for the {@link AtRobotCompiler#compile(Reader)} method.
+*/
+class AtRobotCompiler_2Test {","// AtRobotCompiler_2Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains one unit test case for the {@link AtRobotCompiler#compile(Reader)} method.
+*/
+class AtRobotCompiler_2Test {
+private final static String sourceString =
+                ""    //- - - \n""
+                + ""    //- - - - -\n""
+                + ""    //- - - - +\n""
+                + ""/*!\n""
+                + "" * @author    Thorsten S. Dalmaijer\n""
+                + "" * @version   1.0.*\n""
+                + "" *\n""
+                + "" *         Tested on: "" + System.lineSeparator()
+                + System.lineSeparator()
+                + ""  * @since    1.0.* \n""
+                + ""    * @testcase  testAtRobotCompiler2 \n""
+                + ""             * - - - --\n""
+                + ""             * - - - -\n""
+                + ""             * - - - - /\n""
+                + ""             * - - - -\n"";
+
+        AtRobotCompiler_2Test(StreamExprVisitor v) {
+        }
+        
+        /**
+         * Test the {@link #compile(Reader)} method.
+         */
+        @Test
+        public void testAtRobotCompiler2() {
+            FileWriter fw = null;
+            try {
+                AtRobotCompilerOutput cv = compile(sourceString, fw);
+		       assertEquals(""wrong output!"", cv.read(), ""The input string didn't compile correctly.\n"", fw.getBuffer().toString());
+                
+                String buffer = new String(cv.buffer());
+				assertEquals(""wrong output!"", buffer, ""This is a sample code!\n"", fw.getBuffer().toString());
+		    fail(""Expected RuntimeException, see above"");
+            } catch (IOException ioe) {
+                String buffer = new String(cv.buffer());
+				System.out.println(""got the error: "" + ioe);
+				assertEquals(""wrong output!"", ioe,
+				            ""Expected Runtime Exception, see above"");
+			}
+        }
+}
+"
+139e23e5-ea60-4bee-b5d9-ce6e45fab09d,/EvoSuiteBenchmark/original/86_at-robots2-j/src/main/java/net/virtualinfinity/atrobots/compiler/AtRobotCompiler_3Test.java,42.400052309036255,stop,"// AtRobotCompiler.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+
+/**
+ * Compiler which will compile source-code.
+ *
+ * @author Daniel Pitts
+ */
+public class AtRobotCompiler {
+
+    public AtRobotCompiler() {
+    }
+
+    /**
+     * Compile the specific file.
+     *
+     * @param sourceFile the source file.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the file.
+     */
+    public AtRobotCompilerOutput compile(File sourceFile) throws IOException;
+
+    /**
+     * Compile the source read from the stream.
+     *
+     * @param in the stream.
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the stream.
+     */
+    public AtRobotCompilerOutput compile(InputStream in) throws IOException;
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param in the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(Reader in) throws IOException;
+
+    /**
+     * Compile the source read from the given reader.
+     *
+     * @param reader the reader
+     * @return a CompilerOutput object.
+     * @throws IOException if there is a problem reading from the reader.
+     */
+    public AtRobotCompilerOutput compile(LineNumberReader reader) throws IOException;
+}
+","// AtRobotCompiler_3Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains one unit test case for the {@link AtRobotCompiler#compile(LineNumberReader)} method.
+*/
+class AtRobotCompiler_3Test {","// AtRobotCompiler_3Test.java
+package net.virtualinfinity.atrobots.compiler;
+
+import java.io.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AtRobotCompiler}.
+* It contains one unit test case for the {@link AtRobotCompiler#compile(LineNumberReader)} method.
+*/
+class AtRobotCompiler_3Test {
+public @Test void atRobotCompiler_3Test() {
+			// GIVEN -> A LineNumberReader
+			final LineNumberReader reader = new LineNumberReader(new StringReader(""""));
+			// WHEN -> Compile the given source
+			AtRobotCompiler.compile(reader);
+			// THEN -> Should get no error
+		}
+}
+"

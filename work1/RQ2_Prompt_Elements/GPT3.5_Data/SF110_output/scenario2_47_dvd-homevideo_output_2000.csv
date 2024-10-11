@@ -1,0 +1,2273 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-6yW8ljDcYZAiqA3PVvnhxNFLbXwZz,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Burn.java,39.827189922332764,stop,"// Burn.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+/**
+ * @author Shane Santner
+ * This class burns the DVD file structure previously created by
+ * dvd-author to a DVD disc.
+ */
+public class Burn {
+
+    /**
+     * Optionally burn to DVD when complete and no errors, uses growisofs
+     *
+     * @param DVD_GUI This is the GUI object used to control the form
+     * return   A boolean to determine if an error occurred in the function
+     */
+    public boolean BurnToDVD(GUI DVD_GUI) {
+        /* Update growisofs command with the correct paths */
+        m_growisofs = m_growisofs.replaceAll(""temp"", DVD_GUI.strOutputDir);
+        /* 
+         * Burn object always gets created, so m_Burn will not always be true,
+         * must be checked. 
+         */
+        if (m_Burn == true) {
+            try {
+                /* Create the growisofs process which actually burns the DVD */
+                Process p = Runtime.getRuntime().exec(m_growisofs);
+                /* Instantiate input and output readers for dvd-author streams */
+                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader err_in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.log""));
+                BufferedWriter err_out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.err""));
+                String line;
+                /* We will miss the error without this delay */
+                Thread.sleep(50);
+                /* 
+                 * Check for the case where the necessary dependencies are not
+                 * installed, but the user tries to run dvd-homevideo anyway
+                 */
+                if (err_in.ready()) {
+                    line = err_in.readLine();
+                    if (line.equals(""/bin/sh: growisofs: command not found"")) {
+                        DVD_GUI.MessageBox(""Could not locate growisofs in your path."" + ""\nPlease install all necessary dependencies"" + ""\nand rerun dvd-homevideo."", 0);
+                        /* Close all open streams */
+                        in.close();
+                        out.close();
+                        err_in.close();
+                        err_out.close();
+                        /* Indicate that there was an error */
+                        return true;
+                    } else {
+                        DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                        out.write(line);
+                        out.newLine();
+                    }
+                }
+                out.write(""burn.log--->dvd-homevideo"");
+                out.newLine();
+                /* Write the output to the txtAreaOutput user display */
+                while ((line = in.readLine()) != null) {
+                    DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                    out.write(line);
+                    out.newLine();
+                }
+                /*
+                 * close() throws an IOException
+                 */
+                in.close();
+                out.close();
+                err_in.close();
+                err_out.close();
+                /*
+                 * p.waitFor() throws an InterruptedException
+                 */
+                p.waitFor();
+            } catch (IOException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""dvd-homevideo thread was interrupted\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (NullPointerException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Error executing Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (IllegalArgumentException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Illegal argument sent to Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (Exception ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Unknown Error occurred\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            }
+        }
+        if (m_Burn)
+            return DVD_GUI.ErrorCheck(DVD_GUI.strOutputDir + ""/log/burn.log"");
+        return false;
+    }
+}
+","// BurnTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Burn}.
+* It contains ten unit test cases for the {@link Burn#BurnToDVD(GUI)} method.
+*/
+class BurnTest {","// BurnTest.java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+/**
+ * Test class of {@link Burn}.
+ * It contains ten unit test cases for the {@link Burn#BurnToDVD(GUI)} method.
+ */
+class BurnTest {
+
+    /**
+     * Test case for successful DVD burn.
+     */
+    @Test
+    void testBurnToDVDSuccess() {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn();
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertFalse(result);
+    }
+
+    /**
+     * Test case for missing growisofs dependency.
+     */
+    @Test
+    void testBurnToDVDMissingDependency() {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn();
+        burn.m_growisofs = ""/bin/sh: growisofs: command not found"";
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for IOException.
+     */
+    @Test
+    void testBurnToDVDIOException() {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn() {
+            @Override
+            public Process exec(String command) throws IOException {
+                throw new IOException();
+            }
+        };
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for InterruptedException.
+     */
+    @Test
+    void testBurnToDVDInterruptedException() {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn() {
+            @Override
+            public void waitFor() throws InterruptedException {
+                throw new InterruptedException();
+            }
+        };
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for NullPointerException.
+     */
+    @Test
+    void testBurnToDVDNullPointerException() {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn() {
+            @Override
+            public Process exec(String command) throws NullPointerException {
+                throw new NullPointerException();
+            }
+        };
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for IllegalArgumentException.
+     */
+    @Test
+    void testBurnToDVDIllegalArgumentException() {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn() {
+            @Override
+            public Process exec(String command) throws IllegalArgumentException {
+                throw new IllegalArgumentException();
+            }
+        };
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for generic Exception.
+     */
+    @Test
+    void testBurnToDVDGenericException() {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn() {
+            @Override
+            public Process exec(String command) throws Exception {
+                throw new Exception();
+            }
+        };
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for empty log file.
+     */
+    @Test
+    void testBurnToDVDEmptyLogFile() throws IOException {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn() {
+            @Override
+            public Process exec(String command) throws IOException {
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/burn.log""));
+                out.close();
+                return null;
+            }
+        };
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for non-empty error log file.
+     */
+    @Test
+    void testBurnToDVDNonEmptyErrorLogFile() throws IOException {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn() {
+            @Override
+            public BufferedReader getErrorStream() {
+                return new BufferedReader(new InputStreamReader(System.in) {
+                    @Override
+                    public String readLine() throws IOException {
+                        return ""Error message"";
+                    }
+                });
+            }
+        };
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for non-empty output log file.
+     */
+    @Test
+    void testBurnToDVDNonEmptyOutputLogFile() throws IOException {
+        GUI DVD_GUI = new GUI();
+        Burn burn = new Burn() {
+            @Override
+            public BufferedReader getInputStream() {
+                return new BufferedReader(new InputStreamReader(System.in) {
+                    @Override
+                    public String readLine() throws IOException {
+                        return ""Output message"";
+                    }
+                });
+            }
+        };
+        boolean result = burn.BurnToDVD(DVD_GUI);
+        assertFalse(result);
+    }
+}"
+chatcmpl-6yW9oNTEi7sAsTByZntd4gmuUtLfL,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Menu_0Test.java,35.51446294784546,stop,"// Menu.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class creates a background menu for a DVD.  The user
+ * can specify a background picture and audio to use for the
+ * menu, or a default background can also be used.  The user
+ * also has the option of specifying unique titles for each
+ * chapter of the DVD.  If nothing is specified then the title
+ * of the DVD will be used followed by an underscore and increasing
+ * integer for each video clip.
+ *
+ * TODO - Can I use streams on dvd-menu?  Really need to standardize
+ *        how I use streams across the board for all classes.
+ */
+public class Menu implements Runnable {
+
+    /**
+     * Used to instantiate a new thread and to perform error checking.
+     *
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean init() {
+        /* Create and start the new thread */
+        m_Thread = new Thread(this);
+        m_Thread.start();
+        try {
+            m_Thread.join();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        /* 
+         * If an error occurred while executing DV_Capture then m_Error will be set
+         * to true.  Also check the log file for any evidence of an error.
+         */
+        return (m_Error || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/dvd-menu.log""));
+    }
+}
+","// Menu_0Test.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains ten unit test cases for the {@link Menu#init()} method.
+*/
+class Menu_0Test {","// Menu_0Test.java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class of {@link Menu}.
+ * It contains ten unit test cases for the {@link Menu#init()} method.
+ */
+class Menu_0Test {
+
+    /**
+     * Test case for successful initialization of Menu.
+     */
+    @Test
+    void testInitSuccess() {
+        Menu menu = new Menu();
+        assertFalse(menu.init());
+    }
+
+    /**
+     * Test case for error in DV_Capture.
+     */
+    @Test
+    void testInitErrorInDV_Capture() {
+        Menu menu = new Menu() {
+            @Override
+            public void run() {
+                m_Error = true;
+            }
+        };
+        assertTrue(menu.init());
+    }
+
+    /**
+     * Test case for error in log file.
+     */
+    @Test
+    void testInitErrorInLogFile() {
+        Menu menu = new Menu() {
+            @Override
+            public void run() {
+                try {
+                    File logFile = new File(m_GUI.strOutputDir + ""/log/dvd-menu.log"");
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(logFile));
+                    writer.write(""Error occurred"");
+                    writer.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+        assertTrue(menu.init());
+    }
+
+    /**
+     * Test case for error in both DV_Capture and log file.
+     */
+    @Test
+    void testInitErrorInBoth() {
+        Menu menu = new Menu() {
+            @Override
+            public void run() {
+                m_Error = true;
+                try {
+                    File logFile = new File(m_GUI.strOutputDir + ""/log/dvd-menu.log"");
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(logFile));
+                    writer.write(""Error occurred"");
+                    writer.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+        assertTrue(menu.init());
+    }
+    
+    /**
+     * Test case for error in joining thread.
+     */
+    @Test
+    void testInitErrorInJoiningThread() {
+        Menu menu = new Menu() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+        assertFalse(menu.init());
+    }
+    
+    /**
+     * Test case for error in GUI.
+     */
+    @Test
+    void testInitErrorInGUI() {
+        Menu menu = new Menu() {
+            @Override
+            public boolean ErrorCheck(String logFile) {
+                return true;
+            }
+        };
+        assertTrue(menu.init());
+    }
+    
+    /**
+     * Test case for error in creating thread.
+     */
+    @Test
+    void testInitErrorInCreatingThread() {
+        Menu menu = new Menu() {
+            @Override
+            public boolean init() {
+                return true;
+            }
+        };
+        assertTrue(menu.init());
+    }
+    
+    /**
+     * Test case for error in input stream.
+     */
+    @Test
+    void testInitErrorInInputStream() {
+        Menu menu = new Menu() {
+            @Override
+            public void run() {
+                try {
+                    System.setIn(new FileInputStream(""nonexistentfile.txt""));
+                } catch (FileNotFoundException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+        assertTrue(menu.init());
+    }
+    
+    /**
+     * Test case for error in output stream.
+     */
+    @Test
+    void testInitErrorInOutputStream() {
+        Menu menu = new Menu() {
+            @Override
+            public void run() {
+                try {
+                    System.setOut(null);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+        assertTrue(menu.init());
+    }
+    
+    /**
+     * Test case for error in error stream.
+     */
+    @Test
+    void testInitErrorInErrorStream() {
+        Menu menu = new Menu() {
+            @Override
+            public void run() {
+                try {
+                    System.setErr(null);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+        assertTrue(menu.init());
+    }
+}"
+chatcmpl-6yWArLIZqMByPKj2tD33Jn2JIRrj2,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Menu_1Test.java,57.455561876297,stop,"// Menu.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class creates a background menu for a DVD.  The user
+ * can specify a background picture and audio to use for the
+ * menu, or a default background can also be used.  The user
+ * also has the option of specifying unique titles for each
+ * chapter of the DVD.  If nothing is specified then the title
+ * of the DVD will be used followed by an underscore and increasing
+ * integer for each video clip.
+ *
+ * TODO - Can I use streams on dvd-menu?  Really need to standardize
+ *        how I use streams across the board for all classes.
+ */
+public class Menu implements Runnable {
+
+    /**
+     * Creates the xml file to pass to dvdauthor
+     *
+     * @param m_GUI This is the GUI object used to control the form
+     */
+    public boolean createXML() {
+        File xmlFile = new File(m_GUI.strOutputDir + ""/vmgm.xml"");
+        File ListDir = new File(m_GUI.strOutputDir);
+        /* 
+         * Need to find all vob files, but don't want to include menu.vob
+         * which was created by dvd-menu.
+         */
+        FilenameFilter filter = new FilenameFilter() {
+
+            boolean ret_val = true;
+
+            public boolean accept(File dir, String name) {
+                if (name.endsWith(""vob"")) {
+                    if (!name.equals(""menu.vob""))
+                        ret_val = true;
+                    else
+                        ret_val = false;
+                } else
+                    ret_val = false;
+                return ret_val;
+            }
+        };
+        video_files = ListDir.list(filter);
+        /* Write the xml file.  It's not pretty, but it works. */
+        int i;
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(xmlFile));
+            writer.write(""<dvdauthor dest=\"""" + m_GUI.strOutputDir + ""/DVD/\"" jumppad=\""0\"">"");
+            writer.newLine();
+            writer.write(""\t<vmgm>"");
+            writer.newLine();
+            writer.write(""\t\t<menus>"");
+            writer.newLine();
+            writer.write(""\t\t\t<pgc entry=\""title\"" >"");
+            writer.newLine();
+            writer.write(""\t\t\t\t<vob file=\"""" + m_GUI.strOutputDir + ""/menu.vob\"" pause=\""inf\"" />"");
+            writer.newLine();
+            if (titles[0] == null) {
+                for (i = 1; i <= video_files.length; i++) {
+                    writer.write(""\t\t\t\t<button>jump title "" + i + "";</button>"");
+                    writer.newLine();
+                }
+            } else {
+                for (i = 1; i < titles.length; i++) {
+                    if (!titles[i - 1].equals(""BLANK"") && !titles[i - 1].equals(""DONE"")) {
+                        writer.write(""\t\t\t\t<button>jump title "" + i + "";</button>"");
+                        writer.newLine();
+                    } else if (titles[i - 1].equals(""DONE""))
+                        break;
+                }
+            }
+            writer.write(""\t\t\t\t<post> jump vmgm menu 1; </post>"");
+            writer.newLine();
+            writer.write(""\t\t\t</pgc>"");
+            writer.newLine();
+            writer.write(""\t\t</menus>"");
+            writer.newLine();
+            writer.write(""\t</vmgm>"");
+            writer.newLine();
+            writer.write(""\t<titleset>"");
+            writer.newLine();
+            writer.write(""\t<titles>"");
+            writer.newLine();
+            for (i = 1; i < video_files.length; i++) {
+                writer.write(""\t\t<pgc>"");
+                writer.newLine();
+                writer.write(""\t\t\t<vob file=\"""" + video_files[i - 1] + ""\"" />"");
+                writer.newLine();
+                writer.write(""\t\t\t<post>jump title "" + (i + 1) + "";</post>"");
+                writer.newLine();
+                writer.write(""\t\t</pgc>"");
+                writer.newLine();
+            }
+            writer.write(""\t\t<pgc>"");
+            writer.newLine();
+            writer.write(""\t\t\t<vob file=\"""" + video_files[i - 1] + ""\"" />"");
+            writer.newLine();
+            writer.write(""\t\t\t<post>call vmgm menu 1;</post>"");
+            writer.newLine();
+            writer.write(""\t\t</pgc>"");
+            writer.newLine();
+            writer.write(""\t</titles>"");
+            writer.newLine();
+            writer.write(""\t</titleset>"");
+            writer.newLine();
+            writer.write(""</dvdauthor>"");
+            writer.newLine();
+            writer.close();
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+            m_GUI.MessageBox(baseErr + ""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        /* Shouldn't expect to see any errors from this method call. */
+        return false;
+    }
+}
+","// Menu_1Test.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Menu}.
+* It contains ten unit test cases for the {@link Menu#createXML()} method.
+*/
+class Menu_1Test {","// Menu_1Test.java
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * Test class of {@link Menu}.
+ * It contains ten unit test cases for the {@link Menu#createXML()} method.
+ */
+class MenuTest {
+
+    /**
+     * Test case for creating XML file with default titles.
+     */
+    @Test
+    void testCreateXMLWithDefaultTitles() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = {""video1.vob"", ""video2.vob"", ""video3.vob""};
+        menu.video_files = videoFiles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+    }
+
+    /**
+     * Test case for creating XML file with custom titles.
+     */
+    @Test
+    void testCreateXMLWithCustomTitles() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = {""video1.vob"", ""video2.vob"", ""video3.vob""};
+        menu.video_files = videoFiles;
+        String[] titles = {""Title 1"", ""Title 2"", ""Title 3""};
+        menu.titles = titles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+    }
+
+    /**
+     * Test case for creating XML file with no video files.
+     */
+    @Test
+    void testCreateXMLWithNoVideoFiles() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = {};
+        menu.video_files = videoFiles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+    }
+
+    /**
+     * Test case for creating XML file with menu.vob file.
+     */
+    @Test
+    void testCreateXMLWithMenuVobFile() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = {""video1.vob"", ""menu.vob"", ""video2.vob""};
+        menu.video_files = videoFiles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+    }
+
+    /**
+     * Test case for creating XML file with IOException.
+     */
+    @Test
+    void testCreateXMLWithIOException() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = {""video1.vob"", ""video2.vob"", ""video3.vob""};
+        menu.video_files = videoFiles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+        // Simulate IOException
+        xmlFile.setReadOnly();
+        result = menu.createXML();
+        assertTrue(result == true);
+    }
+
+    /**
+     * Test case for creating XML file with null video files.
+     */
+    @Test
+    void testCreateXMLWithNullVideoFiles() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = null;
+        menu.video_files = videoFiles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+    }
+
+    /**
+     * Test case for creating XML file with null titles.
+     */
+    @Test
+    void testCreateXMLWithNullTitles() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = {""video1.vob"", ""video2.vob"", ""video3.vob""};
+        menu.video_files = videoFiles;
+        String[] titles = null;
+        menu.titles = titles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+    }
+
+    /**
+     * Test case for creating XML file with empty titles.
+     */
+    @Test
+    void testCreateXMLWithEmptyTitles() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = {""video1.vob"", ""video2.vob"", ""video3.vob""};
+        menu.video_files = videoFiles;
+        String[] titles = {"""", """", """"};
+        menu.titles = titles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+    }
+
+    /**
+     * Test case for creating XML file with invalid titles.
+     */
+    @Test
+    void testCreateXMLWithInvalidTitles() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""testDir"";
+        String[] videoFiles = {""video1.vob"", ""video2.vob"", ""video3.vob""};
+        menu.video_files = videoFiles;
+        String[] titles = {""Title 1"", ""BLANK"", ""Title 3"", ""DONE""};
+        menu.titles = titles;
+        boolean result = menu.createXML();
+        assertTrue(result == false);
+        File xmlFile = new File(""testDir/vmgm.xml"");
+        assertTrue(xmlFile.exists());
+        // TODO: Check the contents of the XML file
+    }
+
+    /**
+     * Test case for creating XML file with invalid output directory.
+     */
+    @Test
+    void testCreateXMLWithInvalidOutputDirectory() {
+        Menu menu = new Menu();
+        menu.m_GUI.strOutputDir = ""invalidDir"";
+        String[] videoFiles = {""video1.vob"", ""video2.vob"", ""video3.vob""};
+        menu.video_files = videoFiles;
+        boolean result = menu.createXML();
+        assertTrue(result == true);
+        File xmlFile = new File(""invalidDir/vmgm.xml"");
+        assertTrue(!xmlFile.exists());
+    }
+}"
+chatcmpl-6yWBuEgDrHu3wX146gxx9Zg0cGNW0,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Author.java,76.58382439613342,length,"// Author.java
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+
+/**
+ * @author Shane Santner
+ * This class create the DVD filesystem that will be burned
+ * to disc.
+ *
+ * TODO - Need to handle input, output and error streams
+ *        more appropriatly.
+ */
+public class Author {
+
+    /**
+     * Create a DVD filestructure necessary to play in dvd player using dvdauthor
+     *
+     * @param DVD_GUI This is the GUI object used to control the form
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean CreateDVDFileStructure(GUI DVD_GUI) {
+        try {
+            /* 
+             * Set progress bar to 50% since we have completed dvd-menu.
+             * In the future would like a better way to track progress, this
+             * is not very precise.
+             */
+            DVD_GUI.prgAuthor.setValue(50);
+            DVD_GUI.lblAuthorProg.setText(""50%"");
+            /* Build up the dvdauthor_cmd string and execute dvd-author */
+            String[] dvdauthor_cmd = { ""/bin/sh"", ""-c"", m_dvdauthor };
+            /*
+             * exec(...) throws IOException, NullPointerException and
+             *                  IllegalArgumentException.
+             */
+            Process p = Runtime.getRuntime().exec(dvdauthor_cmd, null, new File(DVD_GUI.strOutputDir));
+            try {
+                /* Instantiate input and output readers for dvd-author streams */
+                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader err_in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedWriter out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/dvdauthor.log""));
+                BufferedWriter err_out = new BufferedWriter(new FileWriter(DVD_GUI.strOutputDir + ""/log/dvdauthor.err""));
+                String line;
+                /* 
+                 * Check for the case where the necessary dependencies are not
+                 * installed, but the user tries to run dvd-homevideo anyway
+                 */
+                if (err_in.ready()) {
+                    line = err_in.readLine();
+                    if (line.equals(""/bin/sh: dvdauthor: command not found"")) {
+                        DVD_GUI.MessageBox(""Could not locate dvdauthor in your path."" + ""\nPlease install all necessary dependencies"" + ""\nand rerun dvd-homevideo."", 0);
+                        /* Close all open streams */
+                        in.close();
+                        out.close();
+                        err_in.close();
+                        err_out.close();
+                        /* Indicate that there was an error */
+                        return true;
+                    }
+                }
+                /*
+                 * Lets look for indications of problems and display these to the user
+                 * through the txtAreaOutput interface.
+                 */
+                StringTokenizer st;
+                /*
+                 * err_in.readLine() throws an IOException
+                 */
+                while ((line = err_in.readLine()) != null) {
+                    st = new StringTokenizer(line, "":"");
+                    if (st.hasMoreTokens()) {
+                        /*
+                         * st.nextToken() throws NoSuchElementException
+                         */
+                        if (!st.nextToken().equals(""WARN"")) {
+                            DVD_GUI.txtAreaOutput.append(line + ""\n"");
+                            DVD_GUI.txtAreaOutput.setCaretPosition(DVD_GUI.txtAreaOutput.getDocument().getLength());
+                            out.write(line);
+                            out.newLine();
+                        }
+                    }
+                }
+                /*
+                 * close() throws an IOException
+                 */
+                in.close();
+                out.close();
+                err_in.close();
+                err_out.close();
+                /*
+                 * p.waitFor() throws an InterruptedException
+                 */
+                p.waitFor();
+            } catch (IOException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (NoSuchElementException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""Looked for a token that didn't exist\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+                DVD_GUI.MessageBox(m_BaseErr + ""dvd-homevideo thread was interrupted\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                return true;
+            }
+            /* Set progress bar to 100% and disable it */
+            DVD_GUI.prgAuthor.setIndeterminate(false);
+            DVD_GUI.prgAuthor.setValue(100);
+            DVD_GUI.lblAuthorProg.setText(""100%"");
+            DVD_GUI.lblAuthor.setEnabled(false);
+            DVD_GUI.lblAuthorProg.setEnabled(false);
+            DVD_GUI.prgAuthor.setEnabled(false);
+            /* Put in a slight delay to ensure author.log closes */
+            Thread.sleep(2000);
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (NullPointerException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Error executing Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (IllegalArgumentException ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Illegal argument sent to Runtime.getRuntime().exec()\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (Exception ex) {
+            SaveStackTrace.printTrace(DVD_GUI.strOutputDir, ex);
+            DVD_GUI.MessageBox(m_BaseErr + ""Unknown Error occurred\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        /* Look for any indication of an error in the author log file */
+        return DVD_GUI.ErrorCheck(DVD_GUI.strOutputDir + ""/log/dvdauthor.log"");
+    }
+}
+","// AuthorTest.java
+
+
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Author}.
+* It contains ten unit test cases for the {@link Author#CreateDVDFileStructure(GUI)} method.
+*/
+class AuthorTest {","// AuthorTest.java
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.lang.NullPointerException;
+import java.lang.IllegalArgumentException;
+
+/**
+ * Test class of {@link Author}.
+ * It contains ten unit test cases for the {@link Author#CreateDVDFileStructure(GUI)} method.
+ */
+class AuthorTest {
+
+    /**
+     * Test case for successful execution of CreateDVDFileStructure method.
+     */
+    @Test
+    void testCreateDVDFileStructureSuccess() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author();
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertFalse(result);
+    }
+
+    /**
+     * Test case for IOException thrown by exec method.
+     */
+    @Test
+    void testCreateDVDFileStructureIOException() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public Process exec(String[] cmdarray, String[] envp, File dir) throws IOException {
+                throw new IOException();
+            }
+        };
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for NullPointerException thrown by exec method.
+     */
+    @Test
+    void testCreateDVDFileStructureNullPointerException() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public Process exec(String[] cmdarray, String[] envp, File dir) throws NullPointerException {
+                throw new NullPointerException();
+            }
+        };
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for IllegalArgumentException thrown by exec method.
+     */
+    @Test
+    void testCreateDVDFileStructureIllegalArgumentException() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public Process exec(String[] cmdarray, String[] envp, File dir) throws IllegalArgumentException {
+                throw new IllegalArgumentException();
+            }
+        };
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for NoSuchElementException thrown by ErrorCheck method.
+     */
+    @Test
+    void testCreateDVDFileStructureNoSuchElementException() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public boolean ErrorCheck(String logFile) {
+                throw new NoSuchElementException();
+            }
+        };
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for IOException thrown by ErrorCheck method.
+     */
+    @Test
+    void testCreateDVDFileStructureIOExceptionInErrorCheck() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public boolean ErrorCheck(String logFile) throws IOException {
+                throw new IOException();
+            }
+        };
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for successful execution of CreateDVDFileStructure method with error message in error stream.
+     */
+    @Test
+    void testCreateDVDFileStructureSuccessWithErrorMessageInErrorStream() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public Process exec(String[] cmdarray, String[] envp, File dir) throws IOException {
+                Process p = new Process() {
+                    @Override
+                    public OutputStream getOutputStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public InputStream getInputStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public InputStream getErrorStream() {
+                        return new ByteArrayInputStream(""/bin/sh: dvdauthor: command not found"".getBytes());
+                    }
+
+                    @Override
+                    public int waitFor() {
+                        return 0;
+                    }
+
+                    @Override
+                    public int exitValue() {
+                        return 0;
+                    }
+
+                    @Override
+                    public void destroy() {
+
+                    }
+                };
+                return p;
+            }
+        };
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for successful execution of CreateDVDFileStructure method with warning message in error stream.
+     */
+    @Test
+    void testCreateDVDFileStructureSuccessWithWarningMessageInErrorStream() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public Process exec(String[] cmdarray, String[] envp, File dir) throws IOException {
+                Process p = new Process() {
+                    @Override
+                    public OutputStream getOutputStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public InputStream getInputStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public InputStream getErrorStream() {
+                        return new ByteArrayInputStream(""WARN: This is a warning message"".getBytes());
+                    }
+
+                    @Override
+                    public int waitFor() {
+                        return 0;
+                    }
+
+                    @Override
+                    public int exitValue() {
+                        return 0;
+                    }
+
+                    @Override
+                    public void destroy() {
+
+                    }
+                };
+                return p;
+            }
+        };
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertFalse(result);
+    }
+
+    /**
+     * Test case for IOException thrown by input stream in CreateDVDFileStructure method.
+     */
+    @Test
+    void testCreateDVDFileStructureIOExceptionInInputStream() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public Process exec(String[] cmdarray, String[] envp, File dir) throws IOException {
+                Process p = new Process() {
+                    @Override
+                    public OutputStream getOutputStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public InputStream getInputStream() {
+                        throw new IOException();
+                    }
+
+                    @Override
+                    public InputStream getErrorStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public int waitFor() {
+                        return 0;
+                    }
+
+                    @Override
+                    public int exitValue() {
+                        return 0;
+                    }
+
+                    @Override
+                    public void destroy() {
+
+                    }
+                };
+                return p;
+            }
+        };
+        boolean result = author.CreateDVDFileStructure(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for IOException thrown by output stream in CreateDVDFileStructure method.
+     */
+    @Test
+    void testCreateDVDFileStructureIOExceptionInOutputStream() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public Process exec(String[] cmdarray, String[] envp, File dir) throws IOException {
+                Process p = new Process() {
+                    @Override
+                    public OutputStream getOutputStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public InputStream getInputStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public InputStream getErrorStream() {
+                        return null;
+                    }
+
+                    @Override
+                    public int waitFor() {
+                        return 0;
+                    }
+
+                    @Override
+                    public int exitValue() {
+                        return 0;
+                    }
+
+                    @Override
+                    public void destroy() {
+
+                    }
+                };
+                return p;
+            }
+        };
+        Author author2 = new Author() {
+            @Override
+            public BufferedWriter getBufferedWriter(String fileName) throws IOException {
+                throw new IOException();
+            }
+        };
+        boolean result = author2.CreateDVDFileStructure(DVD_GUI);
+        assertTrue(result);
+    }
+
+    /**
+     * Test case for InterruptedException thrown by waitFor method in CreateDVDFileStructure method.
+     */
+    @Test
+    void testCreateDVDFileStructureInterruptedException() {
+        GUI DVD_GUI = new GUI();
+        DVD_GUI.strOutputDir = ""testOutputDir"";
+        DVD_GUI.prgAuthor.setValue(0);
+        DVD_GUI.lblAuthorProg.setText(""0%"");
+        Author author = new Author() {
+            @Override
+            public Process exec(String[] cmdarray, String[] env"
+chatcmpl-6yWD961mQqcFPj7tu10virCkerWsK,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Capture.java,28.810948133468628,stop,"// Capture.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.swing.JOptionPane;
+
+/**
+ * @author Shane Santner
+ * The Capture class utilizes dvgrab to capture audio and video
+ * data from a dv camcorder.  It captures for the amount of time
+ * specified by the user.
+ *
+ * TODO - Is there a way to get the camcorder time from dvgrab?
+ *        This would be a more accurate way of determining when
+ *        to stop the camcorder.  Also need to handle input, output
+ *        and error streams more appropriatly.
+ */
+public class Capture implements Runnable {
+
+    /**
+     * Used to instantiate a new thread and to perform error checking.
+     *
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean init() {
+        if (m_GUI.menuChkThread.isSelected()) {
+            /* Create and start the new thread */
+            m_Thread = new Thread(this);
+            /* Increase priority so we don't drop frames */
+            m_Thread.setPriority(10);
+            m_Thread.start();
+            /* Need to fix this */
+            return false;
+        } else {
+            DV_Capture();
+            return (m_Error | m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/dvgrab.log""));
+        }
+        /* 
+         * If an error occurred while executing DV_Capture then m_Error will be set
+         * to true.  Also check the log file for any evidence of an error.
+         */
+    }
+}
+","// CaptureTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.swing.JOptionPane;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Capture}.
+* It contains ten unit test cases for the {@link Capture#init()} method.
+*/
+class CaptureTest {","// Test case 1: Test if init() returns true when menuChkThread is not selected
+@Test
+public void testInitWithoutThread() {
+    Capture capture = new Capture();
+    capture.m_GUI.menuChkThread.setSelected(false);
+    boolean result = capture.init();
+    assertFalse(result);
+}
+
+// Test case 2: Test if init() returns false when menuChkThread is selected
+@Test
+public void testInitWithThread() {
+    Capture capture = new Capture();
+    capture.m_GUI.menuChkThread.setSelected(true);
+    boolean result = capture.init();
+    assertFalse(result);
+}
+
+// Test case 3: Test if DV_Capture() is called when menuChkThread is not selected
+@Test
+public void testDV_CaptureWithoutThread() {
+    Capture capture = new Capture();
+    capture.m_GUI.menuChkThread.setSelected(false);
+    capture.init();
+    // Check if DV_Capture() was called
+    // TODO: Implement this check
+}
+
+// Test case 4: Test if a new thread is created and started when menuChkThread is selected
+@Test
+public void testNewThreadWithThread() {
+    Capture capture = new Capture();
+    capture.m_GUI.menuChkThread.setSelected(true);
+    capture.init();
+    // Check if a new thread was created and started
+    // TODO: Implement this check
+}
+
+// Test case 5: Test if the thread priority is set to 10 when menuChkThread is selected
+@Test
+public void testThreadPriorityWithThread() {
+    Capture capture = new Capture();
+    capture.m_GUI.menuChkThread.setSelected(true);
+    capture.init();
+    // Check if the thread priority was set to 10
+    // TODO: Implement this check
+}
+
+// Test case 6: Test if m_Error is set to true when an error occurs in DV_Capture()
+@Test
+public void testErrorInDV_Capture() {
+    Capture capture = new Capture();
+    // TODO: Set up DV_Capture() to intentionally throw an error
+    capture.m_GUI.menuChkThread.setSelected(false);
+    capture.init();
+    assertTrue(capture.m_Error);
+}
+
+// Test case 7: Test if ErrorCheck() is called when menuChkThread is not selected
+@Test
+public void testErrorCheckWithoutThread() {
+    Capture capture = new Capture();
+    capture.m_GUI.menuChkThread.setSelected(false);
+    capture.init();
+    // Check if ErrorCheck() was called
+    // TODO: Implement this check
+}
+
+// Test case 8: Test if ErrorCheck() is not called when menuChkThread is selected
+@Test
+public void testErrorCheckWithThread() {
+    Capture capture = new Capture();
+    capture.m_GUI.menuChkThread.setSelected(true);
+    capture.init();
+    // Check if ErrorCheck() was not called
+    // TODO: Implement this check
+}
+
+// Test case 9: Test if init() returns true when an error occurs in ErrorCheck()
+@Test
+public void testErrorInErrorCheck() {
+    Capture capture = new Capture();
+    // TODO: Set up ErrorCheck() to intentionally throw an error
+    capture.m_GUI.menuChkThread.setSelected(false);
+    boolean result = capture.init();
+    assertTrue(result);
+}
+
+// Test case 10: Test if init() returns false when no errors occur
+@Test
+public void testNoErrors() {
+    Capture capture = new Capture();
+    capture.m_GUI.menuChkThread.setSelected(false);
+    boolean result = capture.init();
+    assertFalse(result);
+}
+}"
+chatcmpl-6yWECDBdzoBp3x436kq2D6JQCa2Vz,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/GUI_0Test.java,17.562409162521362,stop,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    /**
+     * On startup, checks to ensure that the raw1394 module is loaded.
+     * This module is only needed to capture audio and video from the
+     * dv camcorder.
+     * return   A boolean indicating if the module is present
+     */
+    public boolean checkForModules() {
+        try {
+            String line;
+            String modules = ""cat /proc/modules | grep raw1394"";
+            String[] module_cmd = { ""/bin/sh"", ""-c"", modules };
+            Process p = Runtime.getRuntime().exec(module_cmd);
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            line = in.readLine();
+            p.waitFor();
+            if (line == null)
+                return false;
+            else
+                return true;
+        } catch (Exception ioe) {
+            /* If we have made it here then the module is not loaded */
+            return false;
+        }
+    }
+}
+","// GUI_0Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#checkForModules()} method.
+*/
+class GUI_0Test {","// Test case 1: Test if the method returns true when raw1394 module is present
+@Test
+public void testCheckForModules1() {
+    GUI gui = new GUI();
+    assertTrue(gui.checkForModules());
+}
+
+// Test case 2: Test if the method returns false when raw1394 module is not present
+@Test
+public void testCheckForModules2() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}
+
+// Test case 3: Test if the method returns false when an exception is thrown
+@Test
+public void testCheckForModules3() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}
+
+// Test case 4: Test if the method returns false when the input stream is null
+@Test
+public void testCheckForModules4() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}
+
+// Test case 5: Test if the method returns false when the input stream is empty
+@Test
+public void testCheckForModules5() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}
+
+// Test case 6: Test if the method returns false when the process is interrupted
+@Test
+public void testCheckForModules6() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}
+
+// Test case 7: Test if the method returns false when the module command is null
+@Test
+public void testCheckForModules7() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}
+
+// Test case 8: Test if the method returns false when the module command is empty
+@Test
+public void testCheckForModules8() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}
+
+// Test case 9: Test if the method returns false when the module command is invalid
+@Test
+public void testCheckForModules9() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}
+
+// Test case 10: Test if the method returns false when the module command is not found
+@Test
+public void testCheckForModules10() {
+    GUI gui = new GUI();
+    assertFalse(gui.checkForModules());
+}"
+chatcmpl-6yWFF1Eqi8wlSNUBQXUO7PextgHMU,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/GUI_1Test.java,29.7157723903656,stop,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    /**
+     * Displays a message box with the supplied text and yes/no options
+     *
+     * @param message The message to display in the box
+     */
+    public int MessageBox(String message) {
+        return JOptionPane.showConfirmDialog(null, message, ""dvd-homevideo"", JOptionPane.YES_NO_OPTION);
+    }
+}
+","// GUI_1Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#MessageBox(String)} method.
+*/
+class GUI_1Test {","// Here's an updated version of the code with ten unit test cases for the MessageBox method:
+
+// GUI.java
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
+/**
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    /**
+     * Displays a message box with the supplied text and yes/no options
+     *
+     * @param message The message to display in the box
+     */
+    public int MessageBox(String message) {
+        return JOptionPane.showConfirmDialog(null, message, ""dvd-homevideo"", JOptionPane.YES_NO_OPTION);
+    }
+}
+
+// GUI_1Test.java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class of {@link GUI}.
+ * It contains ten unit test cases for the {@link GUI#MessageBox(String)} method.
+ */
+class GUI_1Test {
+
+    @Test
+    void testMessageBoxYes() {
+        GUI gui = new GUI();
+        int result = gui.MessageBox(""Do you want to continue?"");
+        assertEquals(JOptionPane.YES_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxNo() {
+        GUI gui = new GUI();
+        int result = gui.MessageBox(""Do you want to continue?"");
+        assertEquals(JOptionPane.NO_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxCancel() {
+        GUI gui = new GUI();
+        int result = gui.MessageBox(""Do you want to continue?"");
+        assertEquals(JOptionPane.CANCEL_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxError() {
+        GUI gui = new GUI();
+        int result = gui.MessageBox(""An error occurred. Do you want to continue?"");
+        assertEquals(JOptionPane.YES_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxWarning() {
+        GUI gui = new GUI();
+        int result = gui.MessageBox(""Warning: This action cannot be undone. Do you want to continue?"");
+        assertEquals(JOptionPane.NO_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxInfo() {
+        GUI gui = new GUI();
+        int result = gui.MessageBox(""Information: The operation was successful. Do you want to continue?"");
+        assertEquals(JOptionPane.YES_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxLongMessage() {
+        GUI gui = new GUI();
+        String message = ""This is a very long message that should be displayed in the message box. ""
+                + ""It contains multiple lines and is intended to test the message box's ability to handle long messages."";
+        int result = gui.MessageBox(message);
+        assertEquals(JOptionPane.YES_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxEmptyMessage() {
+        GUI gui = new GUI();
+        int result = gui.MessageBox("""");
+        assertEquals(JOptionPane.YES_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxNullMessage() {
+        GUI gui = new GUI();
+        int result = gui.MessageBox(null);
+        assertEquals(JOptionPane.YES_OPTION, result);
+    }
+
+    @Test
+    void testMessageBoxCustomTitle() {
+        GUI gui = new GUI();
+        int result = JOptionPane.showConfirmDialog(null, ""Do you want to continue?"", ""Custom Title"", JOptionPane.YES_NO_OPTION);
+        assertEquals(JOptionPane.YES_OPTION, result);
+    }
+}"
+chatcmpl-6yWGI9sKTVTPtSoTAWGnoLIyicemQ,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/GUI_2Test.java,25.269101858139038,stop,"// GUI.java
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class provides the GUI for dvd-homevideo.
+ */
+public class GUI extends javax.swing.JFrame {
+
+    /**
+     * Check dvd-homevideo for runtime errors
+     *
+     * @param fileName This is a log file to parse through, looking for
+     *                      the keyword ""Error""
+     * @return A boolean indicating if an error was found
+     */
+    public boolean ErrorCheck(String fileName) {
+        String line;
+        StringTokenizer st;
+        String testToken;
+        boolean error = false;
+        /*
+         * Need to parse through the supplies file and look for any
+         * instances of the words 'error' or 'broken'.  If found, this
+         * is treated as a run-time error of one of the dependent programs
+         * that dvd-homevideo relies on.
+         */
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(fileName));
+            while ((line = in.readLine()) != null) {
+                /* Check for a specific burn error */
+                if (line.equals("":-( /dev/dvd: media is not recognized as recordable DVD: 9"")) {
+                    MessageBox(""Non-recoverable error occurred."" + ""\nClass Name: "" + new Exception().getStackTrace()[1].getClassName() + ""\nMethod Name: "" + new Exception().getStackTrace()[1].getMethodName() + ""\nError was: "" + line, 0);
+                    return true;
+                }
+                /*
+                 * Need to catch all instances of 'error' or 'broken'.  This
+                 * includes cases such as:
+                 * **Error:
+                 * error~
+                 * Broken pipe
+                 * etc, etc, etc.  We need to catch ALL instances.
+                 */
+                st = new StringTokenizer(line, ""*,;:'-~\t "");
+                while (st.hasMoreTokens()) {
+                    testToken = st.nextToken();
+                    if (// ||
+                    testToken.equalsIgnoreCase(""Error"")) //testToken.equalsIgnoreCase(""Broken""))
+                    {
+                        MessageBox(""Non-recoverable error occurred."" + ""\nClass Name: "" + new Exception().getStackTrace()[1].getClassName() + ""\nMethod Name: "" + new Exception().getStackTrace()[1].getMethodName() + ""\nError was: "" + line, 0);
+                        error = true;
+                    }
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            SaveStackTrace.printTrace(strOutputDir, ex);
+            MessageBox(""Can not find "" + fileName + ""\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        } catch (IOException ex) {
+            SaveStackTrace.printTrace(strOutputDir, ex);
+            MessageBox(""IO Error\n"" + ex.toString(), 0);
+            ex.printStackTrace();
+            return true;
+        }
+        return error;
+    }
+}
+","// GUI_2Test.java
+
+
+//import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.awt.Color;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GUI}.
+* It contains ten unit test cases for the {@link GUI#ErrorCheck(String)} method.
+*/
+class GUI_2Test {","// GUI_2Test.java
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class of {@link GUI}.
+ * It contains ten unit test cases for the {@link GUI#ErrorCheck(String)} method.
+ */
+class GUI_2Test {
+    
+    /**
+     * Test case for when the log file contains no errors.
+     */
+    @Test
+    void testNoErrors() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/no_errors.log"");
+        assertFalse(result);
+    }
+    
+    /**
+     * Test case for when the log file contains a specific burn error.
+     */
+    @Test
+    void testSpecificBurnError() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/specific_burn_error.log"");
+        assertTrue(result);
+    }
+    
+    /**
+     * Test case for when the log file contains the word ""error"".
+     */
+    @Test
+    void testErrorKeyword() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/error_keyword.log"");
+        assertTrue(result);
+    }
+    
+    /**
+     * Test case for when the log file contains the word ""Error"".
+     */
+    @Test
+    void testErrorKeywordCapitalized() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/error_keyword_capitalized.log"");
+        assertTrue(result);
+    }
+    
+    /**
+     * Test case for when the log file contains the word ""broken"".
+     */
+    @Test
+    void testBrokenKeyword() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/broken_keyword.log"");
+        assertTrue(result);
+    }
+    
+    /**
+     * Test case for when the log file contains the word ""Broken"".
+     */
+    @Test
+    void testBrokenKeywordCapitalized() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/broken_keyword_capitalized.log"");
+        assertTrue(result);
+    }
+    
+    /**
+     * Test case for when the log file contains a mix of errors and non-errors.
+     */
+    @Test
+    void testMixedErrors() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/mixed_errors.log"");
+        assertTrue(result);
+    }
+    
+    /**
+     * Test case for when the log file is empty.
+     */
+    @Test
+    void testEmptyLogFile() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/empty_log_file.log"");
+        assertFalse(result);
+    }
+    
+    /**
+     * Test case for when the log file does not exist.
+     */
+    @Test
+    void testNonExistentLogFile() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/non_existent_log_file.log"");
+        assertTrue(result);
+    }
+    
+    /**
+     * Test case for when an IOException occurs while reading the log file.
+     */
+    @Test
+    void testIOException() {
+        GUI gui = new GUI();
+        boolean result = gui.ErrorCheck(""test_files/io_exception.log"");
+        assertTrue(result);
+    }
+}"
+chatcmpl-6yWHLAKAx8fPBh7YcZfqVcwiDpFRm,/EvoSuiteBenchmark/original/47_dvd-homevideo/src/main/java/Convert.java,26.892003297805786,stop,"// Convert.java
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+
+/**
+ * @author Shane Santner
+ * This class is used to transcode the video captured
+ * from the digital camcorder into mpeg4, the DVD compatible
+ * format.  It explicitly calls the transcode command
+ * after meticulously preparing the options that can be passed
+ * to transcode.
+ *
+ * TODO - Break mplex out into its own class.
+ *        Figure out how to calculate remaining time even if
+ *        video was not captured from the camcorder during the
+ *        current session.
+ *        Need to handle input, output and error streams
+ *        more appropriatly.
+ */
+public class Convert implements Runnable {
+
+    /**
+     * Used to instantiate a new thread and to perform error checking.
+     *
+     * @return A boolean to determine if an error occurred in the function
+     */
+    public boolean init() {
+        if (m_GUI.menuChkThread.isSelected()) {
+            m_Thread = new Thread(this);
+            m_Thread.start();
+            try {
+                m_Thread.join();
+            } catch (InterruptedException ex) {
+                SaveStackTrace.printTrace(m_GUI.strOutputDir, ex);
+                m_GUI.MessageBox(m_BaseErr + ""Could not join Convert.java thread\n"" + ex.toString(), 0);
+                ex.printStackTrace();
+                m_Error = true;
+            }
+        } else
+            Transcode();
+        /* 
+         * Check transcode.log and mplex.log for any sign of an error.
+         * If either file contains an error then return an error.  Also
+         * check m_Error to see if it was set while executing the 
+         * Transcode method.
+         */
+        return (m_Error || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/transcode.log"") || m_GUI.ErrorCheck(m_GUI.strOutputDir + ""/log/mplex.log""));
+    }
+}
+","// ConvertTest.java
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.StringTokenizer;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Convert}.
+* It contains ten unit test cases for the {@link Convert#init()} method.
+*/
+class ConvertTest {","// ConvertTest.java
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class ConvertTest {
+
+    @Test
+    void testInit_Thread() {
+        // Test if thread is created and joined successfully
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(true);
+        boolean result = convert.init();
+        assertFalse(result);
+    }
+
+    @Test
+    void testInit_NoThread() {
+        // Test if transcode is executed successfully without thread
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        boolean result = convert.init();
+        assertFalse(result);
+    }
+
+    @Test
+    void testInit_ErrorCheck() {
+        // Test if error is detected in transcode.log
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        convert.m_GUI.strOutputDir = ""testDir"";
+        boolean result = convert.init();
+        assertTrue(result);
+    }
+
+    @Test
+    void testInit_ErrorCheck2() {
+        // Test if error is detected in mplex.log
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        convert.m_GUI.strOutputDir = ""testDir"";
+        boolean result = convert.init();
+        assertTrue(result);
+    }
+
+    @Test
+    void testInit_Error() {
+        // Test if m_Error is set during Transcode method
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        convert.m_Error = true;
+        boolean result = convert.init();
+        assertTrue(result);
+    }
+
+    @Test
+    void testInit_AllErrors() {
+        // Test if all error checks return true
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        convert.m_GUI.strOutputDir = ""testDir"";
+        convert.m_Error = true;
+        boolean result = convert.init();
+        assertTrue(result);
+    }
+
+    @Test
+    void testInit_NoErrors() {
+        // Test if no errors occur
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        convert.m_GUI.strOutputDir = ""testDir"";
+        convert.m_Error = false;
+        boolean result = convert.init();
+        assertFalse(result);
+    }
+
+    @Test
+    void testInit_Exception() {
+        // Test if exception is caught and error is set
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        convert.m_GUI.strOutputDir = null;
+        boolean result = convert.init();
+        assertTrue(result);
+    }
+
+    @Test
+    void testInit_Exception2() {
+        // Test if exception is caught and error is set
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        convert.m_GUI.strOutputDir = """";
+        boolean result = convert.init();
+        assertTrue(result);
+    }
+
+    @Test
+    void testInit_Exception3() {
+        // Test if exception is caught and error is set
+        Convert convert = new Convert();
+        convert.m_GUI.menuChkThread.setSelected(false);
+        convert.m_GUI.strOutputDir = ""testDir"";
+        convert.m_GUI.ErrorCheck(""invalidPath"");
+        boolean result = convert.init();
+        assertTrue(result);
+    }
+}"
