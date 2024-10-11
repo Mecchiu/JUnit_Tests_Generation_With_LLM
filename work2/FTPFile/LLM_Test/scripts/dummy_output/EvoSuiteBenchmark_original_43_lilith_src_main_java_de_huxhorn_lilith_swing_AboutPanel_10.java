@@ -1,0 +1,98 @@
+// AboutPanelTest.java
+package de.huxhorn.lilith.swing;
+
+import de.huxhorn.sulky.swing.GraphicsUtilities;
+import de.huxhorn.sulky.swing.filters.ColorTintFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link AboutPanel}.
+* It contains one unit test case for the {@link AboutPanel#getToolTipText(MouseEvent)} method.
+*/
+class AboutPanelTest {
+		int numOfSamples;
+		URL urlRes;
+		
+	// ----------------------------------------------------------------------------------------------
+	/**
+	 * <code>AboutPanelTest</code> is the unit test of
+	 * <code>AboutPanel</code>. It has one unit test case for all methods
+	 * in <code>AboutPanel</code>.
+	 *
+	 * @author Joern Huxhorn
+	 */
+	public class AboutPanelTest {
+
+		/**
+		 * For the sample getToolTipText() method.
+		 */
+		@Test
+		void getToolTipTextTest() throws IOException {
+
+			// Loading the image file with a png-file
+			urlRes = getClass().getClassLoader().getResource("sample.png");
+			BufferedImage screenshot1 = GraphicsUtilities.loadImage(urlRes);
+
+			// Retrieving ToolTip for the <code>MouseEvent</code>
+			String toolTipText = getToolTipText(new MouseEvent(new JFrame(), MouseEvent.MOUSE_PRESSED, 250, 250, 100, 1, 0));
+
+			if (toolTipText!= null) {
+				assertEquals("Wrong ToolTip returned for MouseEvent.",
+					"<html><body>Hello,</body></html>", toolTipText);
+			}
+		}
+
+		/**
+		 * For the sample getToolTipText() method.
+		 */
+		@Test
+		void getToolTipText2DimensionsTest() throws IOException {
+
+			// Loading the image file with a png-file
+			urlRes = getClass().getClassLoader().getResource("sample.png");
+			BufferedImage screenshot1 = GraphicsUtilities.loadImage(urlRes);
+
+			// Retrieving ToolTip for the <code>MouseEvent</code>
+			String toolTipText = getToolTipText(new MouseEvent(new JFrame(), MouseEvent.MOUSE_PRESSED, 100, 100, 100, 1, 0));
+
+			// Retrieving ToolTip for the <code>MouseEvent</code>
+			String toolTipText2 = getToolTipText(new MouseEvent(new JFrame(), MouseEvent.MOUSE_PRESSED, 100, 100, 100, 1, 0));
+
+			if (toolTipText.equals("<html><body>Hello,</body></html>")!= false) {
+				assertEquals("Wrong ToolTip returned for MouseEvent.",
+					"<html><body>Hello,</body></html>", toolTipText);
+			}
+			else if (toolTipText2.equals("<html><body>Hello,</body></html>") == false) {
+				assertEquals("Wrong ToolTip returned for MouseEvent.",
+					"<html><body>Hello,</body></html>", toolTipText2);
+			}
+
+		}
+
+		/**
+		 * For the sample addComponent() method.
+		 */
+}
+}

@@ -1,0 +1,19 @@
+// ParameterBeanTest.java
+package org.heal.module.search;
+
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link ParameterBean}.
+* It contains ten unit test cases for the {@link ParameterBean#size()} method.
+*/
+class ParameterBeanTest {
+		
+		@Test
+		void testSize() {
+				ParameterBean bean = new ParameterBean();
+				assertEquals(0, bean.size());
+		}
+}

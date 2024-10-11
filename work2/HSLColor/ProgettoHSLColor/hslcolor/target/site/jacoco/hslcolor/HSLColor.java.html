@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HSLColor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">hslcolor</a> &gt; <a href="index.source.html" class="el_package">hslcolor</a> &gt; <span class="el_source">HSLColor.java</span></div><h1>HSLColor.java</h1><pre class="source lang-java linenums">package hslcolor;
+
+<span class="fc" id="L3">public class HSLColor {</span>
+	private final static int HSLMAX = 255;
+	private final static int RGBMAX = 255;
+	private final static int UNDEFINED = 170;
+
+	private int pHue;
+	private int pSat;
+	private int pLum;
+	private int pRed;
+	private int pGreen;
+	private int pBlue;
+
+	public void initHSLbyRGB(int R, int G, int B) {
+		// sets Hue, Sat, Lum
+		int cMax;
+		int cMin;
+		int RDelta;
+		int GDelta;
+		int BDelta;
+		int cMinus;
+		int cPlus;
+
+<span class="fc" id="L25">		pRed = R;</span>
+<span class="fc" id="L26">		pGreen = G;</span>
+<span class="fc" id="L27">		pBlue = B;</span>
+
+		//Set Max &amp; MinColor Values
+<span class="fc" id="L30">		cMax = iMax(iMax(R, G), B);</span>
+<span class="fc" id="L31">		cMin = iMin(iMin(R, G), B);</span>
+
+<span class="fc" id="L33">		cMinus = cMax - cMin;</span>
+<span class="fc" id="L34">		cPlus = cMax + cMin;</span>
+
+		// Calculate luminescence (lightness)
+<span class="fc" id="L37">		pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);</span>
+
+<span class="fc bfc" id="L39" title="All 2 branches covered.">		if (cMax == cMin) {</span>
+			// greyscale
+<span class="fc" id="L41">			pSat = 0;</span>
+<span class="fc" id="L42">			pHue = UNDEFINED;</span>
+		} else {
+			// Calculate color saturation
+<span class="fc bfc" id="L45" title="All 2 branches covered.">			if (pLum &lt;= (HSLMAX / 2)) {</span>
+<span class="fc" id="L46">				pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);</span>
+			} else {
+<span class="fc" id="L48">				pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));</span>
+			}
+
+			//Calculate hue
+<span class="fc" id="L52">			RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);</span>
+<span class="fc" id="L53">			GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);</span>
+<span class="fc" id="L54">			BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);</span>
+
+<span class="fc bfc" id="L56" title="All 2 branches covered.">			if (cMax == R) {</span>
+<span class="fc" id="L57">				pHue = BDelta - GDelta;</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">			} else if (cMax == G) {</span>
+<span class="fc" id="L59">				pHue = (HSLMAX / 3) + RDelta - BDelta;</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">			} else if (cMax == B) {</span>
+<span class="fc" id="L61">				pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;</span>
+			}
+
+<span class="fc bfc" id="L64" title="All 2 branches covered.">			if (pHue &lt; 0) {</span>
+<span class="fc" id="L65">				pHue = pHue + HSLMAX;</span>
+			}
+		}
+<span class="fc" id="L68">	}</span>
+
+	public void initRGBbyHSL(int H, int S, int L) {
+		int Magic1;
+		int Magic2;
+
+<span class="fc" id="L74">		pHue = H;</span>
+<span class="fc" id="L75">		pLum = L;</span>
+<span class="fc" id="L76">		pSat = S;</span>
+
+<span class="fc bfc" id="L78" title="All 2 branches covered.">		if (S == 0) { //Greyscale</span>
+<span class="fc" id="L79">			pRed = (L * RGBMAX) / HSLMAX; //luminescence: set to range</span>
+<span class="fc" id="L80">			pGreen = pRed;</span>
+<span class="fc" id="L81">			pBlue = pRed;</span>
+		} else {
+<span class="fc bfc" id="L83" title="All 2 branches covered.">			if (L &lt;= HSLMAX / 2) {</span>
+<span class="fc" id="L84">				Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);</span>
+			} else {
+<span class="fc" id="L86">				Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;</span>
+			}
+<span class="fc" id="L88">			Magic1 = 2 * L - Magic2;</span>
+
+			//get R, G, B; change units from HSLMAX range to RGBMAX range
+<span class="fc" id="L91">			pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">			if (pRed &gt; RGBMAX) {</span>
+<span class="fc" id="L93">				pRed = RGBMAX;</span>
+			}
+
+<span class="fc" id="L96">			pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">			if (pGreen &gt; RGBMAX) {</span>
+<span class="fc" id="L98">				pGreen = RGBMAX;</span>
+			}
+
+<span class="fc" id="L101">			pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">			if (pBlue &gt; RGBMAX) {</span>
+<span class="fc" id="L103">				pBlue = RGBMAX;</span>
+			}
+		}
+<span class="fc" id="L106">	}</span>
+
+	private int hueToRGB(int mag1, int mag2, int Hue) {
+		// check the range
+<span class="fc bfc" id="L110" title="All 2 branches covered.">		if (Hue &lt; 0) {</span>
+<span class="fc" id="L111">			Hue = Hue + HSLMAX;</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">		} else if (Hue &gt; HSLMAX) {</span>
+<span class="fc" id="L113">			Hue = Hue - HSLMAX;</span>
+		}
+
+<span class="fc bfc" id="L116" title="All 2 branches covered.">		if (Hue &lt; (HSLMAX / 6))</span>
+<span class="fc" id="L117">			return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));</span>
+
+<span class="fc bfc" id="L119" title="All 2 branches covered.">		if (Hue &lt; (HSLMAX / 2))</span>
+<span class="fc" id="L120">			return mag2;</span>
+
+<span class="fc bfc" id="L122" title="All 2 branches covered.">		if (Hue &lt; (HSLMAX * 2 / 3))</span>
+<span class="fc" id="L123">			return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));</span>
+
+<span class="fc" id="L125">		return mag1;</span>
+	}
+
+	private int iMax(int a, int b) {
+<span class="fc bfc" id="L129" title="All 2 branches covered.">		if (a &gt; b) return a;</span>
+<span class="fc" id="L130">		else return b;</span>
+	}
+
+	private int iMin(int a, int b) {
+<span class="fc bfc" id="L134" title="All 2 branches covered.">		if (a &lt; b) return a;</span>
+<span class="fc" id="L135">		else return b;</span>
+	}
+
+
+	private void greyscale() {
+<span class="nc" id="L140">		initRGBbyHSL(UNDEFINED, 0, pLum);</span>
+<span class="nc" id="L141">	}</span>
+
+
+	public int getHue() {
+<span class="fc" id="L145">		return pHue;</span>
+	}
+
+	public void setHue(int iToValue) {
+<span class="fc bfc" id="L149" title="All 2 branches covered.">		while (iToValue &lt; 0) {</span>
+<span class="fc" id="L150">			iToValue = HSLMAX + iToValue;</span>
+		}
+<span class="fc bfc" id="L152" title="All 2 branches covered.">		while (iToValue &gt; HSLMAX) {</span>
+<span class="fc" id="L153">			iToValue = iToValue - HSLMAX;</span>
+		}
+
+<span class="fc" id="L156">		initRGBbyHSL(iToValue, pSat, pLum);</span>
+<span class="fc" id="L157">	}</span>
+
+	public int getSaturation() {
+<span class="fc" id="L160">		return pSat;</span>
+	}
+
+	public void setSaturation(int iToValue) {
+<span class="fc bfc" id="L164" title="All 2 branches covered.">		if (iToValue &lt; 0) {</span>
+<span class="fc" id="L165">			iToValue = 0;</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">		} else if (iToValue &gt; HSLMAX) {</span>
+<span class="fc" id="L167">			iToValue = HSLMAX;</span>
+		}
+
+<span class="fc" id="L170">		initRGBbyHSL(pHue, iToValue, pLum);</span>
+<span class="fc" id="L171">	}</span>
+
+	public int getLuminence() {
+<span class="fc" id="L174">		return pLum;</span>
+	}
+
+	public void setLuminence(int iToValue) {
+<span class="fc bfc" id="L178" title="All 2 branches covered.">		if (iToValue &lt; 0) {</span>
+<span class="fc" id="L179">			iToValue = 0;</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">		} else if (iToValue &gt; HSLMAX) {</span>
+<span class="fc" id="L181">			iToValue = HSLMAX;</span>
+		}
+
+<span class="fc" id="L184">		initRGBbyHSL(pHue, pSat, iToValue);</span>
+<span class="fc" id="L185">	}</span>
+
+	public int getRed() {
+<span class="fc" id="L188">		return pRed;</span>
+	}
+
+	private void setRed(int iNewValue) {
+<span class="nc" id="L192">		initHSLbyRGB(iNewValue, pGreen, pBlue);</span>
+<span class="nc" id="L193">	}</span>
+
+	public int getGreen() {
+<span class="fc" id="L196">		return pGreen;</span>
+	}
+
+	private void setGreen(int iNewValue) {
+<span class="nc" id="L200">		initHSLbyRGB(pRed, iNewValue, pBlue);</span>
+<span class="nc" id="L201">	}</span>
+
+	public int getBlue() {
+<span class="fc" id="L204">		return pBlue;</span>
+	}
+
+	private void setBlue(int iNewValue) {
+<span class="nc" id="L208">		initHSLbyRGB(pRed, pGreen, iNewValue);</span>
+<span class="nc" id="L209">	}</span>
+
+	public void reverseColor() {
+<span class="fc" id="L212">		setHue(pHue + (HSLMAX / 2));</span>
+<span class="fc" id="L213">	}</span>
+
+	private void reverseLight() {
+<span class="nc" id="L216">		setLuminence(HSLMAX - pLum);</span>
+<span class="nc" id="L217">	}</span>
+
+	public void brighten(float fPercent) {
+		int L;
+
+<span class="fc bfc" id="L222" title="All 2 branches covered.">		if (fPercent == 0) {</span>
+<span class="fc" id="L223">			return;</span>
+		}
+
+<span class="fc" id="L226">		L = (int) (pLum * fPercent);</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">		if (L &lt; 0) L = 0;</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">		if (L &gt; HSLMAX) L = HSLMAX;</span>
+
+<span class="fc" id="L230">		setLuminence(L);</span>
+<span class="fc" id="L231">	}</span>
+
+	public void blend(int R, int G, int B, float fPercent) {
+<span class="fc bfc" id="L234" title="All 2 branches covered.">		if (fPercent &gt;= 1) {</span>
+<span class="fc" id="L235">			initHSLbyRGB(R, G, B);</span>
+<span class="fc" id="L236">			return;</span>
+		}
+<span class="fc bfc" id="L238" title="All 2 branches covered.">		if (fPercent &lt;= 0)</span>
+<span class="fc" id="L239">			return;</span>
+
+<span class="fc" id="L241">		int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));</span>
+<span class="fc" id="L242">		int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));</span>
+<span class="fc" id="L243">		int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));</span>
+
+<span class="fc" id="L245">		initHSLbyRGB(newR, newG, newB);</span>
+<span class="fc" id="L246">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

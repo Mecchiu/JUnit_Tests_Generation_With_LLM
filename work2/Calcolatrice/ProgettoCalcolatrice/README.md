@@ -1,0 +1,3 @@
+Progetto maven per l'esecuzione dei test, una volta che i test vengono generati da un LLM, devono essere inseriti in questa cartella in src/test/calcolatrice e poi ritornando nella directory calcolatrice, da terminale con:
+1. mvn clean test --> compiliamo il progetto e i test, i test vengono poi eseguiti e viene generate la cartella target che al suo interno dovrebbe contenere surefire-reports (ovvero i file per controllare la correttezza dei test).
+2. mvn jacoco:report --> andiamo a generare il report di jacoco che si troverà in target/site/jacoco e sarà il file index.html, questo file conterrà il report di jacoco sulla copertura dei test.

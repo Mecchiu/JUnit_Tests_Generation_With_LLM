@@ -1,0 +1,25 @@
+// StartState_0Test.java
+package uk.me.jockmacmad.jstate.state;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link StartState}.
+* It contains one unit test case for the {@link StartState#getSingleton()} method.
+*/
+class StartState_0Test {
+		
+	
+	
+	/**
+	* Test constructor.
+	* <p>
+	* Here the classname is {@link StartState#NAME} and the
+	* singleton attribute set.
+	* Construction and finalisation.
+	* @throws java.lang.Exception if any.
+	*/
+}

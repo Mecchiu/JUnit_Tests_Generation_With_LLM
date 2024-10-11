@@ -1,0 +1,30 @@
+// GroupLayoutEngineerTest.java
+package glengineer;
+
+import glengineer.agents.*;
+import glengineer.agents.setters.*;
+import glengineer.agents.settings.*;
+import glengineer.blocks.*;
+import java.util.*;
+import java.awt.Component;
+import java.awt.Container;
+import javax.swing.*;
+import javax.swing.GroupLayout.*;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link GroupLayoutEngineer}.
+* It contains ten unit test cases for the {@link GroupLayoutEngineer#getParallelGroup(Axis, String, String)} method.
+*/
+class GroupLayoutEngineerTest {
+	/* ERROR - HTTP code 502 from API (<html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+) */
+}

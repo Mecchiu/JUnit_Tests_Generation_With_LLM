@@ -1,0 +1,155 @@
+// JVCDispatcherTest.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Cookie;
+import com.pmdesigns.jvc.tools.Base64Coder;
+import com.pmdesigns.jvc.tools.JVCGenerator;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCDispatcher}.
+* It contains one unit test case for the {@link JVCDispatcher#getRC()} method.
+*/
+class JVCDispatcherTest {
+		
+    /**
+        * Base64Coder with tests
+        */
+    public static class TestWrappedInputStream extends InputStream {
+        
+        private ByteArrayOutputStream os;
+        private byte[] buf;
+        private ByteArrayInputStream bais;
+        private InputStream is;
+        
+        /**
+            * Constructor
+            */
+        public TestWrappedInputStream() {
+            os = new ByteArrayOutputStream();
+        }
+        
+        /**
+            * Constructor
+            *
+            * @param byteArray the byte input buffer
+            */
+        public TestWrappedInputStream(byte[] byteArray) {
+            os = new ByteArrayOutputStream(byteArray.length);
+        }
+        
+        /**
+            * Constructor
+            *
+            * @param is the byte input stream
+            */
+        public TestWrappedInputStream(InputStream is) {
+            os = new ByteArrayOutputStream();
+            this.is = is;
+        }
+        
+        public void write(byte[] bytes) throws IOException {
+            os.write(bytes);
+            os.flush();
+            os.close();
+        }
+        
+        public void close() throws IOException {
+            is.close();
+            bais.close();
+        }
+        
+        public int read(byte[] bytes) throws IOException {
+            bais = new ByteArrayInputStream(os.toByteArray());
+            int i = 0;
+            int len = os.available();
+            while( i<len) {
+                bytes[i++] = is.read();
+            }
+            return len;
+        }
+    }
+    
+    /**
+        * Test method of {@link JVCGenerator#createGeneratorForJVCRequestContext(com.pmdesigns.jvc.JVCRequestContext)}
+        */
+    @Test
+    public void testGenerateJvcs() throws Exception {
+        
+        final int port = Integer.parseInt("8866");
+        
+        final long now = System.currentTimeMillis();
+        
+        // Create and initialize the generator implementation
+        final JVCGeneratorImpl impl = new JVCGeneratorImpl(null, port);
+        
+        // Create and initialize the generator.
+        final JVCGenerator gen = impl.getGenerator();
+        
+        // Get the list of all request contexts
+        final List<String> requestCntxs = gen.getJvcRequestContexts();
+        
+        // Validate the supplied list of request contexts.
+        assertFalse("Request contexts do not contain the provided requestContext",
+                requestCntxs.isEmpty());
+        int ctxId = 0;
+        for(final String ct : requestCntxs) {
+            System.out.println("Creating "+ct);
+            final JVCRequestContext rc = gen.createJvcRequestContext(ct);
+            final JVCRequestContext rcExpected = gen.getJvcRequestContext(ct);
+            
+            // Validate the result.
+            assertEquals("JVCGeneratorImpl: Invalid error message for " + ct,
+                    rc.getErrorMsg(), rcExpected.getErrorMsg());
+            assertEquals("Invalid id for " + ct, rc.getJvcID(), rcExpected.getJvcID());
+            assertEquals("Invalid contextID=" + ctxId, rc.getContextID(), rcExpected.getContextID());
+            assertEquals("Invalid requestContext=" + ct, rc.getRequestContext(), rcExpected.getRequestContext());
+            assertEquals("Invalid jvcPort=" + port, rc.getJvcPort(), rcExpected.getJvcPort());
+            
+            // Check if the expected requestContext matches the actual requestContext.
+            final JVCRequestContext rcExpectedRC = gen.getJvcRequestContext(ct);
+            assertEquals("Request context mismatch.", rcExpectedRC.getRequestContext(), rcExpected.getRequestContext());
+            assertEquals("RequestID mismatch.", rcExpectedRC.getJvcID(), rcExpected.getJvcID());
+            assertEquals("ContextID mismatch.", rcExpectedRC.getContextID(), rcExpected.getContextID());
+            assertEquals("Port mismatch.", rcExpectedRC.getJvcPort(), rcExpected.getJvcPort());
+    
+            // Add the new request ctx to the list of all request contexts. The
+            // generated instance will be used for verifying requests generated by
+            // the JVCGenerator implementation.
+            requestCntxs.add(ctxId, ctxId + ":" + rc.getJvcPort());
+            ctxId++;
+        }
+        final List<String> actualCntxxs = gen.getRequestsProcessed();
+        for(int ix=0;ix<actualCntxxs.size();ix++) {
+            final String ctxStr = actualCntxxs.get(ix);
+            // Check that the request contexts contain the expected requestContext.
+            final JVCRequestContext rc = gen.getJvcRequestContext(ctxStr);
+            assertNotNull("Missing JVC request context for " + ctxStr, rc);
+            assertEquals("Request context mismatch.", rc.getRequestContext(),
+                          gen.getRequestContext(ctxStr));
+            assertEquals("JVCGeneratorImpl: invalid request context for " + ctxStr,
+                          gen.getRequestContext(ctxStr), 
+                          rc);
+        }
+        
+        // Validate that the generated request contexts are the same as the 
+        // expected request contexts for the generated implementation.
+        assertListEquals("Generated request contexts mismatch", 
+            new ArrayList<String>(gen.getJvcRequestContexts()),
+            new ArrayList<String>(requestCntxs));
+        
+        // Verify the current state of the generator.
+        final List<String> requestContextTypes = gen.getJvcRequestContextTypes();
+}
+}

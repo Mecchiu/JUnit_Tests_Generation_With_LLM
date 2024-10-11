@@ -1,0 +1,36 @@
+// JVCRequestContext_0Test.java
+package com.pmdesigns.jvc;
+
+import java.io.*;
+import java.util.*;
+import java.net.HttpURLConnection;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link JVCRequestContext}.
+* It contains one unit test case for the {@link JVCRequestContext#getParam(String)} method.
+*/
+class JVCRequestContext_0Test {
+		// constructor
+	/**
+     * Main method.
+     */
+    @Test
+    public void testConstants() {
+		System.out.println("JVCRequestContext_0Test");
+	}
+
+	/**
+     * Run unit tests.
+     */
+    @Test
+    public void testConstructor() throws ServletException, IOException {
+        new JVCRequestContext();
+    }
+}

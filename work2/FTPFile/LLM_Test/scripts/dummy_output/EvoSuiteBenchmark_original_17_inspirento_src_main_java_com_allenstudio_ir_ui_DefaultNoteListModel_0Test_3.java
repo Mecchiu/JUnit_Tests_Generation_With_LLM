@@ -1,0 +1,26 @@
+// DefaultNoteListModel_0Test.java
+package com.allenstudio.ir.ui;
+
+import com.allenstudio.ir.core.plugins.AbstractNote;
+import com.allenstudio.ir.event.NoteListDataEvent;
+import com.allenstudio.ir.event.NoteListDataListener;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link DefaultNoteListModel}.
+* It contains one unit test case for the {@link DefaultNoteListModel#capacity()} method.
+*/
+class DefaultNoteListModel_0Test {
+		
+    /**
+     * Test method for {@link DefaultNoteListModel#capacity()}.
+     */
+    @Test
+    void test0(){
+        
+        assertEquals(1, DefaultNoteListModel.capacity());
+    }
+    
+}

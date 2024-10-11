@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OutputFormat.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">outputformat</a> &gt; <a href="index.source.html" class="el_package">outputformat</a> &gt; <span class="el_source">OutputFormat.java</span></div><h1>OutputFormat.java</h1><pre class="source lang-java linenums">package outputformat;
+
+/**
+ * OutputFormat represents the format configuration used to
+ * format the XML output
+ */
+public class OutputFormat implements Cloneable {
+	/**
+	 * standard value to indent by, if we are indenting
+	 */
+	protected static final String STANDARD_INDENT = &quot;  &quot;;
+
+	/**
+	 * Whether or not to suppress the XML declaration - default is
+	 * false
+	 */
+<span class="fc" id="L17">	private boolean suppressDeclaration = false;</span>
+
+	/**
+	 * Whether or not to print new line after the XML declaration - default is
+	 * true
+	 */
+<span class="fc" id="L23">	private boolean newLineAfterDeclaration = true;</span>
+
+	/**
+	 * The encoding format
+	 */
+<span class="fc" id="L28">	private String encoding = &quot;UTF-8&quot;;</span>
+
+	/**
+	 * Whether or not to output the encoding in the XML declaration - default is
+	 * false
+	 */
+<span class="fc" id="L34">	private boolean omitEncoding = false;</span>
+
+	/**
+	 * The default indent is no spaces (as original document)
+	 */
+<span class="fc" id="L39">	private String indent = null;</span>
+
+	/**
+	 * Whether or not to expand empty elements to
+	 * &amp;lt;tagName&amp;gt;&amp;lt;/tagName&amp;gt; - default is false
+	 */
+<span class="fc" id="L45">	private boolean expandEmptyElements = false;</span>
+
+	/**
+	 * The default new line flag, set to do new lines only as in original
+	 * document
+	 */
+<span class="fc" id="L51">	private boolean newlines = false;</span>
+
+	/**
+	 * New line separator
+	 */
+<span class="fc" id="L56">	private String lineSeparator = &quot;\n&quot;;</span>
+
+	/**
+	 * should we preserve whitespace or not in text nodes?
+	 */
+<span class="fc" id="L61">	private boolean trimText = false;</span>
+
+	/**
+	 * pad string-element boundaries with whitespace
+	 */
+<span class="fc" id="L66">	private boolean padText = false;</span>
+
+	/**
+	 * Whether or not to use XHTML standard.
+	 */
+<span class="fc" id="L71">	private boolean doXHTML = false;</span>
+
+	/**
+	 * Controls when to output a line.separtor every so many tags in case of no
+	 * lines and total text trimming.
+	 */
+<span class="fc" id="L77">	private int newLineAfterNTags = 0; // zero means don't bother.</span>
+
+	/**
+	 * Quote character to use when writing attributes.
+	 */
+<span class="fc" id="L82">	private char attributeQuoteChar = '\&quot;';</span>
+
+	/**
+	 * Creates an OutputFormat with no additional whitespace
+	 * (indent or new lines) added. The whitespace from the element text content
+	 * is fully preserved.
+	 */
+<span class="fc" id="L89">	public OutputFormat() {</span>
+<span class="fc" id="L90">	}</span>
+
+	/**
+	 * Creates an OutputFormat with the given indent added but no
+	 * new lines added. All whitespace from element text will be included.
+	 *
+	 * @param indent is the indent string to be used for indentation (usually a
+	 *               number of spaces).
+	 */
+<span class="fc" id="L99">	public OutputFormat(String indent) {</span>
+<span class="fc" id="L100">		this.indent = indent;</span>
+<span class="fc" id="L101">	}</span>
+
+	/**
+	 * Creates an OutputFormat with the given indent added with
+	 * optional newlines between the Elements. All whitespace from element text
+	 * will be included.
+	 *
+	 * @param indent   is the indent string to be used for indentation (usually a
+	 *                 number of spaces).
+	 * @param newlines whether new lines are added to layout the
+	 */
+<span class="fc" id="L112">	public OutputFormat(String indent, boolean newlines) {</span>
+<span class="fc" id="L113">		this.indent = indent;</span>
+<span class="fc" id="L114">		this.newlines = newlines;</span>
+<span class="fc" id="L115">	}</span>
+
+	/**
+	 * Creates an OutputFormat with the given indent added with
+	 * optional newlines between the Elements and the given encoding format.
+	 *
+	 * @param indent   is the indent string to be used for indentation (usually a
+	 *                 number of spaces).
+	 * @param newlines whether new lines are added to layout the
+	 * @param encoding is the text encoding to use for writing the XML
+	 */
+<span class="fc" id="L126">	public OutputFormat(String indent, boolean newlines, String encoding) {</span>
+<span class="fc" id="L127">		this.indent = indent;</span>
+<span class="fc" id="L128">		this.newlines = newlines;</span>
+<span class="fc" id="L129">		this.encoding = encoding;</span>
+<span class="fc" id="L130">	}</span>
+
+	public String getLineSeparator() {
+<span class="fc" id="L133">		return lineSeparator;</span>
+	}
+
+	/**
+	 * This will set the new-line separator. The default is \n.
+	 * Note that if the &quot;newlines&quot; property is false, this value is irrelevant.
+	 * To make it output the system default line ending string, call
+	 * setLineSeparator(System.getProperty(&quot;line.separator&quot;))
+	 *
+	 * @param separator String line separator to use.
+	 * @see #setNewlines(boolean)
+	 */
+	public void setLineSeparator(String separator) {
+<span class="fc" id="L146">		lineSeparator = separator;</span>
+<span class="fc" id="L147">	}</span>
+
+	public boolean isNewlines() {
+<span class="fc" id="L150">		return newlines;</span>
+	}
+
+	/**
+	 * @param newlines true indicates new lines should be printed,
+	 *                 else new lines are ignored (compacted).
+	 * @see #setLineSeparator(String)
+	 */
+	public void setNewlines(boolean newlines) {
+<span class="fc" id="L159">		this.newlines = newlines;</span>
+<span class="fc" id="L160">	}</span>
+
+	public String getEncoding() {
+<span class="fc" id="L163">		return encoding;</span>
+	}
+
+	/**
+	 * @param encoding encoding format
+	 */
+	public void setEncoding(String encoding) {
+<span class="fc bfc" id="L170" title="All 2 branches covered.">		if (encoding != null) {</span>
+<span class="fc" id="L171">			this.encoding = encoding;</span>
+		}
+<span class="fc" id="L173">	}</span>
+
+	public boolean isOmitEncoding() {
+<span class="fc" id="L176">		return omitEncoding;</span>
+	}
+
+	/**
+	 * This will set whether the XML declaration (&amp;lt;?xml version=&quot;1.0&quot;
+	 * encoding=&quot;UTF-8&quot;?&amp;gt;)
+	 * includes the encoding of the document. It is common to suppress this in
+	 * protocols such as WML and SOAP.
+	 *
+	 * @param omitEncoding boolean indicating whether or not the XML
+	 *                     declaration should indicate the document encoding.
+	 */
+	public void setOmitEncoding(boolean omitEncoding) {
+<span class="fc" id="L189">		this.omitEncoding = omitEncoding;</span>
+<span class="fc" id="L190">	}</span>
+
+	/**
+	 * This will set whether the XML declaration (&amp;lt;?xml version=&quot;1.0&quot;
+	 * encoding=&quot;UTF-8&quot;?&amp;gt;)
+	 * is included or not. It is common to suppress this in protocols such as
+	 * WML and SOAP.
+	 *
+	 * @param suppressDeclaration boolean indicating whether or not the XML
+	 *                            declaration should be suppressed.
+	 */
+	public void setSuppressDeclaration(boolean suppressDeclaration) {
+<span class="fc" id="L202">		this.suppressDeclaration = suppressDeclaration;</span>
+<span class="fc" id="L203">	}</span>
+
+	/**
+	 * @return true if the output of the XML declaration (&amp;lt;?xml
+	 * version=&quot;1.0&quot;?&amp;gt;)
+	 * should be suppressed else false.
+	 */
+	public boolean isSuppressDeclaration() {
+<span class="fc" id="L211">		return suppressDeclaration;</span>
+	}
+
+	/**
+	 * This will set whether a new line is printed after the XML declaration
+	 * (assuming it is not supressed.)
+	 *
+	 * @param newLineAfterDeclaration boolean indicating whether or not to print new
+	 *                                line following the XML declaration. The default is true.
+	 */
+	public void setNewLineAfterDeclaration(boolean newLineAfterDeclaration) {
+<span class="fc" id="L222">		this.newLineAfterDeclaration = newLineAfterDeclaration;</span>
+<span class="fc" id="L223">	}</span>
+
+	/**
+	 * @return true if a new line should be printed following XML declaration
+	 */
+	public boolean isNewLineAfterDeclaration() {
+<span class="fc" id="L229">		return newLineAfterDeclaration;</span>
+	}
+
+	public boolean isExpandEmptyElements() {
+<span class="fc" id="L233">		return expandEmptyElements;</span>
+	}
+
+	/**
+	 * This will set whether empty elements are expanded from
+	 * &amp;lt;tagName&amp;gt; to
+	 * &amp;lt;tagName&amp;gt;&amp;lt;/tagName&amp;gt;.
+	 *
+	 * @param expandEmptyElements boolean indicating whether or not empty
+	 *                            elements should be expanded.
+	 */
+	public void setExpandEmptyElements(boolean expandEmptyElements) {
+<span class="fc" id="L245">		this.expandEmptyElements = expandEmptyElements;</span>
+<span class="fc" id="L246">	}</span>
+
+	public boolean isTrimText() {
+<span class="fc" id="L249">		return trimText;</span>
+	}
+
+	/**
+	 * Default: false
+	 *
+	 * @param trimText boolean true=&gt;trim the whitespace, false=&gt;use
+	 *                 text verbatim
+	 */
+	public void setTrimText(boolean trimText) {
+<span class="fc" id="L259">		this.trimText = trimText;</span>
+<span class="fc" id="L260">	}</span>
+
+	public boolean isPadText() {
+<span class="fc" id="L263">		return padText;</span>
+	}
+
+	/**
+	 * Ensure that text immediately preceded by or followed by an element will
+	 * be &quot;padded&quot; with a single space. This is used to allow make
+	 * browser-friendly HTML, avoiding trimText's transformation of, e.g.,
+	 * The quick &amp;lt;b&amp;gt;brown&amp;lt;/b&amp;gt; fox into The
+	 * quick&amp;lt;b&amp;gt;brown&amp;lt;/b&amp;gt;fox
+	 * (the latter will run the three separate words together into a single
+	 * word).
+	 * &lt;p&gt;
+	 * &lt;p&gt;
+	 * &lt;p&gt;
+	 * The padding string will only be added if the text itself starts or ends
+	 * with some whitespace characters.
+	 * &lt;p&gt;
+	 * &lt;p&gt;
+	 * &lt;p&gt;
+	 * Default: false
+	 *
+	 * @param padText boolean if true, pad string-element boundaries
+	 */
+	public void setPadText(boolean padText) {
+<span class="fc" id="L287">		this.padText = padText;</span>
+<span class="fc" id="L288">	}</span>
+
+	public String getIndent() {
+<span class="fc" id="L291">		return indent;</span>
+	}
+
+	/**
+	 * This will set the indent String to use; this is usually a
+	 * String of empty spaces. If you pass null, or the empty
+	 * string (&quot;&quot;), then no indentation will happen.
+	 * &lt;p&gt;
+	 * Default: none (null)
+	 *
+	 * @param indent String to use for indentation.
+	 */
+	public void setIndent(String indent) {
+		// nullify empty string to void unnecessary indentation code
+<span class="fc bfc" id="L305" title="All 4 branches covered.">		if ((indent != null) &amp;&amp; (indent.length() &lt;= 0)) {</span>
+<span class="fc" id="L306">			indent = null;</span>
+		}
+
+<span class="fc" id="L309">		this.indent = indent;</span>
+<span class="fc" id="L310">	}</span>
+
+	/**
+	 * Set the indent on or off. If setting on, will use the value of
+	 * STANDARD_INDENT, which is usually two spaces.
+	 *
+	 * @param doIndent if true, set indenting on; if false, set indenting off
+	 */
+	public void setIndent(boolean doIndent) {
+<span class="fc bfc" id="L319" title="All 2 branches covered.">		if (doIndent) {</span>
+<span class="fc" id="L320">			this.indent = STANDARD_INDENT;</span>
+		} else {
+<span class="fc" id="L322">			this.indent = null;</span>
+		}
+<span class="fc" id="L324">	}</span>
+
+	/**
+	 * This will set the indent String's size; an indentSize of
+	 * 4 would result in the indention being equivalent to the
+	 * String &quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot; (four space characters).
+	 *
+	 * @param indentSize int number of spaces in indentation.
+	 */
+	public void setIndentSize(int indentSize) {
+<span class="fc" id="L334">		StringBuffer indentBuffer = new StringBuffer();</span>
+
+<span class="fc bfc" id="L336" title="All 2 branches covered.">		for (int i = 0; i &lt; indentSize; i++) {</span>
+<span class="fc" id="L337">			indentBuffer.append(&quot; &quot;);</span>
+		}
+
+<span class="fc" id="L340">		this.indent = indentBuffer.toString();</span>
+<span class="fc" id="L341">	}</span>
+
+	/**
+	 * Whether or not to use the XHTML standard: like HTML but passes an XML
+	 * parser with real, closed tags.
+	 * &lt;p&gt;
+	 * Default is false
+	 *
+	 * @return DOCUMENT ME!
+	 */
+	public boolean isXHTML() {
+<span class="fc" id="L352">		return doXHTML;</span>
+	}
+
+	/**
+	 * This will set whether or not to use the XHTML standard: like HTML but
+	 * passes an XML parser with real, closed tags.
+	 * &lt;p&gt;
+	 * &lt;p&gt;
+	 * &lt;p&gt;
+	 * Default: false
+	 *
+	 * @param xhtml boolean true=&gt;conform to XHTML, false=&gt;conform
+	 *              to HTML, can have unclosed tags, etc.
+	 */
+	public void setXHTML(boolean xhtml) {
+<span class="fc" id="L367">		doXHTML = xhtml;</span>
+<span class="fc" id="L368">	}</span>
+
+	public int getNewLineAfterNTags() {
+<span class="fc" id="L371">		return newLineAfterNTags;</span>
+	}
+
+	/**
+	 * Controls output of a line.separator every tagCount tags when isNewlines
+	 * is false. If tagCount equals zero, it means don't do anything special. If
+	 * greater than zero, then a line.separator will be output after tagCount
+	 * tags have been output. Used when you would like to squeeze the html as
+	 * much as possible, but some browsers don't like really long lines. A tag
+	 * count of 10 would produce a line.separator in the output after 10 close
+	 * tags (including single tags).
+	 */
+	public void setNewLineAfterNTags(int tagCount) {
+<span class="fc" id="L384">		newLineAfterNTags = tagCount;</span>
+<span class="fc" id="L385">	}</span>
+
+	public char getAttributeQuoteCharacter() {
+<span class="fc" id="L388">		return attributeQuoteChar;</span>
+	}
+
+	/**
+	 * Sets the character used to quote attribute values. The specified
+	 * character must be a valid XML attribute quote character, otherwise an
+	 * IllegalArgumentException will be thrown.
+	 *
+	 * @param quoteChar The character to use when quoting attribute values.
+	 * @throws IllegalArgumentException If the specified character is not a valid XML attribute quote
+	 *                                  character.
+	 */
+	public void setAttributeQuoteCharacter(char quoteChar) {
+<span class="fc bfc" id="L401" title="All 4 branches covered.">		if ((quoteChar == '\'') || (quoteChar == '&quot;')) {</span>
+<span class="fc" id="L402">			attributeQuoteChar = quoteChar;</span>
+		} else {
+<span class="fc" id="L404">			throw new IllegalArgumentException(&quot;Invalid attribute quote &quot;</span>
+					+ &quot;character (&quot; + quoteChar + &quot;)&quot;);
+		}
+<span class="fc" id="L407">	}</span>
+
+	/**
+	 * Parses command line arguments of the form -omitEncoding
+	 * -indentSize 3 -newlines -trimText
+	 *
+	 * @param args is the array of command line arguments
+	 * @param i    is the index in args to start parsing options
+	 * @return the index of first parameter that we didn't understand
+	 */
+	public int parseOptions(String[] args, int i) {
+<span class="fc bfc" id="L418" title="All 2 branches covered.">		for (int size = args.length; i &lt; size; i++) {</span>
+<span class="fc bfc" id="L419" title="All 2 branches covered.">			if (args[i].equals(&quot;-suppressDeclaration&quot;)) {</span>
+<span class="fc" id="L420">				setSuppressDeclaration(true);</span>
+<span class="fc bfc" id="L421" title="All 2 branches covered.">			} else if (args[i].equals(&quot;-omitEncoding&quot;)) {</span>
+<span class="fc" id="L422">				setOmitEncoding(true);</span>
+<span class="fc bfc" id="L423" title="All 2 branches covered.">			} else if (args[i].equals(&quot;-indent&quot;)) {</span>
+<span class="fc" id="L424">				setIndent(args[++i]);</span>
+<span class="fc bfc" id="L425" title="All 2 branches covered.">			} else if (args[i].equals(&quot;-indentSize&quot;)) {</span>
+<span class="fc" id="L426">				setIndentSize(Integer.parseInt(args[++i]));</span>
+<span class="fc bfc" id="L427" title="All 2 branches covered.">			} else if (args[i].startsWith(&quot;-expandEmpty&quot;)) {</span>
+<span class="fc" id="L428">				setExpandEmptyElements(true);</span>
+<span class="fc bfc" id="L429" title="All 2 branches covered.">			} else if (args[i].equals(&quot;-encoding&quot;)) {</span>
+<span class="fc" id="L430">				setEncoding(args[++i]);</span>
+<span class="fc bfc" id="L431" title="All 2 branches covered.">			} else if (args[i].equals(&quot;-newlines&quot;)) {</span>
+<span class="fc" id="L432">				setNewlines(true);</span>
+<span class="fc bfc" id="L433" title="All 2 branches covered.">			} else if (args[i].equals(&quot;-lineSeparator&quot;)) {</span>
+<span class="fc" id="L434">				setLineSeparator(args[++i]);</span>
+<span class="fc bfc" id="L435" title="All 2 branches covered.">			} else if (args[i].equals(&quot;-trimText&quot;)) {</span>
+<span class="fc" id="L436">				setTrimText(true);</span>
+<span class="fc bfc" id="L437" title="All 2 branches covered.">			} else if (args[i].equals(&quot;-padText&quot;)) {</span>
+<span class="fc" id="L438">				setPadText(true);</span>
+<span class="fc bfc" id="L439" title="All 2 branches covered.">			} else if (args[i].startsWith(&quot;-xhtml&quot;)) {</span>
+<span class="fc" id="L440">				setXHTML(true);</span>
+			} else {
+<span class="fc" id="L442">				return i;</span>
+			}
+		}
+
+<span class="fc" id="L446">		return i;</span>
+	}
+
+	/**
+	 * A static helper method to create the default pretty printing format. This
+	 * format consists of an indent of 2 spaces, newlines after each element and
+	 * all other whitespace trimmed, and XMTML is false.
+	 */
+	public static OutputFormat createPrettyPrint() {
+<span class="fc" id="L455">		OutputFormat format = new OutputFormat();</span>
+<span class="fc" id="L456">		format.setIndentSize(2);</span>
+<span class="fc" id="L457">		format.setNewlines(true);</span>
+<span class="fc" id="L458">		format.setTrimText(true);</span>
+<span class="fc" id="L459">		format.setPadText(true);</span>
+
+<span class="fc" id="L461">		return format;</span>
+	}
+
+	/**
+	 * A static helper method to create the default compact format. This format
+	 * does not have any indentation or newlines after an alement and all other
+	 * whitespace trimmed
+	 */
+	public static OutputFormat createCompactFormat() {
+<span class="fc" id="L470">		OutputFormat format = new OutputFormat();</span>
+<span class="fc" id="L471">		format.setIndent(false);</span>
+<span class="fc" id="L472">		format.setNewlines(false);</span>
+<span class="fc" id="L473">		format.setTrimText(true);</span>
+
+<span class="fc" id="L475">		return format;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

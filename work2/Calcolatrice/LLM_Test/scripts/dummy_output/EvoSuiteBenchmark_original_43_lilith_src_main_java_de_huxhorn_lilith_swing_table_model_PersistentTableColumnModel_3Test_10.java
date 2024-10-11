@@ -1,0 +1,29 @@
+// PersistentTableColumnModel_3Test.java
+package de.huxhorn.lilith.swing.table.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link PersistentTableColumnModel}.
+* It contains one unit test case for the {@link PersistentTableColumnModel#getColumnIndex(Object, boolean)} method.
+*/
+class PersistentTableColumnModel_3Test {
+		/**
+		 * <p>
+		 * A new instance of PersistentTableColumnModel will be created to be tested.
+		 * </p>
+		 */
+	@Test
+		public void test() {
+			PersistentTableColumnModel m = new PersistentTableColumnModel();
+			TableColumn cl = new TableColumn();
+			assertEquals(Integer.valueOf(99), m.getColumnIndex(cl, false));
+		}
+	}

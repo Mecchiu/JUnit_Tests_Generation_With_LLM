@@ -1,0 +1,23 @@
+// Element_6Test.java
+package nu.staldal.xtree;
+
+import java.util.Vector;
+import java.net.URL;
+import org.xml.sax.*;
+import org.xml.sax.helpers.AttributesImpl;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link Element}.
+* It contains one unit test case for the {@link Element#numberOfNamespaceMappings()} method.
+*/
+class Element_6Test {
+		/**
+		 * Create an XML Element.
+		 * @return a {@link Element}.
+		 */
+	public Element createElement() {
+		return new Element();
+	}
+}
