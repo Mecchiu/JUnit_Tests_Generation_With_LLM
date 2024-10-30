@@ -123,8 +123,3 @@ class A4j_3Test {
 				assertNotNull(productInfo);
 			}
 }
-
-// A4j_4Test.java
-package net.kencochrane.a4j;
-
-import net.kenc

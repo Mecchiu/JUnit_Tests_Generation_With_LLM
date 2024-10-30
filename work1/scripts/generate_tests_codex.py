@@ -6,7 +6,7 @@ import openai
 from utils import load_config, get_prompts, get_output_files, save_generated_code, save_response, get_mock_response
 
 # Code Generation Configuration Parameters
-OPENAI_MODEL = "gpt-3.5-turbo-instruct"
+OPENAI_MODEL = "gpt-4o"
 OPENAI_TEMPERATURE = 0
 OPENAI_TOP_P = 1
 OPENAI_FREQUENCY_PENALTY = 0

@@ -43,10 +43,10 @@ public class PromptUtils {
     static {
         try {
             URL templateUrl = JavaOpenAIPromptGenerator.class.getClassLoader().getResource("JUnitTestTemplate.java");
-            UNIT_TEST_TEMPLATE = Files.readString(Paths.get(templateUrl.getPath()));
+            UNIT_TEST_TEMPLATE = Files.readString(Paths.get(templateUrl.toURI())); // Usa toURI() qui
             URL humanEvalUrl = JavaOpenAIPromptGenerator.class.getClassLoader().getResource("HumanEvalTestTemplate.java");
-            HUMAN_EVAL_TEST_TEMPLATE = Files.readString(Paths.get(humanEvalUrl.getPath()));
-        } catch (IOException e) {
+            HUMAN_EVAL_TEST_TEMPLATE = Files.readString(Paths.get(humanEvalUrl.toURI())); // Usa toURI() qui
+        } catch (Exception e) { // IOException e URISyntaxException devono essere catturati
             throw new RuntimeException(e);
         }
     }

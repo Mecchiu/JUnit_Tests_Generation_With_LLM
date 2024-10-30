@@ -1,9 +1,7 @@
 // A4j_1Test.java
 package net.kencochrane.a4j;
 
-import net.kencochrane.a4j.DAO.Cart;
-import net.kencochrane.a4j.DAO.Product;
-import net.kencochrane.a4j.DAO.Search;
+
 import net.kencochrane.a4j.beans.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -123,10 +121,3 @@ class A4j_1Test {
 				assertNotNull(blendedSearch);
 			}
 }
-
-// A4j_2Test.java
-package net.kencochrane.a4j;
-
-import net.kencochrane.a4j.DAO.Cart;
-import net.kencochrane.a4j.DAO.Product;
-import net.kencoch

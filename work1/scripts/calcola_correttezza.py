@@ -36,7 +36,7 @@ def calculate_correctness(directory):
 
     # Loop through all files in the specified directory
     for filename in os.listdir(directory):
-        if filename.endswith(".xml") and "scenario2" in filename:
+        if filename.endswith(".xml") and "original" in filename:
             file_path = os.path.join(directory, filename)
             correctness = parse_surefire_report(file_path)
             total_tests += 1
@@ -63,7 +63,7 @@ def calculate_correctness(directory):
     print(f"Incorrect Tests (no pass): {incorrect_tests} ({incorrect_rate:.2f}%)")
 
 # Directory containing the Surefire XML reports
-surefire_reports_dir = 'C:\\Users\\matti\\OneDrive\\Desktop\\JUnit_Tests_Generation_using_LLMs\HumanEvalJava\\target\\surefire-reports'  # Replace with your path
+surefire_reports_dir = 'C:\\Users\\matti\\OneDrive\\Documenti\\GitHub\\JUnit_Tests_Generation_LLM\\work1\\HumanEvalJava\\target\\surefire-reports'  # Replace with your path
 calculate_correctness(surefire_reports_dir)
 
 

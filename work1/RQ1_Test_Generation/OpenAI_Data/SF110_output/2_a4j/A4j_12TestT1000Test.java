@@ -111,12 +111,4 @@ class A4j_12Test {
 				ShoppingCart shoppingCart = a4j.AddtoCart("B00005N5PF", "2");
 				assertNotNull(shoppingCart);
 			}
-
-			/**
-			* Test case for {@link A4j#AddtoCart(String, String)}.
-			* It tests the method with a valid asin and a quantity greater than 1.
-			*/
-			@Test
-			void testAddtoCartValidAsinAndQuantityGreaterThan1() {
-				A4j a4j = new A4j();
-				ShoppingCart shoppingCart = a4j.AddtoCart("B00005N5PF", "2");
+}
