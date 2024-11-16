@@ -1,4 +1,3 @@
-package timestamp;
 // TimeStamp_3Test.java
 
 
@@ -15,12 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link TimeStamp#getTime()} method.
 */
 class TimeStamp_3Test {
+```java
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a known NTP timestamp.
+     * This test checks if the conversion is accurate for a known timestamp.
      */
     @Test
-    void testGetTimeForKnownNtpTimestamp() {
+    void testGetTimeKnownValue() {
         // Known NTP timestamp for 1-Jan-1970 00:00:00 UTC
         long ntpTime = 0x83AA7E80L << 32; // equivalent to 2208988800 seconds
         TimeStamp timeStamp = new TimeStamp(ntpTime);
@@ -29,113 +29,113 @@ class TimeStamp_3Test {
 
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a current NTP timestamp.
+     * This test checks if the conversion is accurate for a timestamp in 2036.
      */
     @Test
-    void testGetTimeForCurrentNtpTimestamp() {
-        TimeStamp currentTimeStamp = TimeStamp.getCurrentTime();
-        long currentJavaTime = System.currentTimeMillis();
-        long timeDifference = Math.abs(currentTimeStamp.getTime() - currentJavaTime);
-        assertTrue(timeDifference < 1000, "The time difference should be less than 1000 milliseconds.");
+    void testGetTime2036() {
+        // NTP timestamp for 7-Feb-2036 06:28:16 UTC
+        long ntpTime = 0x00000000L; // seconds part is 0 for 2036 base
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        assertEquals(2085978496000L, timeStamp.getTime(), "The Java time should match the 2036 base time.");
     }
 
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a future NTP timestamp.
+     * This test checks if the conversion is accurate for a timestamp in 1900.
      */
     @Test
-    void testGetTimeForFutureNtpTimestamp() {
-        // Future date: 1-Jan-2100 00:00:00 UTC
-        long futureNtpTime = 0xE17B0D00L << 32; // equivalent to 4102444800 seconds
-        TimeStamp futureTimeStamp = new TimeStamp(futureNtpTime);
-        long expectedJavaTime = 4102444800000L; // Java time for 1-Jan-2100
-        assertEquals(expectedJavaTime, futureTimeStamp.getTime(), "The Java time should match the expected future time.");
+    void testGetTime1900() {
+        // NTP timestamp for 1-Jan-1900 01:00:00 UTC
+        long ntpTime = 0x80000000L << 32; // MSB set for 1900 base
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        assertEquals(-2208988800000L, timeStamp.getTime(), "The Java time should match the 1900 base time.");
     }
 
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a past NTP timestamp.
+     * This test checks if the conversion handles fractional seconds correctly.
      */
     @Test
-    void testGetTimeForPastNtpTimestamp() {
-        // Past date: 1-Jan-1900 00:00:00 UTC
-        long pastNtpTime = 0x00000000L; // equivalent to 0 seconds
-        TimeStamp pastTimeStamp = new TimeStamp(pastNtpTime);
-        long expectedJavaTime = -2208988800000L; // Java time for 1-Jan-1900
-        assertEquals(expectedJavaTime, pastTimeStamp.getTime(), "The Java time should match the expected past time.");
-    }
-
-    /**
-     * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a timestamp with fractional seconds.
-     */
-    @Test
-    void testGetTimeForFractionalNtpTimestamp() {
+    void testGetTimeFractionalSeconds() {
         // NTP timestamp with fractional seconds
-        long ntpTime = (0x83AA7E80L << 32) | 0x80000000L; // 1-Jan-1970 00:00:00.5 UTC
+        long ntpTime = (0x83AA7E80L << 32) | 0x80000000L; // 0.5 seconds
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        assertEquals(500L, timeStamp.getTime(), "The Java time should be 500 milliseconds for the fractional timestamp.");
+        assertEquals(500L, timeStamp.getTime(), "The Java time should account for fractional seconds.");
     }
 
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a timestamp with maximum fractional seconds.
+     * This test checks if the conversion handles maximum possible NTP time.
      */
     @Test
-    void testGetTimeForMaxFractionalNtpTimestamp() {
-        // NTP timestamp with maximum fractional seconds
-        long ntpTime = (0x83AA7E80L << 32) | 0xFFFFFFFFL; // 1-Jan-1970 00:00:00.999999999 UTC
+    void testGetTimeMaxValue() {
+        // Maximum NTP timestamp value
+        long ntpTime = 0xFFFFFFFFFFFFFFFFL;
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        assertEquals(999L, timeStamp.getTime(), "The Java time should be 999 milliseconds for the max fractional timestamp.");
+        assertEquals(Long.MAX_VALUE, timeStamp.getTime(), "The Java time should be Long.MAX_VALUE for max NTP time.");
     }
 
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a timestamp with minimum fractional seconds.
+     * This test checks if the conversion handles minimum possible NTP time.
      */
     @Test
-    void testGetTimeForMinFractionalNtpTimestamp() {
-        // NTP timestamp with minimum fractional seconds
-        long ntpTime = (0x83AA7E80L << 32) | 0x00000001L; // 1-Jan-1970 00:00:00.000000001 UTC
+    void testGetTimeMinValue() {
+        // Minimum NTP timestamp value
+        long ntpTime = 0x0000000000000000L;
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        assertEquals(0L, timeStamp.getTime(), "The Java time should be 0 milliseconds for the min fractional timestamp.");
+        assertEquals(Long.MIN_VALUE, timeStamp.getTime(), "The Java time should be Long.MIN_VALUE for min NTP time.");
     }
 
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a timestamp with zero seconds and maximum fraction.
+     * This test checks if the conversion handles a random timestamp correctly.
      */
     @Test
-    void testGetTimeForZeroSecondsMaxFractionNtpTimestamp() {
-        // NTP timestamp with zero seconds and maximum fraction
-        long ntpTime = 0xFFFFFFFFL; // 0 seconds and max fraction
+    void testGetTimeRandomValue() {
+        // Random NTP timestamp
+        long ntpTime = 0xC1A089BDL << 32 | 0xFC904F6DL;
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        assertEquals(-1L, timeStamp.getTime(), "The Java time should be -1 milliseconds for zero seconds and max fraction.");
+        long expectedTime = TimeStamp.getTime(ntpTime);
+        assertEquals(expectedTime, timeStamp.getTime(), "The Java time should match the expected conversion.");
     }
 
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a timestamp with maximum seconds and zero fraction.
+     * This test checks if the conversion handles a timestamp with only fractional part.
      */
     @Test
-    void testGetTimeForMaxSecondsZeroFractionNtpTimestamp() {
-        // NTP timestamp with maximum seconds and zero fraction
-        long ntpTime = 0xFFFFFFFF00000000L; // max seconds and 0 fraction
+    void testGetTimeOnlyFraction() {
+        // NTP timestamp with only fractional part
+        long ntpTime = 0x00000000L << 32 | 0x80000000L; // 0.5 seconds
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        long expectedJavaTime = msb1baseTime + (0xFFFFFFFFL * 1000);
-        assertEquals(expectedJavaTime, timeStamp.getTime(), "The Java time should match the expected time for max seconds and zero fraction.");
+        assertEquals(500L, timeStamp.getTime(), "The Java time should account for only fractional seconds.");
     }
 
     /**
      * Test case for verifying the conversion of NTP timestamp to Java time.
-     * This test checks if the conversion is accurate for a timestamp with maximum seconds and maximum fraction.
+     * This test checks if the conversion handles a timestamp with only seconds part.
      */
     @Test
-    void testGetTimeForMaxSecondsMaxFractionNtpTimestamp() {
-        // NTP timestamp with maximum seconds and maximum fraction
-        long ntpTime = 0xFFFFFFFFFFFFFFFFL; // max seconds and max fraction
+    void testGetTimeOnlySeconds() {
+        // NTP timestamp with only seconds part
+        long ntpTime = 0x83AA7E80L << 32; // 2208988800 seconds
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        long expectedJavaTime = msb1baseTime + (0xFFFFFFFFL * 1000) + 999;
-        assertEquals(expectedJavaTime, timeStamp.getTime(), "The Java time should match the expected time for max seconds and max fraction.");
+        assertEquals(0L, timeStamp.getTime(), "The Java time should account for only seconds part.");
+    }
+
+    /**
+     * Test case for verifying the conversion of NTP timestamp to Java time.
+     * This test checks if the conversion handles a timestamp with both seconds and fractional parts.
+     */
+    @Test
+    void testGetTimeSecondsAndFraction() {
+        // NTP timestamp with both seconds and fractional parts
+        long ntpTime = (0x83AA7E80L << 32) | 0x40000000L; // 0.25 seconds
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        assertEquals(250L, timeStamp.getTime(), "The Java time should account for both seconds and fractional parts.");
     }
 }
+```
+
+These test cases cover various scenarios for the `getTime()` method, including known values, edge cases, and random values. They ensure that the conversion from NTP timestamp to Java time is accurate and handles different parts of the timestamp correctly.

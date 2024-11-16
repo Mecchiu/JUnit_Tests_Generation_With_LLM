@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_17Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,9 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setPadText(boolean)} method.
 */
 class OutputFormat_17Test {
-    /**
-     * Test case 1: Test setting padText to true.
-     */
     @Test
     void testSetPadTextTrue() {
         OutputFormat format = new OutputFormat();
@@ -21,9 +17,6 @@ class OutputFormat_17Test {
         assertTrue(format.isPadText(), "PadText should be true after setting it to true.");
     }
 
-    /**
-     * Test case 2: Test setting padText to false.
-     */
     @Test
     void testSetPadTextFalse() {
         OutputFormat format = new OutputFormat();
@@ -31,87 +24,64 @@ class OutputFormat_17Test {
         assertFalse(format.isPadText(), "PadText should be false after setting it to false.");
     }
 
-    /**
-     * Test case 3: Test default value of padText.
-     */
     @Test
     void testDefaultPadText() {
         OutputFormat format = new OutputFormat();
-        assertFalse(format.isPadText(), "Default value of PadText should be false.");
+        assertFalse(format.isPadText(), "Default PadText should be false.");
     }
 
-    /**
-     * Test case 4: Test toggling padText from false to true.
-     */
     @Test
-    void testTogglePadTextFalseToTrue() {
-        OutputFormat format = new OutputFormat();
-        format.setPadText(false);
-        format.setPadText(true);
-        assertTrue(format.isPadText(), "PadText should be true after toggling from false to true.");
-    }
-
-    /**
-     * Test case 5: Test toggling padText from true to false.
-     */
-    @Test
-    void testTogglePadTextTrueToFalse() {
+    void testTogglePadText() {
         OutputFormat format = new OutputFormat();
         format.setPadText(true);
+        assertTrue(format.isPadText(), "PadText should be true after setting it to true.");
         format.setPadText(false);
-        assertFalse(format.isPadText(), "PadText should be false after toggling from true to false.");
+        assertFalse(format.isPadText(), "PadText should be false after setting it to false.");
     }
 
-    /**
-     * Test case 6: Test setting padText multiple times to true.
-     */
     @Test
-    void testSetPadTextMultipleTrue() {
-        OutputFormat format = new OutputFormat();
+    void testPadTextWithIndent() {
+        OutputFormat format = new OutputFormat("  ");
         format.setPadText(true);
+        assertTrue(format.isPadText(), "PadText should be true with indent set.");
+    }
+
+    @Test
+    void testPadTextWithNewlines() {
+        OutputFormat format = new OutputFormat("  ", true);
         format.setPadText(true);
-        assertTrue(format.isPadText(), "PadText should remain true after setting it multiple times to true.");
+        assertTrue(format.isPadText(), "PadText should be true with newlines set.");
     }
 
-    /**
-     * Test case 7: Test setting padText multiple times to false.
-     */
     @Test
-    void testSetPadTextMultipleFalse() {
-        OutputFormat format = new OutputFormat();
-        format.setPadText(false);
-        format.setPadText(false);
-        assertFalse(format.isPadText(), "PadText should remain false after setting it multiple times to false.");
-    }
-
-    /**
-     * Test case 8: Test setting padText to true after default.
-     */
-    @Test
-    void testSetPadTextTrueAfterDefault() {
-        OutputFormat format = new OutputFormat();
+    void testPadTextWithEncoding() {
+        OutputFormat format = new OutputFormat("  ", true, "UTF-8");
         format.setPadText(true);
-        assertTrue(format.isPadText(), "PadText should be true after setting it to true from default.");
+        assertTrue(format.isPadText(), "PadText should be true with encoding set.");
     }
 
-    /**
-     * Test case 9: Test setting padText to false after default.
-     */
     @Test
-    void testSetPadTextFalseAfterDefault() {
+    void testPadTextAfterOtherSettings() {
         OutputFormat format = new OutputFormat();
-        format.setPadText(false);
-        assertFalse(format.isPadText(), "PadText should be false after setting it to false from default.");
-    }
-
-    /**
-     * Test case 10: Test setting padText to true and then false.
-     */
-    @Test
-    void testSetPadTextTrueThenFalse() {
-        OutputFormat format = new OutputFormat();
+        format.setIndentSize(4);
+        format.setNewlines(true);
         format.setPadText(true);
-        format.setPadText(false);
-        assertFalse(format.isPadText(), "PadText should be false after setting it to true and then false.");
+        assertTrue(format.isPadText(), "PadText should be true after setting other properties.");
+    }
+
+    @Test
+    void testPadTextWithTrimText() {
+        OutputFormat format = new OutputFormat();
+        format.setTrimText(true);
+        format.setPadText(true);
+        assertTrue(format.isPadText(), "PadText should be true with TrimText set.");
+    }
+
+    @Test
+    void testPadTextWithXHTML() {
+        OutputFormat format = new OutputFormat();
+        format.setXHTML(true);
+        format.setPadText(true);
+        assertTrue(format.isPadText(), "PadText should be true with XHTML set.");
     }
 }

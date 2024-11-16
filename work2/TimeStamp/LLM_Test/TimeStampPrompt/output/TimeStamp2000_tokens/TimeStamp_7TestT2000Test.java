@@ -1,4 +1,3 @@
-package timestamp;
 // TimeStamp_7Test.java
 
 
@@ -15,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link TimeStamp#getCurrentTime()} method.
 */
 class TimeStamp_7Test {
+```java
     /**
      * Test case for verifying that the current time is not null.
      */
@@ -73,7 +73,7 @@ class TimeStamp_7Test {
         TimeStamp currentTime = TimeStamp.getCurrentTime();
         String timeString = currentTime.toString();
         assertNotNull(timeString, "Current time string should not be null");
-        assertTrue(timeString.matches("[0-9a-f]{8}\\.[0-9a-f]{8}"), "Current time string should match the expected format");
+        assertTrue(timeString.matches("[0-9a-f]{8}\\.[0-9a-f]{8}"), "Current time string should match expected format");
     }
 
     /**
@@ -123,3 +123,6 @@ class TimeStamp_7Test {
         assertNotEquals(currentTime, differentTime, "Current time should not be equal to a different time");
     }
 }
+```
+
+This test class `TimeStamp_7Test` contains ten unit test cases for the `TimeStamp#getCurrentTime()` method. Each test case checks a different aspect of the `getCurrentTime()` method, such as ensuring the current time is not null, is close to the system time, is consistent, and is correctly formatted as a string, date string, and UTC string.

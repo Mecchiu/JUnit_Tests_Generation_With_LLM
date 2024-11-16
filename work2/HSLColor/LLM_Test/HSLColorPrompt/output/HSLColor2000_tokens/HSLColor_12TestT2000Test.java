@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_12Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#brighten(float)} method.
 */
 class HSLColor_12Test {
+```java
     @Test
     void testBrightenZeroPercent() {
         HSLColor color = new HSLColor();
@@ -25,7 +25,7 @@ class HSLColor_12Test {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
         color.brighten(1);
-        assertEquals(HSLColor.HSLMAX, color.getLuminence(), "Luminance should be max when brightening by 100%");
+        assertEquals(255, color.getLuminence(), "Luminance should be maximum when brightening by 100%");
     }
 
     @Test
@@ -34,15 +34,16 @@ class HSLColor_12Test {
         color.initHSLbyRGB(100, 150, 200);
         int originalLuminance = color.getLuminence();
         color.brighten(0.5f);
-        assertEquals(originalLuminance / 2, color.getLuminence(), "Luminance should be halved when brightening by 50%");
+        assertTrue(color.getLuminence() > originalLuminance, "Luminance should increase when brightening by 50%");
     }
 
     @Test
     void testBrightenNegativePercent() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
+        int originalLuminance = color.getLuminence();
         color.brighten(-0.5f);
-        assertEquals(0, color.getLuminence(), "Luminance should be 0 when brightening by a negative percent");
+        assertEquals(originalLuminance, color.getLuminence(), "Luminance should remain unchanged when brightening by a negative percent");
     }
 
     @Test
@@ -50,7 +51,7 @@ class HSLColor_12Test {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
         color.brighten(2);
-        assertEquals(HSLColor.HSLMAX, color.getLuminence(), "Luminance should be max when brightening by more than 100%");
+        assertEquals(255, color.getLuminence(), "Luminance should be maximum when brightening by more than 100%");
     }
 
     @Test
@@ -59,7 +60,7 @@ class HSLColor_12Test {
         color.initHSLbyRGB(100, 150, 200);
         int originalLuminance = color.getLuminence();
         color.brighten(0.1f);
-        assertEquals((int)(originalLuminance * 0.1f), color.getLuminence(), "Luminance should be 10% of original when brightening by 10%");
+        assertTrue(color.getLuminence() > originalLuminance, "Luminance should increase when brightening by 10%");
     }
 
     @Test
@@ -68,31 +69,34 @@ class HSLColor_12Test {
         color.initHSLbyRGB(100, 150, 200);
         int originalLuminance = color.getLuminence();
         color.brighten(0.9f);
-        assertEquals((int)(originalLuminance * 0.9f), color.getLuminence(), "Luminance should be 90% of original when brightening by 90%");
+        assertTrue(color.getLuminence() > originalLuminance, "Luminance should increase significantly when brightening by 90%");
     }
 
     @Test
-    void testBrightenWithZeroLuminance() {
+    void testBrightenToMax() {
+        HSLColor color = new HSLColor();
+        color.initHSLbyRGB(100, 150, 200);
+        color.brighten(1.5f);
+        assertEquals(255, color.getLuminence(), "Luminance should be maximum when brightening by 150%");
+    }
+
+    @Test
+    void testBrightenFromZero() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(0, 0, 0);
         color.brighten(0.5f);
-        assertEquals(0, color.getLuminence(), "Luminance should remain 0 when brightening a black color");
+        assertTrue(color.getLuminence() > 0, "Luminance should increase from zero when brightening by 50%");
     }
 
     @Test
-    void testBrightenWithMaxLuminance() {
+    void testBrightenFromMax() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(255, 255, 255);
-        color.brighten(0.5f);
-        assertEquals(HSLColor.HSLMAX, color.getLuminence(), "Luminance should remain max when brightening a white color");
-    }
-
-    @Test
-    void testBrightenWithMidLuminance() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128);
         int originalLuminance = color.getLuminence();
         color.brighten(0.5f);
-        assertEquals((int)(originalLuminance * 0.5f), color.getLuminence(), "Luminance should be halved when brightening a mid-gray color by 50%");
+        assertEquals(originalLuminance, color.getLuminence(), "Luminance should remain maximum when brightening from maximum");
     }
 }
+```
+
+These test cases cover various scenarios for the `brighten` method, including edge cases like zero and full percent brightening, as well as negative and over-maximum percentages.

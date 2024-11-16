@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_26Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,118 +10,86 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#getAttributeQuoteCharacter()} method.
 */
 class OutputFormat_26Test {
-    /**
-     * Test case for default attribute quote character.
-     */
     @Test
     void testDefaultAttributeQuoteCharacter() {
         OutputFormat format = new OutputFormat();
-        assertEquals('"', format.getAttributeQuoteCharacter(), "Default attribute quote character should be double quote.");
+        assertEquals('"', format.getAttributeQuoteCharacter(), "Default attribute quote character should be double quote (\").");
     }
 
-    /**
-     * Test case for setting attribute quote character to single quote.
-     */
     @Test
-    void testSetAttributeQuoteCharacterSingleQuote() {
+    void testSetAttributeQuoteCharacterToSingleQuote() {
         OutputFormat format = new OutputFormat();
         format.setAttributeQuoteCharacter('\'');
-        assertEquals('\'', format.getAttributeQuoteCharacter(), "Attribute quote character should be single quote.");
+        assertEquals('\'', format.getAttributeQuoteCharacter(), "Attribute quote character should be single quote (').");
     }
 
-    /**
-     * Test case for setting attribute quote character to double quote.
-     */
     @Test
-    void testSetAttributeQuoteCharacterDoubleQuote() {
+    void testSetAttributeQuoteCharacterToDoubleQuote() {
         OutputFormat format = new OutputFormat();
         format.setAttributeQuoteCharacter('"');
-        assertEquals('"', format.getAttributeQuoteCharacter(), "Attribute quote character should be double quote.");
+        assertEquals('"', format.getAttributeQuoteCharacter(), "Attribute quote character should be double quote (\").");
     }
 
-    /**
-     * Test case for setting attribute quote character to an invalid character.
-     */
     @Test
     void testSetAttributeQuoteCharacterInvalid() {
         OutputFormat format = new OutputFormat();
-        assertThrows(IllegalArgumentException.class, () -> {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             format.setAttributeQuoteCharacter('`');
-        }, "Setting an invalid attribute quote character should throw IllegalArgumentException.");
+        });
+        assertEquals("Invalid attribute quote character (`)", exception.getMessage());
     }
 
-    /**
-     * Test case for setting attribute quote character to a valid character after an invalid attempt.
-     */
     @Test
-    void testSetAttributeQuoteCharacterValidAfterInvalid() {
+    void testSetAttributeQuoteCharacterInvalidNumber() {
         OutputFormat format = new OutputFormat();
-        try {
-            format.setAttributeQuoteCharacter('`');
-        } catch (IllegalArgumentException e) {
-            // Expected exception
-        }
-        format.setAttributeQuoteCharacter('\'');
-        assertEquals('\'', format.getAttributeQuoteCharacter(), "Attribute quote character should be single quote after setting a valid character.");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            format.setAttributeQuoteCharacter('1');
+        });
+        assertEquals("Invalid attribute quote character (1)", exception.getMessage());
     }
 
-    /**
-     * Test case for setting attribute quote character to single quote and then back to double quote.
-     */
     @Test
-    void testSetAttributeQuoteCharacterSingleThenDouble() {
+    void testSetAttributeQuoteCharacterInvalidSymbol() {
         OutputFormat format = new OutputFormat();
-        format.setAttributeQuoteCharacter('\'');
-        format.setAttributeQuoteCharacter('"');
-        assertEquals('"', format.getAttributeQuoteCharacter(), "Attribute quote character should be double quote after setting back from single quote.");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            format.setAttributeQuoteCharacter('&');
+        });
+        assertEquals("Invalid attribute quote character (&)", exception.getMessage());
     }
 
-    /**
-     * Test case for setting attribute quote character to double quote and then back to single quote.
-     */
     @Test
-    void testSetAttributeQuoteCharacterDoubleThenSingle() {
+    void testSetAttributeQuoteCharacterInvalidSpace() {
         OutputFormat format = new OutputFormat();
-        format.setAttributeQuoteCharacter('"');
-        format.setAttributeQuoteCharacter('\'');
-        assertEquals('\'', format.getAttributeQuoteCharacter(), "Attribute quote character should be single quote after setting back from double quote.");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            format.setAttributeQuoteCharacter(' ');
+        });
+        assertEquals("Invalid attribute quote character ( )", exception.getMessage());
     }
 
-    /**
-     * Test case for setting attribute quote character to single quote multiple times.
-     */
     @Test
-    void testSetAttributeQuoteCharacterSingleMultiple() {
+    void testSetAttributeQuoteCharacterInvalidNewline() {
         OutputFormat format = new OutputFormat();
-        format.setAttributeQuoteCharacter('\'');
-        format.setAttributeQuoteCharacter('\'');
-        assertEquals('\'', format.getAttributeQuoteCharacter(), "Attribute quote character should remain single quote after setting it multiple times.");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            format.setAttributeQuoteCharacter('\n');
+        });
+        assertEquals("Invalid attribute quote character (\n)", exception.getMessage());
     }
 
-    /**
-     * Test case for setting attribute quote character to double quote multiple times.
-     */
     @Test
-    void testSetAttributeQuoteCharacterDoubleMultiple() {
+    void testSetAttributeQuoteCharacterInvalidTab() {
         OutputFormat format = new OutputFormat();
-        format.setAttributeQuoteCharacter('"');
-        format.setAttributeQuoteCharacter('"');
-        assertEquals('"', format.getAttributeQuoteCharacter(), "Attribute quote character should remain double quote after setting it multiple times.");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            format.setAttributeQuoteCharacter('\t');
+        });
+        assertEquals("Invalid attribute quote character (\t)", exception.getMessage());
     }
 
-    /**
-     * Test case for setting attribute quote character to single quote, then invalid, then double quote.
-     */
     @Test
-    void testSetAttributeQuoteCharacterSingleInvalidDouble() {
+    void testSetAttributeQuoteCharacterInvalidBackslash() {
         OutputFormat format = new OutputFormat();
-        format.setAttributeQuoteCharacter('\'');
-        try {
-            format.setAttributeQuoteCharacter('`');
-        } catch (IllegalArgumentException e) {
-            // Expected exception
-        }
-        format.setAttributeQuoteCharacter('"');
-        assertEquals('"', format.getAttributeQuoteCharacter(), "Attribute quote character should be double quote after setting invalid and then valid character.");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            format.setAttributeQuoteCharacter('\\');
+        });
+        assertEquals("Invalid attribute quote character (\\)", exception.getMessage());
     }
 }

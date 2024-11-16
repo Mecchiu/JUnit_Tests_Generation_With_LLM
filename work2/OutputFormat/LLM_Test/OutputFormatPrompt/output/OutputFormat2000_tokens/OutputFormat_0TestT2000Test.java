@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_0Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#getLineSeparator()} method.
 */
 class OutputFormat_0Test {
+```java
     /**
      * Test case for default line separator.
      */
@@ -21,60 +21,52 @@ class OutputFormat_0Test {
     }
 
     /**
-     * Test case for setting line separator to Windows style.
+     * Test case for setting line separator to system line separator.
      */
     @Test
-    void testSetLineSeparatorWindows() {
+    void testSystemLineSeparator() {
         OutputFormat format = new OutputFormat();
-        format.setLineSeparator("\r\n");
-        assertEquals("\r\n", format.getLineSeparator(), "Line separator should be \\r\\n");
+        String systemLineSeparator = System.getProperty("line.separator");
+        format.setLineSeparator(systemLineSeparator);
+        assertEquals(systemLineSeparator, format.getLineSeparator(), "Line separator should match system line separator");
     }
 
     /**
-     * Test case for setting line separator to Unix style.
+     * Test case for setting line separator to custom value.
      */
     @Test
-    void testSetLineSeparatorUnix() {
+    void testCustomLineSeparator() {
         OutputFormat format = new OutputFormat();
-        format.setLineSeparator("\n");
-        assertEquals("\n", format.getLineSeparator(), "Line separator should be \\n");
+        String customSeparator = "\r\n";
+        format.setLineSeparator(customSeparator);
+        assertEquals(customSeparator, format.getLineSeparator(), "Line separator should match custom value");
     }
 
     /**
-     * Test case for setting line separator to Mac style.
+     * Test case for setting line separator to empty string.
      */
     @Test
-    void testSetLineSeparatorMac() {
-        OutputFormat format = new OutputFormat();
-        format.setLineSeparator("\r");
-        assertEquals("\r", format.getLineSeparator(), "Line separator should be \\r");
-    }
-
-    /**
-     * Test case for setting line separator to an empty string.
-     */
-    @Test
-    void testSetLineSeparatorEmpty() {
+    void testEmptyLineSeparator() {
         OutputFormat format = new OutputFormat();
         format.setLineSeparator("");
         assertEquals("", format.getLineSeparator(), "Line separator should be empty string");
     }
 
     /**
-     * Test case for setting line separator to a custom string.
+     * Test case for setting line separator to null.
      */
     @Test
-    void testSetLineSeparatorCustom() {
+    void testNullLineSeparator() {
         OutputFormat format = new OutputFormat();
-        format.setLineSeparator("custom");
-        assertEquals("custom", format.getLineSeparator(), "Line separator should be 'custom'");
+        format.setLineSeparator(null);
+        assertNull(format.getLineSeparator(), "Line separator should be null");
     }
 
     /**
      * Test case for setting line separator to a single space.
      */
     @Test
-    void testSetLineSeparatorSpace() {
+    void testSingleSpaceLineSeparator() {
         OutputFormat format = new OutputFormat();
         format.setLineSeparator(" ");
         assertEquals(" ", format.getLineSeparator(), "Line separator should be a single space");
@@ -84,29 +76,45 @@ class OutputFormat_0Test {
      * Test case for setting line separator to a tab character.
      */
     @Test
-    void testSetLineSeparatorTab() {
+    void testTabLineSeparator() {
         OutputFormat format = new OutputFormat();
         format.setLineSeparator("\t");
         assertEquals("\t", format.getLineSeparator(), "Line separator should be a tab character");
     }
 
     /**
-     * Test case for setting line separator to a multi-character string.
+     * Test case for setting line separator to a custom string with special characters.
      */
     @Test
-    void testSetLineSeparatorMultiChar() {
+    void testSpecialCharacterLineSeparator() {
         OutputFormat format = new OutputFormat();
-        format.setLineSeparator("abc");
-        assertEquals("abc", format.getLineSeparator(), "Line separator should be 'abc'");
+        String specialSeparator = "###";
+        format.setLineSeparator(specialSeparator);
+        assertEquals(specialSeparator, format.getLineSeparator(), "Line separator should match special character string");
     }
 
     /**
-     * Test case for setting line separator to a special character string.
+     * Test case for setting line separator to a long custom string.
      */
     @Test
-    void testSetLineSeparatorSpecialChars() {
+    void testLongCustomLineSeparator() {
         OutputFormat format = new OutputFormat();
-        format.setLineSeparator("!@#$%^&*()");
-        assertEquals("!@#$%^&*()", format.getLineSeparator(), "Line separator should be '!@#$%^&*()'");
+        String longSeparator = "ThisIsALongLineSeparator";
+        format.setLineSeparator(longSeparator);
+        assertEquals(longSeparator, format.getLineSeparator(), "Line separator should match long custom string");
+    }
+
+    /**
+     * Test case for setting line separator to a multi-line string.
+     */
+    @Test
+    void testMultiLineStringLineSeparator() {
+        OutputFormat format = new OutputFormat();
+        String multiLineSeparator = "Line1\nLine2";
+        format.setLineSeparator(multiLineSeparator);
+        assertEquals(multiLineSeparator, format.getLineSeparator(), "Line separator should match multi-line string");
     }
 }
+```
+
+This test class `OutputFormat_0Test` contains ten unit test cases for the `getLineSeparator()` method of the `OutputFormat` class. Each test case checks a different scenario for setting and getting the line separator.

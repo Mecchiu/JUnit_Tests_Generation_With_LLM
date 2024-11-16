@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_11Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#isNewLineAfterDeclaration()} method.
 */
 class OutputFormat_11Test {
+```java
     /**
      * Test case for default value of newLineAfterDeclaration.
      */
@@ -63,49 +63,53 @@ class OutputFormat_11Test {
     }
 
     /**
-     * Test case for newLineAfterDeclaration with pretty print format.
+     * Test case for newLineAfterDeclaration with multiple changes.
      */
     @Test
-    void testPrettyPrintNewLineAfterDeclaration() {
-        OutputFormat format = OutputFormat.createPrettyPrint();
-        assertTrue(format.isNewLineAfterDeclaration(), "Pretty print should have newLineAfterDeclaration as true");
-    }
-
-    /**
-     * Test case for newLineAfterDeclaration with compact format.
-     */
-    @Test
-    void testCompactFormatNewLineAfterDeclaration() {
-        OutputFormat format = OutputFormat.createCompactFormat();
-        assertTrue(format.isNewLineAfterDeclaration(), "Compact format should have newLineAfterDeclaration as true");
-    }
-
-    /**
-     * Test case for newLineAfterDeclaration after parsing options.
-     */
-    @Test
-    void testParseOptionsNewLineAfterDeclaration() {
+    void testMultipleChangesNewLineAfterDeclaration() {
         OutputFormat format = new OutputFormat();
-        String[] args = {"-newLineAfterDeclaration"};
-        format.parseOptions(args, 0);
-        assertTrue(format.isNewLineAfterDeclaration(), "Parsing options should set newLineAfterDeclaration to true");
-    }
-
-    /**
-     * Test case for newLineAfterDeclaration with custom constructor.
-     */
-    @Test
-    void testCustomConstructorNewLineAfterDeclaration() {
-        OutputFormat format = new OutputFormat("  ", true, "UTF-8");
-        assertTrue(format.isNewLineAfterDeclaration(), "Custom constructor should have newLineAfterDeclaration as true");
+        format.setNewLineAfterDeclaration(false);
+        assertFalse(format.isNewLineAfterDeclaration(), "Value should be false after first change");
+        format.setNewLineAfterDeclaration(true);
+        assertTrue(format.isNewLineAfterDeclaration(), "Value should be true after second change");
+        format.setNewLineAfterDeclaration(false);
+        assertFalse(format.isNewLineAfterDeclaration(), "Value should be false after third change");
     }
 
     /**
      * Test case for newLineAfterDeclaration with default constructor.
      */
     @Test
-    void testDefaultConstructorNewLineAfterDeclaration() {
+    void testNewLineAfterDeclarationDefaultConstructor() {
         OutputFormat format = new OutputFormat();
-        assertTrue(format.isNewLineAfterDeclaration(), "Default constructor should have newLineAfterDeclaration as true");
+        assertTrue(format.isNewLineAfterDeclaration(), "Default constructor should set value to true");
+    }
+
+    /**
+     * Test case for newLineAfterDeclaration with indent constructor.
+     */
+    @Test
+    void testNewLineAfterDeclarationIndentConstructor() {
+        OutputFormat format = new OutputFormat("  ");
+        assertTrue(format.isNewLineAfterDeclaration(), "Indent constructor should set value to true");
+    }
+
+    /**
+     * Test case for newLineAfterDeclaration with indent and newlines constructor.
+     */
+    @Test
+    void testNewLineAfterDeclarationIndentNewlinesConstructor() {
+        OutputFormat format = new OutputFormat("  ", true);
+        assertTrue(format.isNewLineAfterDeclaration(), "Indent and newlines constructor should set value to true");
+    }
+
+    /**
+     * Test case for newLineAfterDeclaration with indent, newlines, and encoding constructor.
+     */
+    @Test
+    void testNewLineAfterDeclarationIndentNewlinesEncodingConstructor() {
+        OutputFormat format = new OutputFormat("  ", true, "UTF-8");
+        assertTrue(format.isNewLineAfterDeclaration(), "Indent, newlines, and encoding constructor should set value to true");
     }
 }
+```

@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_15Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setTrimText(boolean)} method.
 */
 class OutputFormat_15Test {
+```java
     /**
      * Test case for setting trimText to true.
      */
@@ -18,7 +18,7 @@ class OutputFormat_15Test {
     void testSetTrimTextTrue() {
         OutputFormat format = new OutputFormat();
         format.setTrimText(true);
-        assertTrue(format.isTrimText(), "Trim text should be true");
+        assertTrue(format.isTrimText(), "TrimText should be true after setting it to true.");
     }
 
     /**
@@ -28,16 +28,16 @@ class OutputFormat_15Test {
     void testSetTrimTextFalse() {
         OutputFormat format = new OutputFormat();
         format.setTrimText(false);
-        assertFalse(format.isTrimText(), "Trim text should be false");
+        assertFalse(format.isTrimText(), "TrimText should be false after setting it to false.");
     }
 
     /**
-     * Test case for default trimText value.
+     * Test case for default value of trimText.
      */
     @Test
     void testDefaultTrimText() {
         OutputFormat format = new OutputFormat();
-        assertFalse(format.isTrimText(), "Default trim text should be false");
+        assertFalse(format.isTrimText(), "Default value of TrimText should be false.");
     }
 
     /**
@@ -48,7 +48,7 @@ class OutputFormat_15Test {
         OutputFormat format = new OutputFormat();
         format.setTrimText(true);
         format.setTrimText(false);
-        assertFalse(format.isTrimText(), "Trim text should be false after setting to false");
+        assertFalse(format.isTrimText(), "TrimText should be false after setting it to true and then false.");
     }
 
     /**
@@ -59,7 +59,7 @@ class OutputFormat_15Test {
         OutputFormat format = new OutputFormat();
         format.setTrimText(false);
         format.setTrimText(true);
-        assertTrue(format.isTrimText(), "Trim text should be true after setting to true");
+        assertTrue(format.isTrimText(), "TrimText should be true after setting it to false and then true.");
     }
 
     /**
@@ -70,7 +70,7 @@ class OutputFormat_15Test {
         OutputFormat format = new OutputFormat();
         format.setTrimText(true);
         format.setTrimText(true);
-        assertTrue(format.isTrimText(), "Trim text should remain true");
+        assertTrue(format.isTrimText(), "TrimText should remain true after setting it multiple times to true.");
     }
 
     /**
@@ -81,42 +81,37 @@ class OutputFormat_15Test {
         OutputFormat format = new OutputFormat();
         format.setTrimText(false);
         format.setTrimText(false);
-        assertFalse(format.isTrimText(), "Trim text should remain false");
+        assertFalse(format.isTrimText(), "TrimText should remain false after setting it multiple times to false.");
     }
 
     /**
-     * Test case for setting trimText to true and checking other properties.
-     */
-    @Test
-    void testSetTrimTextTrueCheckOthers() {
-        OutputFormat format = new OutputFormat();
-        format.setTrimText(true);
-        assertTrue(format.isTrimText(), "Trim text should be true");
-        assertFalse(format.isPadText(), "Pad text should be false by default");
-        assertFalse(format.isNewlines(), "Newlines should be false by default");
-    }
-
-    /**
-     * Test case for setting trimText to false and checking other properties.
-     */
-    @Test
-    void testSetTrimTextFalseCheckOthers() {
-        OutputFormat format = new OutputFormat();
-        format.setTrimText(false);
-        assertFalse(format.isTrimText(), "Trim text should be false");
-        assertFalse(format.isPadText(), "Pad text should be false by default");
-        assertFalse(format.isNewlines(), "Newlines should be false by default");
-    }
-
-    /**
-     * Test case for setting trimText to true and using createPrettyPrint.
+     * Test case for setting trimText to true and checking with createPrettyPrint.
      */
     @Test
     void testSetTrimTextTrueWithPrettyPrint() {
         OutputFormat format = OutputFormat.createPrettyPrint();
         format.setTrimText(true);
-        assertTrue(format.isTrimText(), "Trim text should be true");
-        assertTrue(format.isPadText(), "Pad text should be true in pretty print");
-        assertTrue(format.isNewlines(), "Newlines should be true in pretty print");
+        assertTrue(format.isTrimText(), "TrimText should be true after setting it to true with pretty print format.");
+    }
+
+    /**
+     * Test case for setting trimText to false and checking with createPrettyPrint.
+     */
+    @Test
+    void testSetTrimTextFalseWithPrettyPrint() {
+        OutputFormat format = OutputFormat.createPrettyPrint();
+        format.setTrimText(false);
+        assertFalse(format.isTrimText(), "TrimText should be false after setting it to false with pretty print format.");
+    }
+
+    /**
+     * Test case for setting trimText to true and checking with createCompactFormat.
+     */
+    @Test
+    void testSetTrimTextTrueWithCompactFormat() {
+        OutputFormat format = OutputFormat.createCompactFormat();
+        format.setTrimText(true);
+        assertTrue(format.isTrimText(), "TrimText should be true after setting it to true with compact format.");
     }
 }
+```

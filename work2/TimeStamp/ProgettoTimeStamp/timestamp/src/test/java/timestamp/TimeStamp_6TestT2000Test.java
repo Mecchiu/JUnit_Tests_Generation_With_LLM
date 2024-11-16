@@ -1,6 +1,6 @@
-package timestamp;
 // TimeStamp_6Test.java
 
+package timestamp;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -16,131 +16,110 @@ import static org.junit.jupiter.api.Assertions.*;
 */
 class TimeStamp_6Test {
     /**
-     * Test case for verifying the conversion of Java time to NTP time.
-     * This test checks if the conversion is consistent and reversible.
+     * Test case for getNtpTime method with a date before 2036.
      */
     @Test
-    void testJavaToNtpConversion() {
-        long currentTimeMillis = System.currentTimeMillis();
-        TimeStamp ntpTimeStamp = TimeStamp.getNtpTime(currentTimeMillis);
-        long convertedBackTimeMillis = ntpTimeStamp.getTime();
-        
-        // Allow a small margin of error due to precision loss
-        assertTrue(Math.abs(currentTimeMillis - convertedBackTimeMillis) < 1);
+    void testGetNtpTimeBefore2036() {
+        long javaTime = 946684800000L; // January 1, 2000
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = 0x83aa7e80L << 32; // Expected NTP time for January 1, 2000
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the conversion of NTP time to Java time.
-     * This test checks if the conversion is consistent and reversible.
+     * Test case for getNtpTime method with a date after 2036.
      */
     @Test
-    void testNtpToJavaConversion() {
-        TimeStamp currentNtpTimeStamp = TimeStamp.getCurrentTime();
-        long javaTimeMillis = currentNtpTimeStamp.getTime();
-        TimeStamp convertedNtpTimeStamp = TimeStamp.getNtpTime(javaTimeMillis);
-        
-        // Allow a small margin of error due to precision loss
-        assertEquals(currentNtpTimeStamp.ntpValue(), convertedNtpTimeStamp.ntpValue());
+    void testGetNtpTimeAfter2036() {
+        long javaTime = 2123456789000L; // Some date after 2036
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = 0x80000000L | ((javaTime - TimeStamp.msb0baseTime) / 1000) << 32;
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the conversion of a specific date to NTP time.
+     * Test case for getNtpTime method with the epoch date.
      */
     @Test
-    void testSpecificDateToNtpConversion() {
-        Date specificDate = new Date(0); // Epoch time
-        TimeStamp ntpTimeStamp = new TimeStamp(specificDate);
-        long expectedNtpValue = TimeStamp.toNtpTime(0);
-        
-        assertEquals(expectedNtpValue, ntpTimeStamp.ntpValue());
+    void testGetNtpTimeEpoch() {
+        long javaTime = 0L; // January 1, 1970
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = 0x83aa7e80L << 32; // Expected NTP time for January 1, 1970
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the conversion of NTP time to a specific date.
+     * Test case for getNtpTime method with a null date.
      */
     @Test
-    void testNtpToSpecificDateConversion() {
-        long ntpValue = TimeStamp.toNtpTime(0); // Epoch time
-        TimeStamp ntpTimeStamp = new TimeStamp(ntpValue);
-        Date expectedDate = new Date(0);
-        
-        assertEquals(expectedDate, ntpTimeStamp.getDate());
+    void testGetNtpTimeNull() {
+        TimeStamp timeStamp = TimeStamp.getNtpTime(0L);
+        assertEquals(0L, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the string representation of NTP time.
+     * Test case for getNtpTime method with a negative date.
      */
     @Test
-    void testNtpTimeToString() {
-        long ntpValue = TimeStamp.toNtpTime(0); // Epoch time
-        TimeStamp ntpTimeStamp = new TimeStamp(ntpValue);
-        String expectedString = "00000000.00000000";
-        
-        assertEquals(expectedString, ntpTimeStamp.toString());
+    void testGetNtpTimeNegative() {
+        long javaTime = -123456789000L; // Some negative date
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = 0x80000000L | ((javaTime - TimeStamp.msb1baseTime) / 1000) << 32;
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the equality of two identical NTP timestamps.
+     * Test case for getNtpTime method with a date exactly at 2036.
      */
     @Test
-    void testEqualNtpTimestamps() {
-        long ntpValue = TimeStamp.toNtpTime(0); // Epoch time
-        TimeStamp ntpTimeStamp1 = new TimeStamp(ntpValue);
-        TimeStamp ntpTimeStamp2 = new TimeStamp(ntpValue);
-        
-        assertEquals(ntpTimeStamp1, ntpTimeStamp2);
+    void testGetNtpTimeExact2036() {
+        long javaTime = TimeStamp.msb0baseTime; // Exact date of 2036 base
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = 0L; // Expected NTP time for exact 2036 base
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the inequality of two different NTP timestamps.
+     * Test case for getNtpTime method with a date exactly at 1900.
      */
     @Test
-    void testUnequalNtpTimestamps() {
-        long ntpValue1 = TimeStamp.toNtpTime(0); // Epoch time
-        long ntpValue2 = TimeStamp.toNtpTime(1000); // 1 second later
-        TimeStamp ntpTimeStamp1 = new TimeStamp(ntpValue1);
-        TimeStamp ntpTimeStamp2 = new TimeStamp(ntpValue2);
-        
-        assertNotEquals(ntpTimeStamp1, ntpTimeStamp2);
+    void testGetNtpTimeExact1900() {
+        long javaTime = TimeStamp.msb1baseTime; // Exact date of 1900 base
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = 0x80000000L; // Expected NTP time for exact 1900 base
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the hash code consistency of NTP timestamps.
+     * Test case for getNtpTime method with a date just before 2036.
      */
     @Test
-    void testNtpTimestampHashCode() {
-        long ntpValue = TimeStamp.toNtpTime(0); // Epoch time
-        TimeStamp ntpTimeStamp1 = new TimeStamp(ntpValue);
-        TimeStamp ntpTimeStamp2 = new TimeStamp(ntpValue);
-        
-        assertEquals(ntpTimeStamp1.hashCode(), ntpTimeStamp2.hashCode());
+    void testGetNtpTimeJustBefore2036() {
+        long javaTime = TimeStamp.msb0baseTime - 1; // Just before 2036 base
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = 0xffffffffL << 32; // Expected NTP time just before 2036 base
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the comparison of two NTP timestamps.
+     * Test case for getNtpTime method with a date just after 1900.
      */
     @Test
-    void testNtpTimestampComparison() {
-        long ntpValue1 = TimeStamp.toNtpTime(0); // Epoch time
-        long ntpValue2 = TimeStamp.toNtpTime(1000); // 1 second later
-        TimeStamp ntpTimeStamp1 = new TimeStamp(ntpValue1);
-        TimeStamp ntpTimeStamp2 = new TimeStamp(ntpValue2);
-        
-        assertTrue(ntpTimeStamp1.compareTo(ntpTimeStamp2) < 0);
-        assertTrue(ntpTimeStamp2.compareTo(ntpTimeStamp1) > 0);
+    void testGetNtpTimeJustAfter1900() {
+        long javaTime = TimeStamp.msb1baseTime + 1; // Just after 1900 base
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = 0x80000000L | 1L; // Expected NTP time just after 1900 base
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 
     /**
-     * Test case for verifying the conversion of NTP timestamp to UTC string.
+     * Test case for getNtpTime method with a current date.
      */
     @Test
-    void testNtpTimestampToUTCString() {
-        long ntpValue = TimeStamp.toNtpTime(0); // Epoch time
-        TimeStamp ntpTimeStamp = new TimeStamp(ntpValue);
-        DateFormat utcFormatter = new SimpleDateFormat(TimeStamp.NTP_DATE_FORMAT + " 'UTC'", Locale.US);
-        utcFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String expectedUTCString = utcFormatter.format(new Date(0));
-        
-        assertEquals(expectedUTCString, ntpTimeStamp.toUTCString());
+    void testGetNtpTimeCurrent() {
+        long javaTime = System.currentTimeMillis(); // Current time
+        TimeStamp timeStamp = TimeStamp.getNtpTime(javaTime);
+        long expectedNtpTime = TimeStamp.toNtpTime(javaTime);
+        assertEquals(expectedNtpTime, timeStamp.ntpValue());
     }
 }

@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_27Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setAttributeQuoteCharacter(char)} method.
 */
 class OutputFormat_27Test {
+```java
     /**
      * Test case for setting a valid attribute quote character (double quote).
      */
@@ -127,3 +127,6 @@ class OutputFormat_27Test {
         assertEquals("Invalid attribute quote character (\r)", exception.getMessage());
     }
 }
+```
+
+This test class `OutputFormat_27Test` contains ten unit test cases for the `setAttributeQuoteCharacter(char)` method of the `OutputFormat` class. Each test case checks whether the method correctly sets a valid attribute quote character or throws an `IllegalArgumentException` for an invalid character.

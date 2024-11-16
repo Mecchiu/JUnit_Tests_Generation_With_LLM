@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_20Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setIndent(boolean)} method.
 */
 class OutputFormat_20Test {
+```java
     @Test
     void testSetIndentTrue() {
         OutputFormat format = new OutputFormat();
@@ -76,16 +76,19 @@ class OutputFormat_20Test {
     }
 
     @Test
-    void testSetIndentWithInitialIndent() {
+    void testSetIndentWithCustomIndent() {
         OutputFormat format = new OutputFormat("    ");
         format.setIndent(true);
         assertEquals(OutputFormat.STANDARD_INDENT, format.getIndent());
     }
 
     @Test
-    void testSetIndentWithInitialIndentFalse() {
-        OutputFormat format = new OutputFormat("    ");
-        format.setIndent(false);
-        assertNull(format.getIndent());
+    void testSetIndentWithNullIndent() {
+        OutputFormat format = new OutputFormat(null);
+        format.setIndent(true);
+        assertEquals(OutputFormat.STANDARD_INDENT, format.getIndent());
     }
 }
+```
+
+This test class `OutputFormat_20Test` contains ten unit test cases for the `setIndent(boolean)` method of the `OutputFormat` class. Each test case checks a different scenario to ensure that the method behaves as expected.

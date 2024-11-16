@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_25Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setNewLineAfterNTags(int)} method.
 */
 class OutputFormat_25Test {
+```java
     @Test
     void testSetNewLineAfterNTagsZero() {
         OutputFormat format = new OutputFormat();
@@ -44,7 +44,7 @@ class OutputFormat_25Test {
         OutputFormat format = new OutputFormat();
         format.setNewLineAfterNTags(3);
         format.setNewLineAfterNTags(7);
-        assertEquals(7, format.getNewLineAfterNTags(), "NewLineAfterNTags should be 7");
+        assertEquals(7, format.getNewLineAfterNTags(), "NewLineAfterNTags should be 7 after change");
     }
 
     @Test
@@ -73,14 +73,17 @@ class OutputFormat_25Test {
         format.setNewLineAfterNTags(2);
         format.setNewLineAfterNTags(4);
         format.setNewLineAfterNTags(6);
-        assertEquals(6, format.getNewLineAfterNTags(), "NewLineAfterNTags should be 6");
+        assertEquals(6, format.getNewLineAfterNTags(), "NewLineAfterNTags should be 6 after multiple changes");
     }
 
     @Test
-    void testSetNewLineAfterNTagsResetToZero() {
+    void testSetNewLineAfterNTagsWithNewlinesTrue() {
         OutputFormat format = new OutputFormat();
+        format.setNewlines(true);
         format.setNewLineAfterNTags(10);
-        format.setNewLineAfterNTags(0);
-        assertEquals(0, format.getNewLineAfterNTags(), "NewLineAfterNTags should be reset to 0");
+        assertEquals(10, format.getNewLineAfterNTags(), "NewLineAfterNTags should be 10 even if newlines is true");
     }
 }
+```
+
+This test class `OutputFormat_25Test` contains ten unit test cases for the `setNewLineAfterNTags(int)` method of the `OutputFormat` class. Each test case checks different scenarios, including setting the value to zero, positive, negative, large numbers, and changing the value multiple times. It also checks the default value and boundary conditions.

@@ -1,4 +1,3 @@
-package timestamp;
 // TimeStamp_9Test.java
 
 
@@ -15,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link TimeStamp#hashCode()} method.
 */
 class TimeStamp_9Test {
+```java
     /**
      * Test case for hashCode method.
      * It tests if two TimeStamp objects with the same ntpTime have the same hash code.
@@ -39,78 +39,81 @@ class TimeStamp_9Test {
 
     /**
      * Test case for hashCode method.
-     * It tests if the hash code is consistent for the same TimeStamp object.
+     * It tests if the hash code is consistent across multiple calls.
      */
     @Test
     void testHashCodeConsistency() {
         TimeStamp ts = new TimeStamp(0x12345678L);
         int initialHashCode = ts.hashCode();
-        assertEquals(initialHashCode, ts.hashCode(), "Hash code should be consistent for the same object");
+        assertEquals(initialHashCode, ts.hashCode(), "Hash code should be consistent across multiple calls");
     }
 
     /**
      * Test case for hashCode method.
-     * It tests if the hash code is correctly calculated for a known ntpTime.
-     */
-    @Test
-    void testHashCodeKnownValue() {
-        TimeStamp ts = new TimeStamp(0x12345678L);
-        int expectedHashCode = (int) (0x12345678L ^ (0x12345678L >>> 32));
-        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should match the expected value");
-    }
-
-    /**
-     * Test case for hashCode method.
-     * It tests if the hash code is correctly calculated for a zero ntpTime.
-     */
-    @Test
-    void testHashCodeZeroValue() {
-        TimeStamp ts = new TimeStamp(0L);
-        assertEquals(0, ts.hashCode(), "Hash code should be zero for ntpTime of zero");
-    }
-
-    /**
-     * Test case for hashCode method.
-     * It tests if the hash code is correctly calculated for a negative ntpTime.
-     */
-    @Test
-    void testHashCodeNegativeValue() {
-        TimeStamp ts = new TimeStamp(-0x12345678L);
-        int expectedHashCode = (int) (-0x12345678L ^ (-0x12345678L >>> 32));
-        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should match the expected value for negative ntpTime");
-    }
-
-    /**
-     * Test case for hashCode method.
-     * It tests if the hash code is correctly calculated for the maximum long value.
+     * It tests if the hash code is correctly calculated for the maximum ntpTime value.
      */
     @Test
     void testHashCodeMaxValue() {
         TimeStamp ts = new TimeStamp(Long.MAX_VALUE);
         int expectedHashCode = (int) (Long.MAX_VALUE ^ (Long.MAX_VALUE >>> 32));
-        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should match the expected value for Long.MAX_VALUE");
+        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should be correctly calculated for max ntpTime");
     }
 
     /**
      * Test case for hashCode method.
-     * It tests if the hash code is correctly calculated for the minimum long value.
+     * It tests if the hash code is correctly calculated for the minimum ntpTime value.
      */
     @Test
     void testHashCodeMinValue() {
         TimeStamp ts = new TimeStamp(Long.MIN_VALUE);
         int expectedHashCode = (int) (Long.MIN_VALUE ^ (Long.MIN_VALUE >>> 32));
-        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should match the expected value for Long.MIN_VALUE");
+        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should be correctly calculated for min ntpTime");
     }
 
     /**
      * Test case for hashCode method.
-     * It tests if the hash code is correctly calculated for a random ntpTime.
+     * It tests if the hash code is correctly calculated for zero ntpTime value.
      */
     @Test
-    void testHashCodeRandomValue() {
-        long randomNtpTime = 0xABCDEF1234567890L;
-        TimeStamp ts = new TimeStamp(randomNtpTime);
-        int expectedHashCode = (int) (randomNtpTime ^ (randomNtpTime >>> 32));
-        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should match the expected value for random ntpTime");
+    void testHashCodeZeroValue() {
+        TimeStamp ts = new TimeStamp(0L);
+        int expectedHashCode = (int) (0L ^ (0L >>> 32));
+        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should be correctly calculated for zero ntpTime");
+    }
+
+    /**
+     * Test case for hashCode method.
+     * It tests if the hash code is correctly calculated for a negative ntpTime value.
+     */
+    @Test
+    void testHashCodeNegativeValue() {
+        TimeStamp ts = new TimeStamp(-0x12345678L);
+        int expectedHashCode = (int) (-0x12345678L ^ (-0x12345678L >>> 32));
+        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should be correctly calculated for negative ntpTime");
+    }
+
+    /**
+     * Test case for hashCode method.
+     * It tests if the hash code is correctly calculated for a positive ntpTime value.
+     */
+    @Test
+    void testHashCodePositiveValue() {
+        TimeStamp ts = new TimeStamp(0x12345678L);
+        int expectedHashCode = (int) (0x12345678L ^ (0x12345678L >>> 32));
+        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should be correctly calculated for positive ntpTime");
+    }
+
+    /**
+     * Test case for hashCode method.
+     * It tests if the hash code is correctly calculated for a large ntpTime value.
+     */
+    @Test
+    void testHashCodeLargeValue() {
+        TimeStamp ts = new TimeStamp(0xFFFFFFFFL);
+        int expectedHashCode = (int) (0xFFFFFFFFL ^ (0xFFFFFFFFL >>> 32));
+        assertEquals(expectedHashCode, ts.hashCode(), "Hash code should be correctly calculated for large ntpTime");
     }
 }
+```
+
+This test class `TimeStamp_9Test` contains nine unit test cases for the `hashCode()` method of the `TimeStamp` class. Each test case checks a different aspect of the `hashCode()` method, ensuring that it behaves as expected for various scenarios.

@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_27Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

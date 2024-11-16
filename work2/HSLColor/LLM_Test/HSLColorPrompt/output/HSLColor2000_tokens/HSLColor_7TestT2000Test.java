@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_7Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#setLuminence(int)} method.
 */
 class HSLColor_7Test {
+```java
     @Test
     void testSetLuminenceWithinRange() {
         HSLColor color = new HSLColor();
@@ -60,35 +60,37 @@ class HSLColor_7Test {
     }
 
     @Test
-    void testSetLuminenceNoChange() {
+    void testSetLuminenceWithGreyscale() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        int initialLum = color.getLuminence();
-        color.setLuminence(initialLum);
-        assertEquals(initialLum, color.getLuminence());
+        color.initHSLbyRGB(128, 128, 128);
+        color.setLuminence(100);
+        assertEquals(100, color.getLuminence());
     }
 
     @Test
-    void testSetLuminenceFromMinToMax() {
+    void testSetLuminenceWithSaturatedColor() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0);
-        color.setLuminence(255);
-        assertEquals(255, color.getLuminence());
+        color.initHSLbyRGB(255, 0, 0);
+        color.setLuminence(200);
+        assertEquals(200, color.getLuminence());
     }
 
     @Test
-    void testSetLuminenceFromMaxToMin() {
+    void testSetLuminenceWithDesaturatedColor() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 255);
-        color.setLuminence(0);
-        assertEquals(0, color.getLuminence());
+        color.initHSLbyRGB(100, 100, 100);
+        color.setLuminence(50);
+        assertEquals(50, color.getLuminence());
     }
 
     @Test
-    void testSetLuminenceWithNegativeInput() {
+    void testSetLuminenceWithRandomColor() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(-50);
-        assertEquals(0, color.getLuminence());
+        color.initHSLbyRGB(123, 234, 45);
+        color.setLuminence(180);
+        assertEquals(180, color.getLuminence());
     }
 }
+```
+
+These test cases cover various scenarios for the `setLuminence` method, including setting luminance within the valid range, below the range, above the range, and with different types of colors (greyscale, saturated, desaturated, and random colors).

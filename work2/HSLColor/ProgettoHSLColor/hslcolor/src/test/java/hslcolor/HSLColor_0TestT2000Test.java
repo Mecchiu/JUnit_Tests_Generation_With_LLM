@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_0Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,92 +11,92 @@ import static org.junit.jupiter.api.Assertions.*;
 */
 class HSLColor_0Test {
     @Test
+    void testInitHSLbyRGB_Grey() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(128, 128, 128);
+        assertEquals(0, hslColor.getSaturation());
+        assertEquals(170, hslColor.getHue());
+        assertEquals(128, hslColor.getLuminence());
+    }
+
+    @Test
     void testInitHSLbyRGB_Red() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0);
-        assertEquals(0, color.getHue());
-        assertEquals(255, color.getSaturation());
-        assertEquals(128, color.getLuminence());
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 0, 0);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(0, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
     }
 
     @Test
     void testInitHSLbyRGB_Green() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 0);
-        assertEquals(85, color.getHue());
-        assertEquals(255, color.getSaturation());
-        assertEquals(128, color.getLuminence());
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 255, 0);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(85, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
     }
 
     @Test
     void testInitHSLbyRGB_Blue() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 255);
-        assertEquals(170, color.getHue());
-        assertEquals(255, color.getSaturation());
-        assertEquals(128, color.getLuminence());
-    }
-
-    @Test
-    void testInitHSLbyRGB_White() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 255);
-        assertEquals(170, color.getHue());
-        assertEquals(0, color.getSaturation());
-        assertEquals(255, color.getLuminence());
-    }
-
-    @Test
-    void testInitHSLbyRGB_Black() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0);
-        assertEquals(170, color.getHue());
-        assertEquals(0, color.getSaturation());
-        assertEquals(0, color.getLuminence());
-    }
-
-    @Test
-    void testInitHSLbyRGB_Gray() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128);
-        assertEquals(170, color.getHue());
-        assertEquals(0, color.getSaturation());
-        assertEquals(128, color.getLuminence());
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 0, 255);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(170, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
     }
 
     @Test
     void testInitHSLbyRGB_Yellow() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 0);
-        assertEquals(43, color.getHue());
-        assertEquals(255, color.getSaturation());
-        assertEquals(128, color.getLuminence());
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 255, 0);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(42, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
     }
 
     @Test
     void testInitHSLbyRGB_Cyan() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 255);
-        assertEquals(128, color.getHue());
-        assertEquals(255, color.getSaturation());
-        assertEquals(128, color.getLuminence());
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 255, 255);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(127, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
     }
 
     @Test
     void testInitHSLbyRGB_Magenta() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 255);
-        assertEquals(213, color.getHue());
-        assertEquals(255, color.getSaturation());
-        assertEquals(128, color.getLuminence());
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 0, 255);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(212, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
     }
 
     @Test
-    void testInitHSLbyRGB_Orange() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 165, 0);
-        assertEquals(28, color.getHue());
-        assertEquals(255, color.getSaturation());
-        assertEquals(128, color.getLuminence());
+    void testInitHSLbyRGB_LowSaturation() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        assertEquals(85, hslColor.getSaturation());
+        assertEquals(212, hslColor.getHue());
+        assertEquals(60, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_HighSaturation() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(200, 100, 50);
+        assertEquals(170, hslColor.getSaturation());
+        assertEquals(42, hslColor.getHue());
+        assertEquals(60, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_HighLuminence() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(50, 100, 200);
+        assertEquals(85, hslColor.getSaturation());
+        assertEquals(170, hslColor.getHue());
+        assertEquals(80, hslColor.getLuminence());
     }
 }

@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_6Test.java
 
 
@@ -11,73 +10,77 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#getLuminence()} method.
 */
 class HSLColor_6Test {
+```java
     @Test
-    void testGetLuminenceForBlack() {
+    void testGetLuminence_Zero() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0);
-        assertEquals(0, color.getLuminence(), "Luminance for black should be 0");
+        color.initHSLbyRGB(0, 0, 0); // Black
+        assertEquals(0, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForWhite() {
+    void testGetLuminence_White() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 255);
-        assertEquals(255, color.getLuminence(), "Luminance for white should be 255");
+        color.initHSLbyRGB(255, 255, 255); // White
+        assertEquals(255, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForRed() {
+    void testGetLuminence_Red() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0);
-        assertEquals(128, color.getLuminence(), "Luminance for red should be 128");
+        color.initHSLbyRGB(255, 0, 0); // Red
+        assertEquals(128, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForGreen() {
+    void testGetLuminence_Green() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 0);
-        assertEquals(128, color.getLuminence(), "Luminance for green should be 128");
+        color.initHSLbyRGB(0, 255, 0); // Green
+        assertEquals(128, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForBlue() {
+    void testGetLuminence_Blue() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 255);
-        assertEquals(128, color.getLuminence(), "Luminance for blue should be 128");
+        color.initHSLbyRGB(0, 0, 255); // Blue
+        assertEquals(128, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForGray() {
+    void testGetLuminence_Yellow() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128);
-        assertEquals(128, color.getLuminence(), "Luminance for gray should be 128");
+        color.initHSLbyRGB(255, 255, 0); // Yellow
+        assertEquals(128, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForCyan() {
+    void testGetLuminence_Cyan() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 255);
-        assertEquals(191, color.getLuminence(), "Luminance for cyan should be 191");
+        color.initHSLbyRGB(0, 255, 255); // Cyan
+        assertEquals(128, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForMagenta() {
+    void testGetLuminence_Magenta() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 255);
-        assertEquals(191, color.getLuminence(), "Luminance for magenta should be 191");
+        color.initHSLbyRGB(255, 0, 255); // Magenta
+        assertEquals(128, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForYellow() {
+    void testGetLuminence_Gray() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 0);
-        assertEquals(191, color.getLuminence(), "Luminance for yellow should be 191");
+        color.initHSLbyRGB(128, 128, 128); // Gray
+        assertEquals(128, color.getLuminence());
     }
 
     @Test
-    void testGetLuminenceForRandomColor() {
+    void testGetLuminence_MidGray() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(123, 234, 45);
-        assertEquals(140, color.getLuminence(), "Luminance for the color (123, 234, 45) should be 140");
+        color.initHSLbyRGB(192, 192, 192); // Light Gray
+        assertEquals(192, color.getLuminence());
     }
 }
+```
+
+This test class `HSLColor_6Test` contains ten unit test cases for the `getLuminence()` method of the `HSLColor` class. Each test case initializes an `HSLColor` object with specific RGB values and asserts that the calculated luminance matches the expected value.

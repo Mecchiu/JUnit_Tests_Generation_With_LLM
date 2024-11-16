@@ -371,30 +371,6 @@ public class FTPFile implements Serializable {
 	 * @throws ArrayIndexOutOfBoundsException if either of the parameters is out of range
 	 * @return true if isValid() is true and the associated permission is set;
 	 * false otherwise.
-	 * 
-	 * Example of usage:
-	 * > hasPermission(USER_ACCESS, READ_PERMISSION)
-	 * "true"
-	 * > hasPermission(USER_ACCESS, WRITE_PERMISSION)
-	 * "true"
-	 * > hasPermission(USER_ACCESS, EXECUTE_PERMISSION)
-	 * "false"
-	 * > hasPermission(GROUP_ACCESS, READ_PERMISSION)
-	 * "true"
-	 * > hasPermission(GROUP_ACCESS, WRITE_PERMISSION)
-	 * "false"
-	 * > hasPErmission(GROUP_ACCESS, EXECUTE_PERMISSION)
-	 * "false"
-	 * > hasPermission(WORLD_ACCESS, READ_PERMISSION)
-	 * "false"
-	 * > hasPermission(WORLD_ACCESS, WRITE_PERMISSION)
-	 * "false"
-	 * > hasPermission(WORLD_ACCESS, EXECUTE_PERMISSION)
-	 * "true"
-	 * > hasPermission(USER_ACCESS, 10)
-	 * "ArrayIndexOutOfBoundsException"
-	 * > hasPermission(-1, WRITE_PERMISSION)
-	 * "ArrayIndexOutOfBoundsException"
 	 ***/
 	public boolean hasPermission(int access, int permission) {
 		if (_permissions == null) {
@@ -442,36 +418,6 @@ public class FTPFile implements Serializable {
 	 * @param timezone the timezone to use for displaying the time stamp
 	 *                 If null, then use the Calendar entry timezone
 	 * @return A string representation of the FTPFile information.
-	 * Examples of usage:
- 	 * > toFormattedString("GMT")
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 15:30:45 GMT fileName"
- 	 *
- 	 * > toFormattedString("PST")
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 08:30:45 PST fileName"
- 	 * 
- 	 * > toFormattedString(null)
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 15:30:45 CEST fileName"
- 	 * 
- 	 * > toFormattedString("EST")
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 10:30:45 EST fileName"
- 	 * 
- 	 * > toFormattedString("UTC")
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 15:30:45 UTC fileName"
- 	 * 
- 	 * > toFormattedString("Invalid-Timezone")
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 15:30:45 GMT fileName"
- 	 * 
- 	 * > toFormattedString("CET")
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 16:30:45 CET fileName"
- 	 * 
- 	 * > toFormattedString(null)  // Without timezone override
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 15:30:45 localTZ fileName"
- 	 * 
- 	 * > toFormattedString(null)  // With invalid FTPFile (isValid() is false)
- 	 * "[Invalid: could not parse file entry]"
- 	 * 
- 	 * > toFormattedString("Asia/Tokyo")
- 	 * "drwxr-xr-x   2 user     group        4096 2024-09-19 00:30:45 JST fileName"
 	 */
 	public String toFormattedString(final String timezone) {
 
@@ -533,43 +479,6 @@ public class FTPFile implements Serializable {
 		}
 	}
 
-	/**
-	 * Converts the permissions for a given access group (user, group, world) into a string.
-	 *
-	 * @param access The access group (one of the _ACCESS constants: USER_ACCESS, GROUP_ACCESS, WORLD_ACCESS)
-	 * @return A string representing the permissions for the given access group in Unix format (e.g., "rwx", "r--").
-	 *
-	 * Examples of usage:
-	 * > permissionToString(USER_ACCESS)
-	 * "rwx"
-	 * 
-	 * > permissionToString(GROUP_ACCESS)
-	 * "r--"
-	 * 
-	 * > permissionToString(WORLD_ACCESS)
-	 * "r-x"
-	 * 
-	 * > permissionToString(USER_ACCESS)
-	 * "---"
-	 * 
-	 * > permissionToString(GROUP_ACCESS)
-	 * "rw-"
-	 * 
-	 * > permissionToString(WORLD_ACCESS)
-	 * "--x"
-	 * 
-	 * > permissionToString(USER_ACCESS)
-	 * "r-x"
-	 * 
-	 * > permissionToString(GROUP_ACCESS)
-	 * "-w-"
-	 * 
-	 * > permissionToString(WORLD_ACCESS)
-	 * "-wx"
-	 * 
-	 * > permissionToString(USER_ACCESS)
-	 * "r-x"
-	 */
 	private String permissionToString(int access) {
 		StringBuilder sb = new StringBuilder();
 		if (hasPermission(access, READ_PERMISSION)) {

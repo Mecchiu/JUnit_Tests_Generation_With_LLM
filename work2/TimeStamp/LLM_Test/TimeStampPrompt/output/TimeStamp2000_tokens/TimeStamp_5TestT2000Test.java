@@ -1,4 +1,3 @@
-package timestamp;
 // TimeStamp_5Test.java
 
 
@@ -15,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link TimeStamp#getTime(long)} method.
 */
 class TimeStamp_5Test {
+```java
     /**
      * Test case for the getTime method with a timestamp representing a date before 2036.
      */
@@ -42,9 +42,9 @@ class TimeStamp_5Test {
      */
     @Test
     void testGetTimeIn1900() {
-        // NTP timestamp for 1-Jan-1900 01:00:00 UTC
+        // NTP timestamp for 1-Jan-1900 00:00:00 UTC
         long ntpTime = 0x80000000L << 32;
-        long expectedTime = -2208988800000L; // Java time for 1-Jan-1900 01:00:00 UTC
+        long expectedTime = -2208988800000L; // Java time for 1-Jan-1900 00:00:00 UTC
         assertEquals(expectedTime, TimeStamp.getTime(ntpTime));
     }
 
@@ -65,7 +65,7 @@ class TimeStamp_5Test {
     @Test
     void testGetTimeIn2100() {
         // NTP timestamp for 1-Jan-2100 00:00:00 UTC
-        long ntpTime = 0xA2C2A080L << 32;
+        long ntpTime = 0x00000000L;
         long expectedTime = 4102444800000L; // Java time for 1-Jan-2100 00:00:00 UTC
         assertEquals(expectedTime, TimeStamp.getTime(ntpTime));
     }
@@ -88,7 +88,7 @@ class TimeStamp_5Test {
     void testGetTimeIn2037() {
         // NTP timestamp for 1-Jan-2037 00:00:00 UTC
         long ntpTime = 0x00000001L;
-        long expectedTime = 2085978496000L + 31536000000L; // Java time for 1-Jan-2037 00:00:00 UTC
+        long expectedTime = 2114380800000L; // Java time for 1-Jan-2037 00:00:00 UTC
         assertEquals(expectedTime, TimeStamp.getTime(ntpTime));
     }
 
@@ -104,24 +104,27 @@ class TimeStamp_5Test {
     }
 
     /**
-     * Test case for the getTime method with a timestamp representing a date in 2001.
-     */
-    @Test
-    void testGetTimeIn2001() {
-        // NTP timestamp for 1-Jan-2001 00:00:00 UTC
-        long ntpTime = 0x83AA7E81L << 32;
-        long expectedTime = 978307200000L; // Java time for 1-Jan-2001 00:00:00 UTC
-        assertEquals(expectedTime, TimeStamp.getTime(ntpTime));
-    }
-
-    /**
      * Test case for the getTime method with a timestamp representing a date in 2040.
      */
     @Test
     void testGetTimeIn2040() {
         // NTP timestamp for 1-Jan-2040 00:00:00 UTC
         long ntpTime = 0x00000004L;
-        long expectedTime = 2085978496000L + 94608000000L; // Java time for 1-Jan-2040 00:00:00 UTC
+        long expectedTime = 2208988800000L; // Java time for 1-Jan-2040 00:00:00 UTC
+        assertEquals(expectedTime, TimeStamp.getTime(ntpTime));
+    }
+
+    /**
+     * Test case for the getTime method with a timestamp representing a date in 1970.
+     */
+    @Test
+    void testGetTimeIn1970() {
+        // NTP timestamp for 1-Jan-1970 00:00:01 UTC
+        long ntpTime = 0x83AA7E81L << 32;
+        long expectedTime = 1000L; // Java time for 1-Jan-1970 00:00:01 UTC
         assertEquals(expectedTime, TimeStamp.getTime(ntpTime));
     }
 }
+```
+
+This test class `TimeStamp_5Test` contains ten unit test cases for the `TimeStamp#getTime(long)` method. Each test case checks the conversion of an NTP timestamp to Java time for different dates, ensuring the method handles various scenarios correctly.

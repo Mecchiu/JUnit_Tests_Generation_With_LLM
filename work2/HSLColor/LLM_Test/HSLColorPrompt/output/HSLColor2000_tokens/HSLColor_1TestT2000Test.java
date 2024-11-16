@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_1Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#initRGBbyHSL(int, int, int)} method.
 */
 class HSLColor_1Test {
+```java
     @Test
     void testInitRGBbyHSL_Greyscale() {
         HSLColor color = new HSLColor();
@@ -101,3 +101,6 @@ class HSLColor_1Test {
         assertEquals(128, color.getBlue());
     }
 }
+```
+
+These test cases cover various scenarios for the `initRGBbyHSL` method, including greyscale, primary and secondary colors, and edge cases for lightness and saturation.

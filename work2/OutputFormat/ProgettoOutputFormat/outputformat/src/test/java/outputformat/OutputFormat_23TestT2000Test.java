@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_23Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -75,7 +74,7 @@ class OutputFormat_23Test {
         format.setIndentSize(4);
         format.setNewlines(true);
         format.setXHTML(true);
-        assertTrue(format.isXHTML(), "XHTML should be set to true");
+        assertTrue(format.isXHTML(), "XHTML should be set to true after other properties");
     }
 
     /**
@@ -87,7 +86,7 @@ class OutputFormat_23Test {
         format.setXHTML(true);
         format.setIndentSize(4);
         format.setNewlines(true);
-        assertTrue(format.isXHTML(), "XHTML should remain true");
+        assertTrue(format.isXHTML(), "XHTML should remain true after setting other properties");
     }
 
     /**
@@ -97,7 +96,7 @@ class OutputFormat_23Test {
     void testSetXHTMLWithCompactFormat() {
         OutputFormat format = OutputFormat.createCompactFormat();
         format.setXHTML(true);
-        assertTrue(format.isXHTML(), "XHTML should be set to true");
+        assertTrue(format.isXHTML(), "XHTML should be set to true with compact format");
     }
 
     /**
@@ -107,16 +106,16 @@ class OutputFormat_23Test {
     void testSetXHTMLWithPrettyPrintFormat() {
         OutputFormat format = OutputFormat.createPrettyPrint();
         format.setXHTML(true);
-        assertTrue(format.isXHTML(), "XHTML should be set to true");
+        assertTrue(format.isXHTML(), "XHTML should be set to true with pretty print format");
     }
 
     /**
-     * Test case for setting XHTML with null indent.
+     * Test case for setting XHTML with null format.
      */
     @Test
-    void testSetXHTMLWithNullIndent() {
+    void testSetXHTMLWithNullFormat() {
         OutputFormat format = new OutputFormat(null);
         format.setXHTML(true);
-        assertTrue(format.isXHTML(), "XHTML should be set to true");
+        assertTrue(format.isXHTML(), "XHTML should be set to true with null format");
     }
 }

@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_2Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,77 +10,69 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#getHue()} method.
 */
 class HSLColor_2Test {
-    @Test
-    void testGetHue_initialValue() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0); // Red
-        assertEquals(0, color.getHue());
-    }
+@Test
+void testGetHue_WhenInitializedWithRGB_ExpectCorrectHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 0, 0);
+    assertEquals(0, hslColor.getHue());
+}
 
-    @Test
-    void testGetHue_afterSettingHue() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0); // Red
-        color.setHue(85);
-        assertEquals(85, color.getHue());
-    }
+@Test
+void testGetHue_WhenSetHueTo180_Expect180() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setHue(180);
+    assertEquals(180, hslColor.getHue());
+}
 
-    @Test
-    void testGetHue_wrapAroundPositive() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0); // Red
-        color.setHue(300);
-        color.setHue(300 + 255); // Wrap around
-        assertEquals(45, color.getHue());
-    }
+@Test
+void testGetHue_WhenSetHueTo300_Expect45() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setHue(300);
+    assertEquals(45, hslColor.getHue());
+}
 
-    @Test
-    void testGetHue_wrapAroundNegative() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0); // Red
-        color.setHue(-30);
-        assertEquals(225, color.getHue());
-    }
+@Test
+void testGetHue_WhenSetHueToNegative_Expect225() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setHue(-30);
+    assertEquals(225, hslColor.getHue());
+}
 
-    @Test
-    void testGetHue_greyscale() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128); // Grey
-        assertEquals(170, color.getHue()); // UNDEFINED
-    }
+@Test
+void testGetHue_WhenSetHueToGreaterThanMax_Expect45() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setHue(300);
+    assertEquals(45, hslColor.getHue());
+}
 
-    @Test
-    void testGetHue_fullSaturation() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 0); // Green
-        assertEquals(85, color.getHue());
-    }
+@Test
+void testGetHue_WhenReverseColor_ExpectHueShifted180() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 0, 0);
+    hslColor.reverseColor();
+    assertEquals(180, hslColor.getHue());
+}
 
-    @Test
-    void testGetHue_fullLightness() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 255); // White
-        assertEquals(170, color.getHue()); // UNDEFINED
-    }
+@Test
+void testGetHue_WhenGreyscale_ExpectUndefinedHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 255, 255);
+    assertEquals(170, hslColor.getHue());
+}
 
-    @Test
-    void testGetHue_noLightness() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0); // Black
-        assertEquals(170, color.getHue()); // UNDEFINED
-    }
+@Test
+void testGetHue_WhenBlendWithRed_ExpectHueShiftedTowardsRed() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(0, 255, 255);
+    hslColor.blend(255, 0, 0, 0.5f);
+    assertEquals(0, hslColor.getHue());
+}
 
-    @Test
-    void testGetHue_halfSaturation() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 255, 128); // Light Green
-        assertEquals(85, color.getHue());
-    }
-
-    @Test
-    void testGetHue_halfLightness() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 0, 0); // Dark Red
-        assertEquals(0, color.getHue());
-    }
+@Test
+void testGetHue_WhenBrighten_ExpectHueUnchanged() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 0, 0);
+    hslColor.brighten(0.5f);
+    assertEquals(0, hslColor.getHue());
+}
 }

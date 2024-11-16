@@ -1,4 +1,3 @@
-package timestamp;
 // TimeStamp_14Test.java
 
 
@@ -15,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link TimeStamp#toUTCString()} method.
 */
 class TimeStamp_14Test {
+```java
     /**
      * Test case for verifying the UTC string representation of a known NTP timestamp.
      */
@@ -23,8 +23,8 @@ class TimeStamp_14Test {
         // Known NTP timestamp for Tue, Dec 10 2002 10:41:49.986 UTC
         long ntpTime = 0xc1a089bd_fc904f6dL;
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        String expected = "Tue, Dec 10 2002 10:41:49.986 UTC";
-        assertEquals(expected, timeStamp.toUTCString());
+        String expectedUTCString = "Tue, Dec 10 2002 10:41:49.986 UTC";
+        assertEquals(expectedUTCString, timeStamp.toUTCString());
     }
 
     /**
@@ -33,108 +33,101 @@ class TimeStamp_14Test {
     @Test
     void testToUTCStringCurrentTime() {
         TimeStamp timeStamp = TimeStamp.getCurrentTime();
+        Date currentDate = new Date(System.currentTimeMillis());
         DateFormat utcFormatter = new SimpleDateFormat(TimeStamp.NTP_DATE_FORMAT + " 'UTC'", Locale.US);
         utcFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String expected = utcFormatter.format(new Date(System.currentTimeMillis()));
-        assertEquals(expected, timeStamp.toUTCString());
+        String expectedUTCString = utcFormatter.format(currentDate);
+        assertEquals(expectedUTCString, timeStamp.toUTCString());
     }
 
     /**
-     * Test case for verifying the UTC string representation of the epoch time.
+     * Test case for verifying the UTC string representation of a timestamp with zero value.
      */
     @Test
-    void testToUTCStringEpochTime() {
-        TimeStamp timeStamp = new TimeStamp(new Date(0));
-        String expected = "Thu, Jan 01 1970 00:00:00.000 UTC";
-        assertEquals(expected, timeStamp.toUTCString());
+    void testToUTCStringZeroTimestamp() {
+        TimeStamp timeStamp = new TimeStamp(0L);
+        String expectedUTCString = "Thu, Jan 01 1970 00:00:00.000 UTC";
+        assertEquals(expectedUTCString, timeStamp.toUTCString());
     }
 
     /**
-     * Test case for verifying the UTC string representation of a time before 1970.
+     * Test case for verifying the UTC string representation of a timestamp with maximum long value.
      */
     @Test
-    void testToUTCStringBeforeEpoch() {
-        // Date: Wed, Dec 31 1969 23:59:59.999 UTC
-        TimeStamp timeStamp = new TimeStamp(new Date(-1));
-        String expected = "Wed, Dec 31 1969 23:59:59.999 UTC";
-        assertEquals(expected, timeStamp.toUTCString());
+    void testToUTCStringMaxLongTimestamp() {
+        TimeStamp timeStamp = new TimeStamp(Long.MAX_VALUE);
+        // The expected date is far in the future, so we just check if it doesn't throw an error
+        assertNotNull(timeStamp.toUTCString());
     }
 
     /**
-     * Test case for verifying the UTC string representation of a time after 2036.
+     * Test case for verifying the UTC string representation of a timestamp with minimum long value.
      */
     @Test
-    void testToUTCStringAfter2036() {
-        // Date: Fri, Feb 07 2036 06:28:16.000 UTC
-        long ntpTime = 0x00000000_00000000L; // NTP time for 7-Feb-2036 @ 06:28:16 UTC
+    void testToUTCStringMinLongTimestamp() {
+        TimeStamp timeStamp = new TimeStamp(Long.MIN_VALUE);
+        // The expected date is far in the past, so we just check if it doesn't throw an error
+        assertNotNull(timeStamp.toUTCString());
+    }
+
+    /**
+     * Test case for verifying the UTC string representation of a timestamp with a negative value.
+     */
+    @Test
+    void testToUTCStringNegativeTimestamp() {
+        TimeStamp timeStamp = new TimeStamp(-1L);
+        String expectedUTCString = "Wed, Dec 31 1969 23:59:59.999 UTC";
+        assertEquals(expectedUTCString, timeStamp.toUTCString());
+    }
+
+    /**
+     * Test case for verifying the UTC string representation of a timestamp with a fractional second.
+     */
+    @Test
+    void testToUTCStringFractionalSecond() {
+        // NTP timestamp for a date with fractional seconds
+        long ntpTime = 0xc1a089bd_fc000000L; // Tue, Dec 10 2002 10:41:49.000 UTC
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        String expected = "Fri, Feb 07 2036 06:28:16.000 UTC";
-        assertEquals(expected, timeStamp.toUTCString());
+        String expectedUTCString = "Tue, Dec 10 2002 10:41:49.000 UTC";
+        assertEquals(expectedUTCString, timeStamp.toUTCString());
     }
 
     /**
-     * Test case for verifying the UTC string representation of a random timestamp.
+     * Test case for verifying the UTC string representation of a timestamp with a leap second.
      */
     @Test
-    void testToUTCStringRandomTimestamp() {
-        // Random NTP timestamp
-        long ntpTime = 0xabcdef12_34567890L;
+    void testToUTCStringLeapSecond() {
+        // NTP timestamp for a date with a leap second
+        long ntpTime = 0xc1a089bd_ff000000L; // Tue, Dec 10 2002 10:41:49.999 UTC
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        DateFormat utcFormatter = new SimpleDateFormat(TimeStamp.NTP_DATE_FORMAT + " 'UTC'", Locale.US);
-        utcFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String expected = utcFormatter.format(timeStamp.getDate());
-        assertEquals(expected, timeStamp.toUTCString());
+        String expectedUTCString = "Tue, Dec 10 2002 10:41:49.999 UTC";
+        assertEquals(expectedUTCString, timeStamp.toUTCString());
     }
 
     /**
-     * Test case for verifying the UTC string representation of a timestamp with zero fraction.
+     * Test case for verifying the UTC string representation of a timestamp with a future date.
      */
     @Test
-    void testToUTCStringZeroFraction() {
-        // NTP timestamp with zero fraction
-        long ntpTime = 0xc1a089bd_00000000L;
+    void testToUTCStringFutureDate() {
+        // NTP timestamp for a future date
+        long ntpTime = 0xe1a089bd_fc904f6dL; // Some future date
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        String expected = "Tue, Dec 10 2002 10:41:49.000 UTC";
-        assertEquals(expected, timeStamp.toUTCString());
+        // The expected date is in the future, so we just check if it doesn't throw an error
+        assertNotNull(timeStamp.toUTCString());
     }
 
     /**
-     * Test case for verifying the UTC string representation of a timestamp with maximum fraction.
+     * Test case for verifying the UTC string representation of a timestamp with a past date.
      */
     @Test
-    void testToUTCStringMaxFraction() {
-        // NTP timestamp with maximum fraction
-        long ntpTime = 0xc1a089bd_ffffffffL;
+    void testToUTCStringPastDate() {
+        // NTP timestamp for a past date
+        long ntpTime = 0x41a089bd_fc904f6dL; // Some past date
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        DateFormat utcFormatter = new SimpleDateFormat(TimeStamp.NTP_DATE_FORMAT + " 'UTC'", Locale.US);
-        utcFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String expected = utcFormatter.format(timeStamp.getDate());
-        assertEquals(expected, timeStamp.toUTCString());
-    }
-
-    /**
-     * Test case for verifying the UTC string representation of a timestamp with minimum fraction.
-     */
-    @Test
-    void testToUTCStringMinFraction() {
-        // NTP timestamp with minimum fraction
-        long ntpTime = 0xc1a089bd_00000001L;
-        TimeStamp timeStamp = new TimeStamp(ntpTime);
-        DateFormat utcFormatter = new SimpleDateFormat(TimeStamp.NTP_DATE_FORMAT + " 'UTC'", Locale.US);
-        utcFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String expected = utcFormatter.format(timeStamp.getDate());
-        assertEquals(expected, timeStamp.toUTCString());
-    }
-
-    /**
-     * Test case for verifying the UTC string representation of a timestamp with a specific date.
-     */
-    @Test
-    void testToUTCStringSpecificDate() {
-        // Specific date: Mon, Jan 01 2001 00:00:00.000 UTC
-        Date specificDate = new Date(978307200000L);
-        TimeStamp timeStamp = new TimeStamp(specificDate);
-        String expected = "Mon, Jan 01 2001 00:00:00.000 UTC";
-        assertEquals(expected, timeStamp.toUTCString());
+        // The expected date is in the past, so we just check if it doesn't throw an error
+        assertNotNull(timeStamp.toUTCString());
     }
 }
+```
+
+This test class `TimeStamp_14Test` contains ten unit test cases for the `toUTCString()` method of the `TimeStamp` class. Each test case checks different scenarios, such as known timestamps, current time, zero, maximum, and minimum long values, negative timestamps, fractional seconds, leap seconds, future dates, and past dates.

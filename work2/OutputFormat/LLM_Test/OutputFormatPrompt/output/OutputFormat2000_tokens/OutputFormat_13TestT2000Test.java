@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_13Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setExpandEmptyElements(boolean)} method.
 */
 class OutputFormat_13Test {
+```java
     /**
      * Test case 1: Test setting expandEmptyElements to true.
      */
@@ -41,25 +41,25 @@ class OutputFormat_13Test {
     }
 
     /**
-     * Test case 4: Test setting expandEmptyElements to true and then false.
+     * Test case 4: Test toggling expandEmptyElements from false to true.
      */
     @Test
-    void testSetExpandEmptyElementsTrueThenFalse() {
+    void testToggleExpandEmptyElementsFalseToTrue() {
         OutputFormat format = new OutputFormat();
-        format.setExpandEmptyElements(true);
         format.setExpandEmptyElements(false);
-        assertFalse(format.isExpandEmptyElements(), "expandEmptyElements should be false after setting to true then false");
+        format.setExpandEmptyElements(true);
+        assertTrue(format.isExpandEmptyElements(), "expandEmptyElements should be true after toggling");
     }
 
     /**
-     * Test case 5: Test setting expandEmptyElements to false and then true.
+     * Test case 5: Test toggling expandEmptyElements from true to false.
      */
     @Test
-    void testSetExpandEmptyElementsFalseThenTrue() {
+    void testToggleExpandEmptyElementsTrueToFalse() {
         OutputFormat format = new OutputFormat();
-        format.setExpandEmptyElements(false);
         format.setExpandEmptyElements(true);
-        assertTrue(format.isExpandEmptyElements(), "expandEmptyElements should be true after setting to false then true");
+        format.setExpandEmptyElements(false);
+        assertFalse(format.isExpandEmptyElements(), "expandEmptyElements should be false after toggling");
     }
 
     /**
@@ -70,7 +70,7 @@ class OutputFormat_13Test {
         OutputFormat format = new OutputFormat();
         format.setExpandEmptyElements(true);
         format.setExpandEmptyElements(true);
-        assertTrue(format.isExpandEmptyElements(), "expandEmptyElements should remain true after multiple true settings");
+        assertTrue(format.isExpandEmptyElements(), "expandEmptyElements should remain true");
     }
 
     /**
@@ -81,41 +81,38 @@ class OutputFormat_13Test {
         OutputFormat format = new OutputFormat();
         format.setExpandEmptyElements(false);
         format.setExpandEmptyElements(false);
-        assertFalse(format.isExpandEmptyElements(), "expandEmptyElements should remain false after multiple false settings");
+        assertFalse(format.isExpandEmptyElements(), "expandEmptyElements should remain false");
     }
 
     /**
-     * Test case 8: Test setting expandEmptyElements to true, false, true.
+     * Test case 8: Test setting expandEmptyElements to true after default.
      */
     @Test
-    void testSetExpandEmptyElementsTrueFalseTrue() {
+    void testSetExpandEmptyElementsTrueAfterDefault() {
+        OutputFormat format = new OutputFormat();
+        format.setExpandEmptyElements(true);
+        assertTrue(format.isExpandEmptyElements(), "expandEmptyElements should be true after setting");
+    }
+
+    /**
+     * Test case 9: Test setting expandEmptyElements to false after default.
+     */
+    @Test
+    void testSetExpandEmptyElementsFalseAfterDefault() {
+        OutputFormat format = new OutputFormat();
+        format.setExpandEmptyElements(false);
+        assertFalse(format.isExpandEmptyElements(), "expandEmptyElements should be false after setting");
+    }
+
+    /**
+     * Test case 10: Test setting expandEmptyElements to true and then false.
+     */
+    @Test
+    void testSetExpandEmptyElementsTrueThenFalse() {
         OutputFormat format = new OutputFormat();
         format.setExpandEmptyElements(true);
         format.setExpandEmptyElements(false);
-        format.setExpandEmptyElements(true);
-        assertTrue(format.isExpandEmptyElements(), "expandEmptyElements should be true after setting to true, false, true");
-    }
-
-    /**
-     * Test case 9: Test setting expandEmptyElements to false, true, false.
-     */
-    @Test
-    void testSetExpandEmptyElementsFalseTrueFalse() {
-        OutputFormat format = new OutputFormat();
-        format.setExpandEmptyElements(false);
-        format.setExpandEmptyElements(true);
-        format.setExpandEmptyElements(false);
-        assertFalse(format.isExpandEmptyElements(), "expandEmptyElements should be false after setting to false, true, false");
-    }
-
-    /**
-     * Test case 10: Test setting expandEmptyElements to true and checking with a new instance.
-     */
-    @Test
-    void testSetExpandEmptyElementsTrueNewInstance() {
-        OutputFormat format1 = new OutputFormat();
-        format1.setExpandEmptyElements(true);
-        OutputFormat format2 = new OutputFormat();
-        assertFalse(format2.isExpandEmptyElements(), "expandEmptyElements should be false in a new instance");
+        assertFalse(format.isExpandEmptyElements(), "expandEmptyElements should be false after setting true then false");
     }
 }
+```

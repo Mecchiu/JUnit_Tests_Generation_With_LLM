@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_11Test.java
 
 
@@ -11,8 +10,9 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#reverseColor()} method.
 */
 class HSLColor_11Test {
+```java
     @Test
-    void testReverseColor1() {
+    void testReverseColor_1() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(255, 0, 0); // Red
         color.reverseColor();
@@ -20,7 +20,7 @@ class HSLColor_11Test {
     }
 
     @Test
-    void testReverseColor2() {
+    void testReverseColor_2() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(0, 255, 0); // Green
         color.reverseColor();
@@ -28,7 +28,7 @@ class HSLColor_11Test {
     }
 
     @Test
-    void testReverseColor3() {
+    void testReverseColor_3() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(0, 0, 255); // Blue
         color.reverseColor();
@@ -36,7 +36,7 @@ class HSLColor_11Test {
     }
 
     @Test
-    void testReverseColor4() {
+    void testReverseColor_4() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(255, 255, 0); // Yellow
         color.reverseColor();
@@ -44,7 +44,7 @@ class HSLColor_11Test {
     }
 
     @Test
-    void testReverseColor5() {
+    void testReverseColor_5() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(0, 255, 255); // Cyan
         color.reverseColor();
@@ -52,7 +52,7 @@ class HSLColor_11Test {
     }
 
     @Test
-    void testReverseColor6() {
+    void testReverseColor_6() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(255, 0, 255); // Magenta
         color.reverseColor();
@@ -60,7 +60,7 @@ class HSLColor_11Test {
     }
 
     @Test
-    void testReverseColor7() {
+    void testReverseColor_7() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(128, 128, 128); // Grey
         color.reverseColor();
@@ -68,26 +68,30 @@ class HSLColor_11Test {
     }
 
     @Test
-    void testReverseColor8() {
+    void testReverseColor_8() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 165, 0); // Orange
+        color.initHSLbyRGB(255, 255, 255); // White
         color.reverseColor();
-        assertEquals(85, color.getHue()); // Blueish
+        assertEquals(170, color.getHue()); // White remains unchanged
     }
 
     @Test
-    void testReverseColor9() {
+    void testReverseColor_9() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(75, 0, 130); // Indigo
+        color.initHSLbyRGB(0, 0, 0); // Black
         color.reverseColor();
-        assertEquals(213, color.getHue()); // Yellowish
+        assertEquals(170, color.getHue()); // Black remains unchanged
     }
 
     @Test
-    void testReverseColor10() {
+    void testReverseColor_10() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(238, 130, 238); // Violet
+        color.initHSLbyRGB(123, 234, 45); // Random color
+        int originalHue = color.getHue();
         color.reverseColor();
-        assertEquals(42, color.getHue()); // Greenish
+        assertEquals((originalHue + 127) % 255, color.getHue()); // Check reversed hue
     }
 }
+```
+
+These test cases cover a variety of scenarios, including primary colors, secondary colors, greyscale, and random colors. The `reverseColor` method is expected to shift the hue by 127 (half of 255) to achieve the complementary color. The tests also ensure that greyscale colors remain unchanged, as they do not have a defined hue.

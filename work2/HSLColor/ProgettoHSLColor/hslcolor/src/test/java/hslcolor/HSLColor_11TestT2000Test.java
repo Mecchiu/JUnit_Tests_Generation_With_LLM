@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_11Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,83 +10,84 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#reverseColor()} method.
 */
 class HSLColor_11Test {
+
     @Test
-    void testReverseColor1() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0); // Red
-        color.reverseColor();
-        assertEquals(85, color.getHue()); // Cyan
+    void testReverseColor() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 0, 0); // Red color
+        hslColor.reverseColor();
+        assertEquals(0, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor2() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 0); // Green
-        color.reverseColor();
-        assertEquals(213, color.getHue()); // Magenta
+    void testReverseColorWithHueWrapAround() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 255, 0); // Green color
+        hslColor.reverseColor();
+        assertEquals(128, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor3() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 255); // Blue
-        color.reverseColor();
-        assertEquals(42, color.getHue()); // Yellow
+    void testReverseColorWithHueOverflow() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 0, 255); // Blue color
+        hslColor.reverseColor();
+        assertEquals(85, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor4() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 0); // Yellow
-        color.reverseColor();
-        assertEquals(127, color.getHue()); // Blue
+    void testReverseColorWithGreyscale() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(128, 128, 128); // Grey color
+        hslColor.reverseColor();
+        assertEquals(170, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor5() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 255); // Cyan
-        color.reverseColor();
-        assertEquals(0, color.getHue()); // Red
+    void testReverseColorWithMaxHue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 255, 255); // White color
+        hslColor.reverseColor();
+        assertEquals(128, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor6() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 255); // Magenta
-        color.reverseColor();
-        assertEquals(170, color.getHue()); // Green
+    void testReverseColorWithMinHue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 0, 0); // Black color
+        hslColor.reverseColor();
+        assertEquals(128, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor7() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128); // Grey
-        color.reverseColor();
-        assertEquals(170, color.getHue()); // Grey remains unchanged
+    void testReverseColorWithRandomColor() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200); // Random color
+        hslColor.reverseColor();
+        assertEquals(218, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor8() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 165, 0); // Orange
-        color.reverseColor();
-        assertEquals(85, color.getHue()); // Blueish
+    void testReverseColorWithNegativeHue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(200, 100, 50); // Random color
+        hslColor.reverseColor();
+        assertEquals(78, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor9() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(75, 0, 130); // Indigo
-        color.reverseColor();
-        assertEquals(213, color.getHue()); // Yellowish
+    void testReverseColorWithHueOverflowNegative() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(50, 200, 100); // Random color
+        hslColor.reverseColor();
+        assertEquals(198, hslColor.getHue());
     }
 
     @Test
-    void testReverseColor10() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(238, 130, 238); // Violet
-        color.reverseColor();
-        assertEquals(42, color.getHue()); // Greenish
+    void testReverseColorWithZeroSaturation() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 100, 100); // Grey color
+        hslColor.reverseColor();
+        assertEquals(170, hslColor.getHue());
     }
 }

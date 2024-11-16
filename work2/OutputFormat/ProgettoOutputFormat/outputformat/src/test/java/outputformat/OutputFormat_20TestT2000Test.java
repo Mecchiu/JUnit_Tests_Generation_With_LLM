@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_20Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -76,16 +75,16 @@ class OutputFormat_20Test {
     }
 
     @Test
-    void testSetIndentWithInitialIndent() {
+    void testSetIndentWithCustomIndent() {
         OutputFormat format = new OutputFormat("    ");
         format.setIndent(true);
         assertEquals(OutputFormat.STANDARD_INDENT, format.getIndent());
     }
 
     @Test
-    void testSetIndentWithInitialIndentFalse() {
-        OutputFormat format = new OutputFormat("    ");
-        format.setIndent(false);
-        assertNull(format.getIndent());
+    void testSetIndentWithNullIndent() {
+        OutputFormat format = new OutputFormat(null);
+        format.setIndent(true);
+        assertEquals(OutputFormat.STANDARD_INDENT, format.getIndent());
     }
 }

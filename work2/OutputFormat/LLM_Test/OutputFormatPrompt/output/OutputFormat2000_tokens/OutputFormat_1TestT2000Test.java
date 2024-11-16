@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_1Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setLineSeparator(String)} method.
 */
 class OutputFormat_1Test {
+```java
     @Test
     void testSetLineSeparatorWithNull() {
         OutputFormat format = new OutputFormat();
@@ -82,3 +82,6 @@ class OutputFormat_1Test {
         assertEquals(systemLineSeparator, format.getLineSeparator());
     }
 }
+```
+
+This test class `OutputFormat_1Test` contains ten unit test cases for the `setLineSeparator(String)` method of the `OutputFormat` class. Each test case checks a different scenario for setting the line separator, including null, empty string, common line separators, custom strings, and the system's default line separator.

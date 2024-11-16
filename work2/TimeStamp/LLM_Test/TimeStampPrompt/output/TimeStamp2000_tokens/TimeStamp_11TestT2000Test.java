@@ -1,4 +1,3 @@
-package timestamp;
 // TimeStamp_11Test.java
 
 
@@ -15,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link TimeStamp#toString()} method.
 */
 class TimeStamp_11Test {
+```java
     /**
      * Test case for the toString method.
      * It tests the conversion of a known NTP timestamp to its string representation.
@@ -27,7 +27,7 @@ class TimeStamp_11Test {
 
     /**
      * Test case for the toString method.
-     * It tests the conversion of the minimum possible NTP timestamp to its string representation.
+     * It tests the conversion of the minimum NTP timestamp to its string representation.
      */
     @Test
     void testToStringMinValue() {
@@ -37,7 +37,7 @@ class TimeStamp_11Test {
 
     /**
      * Test case for the toString method.
-     * It tests the conversion of the maximum possible NTP timestamp to its string representation.
+     * It tests the conversion of the maximum NTP timestamp to its string representation.
      */
     @Test
     void testToStringMaxValue() {
@@ -80,7 +80,7 @@ class TimeStamp_11Test {
      * It tests the conversion of a timestamp with leading zeros in seconds to its string representation.
      */
     @Test
-    void testToStringLeadingZerosInSeconds() {
+    void testToStringLeadingZerosSeconds() {
         TimeStamp ts = new TimeStamp(0x00001234_56789abcL);
         assertEquals("00001234.56789abc", ts.toString());
     }
@@ -90,7 +90,7 @@ class TimeStamp_11Test {
      * It tests the conversion of a timestamp with leading zeros in fraction to its string representation.
      */
     @Test
-    void testToStringLeadingZerosInFraction() {
+    void testToStringLeadingZerosFraction() {
         TimeStamp ts = new TimeStamp(0x12345678_00001234L);
         assertEquals("12345678.00001234", ts.toString());
     }
@@ -115,3 +115,6 @@ class TimeStamp_11Test {
         assertEquals("ffffffff.ffffffff", ts.toString());
     }
 }
+```
+
+This test class `TimeStamp_11Test` contains ten unit test cases for the `toString` method of the `TimeStamp` class. Each test case checks the conversion of a specific NTP timestamp to its expected string representation.

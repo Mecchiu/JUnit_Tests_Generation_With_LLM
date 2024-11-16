@@ -1,4 +1,3 @@
-package timestamp;
 // TimeStamp_13Test.java
 
 
@@ -15,25 +14,29 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link TimeStamp#toDateString()} method.
 */
 class TimeStamp_13Test {
+```java
     /**
-     * Test case for verifying the date string format of a known timestamp.
+     * Test case for verifying the date string format of a known NTP timestamp.
      */
     @Test
     void testToDateStringKnownTimestamp() {
-        TimeStamp timeStamp = new TimeStamp("c1a089bd.fc904f6d");
+        // Known NTP timestamp for Tue, Dec 10 2002 10:41:49.986
+        long ntpTime = 0xc1a089bdL << 32 | 0xfc904f6dL;
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
         String expectedDateString = "Tue, Dec 10 2002 10:41:49.986";
         assertEquals(expectedDateString, timeStamp.toDateString());
     }
 
     /**
-     * Test case for verifying the date string format of the current timestamp.
+     * Test case for verifying the date string format of the current time.
      */
     @Test
-    void testToDateStringCurrentTimestamp() {
+    void testToDateStringCurrentTime() {
         TimeStamp timeStamp = TimeStamp.getCurrentTime();
+        Date currentDate = new Date(System.currentTimeMillis());
         DateFormat simpleFormatter = new SimpleDateFormat(TimeStamp.NTP_DATE_FORMAT, Locale.US);
         simpleFormatter.setTimeZone(TimeZone.getDefault());
-        String expectedDateString = simpleFormatter.format(new Date());
+        String expectedDateString = simpleFormatter.format(currentDate);
         assertEquals(expectedDateString, timeStamp.toDateString());
     }
 
@@ -48,26 +51,28 @@ class TimeStamp_13Test {
     }
 
     /**
-     * Test case for verifying the date string format of a timestamp with maximum long value.
+     * Test case for verifying the date string format of a timestamp with maximum value.
      */
     @Test
-    void testToDateStringMaxLongTimestamp() {
+    void testToDateStringMaxTimestamp() {
         TimeStamp timeStamp = new TimeStamp(Long.MAX_VALUE);
+        Date maxDate = new Date(timeStamp.getTime());
         DateFormat simpleFormatter = new SimpleDateFormat(TimeStamp.NTP_DATE_FORMAT, Locale.US);
         simpleFormatter.setTimeZone(TimeZone.getDefault());
-        String expectedDateString = simpleFormatter.format(new Date(Long.MAX_VALUE));
+        String expectedDateString = simpleFormatter.format(maxDate);
         assertEquals(expectedDateString, timeStamp.toDateString());
     }
 
     /**
-     * Test case for verifying the date string format of a timestamp with minimum long value.
+     * Test case for verifying the date string format of a timestamp with minimum value.
      */
     @Test
-    void testToDateStringMinLongTimestamp() {
+    void testToDateStringMinTimestamp() {
         TimeStamp timeStamp = new TimeStamp(Long.MIN_VALUE);
+        Date minDate = new Date(timeStamp.getTime());
         DateFormat simpleFormatter = new SimpleDateFormat(TimeStamp.NTP_DATE_FORMAT, Locale.US);
         simpleFormatter.setTimeZone(TimeZone.getDefault());
-        String expectedDateString = simpleFormatter.format(new Date(Long.MIN_VALUE));
+        String expectedDateString = simpleFormatter.format(minDate);
         assertEquals(expectedDateString, timeStamp.toDateString());
     }
 
@@ -98,30 +103,34 @@ class TimeStamp_13Test {
      */
     @Test
     void testToDateStringFractionalSecond() {
-        TimeStamp timeStamp = new TimeStamp("c1a089bd.fc904f6d");
-        String expectedDateString = "Tue, Dec 10 2002 10:41:49.986";
+        long ntpTime = 0xc1a089bdL << 32 | 0x00000001L; // Slightly after Tue, Dec 10 2002 10:41:49.000
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        String expectedDateString = "Tue, Dec 10 2002 10:41:49.000";
         assertEquals(expectedDateString, timeStamp.toDateString());
     }
 
     /**
-     * Test case for verifying the date string format of a timestamp with a leap year date.
+     * Test case for verifying the date string format of a timestamp with a leap second.
      */
     @Test
-    void testToDateStringLeapYear() {
-        Date leapYearDate = new Date(951782400000L); // Tue, Feb 29 2000 00:00:00.000
-        TimeStamp timeStamp = new TimeStamp(leapYearDate);
-        String expectedDateString = "Tue, Feb 29 2000 00:00:00.000";
+    void testToDateStringLeapSecond() {
+        long ntpTime = 0xc1a089bdL << 32 | 0xffffffffL; // Just before Tue, Dec 10 2002 10:41:50.000
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        String expectedDateString = "Tue, Dec 10 2002 10:41:49.999";
         assertEquals(expectedDateString, timeStamp.toDateString());
     }
 
     /**
-     * Test case for verifying the date string format of a timestamp with a date in the future.
+     * Test case for verifying the date string format of a timestamp with a large fractional second.
      */
     @Test
-    void testToDateStringFutureDate() {
-        Date futureDate = new Date(4102444800000L); // Fri, Jan 01 2100 00:00:00.000
-        TimeStamp timeStamp = new TimeStamp(futureDate);
-        String expectedDateString = "Fri, Jan 01 2100 00:00:00.000";
+    void testToDateStringLargeFractionalSecond() {
+        long ntpTime = 0xc1a089bdL << 32 | 0x80000000L; // Halfway through Tue, Dec 10 2002 10:41:49.500
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        String expectedDateString = "Tue, Dec 10 2002 10:41:49.500";
         assertEquals(expectedDateString, timeStamp.toDateString());
     }
 }
+```
+
+This test class `TimeStamp_13Test` contains ten unit test cases for the `toDateString()` method of the `TimeStamp` class. Each test case checks a different scenario to ensure the method correctly formats the date string.

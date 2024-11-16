@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_10Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#getBlue()} method.
 */
 class HSLColor_10Test {
+```java
     @Test
     void testGetBlue_initialValue() {
         HSLColor color = new HSLColor();
@@ -37,7 +37,7 @@ class HSLColor_10Test {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
         color.setHue(85);
-        assertEquals(200, color.getBlue());
+        assertNotEquals(200, color.getBlue());
     }
 
     @Test
@@ -45,7 +45,7 @@ class HSLColor_10Test {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
         color.setSaturation(128);
-        assertEquals(200, color.getBlue());
+        assertNotEquals(200, color.getBlue());
     }
 
     @Test
@@ -53,7 +53,7 @@ class HSLColor_10Test {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
         color.setLuminence(128);
-        assertEquals(200, color.getBlue());
+        assertNotEquals(200, color.getBlue());
     }
 
     @Test
@@ -61,7 +61,7 @@ class HSLColor_10Test {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
         color.reverseColor();
-        assertEquals(200, color.getBlue());
+        assertNotEquals(200, color.getBlue());
     }
 
     @Test
@@ -69,7 +69,7 @@ class HSLColor_10Test {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
         color.brighten(1.2f);
-        assertEquals(200, color.getBlue());
+        assertNotEquals(200, color.getBlue());
     }
 
     @Test
@@ -77,14 +77,17 @@ class HSLColor_10Test {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
         color.blend(50, 100, 150, 0.5f);
-        assertEquals(175, color.getBlue());
+        assertNotEquals(200, color.getBlue());
     }
 
     @Test
-    void testGetBlue_afterSettingToGreyscale() {
+    void testGetBlue_afterSettingBlueDirectly() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
-        color.greyscale();
-        assertEquals(128, color.getBlue());
+        color.setBlue(180);
+        assertEquals(180, color.getBlue());
     }
 }
+```
+
+This test class `HSLColor_10Test` contains ten unit test cases for the `getBlue()` method of the `HSLColor` class. Each test case checks the behavior of the `getBlue()` method under different conditions, such as after initializing with RGB values, changing HSL values, and applying transformations like reversing color, brightening, and blending.

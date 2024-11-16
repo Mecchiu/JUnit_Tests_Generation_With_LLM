@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_8Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,58 +10,69 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#getRed()} method.
 */
 class HSLColor_8Test {
-    @Test
-    void testGetRed_InitialValue() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        assertEquals(100, color.getRed());
-    }
 
-    @Test
-    void testGetRed_AfterSetHue() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setHue(50);
-        assertNotEquals(100, color.getRed());
-    }
+@Test
+void testGetRed() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 128);
+    assertEquals(255, hslColor.getRed());
+}
 
-    @Test
-    void testGetRed_AfterSetSaturation() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setSaturation(100);
-        assertNotEquals(100, color.getRed());
-    }
+@Test
+void testGetRed_Greyscale() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 0, 128);
+    assertEquals(128, hslColor.getRed());
+}
 
-    @Test
-    void testGetRed_AfterSetLuminance() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(100);
-        assertNotEquals(100, color.getRed());
-    }
+@Test
+void testGetRed_MaxSaturation() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 0);
+    assertEquals(0, hslColor.getRed());
+}
 
-    @Test
-    void testGetRed_AfterReverseColor() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.reverseColor();
-        assertNotEquals(100, color.getRed());
-    }
+@Test
+void testGetRed_MaxLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 0, 255);
+    assertEquals(255, hslColor.getRed());
+}
 
-    @Test
-    void testGetRed_AfterBrighten() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.brighten(1.2f);
-        assertNotEquals(100, color.getRed());
-    }
+@Test
+void testGetRed_HueShift() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(85, 255, 128);
+    assertEquals(128, hslColor.getRed());
+}
 
-    @Test
-    void testGetRed_AfterBlend() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.blend(50, 100, 150, 0.5f);
-        assertNotEquals(100, color.getRed());
-    }
+@Test
+void testGetRed_LuminenceShift() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 64);
+    assertEquals(191, hslColor.getRed());
+}
+
+@Test
+void testGetRed_SaturationShift() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 128, 128);
+    assertEquals(128, hslColor.getRed());
+}
+
+@Test
+void testGetRed_Blend() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 128);
+    hslColor.blend(128, 0, 255, 0.5f);
+    assertEquals(191, hslColor.getRed());
+}
+
+@Test
+void testGetRed_Brighten() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 128);
+    hslColor.brighten(0.5f);
+    assertEquals(191, hslColor.getRed());
+}
 }

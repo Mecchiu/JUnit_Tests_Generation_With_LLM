@@ -1,6 +1,6 @@
-package timestamp;
 // TimeStamp_8Test.java
 
+package timestamp;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -42,18 +42,7 @@ class TimeStamp_8Test {
      */
     @Test
     void testParseNtpStringInvalidCharacters() {
-        String hexString = "c1a089bd.fc90zzzz";
-        assertThrows(NumberFormatException.class, () -> {
-            TimeStamp.parseNtpString(hexString);
-        });
-    }
-
-    /**
-     * Test case for parsing an empty NTP hex string.
-     */
-    @Test
-    void testParseNtpStringEmpty() {
-        String hexString = "";
+        String hexString = "c1a089bd.fc90g6d";
         assertThrows(NumberFormatException.class, () -> {
             TimeStamp.parseNtpString(hexString);
         });
@@ -64,7 +53,17 @@ class TimeStamp_8Test {
      */
     @Test
     void testParseNtpStringNull() {
-        String hexString = null;
+        assertThrows(NumberFormatException.class, () -> {
+            TimeStamp.parseNtpString(null);
+        });
+    }
+
+    /**
+     * Test case for parsing an empty NTP hex string.
+     */
+    @Test
+    void testParseNtpStringEmpty() {
+        String hexString = "";
         assertThrows(NumberFormatException.class, () -> {
             TimeStamp.parseNtpString(hexString);
         });
@@ -82,10 +81,10 @@ class TimeStamp_8Test {
     }
 
     /**
-     * Test case for parsing a valid NTP hex string with maximum values.
+     * Test case for parsing a valid NTP hex string with maximum value.
      */
     @Test
-    void testParseNtpStringMaxValues() {
+    void testParseNtpStringMaxValue() {
         String hexString = "ffffffff.ffffffff";
         TimeStamp timeStamp = TimeStamp.parseNtpString(hexString);
         assertNotNull(timeStamp);
@@ -93,10 +92,10 @@ class TimeStamp_8Test {
     }
 
     /**
-     * Test case for parsing a valid NTP hex string with minimum values.
+     * Test case for parsing a valid NTP hex string with minimum value.
      */
     @Test
-    void testParseNtpStringMinValues() {
+    void testParseNtpStringMinValue() {
         String hexString = "00000000.00000000";
         TimeStamp timeStamp = TimeStamp.parseNtpString(hexString);
         assertNotNull(timeStamp);
@@ -104,24 +103,24 @@ class TimeStamp_8Test {
     }
 
     /**
-     * Test case for parsing a valid NTP hex string with mixed case.
+     * Test case for parsing a valid NTP hex string with fractional part only.
      */
     @Test
-    void testParseNtpStringMixedCase() {
-        String hexString = "C1A089BD.fc904f6d";
+    void testParseNtpStringFractionOnly() {
+        String hexString = "00000000.fc904f6d";
         TimeStamp timeStamp = TimeStamp.parseNtpString(hexString);
         assertNotNull(timeStamp);
-        assertEquals(hexString.toLowerCase(), timeStamp.toString());
+        assertEquals(hexString, timeStamp.toString());
     }
 
     /**
-     * Test case for parsing a valid NTP hex string with extra spaces.
+     * Test case for parsing a valid NTP hex string with seconds part only.
      */
     @Test
-    void testParseNtpStringExtraSpaces() {
-        String hexString = " c1a089bd.fc904f6d ";
-        assertThrows(NumberFormatException.class, () -> {
-            TimeStamp.parseNtpString(hexString.trim());
-        });
+    void testParseNtpStringSecondsOnly() {
+        String hexString = "c1a089bd.00000000";
+        TimeStamp timeStamp = TimeStamp.parseNtpString(hexString);
+        assertNotNull(timeStamp);
+        assertEquals(hexString, timeStamp.toString());
     }
 }

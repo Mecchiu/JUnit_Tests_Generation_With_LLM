@@ -1,6 +1,6 @@
-package outputformat;
 // OutputFormat_1Test.java
 
+package outputformat;
 
 
 import org.junit.jupiter.api.Test;

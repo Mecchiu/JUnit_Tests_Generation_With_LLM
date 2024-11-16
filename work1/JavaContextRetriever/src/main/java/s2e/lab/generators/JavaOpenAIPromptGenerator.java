@@ -113,12 +113,12 @@ public class JavaOpenAIPromptGenerator {
             List<File> javaFiles = JavaSearcher.findNonTestJavaFiles(project);
             List<HashMap<String, String>> outputList = new ArrayList<>();
 
-            for (File javaFile : javaFiles) {
+            /*for (File javaFile : javaFiles) {
                 // gets testable methods according to 'good javadoc' criteria
                 List<HashMap<String, String>> promptList = generateTestPrompt(javaFile, METHOD_INCLUSION_CRITERIA, true);
                 if (!promptList.isEmpty())
                     outputList.addAll(promptList);
-            }
+            }*/
 //            System.out.println(project.getName() + "\t" + outputList.size());
             // only includes projects that at least 1 method to test, but also between MIN and MAX (inclusive)
             if (PROJECT_INCLUSION_CRITERIA.test(outputList.size())) {

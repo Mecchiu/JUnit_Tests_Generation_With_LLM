@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_28Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,110 +10,136 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#parseOptions(String[], int)} method.
 */
 class OutputFormat_28Test {
+    /**
+     * Test case for parsing options with valid arguments.
+     */
     @Test
-    void testParseOptionsSuppressDeclaration() {
+    void testParseOptionsWithValidArguments() {
         OutputFormat format = new OutputFormat();
-        String[] args = {"-suppressDeclaration"};
+        String[] args = {"-suppressDeclaration", "-omitEncoding", "-indent", "  ", "-indentSize", "3", "-expandEmpty", "-encoding", "ISO-8859-1", "-newlines", "-lineSeparator", "\r\n", "-trimText", "-padText", "-xhtml"};
         int index = format.parseOptions(args, 0);
+
         assertTrue(format.isSuppressDeclaration());
-        assertEquals(1, index);
-    }
-
-    @Test
-    void testParseOptionsOmitEncoding() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-omitEncoding"};
-        int index = format.parseOptions(args, 0);
         assertTrue(format.isOmitEncoding());
-        assertEquals(1, index);
-    }
-
-    @Test
-    void testParseOptionsIndent() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-indent", "    "};
-        int index = format.parseOptions(args, 0);
-        assertEquals("    ", format.getIndent());
-        assertEquals(2, index);
-    }
-
-    @Test
-    void testParseOptionsIndentSize() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-indentSize", "4"};
-        int index = format.parseOptions(args, 0);
-        assertEquals("    ", format.getIndent());
-        assertEquals(2, index);
-    }
-
-    @Test
-    void testParseOptionsExpandEmptyElements() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-expandEmpty"};
-        int index = format.parseOptions(args, 0);
+        assertEquals("  ", format.getIndent());
+        assertEquals(3, format.getIndent().length());
         assertTrue(format.isExpandEmptyElements());
-        assertEquals(1, index);
-    }
-
-    @Test
-    void testParseOptionsEncoding() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-encoding", "ISO-8859-1"};
-        int index = format.parseOptions(args, 0);
         assertEquals("ISO-8859-1", format.getEncoding());
-        assertEquals(2, index);
-    }
-
-    @Test
-    void testParseOptionsNewlines() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-newlines"};
-        int index = format.parseOptions(args, 0);
         assertTrue(format.isNewlines());
-        assertEquals(1, index);
-    }
-
-    @Test
-    void testParseOptionsLineSeparator() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-lineSeparator", "\r\n"};
-        int index = format.parseOptions(args, 0);
         assertEquals("\r\n", format.getLineSeparator());
-        assertEquals(2, index);
-    }
-
-    @Test
-    void testParseOptionsTrimText() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-trimText"};
-        int index = format.parseOptions(args, 0);
         assertTrue(format.isTrimText());
-        assertEquals(1, index);
-    }
-
-    @Test
-    void testParseOptionsPadText() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-padText"};
-        int index = format.parseOptions(args, 0);
         assertTrue(format.isPadText());
-        assertEquals(1, index);
-    }
-
-    @Test
-    void testParseOptionsXHTML() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-xhtml"};
-        int index = format.parseOptions(args, 0);
         assertTrue(format.isXHTML());
-        assertEquals(1, index);
+        assertEquals(args.length, index);
     }
 
+    /**
+     * Test case for parsing options with unknown argument.
+     */
     @Test
-    void testParseOptionsUnknownOption() {
+    void testParseOptionsWithUnknownArgument() {
         OutputFormat format = new OutputFormat();
         String[] args = {"-unknownOption"};
         int index = format.parseOptions(args, 0);
+
+        assertEquals(0, index);
+    }
+
+    /**
+     * Test case for parsing options with missing value for indent.
+     */
+    @Test
+    void testParseOptionsWithMissingIndentValue() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {"-indent"};
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> {
+            format.parseOptions(args, 0);
+        });
+    }
+
+    /**
+     * Test case for parsing options with missing value for indentSize.
+     */
+    @Test
+    void testParseOptionsWithMissingIndentSizeValue() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {"-indentSize"};
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> {
+            format.parseOptions(args, 0);
+        });
+    }
+
+    /**
+     * Test case for parsing options with invalid value for indentSize.
+     */
+    @Test
+    void testParseOptionsWithInvalidIndentSizeValue() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {"-indentSize", "invalid"};
+        assertThrows(NumberFormatException.class, () -> {
+            format.parseOptions(args, 0);
+        });
+    }
+
+    /**
+     * Test case for parsing options with missing value for encoding.
+     */
+    @Test
+    void testParseOptionsWithMissingEncodingValue() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {"-encoding"};
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> {
+            format.parseOptions(args, 0);
+        });
+    }
+
+    /**
+     * Test case for parsing options with missing value for lineSeparator.
+     */
+    @Test
+    void testParseOptionsWithMissingLineSeparatorValue() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {"-lineSeparator"};
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> {
+            format.parseOptions(args, 0);
+        });
+    }
+
+    /**
+     * Test case for parsing options with valid arguments starting from a non-zero index.
+     */
+    @Test
+    void testParseOptionsWithValidArgumentsFromNonZeroIndex() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {"-unknownOption", "-suppressDeclaration", "-omitEncoding"};
+        int index = format.parseOptions(args, 1);
+
+        assertTrue(format.isSuppressDeclaration());
+        assertTrue(format.isOmitEncoding());
+        assertEquals(3, index);
+    }
+
+    /**
+     * Test case for parsing options with no arguments.
+     */
+    @Test
+    void testParseOptionsWithNoArguments() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {};
+        int index = format.parseOptions(args, 0);
+
+        assertEquals(0, index);
+    }
+
+    /**
+     * Test case for parsing options with only unknown arguments.
+     */
+    @Test
+    void testParseOptionsWithOnlyUnknownArguments() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {"-unknownOption1", "-unknownOption2"};
+        int index = format.parseOptions(args, 0);
+
         assertEquals(0, index);
     }
 }

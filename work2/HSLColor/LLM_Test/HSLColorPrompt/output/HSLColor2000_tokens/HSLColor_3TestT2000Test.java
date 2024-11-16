@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_3Test.java
 
 
@@ -11,133 +10,88 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#setHue(int)} method.
 */
 class HSLColor_3Test {
+```java
     @Test
     void testSetHueWithinRange() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
-        color.setHue(120);
-        assertEquals(120, color.getHue());
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
+        color.setHue(100);
+        assertEquals(100, color.getHue());
     }
 
     @Test
     void testSetHueBelowZero() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
         color.setHue(-10);
-        assertEquals(245, color.getHue()); // -10 + 255
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
+        assertEquals(245, color.getHue()); // 255 - 10
     }
 
     @Test
     void testSetHueAboveMax() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
         color.setHue(300);
         assertEquals(45, color.getHue()); // 300 - 255
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
     }
 
     @Test
     void testSetHueAtZero() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
         color.setHue(0);
         assertEquals(0, color.getHue());
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
     }
 
     @Test
     void testSetHueAtMax() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(100, 150, 200);
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
         color.setHue(255);
         assertEquals(255, color.getHue());
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
     }
 
     @Test
-    void testSetHueWithGreyscale() {
+    void testSetHueWrapAroundNegative() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128); // Greyscale
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
+        color.initHSLbyRGB(100, 150, 200);
+        color.setHue(-260);
+        assertEquals(250, color.getHue()); // 255 - 5
+    }
+
+    @Test
+    void testSetHueWrapAroundPositive() {
+        HSLColor color = new HSLColor();
+        color.initHSLbyRGB(100, 150, 200);
+        color.setHue(515);
+        assertEquals(5, color.getHue()); // 515 - 510
+    }
+
+    @Test
+    void testSetHueNoChange() {
+        HSLColor color = new HSLColor();
+        color.initHSLbyRGB(100, 150, 200);
+        int initialHue = color.getHue();
+        color.setHue(initialHue);
+        assertEquals(initialHue, color.getHue());
+    }
+
+    @Test
+    void testSetHueWithSaturationZero() {
+        HSLColor color = new HSLColor();
+        color.initHSLbyRGB(100, 100, 100); // Greyscale
         color.setHue(100);
-        assertEquals(100, color.getHue());
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
+        assertEquals(170, color.getHue()); // UNDEFINED
     }
 
     @Test
-    void testSetHueWithFullSaturation() {
+    void testSetHueWithLuminanceZero() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0); // Full saturation
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
-        color.setHue(180);
-        assertEquals(180, color.getHue());
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
-    }
-
-    @Test
-    void testSetHueWithFullLuminance() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 255); // Full luminance
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
-        color.setHue(90);
-        assertEquals(90, color.getHue());
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
-    }
-
-    @Test
-    void testSetHueWithZeroSaturation() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128); // Zero saturation
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
-        color.setHue(200);
-        assertEquals(200, color.getHue());
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
-    }
-
-    @Test
-    void testSetHueWithZeroLuminance() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0); // Zero luminance
-        int originalSaturation = color.getSaturation();
-        int originalLuminance = color.getLuminence();
-        
-        color.setHue(150);
-        assertEquals(150, color.getHue());
-        assertEquals(originalSaturation, color.getSaturation());
-        assertEquals(originalLuminance, color.getLuminence());
+        color.initHSLbyRGB(0, 0, 0); // Black
+        color.setHue(100);
+        assertEquals(170, color.getHue()); // UNDEFINED
     }
 }
+```
+
+This test class `HSLColor_3Test` contains ten unit test cases for the `setHue(int)` method of the `HSLColor` class. Each test case checks different scenarios, including setting the hue within range, below zero, above the maximum, and edge cases like zero and maximum values. It also tests the behavior when the color is greyscale or black, where the hue should be undefined.

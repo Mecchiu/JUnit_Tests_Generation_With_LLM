@@ -1,5 +1,6 @@
 // FTPFile_5Test.java
 
+package ftpfile;
 
 import java.io.Serializable;
 import java.util.Calendar;

@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_7Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,84 +10,73 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#setLuminence(int)} method.
 */
 class HSLColor_7Test {
-    @Test
-    void testSetLuminenceWithinRange() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(128);
-        assertEquals(128, color.getLuminence());
-    }
+@Test
+void testSetLuminence_LessThanZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(-10);
+    assertEquals(0, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceBelowRange() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(-10);
-        assertEquals(0, color.getLuminence());
-    }
+@Test
+void testSetLuminence_GreaterThanMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(300);
+    assertEquals(255, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceAboveRange() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(300);
-        assertEquals(255, color.getLuminence());
-    }
+@Test
+void testSetLuminence_Zero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(0);
+    assertEquals(0, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceZero() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(0);
-        assertEquals(0, color.getLuminence());
-    }
+@Test
+void testSetLuminence_Max() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(255);
+    assertEquals(255, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceMax() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(255);
-        assertEquals(255, color.getLuminence());
-    }
+@Test
+void testSetLuminence_BetweenZeroAndMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(150);
+    assertEquals(150, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceMidRange() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(127);
-        assertEquals(127, color.getLuminence());
-    }
+@Test
+void testSetLuminence_NegativeValue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(-50);
+    assertEquals(0, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceNoChange() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        int initialLum = color.getLuminence();
-        color.setLuminence(initialLum);
-        assertEquals(initialLum, color.getLuminence());
-    }
+@Test
+void testSetLuminence_ValueGreaterThanMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(300);
+    assertEquals(255, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceFromMinToMax() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0);
-        color.setLuminence(255);
-        assertEquals(255, color.getLuminence());
-    }
+@Test
+void testSetLuminence_HighValue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(200);
+    assertEquals(200, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceFromMaxToMin() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 255);
-        color.setLuminence(0);
-        assertEquals(0, color.getLuminence());
-    }
+@Test
+void testSetLuminence_LowValue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(50);
+    assertEquals(50, hslColor.getLuminence());
+}
 
-    @Test
-    void testSetLuminenceWithNegativeInput() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(-50);
-        assertEquals(0, color.getLuminence());
-    }
+@Test
+void testSetLuminence_MaxValue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(255);
+    assertEquals(255, hslColor.getLuminence());
+}
 }

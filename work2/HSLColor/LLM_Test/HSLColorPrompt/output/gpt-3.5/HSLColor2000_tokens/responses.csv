@@ -1,0 +1,4563 @@
+ID,PROMPT_ID,DURATION,FINISH_REASON,ORIGINAL_CODE,TEST_PROMPT,GENERATED_TEST
+chatcmpl-ATRDhxa0EXuQkeuNhhiGvb7DjSRtQ,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_0Test.java,7.667043924331665,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_0Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#initHSLbyRGB(int, int, int)} method.
+*/
+class HSLColor_0Test {","```java
+    @Test
+    void testInitHSLbyRGB_Grey() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(128, 128, 128);
+        assertEquals(0, hslColor.getSaturation());
+        assertEquals(170, hslColor.getHue());
+        assertEquals(128, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_Red() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 0, 0);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(0, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_Green() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 255, 0);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(85, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_Blue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 0, 255);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(170, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_Yellow() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 255, 0);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(42, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_Cyan() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 255, 255);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(127, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_Magenta() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 0, 255);
+        assertEquals(255, hslColor.getSaturation());
+        assertEquals(212, hslColor.getHue());
+        assertEquals(76, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_LowSaturation() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        assertEquals(85, hslColor.getSaturation());
+        assertEquals(212, hslColor.getHue());
+        assertEquals(60, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_HighSaturation() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(200, 100, 50);
+        assertEquals(170, hslColor.getSaturation());
+        assertEquals(42, hslColor.getHue());
+        assertEquals(60, hslColor.getLuminence());
+    }
+
+    @Test
+    void testInitHSLbyRGB_HighLuminence() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(50, 100, 200);
+        assertEquals(85, hslColor.getSaturation());
+        assertEquals(170, hslColor.getHue());
+        assertEquals(80, hslColor.getLuminence());
+    }
+}
+```"
+chatcmpl-ATREkFn4va6fsWInP4sglQkys4Ubr,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_1Test.java,10.861673593521118,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_1Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#initRGBbyHSL(int, int, int)} method.
+*/
+class HSLColor_1Test {","```java
+@Test
+void testInitRGBbyHSL_Greyscale() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(170, 0, 127);
+    assertEquals(127, hslColor.getRed());
+    assertEquals(127, hslColor.getGreen());
+    assertEquals(127, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_SaturatedColor() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(85, 255, 127);
+    assertEquals(255, hslColor.getRed());
+    assertEquals(0, hslColor.getGreen());
+    assertEquals(127, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_LowSaturation() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(42, 63, 191);
+    assertEquals(191, hslColor.getRed());
+    assertEquals(191, hslColor.getGreen());
+    assertEquals(191, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_HighSaturation() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(127, 191, 127);
+    assertEquals(127, hslColor.getRed());
+    assertEquals(255, hslColor.getGreen());
+    assertEquals(127, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_LowLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(170, 127, 63);
+    assertEquals(63, hslColor.getRed());
+    assertEquals(63, hslColor.getGreen());
+    assertEquals(63, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_HighLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(170, 127, 191);
+    assertEquals(191, hslColor.getRed());
+    assertEquals(191, hslColor.getGreen());
+    assertEquals(191, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_RedHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 127);
+    assertEquals(255, hslColor.getRed());
+    assertEquals(0, hslColor.getGreen());
+    assertEquals(0, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_GreenHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(85, 255, 127);
+    assertEquals(0, hslColor.getRed());
+    assertEquals(255, hslColor.getGreen());
+    assertEquals(0, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_BlueHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(170, 255, 127);
+    assertEquals(0, hslColor.getRed());
+    assertEquals(0, hslColor.getGreen());
+    assertEquals(255, hslColor.getBlue());
+}
+
+@Test
+void testInitRGBbyHSL_ReverseColor() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 127);
+    hslColor.reverseColor();
+    assertEquals(127, hslColor.getRed());
+    assertEquals(0, hslColor.getGreen());
+    assertEquals(255, hslColor.getBlue());
+}
+```
+"
+chatcmpl-ATRFndB8ZiDF4MjiEor0PbsMkTjBa,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_2Test.java,5.854774475097656,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_2Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#getHue()} method.
+*/
+class HSLColor_2Test {","```java
+@Test
+void testGetHue_WhenInitializedWithRGB_ExpectCorrectHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 0, 0);
+    assertEquals(0, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenSetHueTo180_Expect180() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setHue(180);
+    assertEquals(180, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenSetHueTo300_Expect45() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setHue(300);
+    assertEquals(45, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenSetHueToNegative_Expect225() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setHue(-30);
+    assertEquals(225, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenSetHueToGreaterThanMax_Expect45() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setHue(300);
+    assertEquals(45, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenReverseColor_ExpectHueShifted180() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 0, 0);
+    hslColor.reverseColor();
+    assertEquals(180, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenGreyscale_ExpectUndefinedHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 255, 255);
+    assertEquals(170, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenBlendWithRed_ExpectHueShiftedTowardsRed() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(0, 255, 255);
+    hslColor.blend(255, 0, 0, 0.5f);
+    assertEquals(0, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenBrighten_ExpectHueUnchanged() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 0, 0);
+    hslColor.brighten(0.5f);
+    assertEquals(0, hslColor.getHue());
+}
+
+@Test
+void testGetHue_WhenReverseLight_ExpectHueUnchanged() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(255, 0, 0);
+    hslColor.reverseLight();
+    assertEquals(0, hslColor.getHue());
+}
+```
+```"
+chatcmpl-ATRGqHX7goGmF5N4s5eKKtcRwFvB4,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_3Test.java,5.928419351577759,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_3Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#setHue(int)} method.
+*/
+class HSLColor_3Test {","```java
+@Test
+void testSetHue_PositiveValue() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 255, 128);
+    color.setHue(100);
+    assertEquals(100, color.getHue());
+}
+
+@Test
+void testSetHue_NegativeValue() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 255, 128);
+    color.setHue(-50);
+    assertEquals(205, color.getHue());
+}
+
+@Test
+void testSetHue_ValueGreaterThanHSLMAX() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 255, 128);
+    color.setHue(300);
+    assertEquals(45, color.getHue());
+}
+
+@Test
+void testSetHue_ZeroValue() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 255, 128);
+    color.setHue(0);
+    assertEquals(0, color.getHue());
+}
+
+@Test
+void testSetHue_MaxValue() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 255, 128);
+    color.setHue(255);
+    assertEquals(255, color.getHue());
+}
+
+@Test
+void testSetHue_Greyscale() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 0, 128);
+    color.setHue(50);
+    assertEquals(170, color.getHue());
+}
+
+@Test
+void testSetHue_MaxSaturation() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 255, 128);
+    color.setSaturation(255);
+    color.setHue(100);
+    assertEquals(100, color.getHue());
+}
+
+@Test
+void testSetHue_MinSaturation() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 0, 128);
+    color.setHue(50);
+    assertEquals(170, color.getHue());
+}
+
+@Test
+void testSetHue_MaxLuminence() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 255, 255);
+    color.setHue(100);
+    assertEquals(100, color.getHue());
+}
+
+@Test
+void testSetHue_MinLuminence() {
+    HSLColor color = new HSLColor();
+    color.initRGBbyHSL(0, 255, 0);
+    color.setHue(50);
+    assertEquals(170, color.getHue());
+}
+```
+"
+chatcmpl-ATRHt31DqwlT6lShkUYVVlUfl7aWv,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_4Test.java,5.0179784297943115,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_4Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#getSaturation()} method.
+*/
+class HSLColor_4Test {","```java
+@Test
+void testSaturationZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 0, 100);
+    assertEquals(0, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationHalf() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 128, 100);
+    assertEquals(128, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 100);
+    assertEquals(255, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationNegative() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, -50, 100);
+    assertEquals(0, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationOverMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 300, 100);
+    assertEquals(255, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationChange() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 100, 100);
+    hslColor.setSaturation(200);
+    assertEquals(255, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationChangeToZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 100, 100);
+    hslColor.setSaturation(0);
+    assertEquals(0, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationChangeToNegative() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 100, 100);
+    hslColor.setSaturation(-50);
+    assertEquals(0, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationChangeOverMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 100, 100);
+    hslColor.setSaturation(300);
+    assertEquals(255, hslColor.getSaturation());
+}
+
+@Test
+void testSaturationChangeUnderZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 100, 100);
+    hslColor.setSaturation(-100);
+    assertEquals(0, hslColor.getSaturation());
+}
+```
+"
+chatcmpl-ATRIwlljtKnykRhZFq3j6M4TiujaO,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_5Test.java,4.742517471313477,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_5Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#setSaturation(int)} method.
+*/
+class HSLColor_5Test {","```java
+@Test
+void testSetSaturation_LowerBound() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(0);
+    assertEquals(0, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_UpperBound() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(255);
+    assertEquals(255, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_NegativeValue() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(-50);
+    assertEquals(0, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_AboveUpperBound() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(300);
+    assertEquals(255, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_MidValue() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(128);
+    assertEquals(128, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_ZeroValue() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(0);
+    assertEquals(0, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_MaxValue() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(255);
+    assertEquals(255, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_Incremental() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(100);
+    color.setSaturation(150);
+    assertEquals(150, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_Decremental() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(200);
+    color.setSaturation(100);
+    assertEquals(100, color.getSaturation());
+}
+
+@Test
+void testSetSaturation_RandomValue() {
+    HSLColor color = new HSLColor();
+    color.setSaturation(75);
+    assertEquals(75, color.getSaturation());
+}
+```
+"
+chatcmpl-ATRJzBJk0dEi6j0afxTo9VaggBu9W,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_6Test.java,8.343756437301636,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_6Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#getLuminence()} method.
+*/
+class HSLColor_6Test {","```java
+@Test
+void testGetLuminence_WhenInitializedWithRGB_ExpectCorrectLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(100, 150, 200);
+    assertEquals(170, hslColor.getLuminence());
+}
+
+@Test
+void testGetLuminence_WhenInitializedWithHSL_ExpectCorrectLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(120, 200, 100);
+    assertEquals(100, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_WhenValueWithinRange_ExpectLuminenceUpdated() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(200);
+    assertEquals(200, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_WhenValueBelowRange_ExpectLuminenceSetToMinimum() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(-50);
+    assertEquals(0, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_WhenValueAboveRange_ExpectLuminenceSetToMaximum() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(300);
+    assertEquals(255, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_WhenValueZero_ExpectLuminenceSetToZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(0);
+    assertEquals(0, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_WhenValueMax_ExpectLuminenceSetToMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(255);
+    assertEquals(255, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_WhenValueUnchanged_ExpectLuminenceUnchanged() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(150);
+    assertEquals(150, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_WhenValueNegative_ExpectLuminenceSetToZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(-100);
+    assertEquals(0, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_WhenValueExceedsMax_ExpectLuminenceSetToMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(300);
+    assertEquals(255, hslColor.getLuminence());
+}
+```
+"
+chatcmpl-ATRL2vx3UOHPdeDiaRyYAhuZqQAey,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_7Test.java,7.972989559173584,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_7Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#setLuminence(int)} method.
+*/
+class HSLColor_7Test {","```java
+@Test
+void testSetLuminence_LessThanZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(-10);
+    assertEquals(0, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_GreaterThanMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(300);
+    assertEquals(255, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_Zero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(0);
+    assertEquals(0, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_Max() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(255);
+    assertEquals(255, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_BetweenZeroAndMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(150);
+    assertEquals(150, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_NegativeValue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(-50);
+    assertEquals(0, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_ValueGreaterThanMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(300);
+    assertEquals(255, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_HighValue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(200);
+    assertEquals(200, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_LowValue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(50);
+    assertEquals(50, hslColor.getLuminence());
+}
+
+@Test
+void testSetLuminence_MaxValue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.setLuminence(255);
+    assertEquals(255, hslColor.getLuminence());
+}
+```
+"
+chatcmpl-ATRM50TytQJULmltrY2NwTIGtwzjb,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_8Test.java,4.84948992729187,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_8Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#getRed()} method.
+*/
+class HSLColor_8Test {","```java
+@Test
+void testGetRed() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 128);
+    assertEquals(255, hslColor.getRed());
+}
+
+@Test
+void testGetRed_Greyscale() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 0, 128);
+    assertEquals(128, hslColor.getRed());
+}
+
+@Test
+void testGetRed_MaxSaturation() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 0);
+    assertEquals(0, hslColor.getRed());
+}
+
+@Test
+void testGetRed_MaxLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 0, 255);
+    assertEquals(255, hslColor.getRed());
+}
+
+@Test
+void testGetRed_HueShift() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(85, 255, 128);
+    assertEquals(128, hslColor.getRed());
+}
+
+@Test
+void testGetRed_LuminenceShift() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 64);
+    assertEquals(191, hslColor.getRed());
+}
+
+@Test
+void testGetRed_SaturationShift() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 128, 128);
+    assertEquals(128, hslColor.getRed());
+}
+
+@Test
+void testGetRed_Blend() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 128);
+    hslColor.blend(128, 0, 255, 0.5f);
+    assertEquals(191, hslColor.getRed());
+}
+
+@Test
+void testGetRed_Brighten() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 128);
+    hslColor.brighten(0.5f);
+    assertEquals(191, hslColor.getRed());
+}
+```
+"
+chatcmpl-ATRN8CEpSnsefl2bJWeJPYWkTdYHQ,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_9Test.java,6.458103656768799,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_9Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#getGreen()} method.
+*/
+class HSLColor_9Test {","```java
+@Test
+void testGetGreen() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(120, 50, 75);
+    assertEquals(128, hslColor.getGreen(), ""Green value should be 128"");
+}
+
+@Test
+void testGetGreen_MaxSaturation() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(180, 255, 50);
+    assertEquals(0, hslColor.getGreen(), ""Green value should be 0 at maximum saturation"");
+}
+
+@Test
+void testGetGreen_MinSaturation() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(60, 0, 25);
+    assertEquals(64, hslColor.getGreen(), ""Green value should be 64 at minimum saturation"");
+}
+
+@Test
+void testGetGreen_MaxLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(240, 100, 255);
+    assertEquals(255, hslColor.getGreen(), ""Green value should be 255 at maximum luminence"");
+}
+
+@Test
+void testGetGreen_MinLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(300, 75, 0);
+    assertEquals(0, hslColor.getGreen(), ""Green value should be 0 at minimum luminence"");
+}
+
+@Test
+void testGetGreen_HueOutOfRange() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(300, 50, 50);
+    assertEquals(0, hslColor.getGreen(), ""Green value should be 0 for hue out of range"");
+}
+
+@Test
+void testGetGreen_SaturationOutOfRange() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(180, 300, 50);
+    assertEquals(0, hslColor.getGreen(), ""Green value should be 0 for saturation out of range"");
+}
+
+@Test
+void testGetGreen_LuminenceOutOfRange() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(240, 50, 300);
+    assertEquals(255, hslColor.getGreen(), ""Green value should be 255 for luminence out of range"");
+}
+
+@Test
+void testGetGreen_Blend() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(120, 50, 75);
+    hslColor.blend(0, 255, 0, 0.5f);
+    assertEquals(128, hslColor.getGreen(), ""Green value should be blended correctly"");
+}
+
+@Test
+void testGetGreen_ReverseColor() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(120, 50, 75);
+    hslColor.reverseColor();
+    assertEquals(128, hslColor.getGreen(), ""Green value should be reversed correctly"");
+}
+```
+```"
+chatcmpl-ATROB0mF5sXjxAE5zDia0P4sC8bwx,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_10Test.java,5.124467134475708,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_10Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#getBlue()} method.
+*/
+class HSLColor_10Test {","```java
+    @Test
+    void testGetBlue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(120, 200, 150);
+        assertEquals(150, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_MaxValue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(100, 150, 255);
+        assertEquals(255, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_MinValue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(50, 100, 0);
+        assertEquals(0, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_NegativeValue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(200, 100, -50);
+        assertEquals(0, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_HueZero() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(0, 100, 200);
+        assertEquals(200, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_SaturationZero() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(180, 0, 100);
+        assertEquals(100, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_LuminenceZero() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(240, 200, 0);
+        assertEquals(0, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_MaxValues() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(255, 255, 255);
+        assertEquals(255, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_Blend() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(100, 150, 200);
+        hslColor.blend(50, 100, 150, 0.5f);
+        assertEquals(175, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_BlendZeroPercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(100, 150, 200);
+        hslColor.blend(50, 100, 150, 0);
+        assertEquals(200, hslColor.getBlue());
+    }
+}
+```"
+chatcmpl-ATRPGj8G9FI3cavxFnKpyqcLD31Gc,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_11Test.java,12.862330198287964,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_11Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#reverseColor()} method.
+*/
+class HSLColor_11Test {","```java
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class HSLColor_11Test {
+
+    @Test
+    void testReverseColor() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 0, 0); // Red color
+        hslColor.reverseColor();
+        assertEquals(0, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithHueWrapAround() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 255, 0); // Green color
+        hslColor.reverseColor();
+        assertEquals(128, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithHueOverflow() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 0, 255); // Blue color
+        hslColor.reverseColor();
+        assertEquals(85, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithGreyscale() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(128, 128, 128); // Grey color
+        hslColor.reverseColor();
+        assertEquals(170, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithMaxHue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(255, 255, 255); // White color
+        hslColor.reverseColor();
+        assertEquals(128, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithMinHue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(0, 0, 0); // Black color
+        hslColor.reverseColor();
+        assertEquals(128, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithRandomColor() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200); // Random color
+        hslColor.reverseColor();
+        assertEquals(218, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithNegativeHue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(200, 100, 50); // Random color
+        hslColor.reverseColor();
+        assertEquals(78, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithHueOverflowNegative() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(50, 200, 100); // Random color
+        hslColor.reverseColor();
+        assertEquals(198, hslColor.getHue());
+    }
+
+    @Test
+    void testReverseColorWithZeroSaturation() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 100, 100); // Grey color
+        hslColor.reverseColor();
+        assertEquals(170, hslColor.getHue());
+    }
+}
+```
+"
+chatcmpl-ATRQHcCebgNmvk0dBC3vgwTPPXzXr,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_12Test.java,13.637783527374268,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_12Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#brighten(float)} method.
+*/
+class HSLColor_12Test {","```java
+class HSLColor_12Test {
+
+    @Test
+    void testBrighten_ZeroPercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0);
+        assertEquals(0, hslColor.getLuminence());
+    }
+
+    @Test
+    void testBrighten_PositivePercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0.5f);
+        assertTrue(hslColor.getLuminence() > 0 && hslColor.getLuminence() < 255);
+    }
+
+    @Test
+    void testBrighten_MaxPercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(1);
+        assertEquals(255, hslColor.getLuminence());
+    }
+
+    @Test
+    void testBrighten_NegativePercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(-0.5f);
+        assertTrue(hslColor.getLuminence() >= 0 && hslColor.getLuminence() < 150);
+    }
+
+    @Test
+    void testBrighten_LowerBound() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(-1);
+        assertEquals(0, hslColor.getLuminence());
+    }
+
+    @Test
+    void testBrighten_UpperBound() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(2);
+        assertEquals(255, hslColor.getLuminence());
+    }
+
+    @Test
+    void testBrighten_RoundingDown() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0.3f);
+        assertTrue(hslColor.getLuminence() > 0 && hslColor.getLuminence() < 255);
+    }
+
+    @Test
+    void testBrighten_RoundingUp() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0.7f);
+        assertTrue(hslColor.getLuminence() > 0 && hslColor.getLuminence() < 255);
+    }
+
+    @Test
+    void testBrighten_NoChange() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0.0f);
+        assertEquals(128, hslColor.getLuminence());
+    }
+}
+```
+```"
+chatcmpl-ATRRKIQSRlcLEcR7kEOlFtjFgzqGm,C:\Users\matti\OneDrive\Documenti\GitHub\JUnit_Tests_Generation_LLM\work2\HSLColor\HSLColorSourceCode\original\HSLColor_13Test.java,7.623702526092529,stop,"// HSLColor.java
+public class HSLColor {
+
+    private final static int HSLMAX = 255;
+
+    private final static int RGBMAX = 255;
+
+    private final static int UNDEFINED = 170;
+
+    private int pHue;
+
+    private int pSat;
+
+    private int pLum;
+
+    private int pRed;
+
+    private int pGreen;
+
+    private int pBlue;
+
+    public void initHSLbyRGB(int R, int G, int B) {
+        // sets Hue, Sat, Lum
+        int cMax;
+        int cMin;
+        int RDelta;
+        int GDelta;
+        int BDelta;
+        int cMinus;
+        int cPlus;
+        pRed = R;
+        pGreen = G;
+        pBlue = B;
+        //Set Max & MinColor Values
+        cMax = iMax(iMax(R, G), B);
+        cMin = iMin(iMin(R, G), B);
+        cMinus = cMax - cMin;
+        cPlus = cMax + cMin;
+        // Calculate luminescence (lightness)
+        pLum = ((cPlus * HSLMAX) + RGBMAX) / (2 * RGBMAX);
+        if (cMax == cMin) {
+            // greyscale
+            pSat = 0;
+            pHue = UNDEFINED;
+        } else {
+            // Calculate color saturation
+            if (pLum <= (HSLMAX / 2)) {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / cPlus);
+            } else {
+                pSat = (int) (((cMinus * HSLMAX) + 0.5) / (2 * RGBMAX - cPlus));
+            }
+            //Calculate hue
+            RDelta = (int) ((((cMax - R) * (HSLMAX / 6)) + 0.5) / cMinus);
+            GDelta = (int) ((((cMax - G) * (HSLMAX / 6)) + 0.5) / cMinus);
+            BDelta = (int) ((((cMax - B) * (HSLMAX / 6)) + 0.5) / cMinus);
+            if (cMax == R) {
+                pHue = BDelta - GDelta;
+            } else if (cMax == G) {
+                pHue = (HSLMAX / 3) + RDelta - BDelta;
+            } else if (cMax == B) {
+                pHue = ((2 * HSLMAX) / 3) + GDelta - RDelta;
+            }
+            if (pHue < 0) {
+                pHue = pHue + HSLMAX;
+            }
+        }
+    }
+
+    public void initRGBbyHSL(int H, int S, int L) {
+        int Magic1;
+        int Magic2;
+        pHue = H;
+        pLum = L;
+        pSat = S;
+        if (S == 0) {
+            //Greyscale
+            //luminescence: set to range
+            pRed = (L * RGBMAX) / HSLMAX;
+            pGreen = pRed;
+            pBlue = pRed;
+        } else {
+            if (L <= HSLMAX / 2) {
+                Magic2 = (L * (HSLMAX + S) + (HSLMAX / 2)) / (HSLMAX);
+            } else {
+                Magic2 = L + S - ((L * S) + (HSLMAX / 2)) / HSLMAX;
+            }
+            Magic1 = 2 * L - Magic2;
+            //get R, G, B; change units from HSLMAX range to RGBMAX range
+            pRed = (hueToRGB(Magic1, Magic2, H + (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pRed > RGBMAX) {
+                pRed = RGBMAX;
+            }
+            pGreen = (hueToRGB(Magic1, Magic2, H) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pGreen > RGBMAX) {
+                pGreen = RGBMAX;
+            }
+            pBlue = (hueToRGB(Magic1, Magic2, H - (HSLMAX / 3)) * RGBMAX + (HSLMAX / 2)) / HSLMAX;
+            if (pBlue > RGBMAX) {
+                pBlue = RGBMAX;
+            }
+        }
+    }
+
+    private int hueToRGB(int mag1, int mag2, int Hue) {
+        // check the range
+        if (Hue < 0) {
+            Hue = Hue + HSLMAX;
+        } else if (Hue > HSLMAX) {
+            Hue = Hue - HSLMAX;
+        }
+        if (Hue < (HSLMAX / 6))
+            return (mag1 + (((mag2 - mag1) * Hue + (HSLMAX / 12)) / (HSLMAX / 6)));
+        if (Hue < (HSLMAX / 2))
+            return mag2;
+        if (Hue < (HSLMAX * 2 / 3))
+            return (mag1 + (((mag2 - mag1) * ((HSLMAX * 2 / 3) - Hue) + (HSLMAX / 12)) / (HSLMAX / 6)));
+        return mag1;
+    }
+
+    private int iMax(int a, int b) {
+        if (a > b)
+            return a;
+        else
+            return b;
+    }
+
+    private int iMin(int a, int b) {
+        if (a < b)
+            return a;
+        else
+            return b;
+    }
+
+    private void greyscale() {
+        initRGBbyHSL(UNDEFINED, 0, pLum);
+    }
+
+    public int getHue() {
+        return pHue;
+    }
+
+    public void setHue(int iToValue) {
+        while (iToValue < 0) {
+            iToValue = HSLMAX + iToValue;
+        }
+        while (iToValue > HSLMAX) {
+            iToValue = iToValue - HSLMAX;
+        }
+        initRGBbyHSL(iToValue, pSat, pLum);
+    }
+
+    public int getSaturation() {
+        return pSat;
+    }
+
+    public void setSaturation(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, iToValue, pLum);
+    }
+
+    public int getLuminence() {
+        return pLum;
+    }
+
+    public void setLuminence(int iToValue) {
+        if (iToValue < 0) {
+            iToValue = 0;
+        } else if (iToValue > HSLMAX) {
+            iToValue = HSLMAX;
+        }
+        initRGBbyHSL(pHue, pSat, iToValue);
+    }
+
+    public int getRed() {
+        return pRed;
+    }
+
+    private void setRed(int iNewValue) {
+        initHSLbyRGB(iNewValue, pGreen, pBlue);
+    }
+
+    public int getGreen() {
+        return pGreen;
+    }
+
+    private void setGreen(int iNewValue) {
+        initHSLbyRGB(pRed, iNewValue, pBlue);
+    }
+
+    public int getBlue() {
+        return pBlue;
+    }
+
+    private void setBlue(int iNewValue) {
+        initHSLbyRGB(pRed, pGreen, iNewValue);
+    }
+
+    public void reverseColor() {
+        setHue(pHue + (HSLMAX / 2));
+    }
+
+    private void reverseLight() {
+        setLuminence(HSLMAX - pLum);
+    }
+
+    public void brighten(float fPercent) {
+        int L;
+        if (fPercent == 0) {
+            return;
+        }
+        L = (int) (pLum * fPercent);
+        if (L < 0)
+            L = 0;
+        if (L > HSLMAX)
+            L = HSLMAX;
+        setLuminence(L);
+    }
+
+    public void blend(int R, int G, int B, float fPercent) {
+        if (fPercent >= 1) {
+            initHSLbyRGB(R, G, B);
+            return;
+        }
+        if (fPercent <= 0)
+            return;
+        int newR = (int) ((R * fPercent) + (pRed * (1.0 - fPercent)));
+        int newG = (int) ((G * fPercent) + (pGreen * (1.0 - fPercent)));
+        int newB = (int) ((B * fPercent) + (pBlue * (1.0 - fPercent)));
+        initHSLbyRGB(newR, newG, newB);
+    }
+}
+","// HSLColor_13Test.java
+
+
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+* Test class of {@link HSLColor}.
+* It contains ten unit test cases for the {@link HSLColor#blend(int, int, int, float)} method.
+*/
+class HSLColor_13Test {","```java
+@Test
+void testBlend_WhenFPercentIsZero_ShouldNotChangeColor() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(100, 150, 200);
+    color.blend(50, 100, 150, 0);
+    assertEquals(100, color.getRed());
+    assertEquals(150, color.getGreen());
+    assertEquals(200, color.getBlue());
+}
+
+@Test
+void testBlend_WhenFPercentIsOne_ShouldSetToNewColor() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(100, 150, 200);
+    color.blend(50, 100, 150, 1);
+    assertEquals(50, color.getRed());
+    assertEquals(100, color.getGreen());
+    assertEquals(150, color.getBlue());
+}
+
+@Test
+void testBlend_WhenFPercentIsBetweenZeroAndOne_ShouldBlendColors() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(100, 150, 200);
+    color.blend(50, 100, 150, 0.5f);
+    assertEquals(75, color.getRed());
+    assertEquals(125, color.getGreen());
+    assertEquals(175, color.getBlue());
+}
+
+@Test
+void testBlend_WhenFPercentIsGreaterThanOne_ShouldSetToNewColor() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(100, 150, 200);
+    color.blend(50, 100, 150, 1.5f);
+    assertEquals(50, color.getRed());
+    assertEquals(100, color.getGreen());
+    assertEquals(150, color.getBlue());
+}
+
+@Test
+void testBlend_WhenFPercentIsNegative_ShouldNotChangeColor() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(100, 150, 200);
+    color.blend(50, 100, 150, -0.5f);
+    assertEquals(100, color.getRed());
+    assertEquals(150, color.getGreen());
+    assertEquals(200, color.getBlue());
+}
+
+@Test
+void testBlend_WhenFPercentIsZeroAndInitialColorIsBlack_ShouldNotChangeColor() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(0, 0, 0);
+    color.blend(50, 100, 150, 0);
+    assertEquals(0, color.getRed());
+    assertEquals(0, color.getGreen());
+    assertEquals(0, color.getBlue());
+}
+
+@Test
+void testBlend_WhenFPercentIsOneAndInitialColorIsWhite_ShouldSetToNewColor() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(255, 255, 255);
+    color.blend(50, 100, 150, 1);
+    assertEquals(50, color.getRed());
+    assertEquals(100, color.getGreen());
+    assertEquals(150, color.getBlue());
+}
+
+@Test
+void testBlend_WhenFPercentIsHalfAndInitialColorIsGrey_ShouldBlendColors() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(128, 128, 128);
+    color.blend(50, 100, 150, 0.5f);
+    assertEquals(89, color.getRed());
+    assertEquals(114, color.getGreen());
+    assertEquals(139, color.getBlue());
+}
+
+@Test
+void testBlend_WhenFPercentIsOneAndInitialColorIsRed_ShouldSetToNewColor() {
+    HSLColor color = new HSLColor();
+    color.initHSLbyRGB(255, 0, 0);
+    color.blend(50, 100, 150, 1);
+    assertEquals(50, color.getRed());
+    assertEquals(100, color.getGreen());
+    assertEquals(150, color.getBlue());
+}
+```
+"

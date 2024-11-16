@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_4Test.java
 
 
@@ -11,73 +10,77 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#getSaturation()} method.
 */
 class HSLColor_4Test {
+```java
     @Test
     void testGetSaturation_ZeroSaturation() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128); // Grey color
-        assertEquals(0, color.getSaturation(), "Saturation should be 0 for grey color");
+        color.initHSLbyRGB(128, 128, 128); // Grey color, should have zero saturation
+        assertEquals(0, color.getSaturation());
     }
 
     @Test
     void testGetSaturation_MaxSaturation() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0); // Pure red color
-        assertEquals(255, color.getSaturation(), "Saturation should be 255 for pure red color");
+        color.initHSLbyRGB(255, 0, 0); // Pure red, should have maximum saturation
+        assertEquals(255, color.getSaturation());
     }
 
     @Test
     void testGetSaturation_HalfSaturation() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(192, 64, 64); // A shade of red
-        assertTrue(color.getSaturation() > 0 && color.getSaturation() < 255, "Saturation should be between 0 and 255 for a shade of red");
+        color.initHSLbyRGB(192, 64, 64); // A shade of red with half saturation
+        assertTrue(color.getSaturation() > 0 && color.getSaturation() < 255);
     }
 
     @Test
-    void testGetSaturation_BlackColor() {
+    void testGetSaturation_BlueColor() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0); // Black color
-        assertEquals(0, color.getSaturation(), "Saturation should be 0 for black color");
+        color.initHSLbyRGB(0, 0, 255); // Pure blue, should have maximum saturation
+        assertEquals(255, color.getSaturation());
+    }
+
+    @Test
+    void testGetSaturation_GreenColor() {
+        HSLColor color = new HSLColor();
+        color.initHSLbyRGB(0, 255, 0); // Pure green, should have maximum saturation
+        assertEquals(255, color.getSaturation());
+    }
+
+    @Test
+    void testGetSaturation_YellowColor() {
+        HSLColor color = new HSLColor();
+        color.initHSLbyRGB(255, 255, 0); // Yellow, should have maximum saturation
+        assertEquals(255, color.getSaturation());
+    }
+
+    @Test
+    void testGetSaturation_CyanColor() {
+        HSLColor color = new HSLColor();
+        color.initHSLbyRGB(0, 255, 255); // Cyan, should have maximum saturation
+        assertEquals(255, color.getSaturation());
+    }
+
+    @Test
+    void testGetSaturation_MagentaColor() {
+        HSLColor color = new HSLColor();
+        color.initHSLbyRGB(255, 0, 255); // Magenta, should have maximum saturation
+        assertEquals(255, color.getSaturation());
     }
 
     @Test
     void testGetSaturation_WhiteColor() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 255); // White color
-        assertEquals(0, color.getSaturation(), "Saturation should be 0 for white color");
+        color.initHSLbyRGB(255, 255, 255); // White, should have zero saturation
+        assertEquals(0, color.getSaturation());
     }
 
     @Test
-    void testGetSaturation_MidGreyColor() {
+    void testGetSaturation_BlackColor() {
         HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128); // Mid grey color
-        assertEquals(0, color.getSaturation(), "Saturation should be 0 for mid grey color");
-    }
-
-    @Test
-    void testGetSaturation_LightGreyColor() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(192, 192, 192); // Light grey color
-        assertEquals(0, color.getSaturation(), "Saturation should be 0 for light grey color");
-    }
-
-    @Test
-    void testGetSaturation_DarkGreyColor() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(64, 64, 64); // Dark grey color
-        assertEquals(0, color.getSaturation(), "Saturation should be 0 for dark grey color");
-    }
-
-    @Test
-    void testGetSaturation_NonGreyColor() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200); // Non-grey color
-        assertTrue(color.getSaturation() > 0, "Saturation should be greater than 0 for non-grey color");
-    }
-
-    @Test
-    void testGetSaturation_AnotherNonGreyColor() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(50, 100, 150); // Another non-grey color
-        assertTrue(color.getSaturation() > 0, "Saturation should be greater than 0 for another non-grey color");
+        color.initHSLbyRGB(0, 0, 0); // Black, should have zero saturation
+        assertEquals(0, color.getSaturation());
     }
 }
+```
+
+This test class `HSLColor_4Test` contains ten unit test cases for the `getSaturation()` method of the `HSLColor` class. Each test case initializes an `HSLColor` object with specific RGB values and checks if the saturation value is as expected.

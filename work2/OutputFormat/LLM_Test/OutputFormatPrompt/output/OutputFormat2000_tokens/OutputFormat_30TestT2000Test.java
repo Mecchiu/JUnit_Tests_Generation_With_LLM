@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_30Test.java
 
 
@@ -11,95 +10,67 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#createCompactFormat()} method.
 */
 class OutputFormat_30Test {
-    /**
-     * Test case for verifying the default settings of the compact format.
-     */
+```java
     @Test
-    void testCreateCompactFormatDefaults() {
+    void testCreateCompactFormat_defaultIndent() {
         OutputFormat format = OutputFormat.createCompactFormat();
         assertNull(format.getIndent(), "Indent should be null for compact format");
+    }
+
+    @Test
+    void testCreateCompactFormat_noNewlines() {
+        OutputFormat format = OutputFormat.createCompactFormat();
         assertFalse(format.isNewlines(), "Newlines should be false for compact format");
+    }
+
+    @Test
+    void testCreateCompactFormat_trimText() {
+        OutputFormat format = OutputFormat.createCompactFormat();
         assertTrue(format.isTrimText(), "TrimText should be true for compact format");
     }
 
-    /**
-     * Test case for ensuring the compact format does not use XHTML.
-     */
     @Test
-    void testCreateCompactFormatXHTML() {
-        OutputFormat format = OutputFormat.createCompactFormat();
-        assertFalse(format.isXHTML(), "XHTML should be false for compact format");
-    }
-
-    /**
-     * Test case for ensuring the compact format does not pad text.
-     */
-    @Test
-    void testCreateCompactFormatPadText() {
+    void testCreateCompactFormat_padText() {
         OutputFormat format = OutputFormat.createCompactFormat();
         assertFalse(format.isPadText(), "PadText should be false for compact format");
     }
 
-    /**
-     * Test case for ensuring the compact format does not expand empty elements.
-     */
     @Test
-    void testCreateCompactFormatExpandEmptyElements() {
+    void testCreateCompactFormat_defaultEncoding() {
         OutputFormat format = OutputFormat.createCompactFormat();
-        assertFalse(format.isExpandEmptyElements(), "ExpandEmptyElements should be false for compact format");
+        assertEquals("UTF-8", format.getEncoding(), "Default encoding should be UTF-8");
     }
 
-    /**
-     * Test case for ensuring the compact format uses the default encoding.
-     */
     @Test
-    void testCreateCompactFormatEncoding() {
-        OutputFormat format = OutputFormat.createCompactFormat();
-        assertEquals("UTF-8", format.getEncoding(), "Encoding should be UTF-8 for compact format");
-    }
-
-    /**
-     * Test case for ensuring the compact format does not suppress the XML declaration.
-     */
-    @Test
-    void testCreateCompactFormatSuppressDeclaration() {
-        OutputFormat format = OutputFormat.createCompactFormat();
-        assertFalse(format.isSuppressDeclaration(), "SuppressDeclaration should be false for compact format");
-    }
-
-    /**
-     * Test case for ensuring the compact format does not omit encoding in the XML declaration.
-     */
-    @Test
-    void testCreateCompactFormatOmitEncoding() {
+    void testCreateCompactFormat_omitEncoding() {
         OutputFormat format = OutputFormat.createCompactFormat();
         assertFalse(format.isOmitEncoding(), "OmitEncoding should be false for compact format");
     }
 
-    /**
-     * Test case for ensuring the compact format uses the default line separator.
-     */
     @Test
-    void testCreateCompactFormatLineSeparator() {
+    void testCreateCompactFormat_suppressDeclaration() {
         OutputFormat format = OutputFormat.createCompactFormat();
-        assertEquals("\n", format.getLineSeparator(), "LineSeparator should be \\n for compact format");
+        assertFalse(format.isSuppressDeclaration(), "SuppressDeclaration should be false for compact format");
     }
 
-    /**
-     * Test case for ensuring the compact format uses the default attribute quote character.
-     */
     @Test
-    void testCreateCompactFormatAttributeQuoteCharacter() {
+    void testCreateCompactFormat_expandEmptyElements() {
         OutputFormat format = OutputFormat.createCompactFormat();
-        assertEquals('"', format.getAttributeQuoteCharacter(), "AttributeQuoteCharacter should be \" for compact format");
+        assertFalse(format.isExpandEmptyElements(), "ExpandEmptyElements should be false for compact format");
     }
 
-    /**
-     * Test case for ensuring the compact format does not set newLineAfterNTags.
-     */
     @Test
-    void testCreateCompactFormatNewLineAfterNTags() {
+    void testCreateCompactFormat_defaultLineSeparator() {
         OutputFormat format = OutputFormat.createCompactFormat();
-        assertEquals(0, format.getNewLineAfterNTags(), "NewLineAfterNTags should be 0 for compact format");
+        assertEquals("\n", format.getLineSeparator(), "Default line separator should be \\n");
+    }
+
+    @Test
+    void testCreateCompactFormat_defaultAttributeQuoteCharacter() {
+        OutputFormat format = OutputFormat.createCompactFormat();
+        assertEquals('"', format.getAttributeQuoteCharacter(), "Default attribute quote character should be \"");
     }
 }
+```
+
+This test class `OutputFormat_30Test` contains ten unit test cases for the `OutputFormat#createCompactFormat()` method. Each test case checks a specific property of the `OutputFormat` object to ensure it matches the expected behavior for a compact format.

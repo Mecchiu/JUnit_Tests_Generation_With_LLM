@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_22Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#isXHTML()} method.
 */
 class OutputFormat_22Test {
+```java
     /**
      * Test case for default value of isXHTML().
      * The default value should be false.
@@ -55,70 +55,67 @@ class OutputFormat_22Test {
     }
 
     /**
-     * Test case for isXHTML with pretty print format.
-     * The default pretty print format should have isXHTML as false.
+     * Test case for isXHTML with createPrettyPrint.
+     * The default value should be false.
      */
     @Test
-    void testPrettyPrintIsXHTML() {
+    void testCreatePrettyPrintIsXHTML() {
         OutputFormat format = OutputFormat.createPrettyPrint();
-        assertFalse(format.isXHTML(), "Pretty print format should have isXHTML as false");
+        assertFalse(format.isXHTML(), "isXHTML should be false in createPrettyPrint");
     }
 
     /**
-     * Test case for isXHTML with compact format.
-     * The default compact format should have isXHTML as false.
+     * Test case for isXHTML with createCompactFormat.
+     * The default value should be false.
      */
     @Test
-    void testCompactFormatIsXHTML() {
+    void testCreateCompactFormatIsXHTML() {
         OutputFormat format = OutputFormat.createCompactFormat();
-        assertFalse(format.isXHTML(), "Compact format should have isXHTML as false");
+        assertFalse(format.isXHTML(), "isXHTML should be false in createCompactFormat");
     }
 
     /**
-     * Test case for isXHTML after parsing options.
-     * The option "-xhtml" should set isXHTML to true.
+     * Test case for isXHTML after parsing options with -xhtml.
      */
     @Test
-    void testParseOptionsSetXHTML() {
+    void testParseOptionsXHTML() {
         OutputFormat format = new OutputFormat();
         String[] args = {"-xhtml"};
         format.parseOptions(args, 0);
-        assertTrue(format.isXHTML(), "isXHTML should be true after parsing '-xhtml' option");
+        assertTrue(format.isXHTML(), "isXHTML should be true after parsing -xhtml option");
     }
 
     /**
-     * Test case for isXHTML after parsing options without "-xhtml".
-     * The isXHTML should remain false if "-xhtml" is not present.
+     * Test case for isXHTML after parsing options without -xhtml.
      */
     @Test
     void testParseOptionsWithoutXHTML() {
         OutputFormat format = new OutputFormat();
-        String[] args = {"-indent", "4"};
+        String[] args = {"-indent", "  "};
         format.parseOptions(args, 0);
-        assertFalse(format.isXHTML(), "isXHTML should remain false if '-xhtml' is not present");
+        assertFalse(format.isXHTML(), "isXHTML should be false after parsing options without -xhtml");
     }
 
     /**
-     * Test case for isXHTML after parsing options with multiple arguments.
-     * The option "-xhtml" should set isXHTML to true even if other options are present.
+     * Test case for isXHTML after parsing options with multiple settings.
      */
     @Test
-    void testParseOptionsWithMultipleArguments() {
+    void testParseOptionsMultipleSettings() {
         OutputFormat format = new OutputFormat();
-        String[] args = {"-indent", "4", "-xhtml", "-newlines"};
+        String[] args = {"-indent", "  ", "-xhtml", "-newlines"};
         format.parseOptions(args, 0);
-        assertTrue(format.isXHTML(), "isXHTML should be true after parsing '-xhtml' option with other options");
+        assertTrue(format.isXHTML(), "isXHTML should be true after parsing options with -xhtml");
     }
 
     /**
-     * Test case for isXHTML after parsing options with invalid arguments.
-     * The isXHTML should remain false if invalid arguments are present.
+     * Test case for isXHTML after parsing options with invalid setting.
      */
     @Test
-    void testParseOptionsWithInvalidArguments() {
+    void testParseOptionsInvalidSetting() {
         OutputFormat format = new OutputFormat();
         String[] args = {"-invalidOption"};
         format.parseOptions(args, 0);
-        assertFalse(format.isXHTML(), "isXHTML should remain false if invalid arguments are present");
+        assertFalse(format.isXHTML(), "isXHTML should be false after parsing options with invalid setting");
     }
 }
+```

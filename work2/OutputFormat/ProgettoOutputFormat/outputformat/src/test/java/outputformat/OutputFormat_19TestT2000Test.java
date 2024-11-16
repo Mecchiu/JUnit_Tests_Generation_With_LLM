@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_19Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,106 +10,73 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setIndent(String)} method.
 */
 class OutputFormat_19Test {
-    /**
-     * Test case for setting a valid indent string.
-     */
-    @Test
-    void testSetIndentValid() {
-        OutputFormat format = new OutputFormat();
-        format.setIndent("    "); // 4 spaces
-        assertEquals("    ", format.getIndent());
-    }
-
-    /**
-     * Test case for setting an empty indent string.
-     * Expecting no indentation (null).
-     */
-    @Test
-    void testSetIndentEmpty() {
-        OutputFormat format = new OutputFormat();
-        format.setIndent("");
-        assertNull(format.getIndent());
-    }
-
-    /**
-     * Test case for setting a null indent string.
-     * Expecting no indentation (null).
-     */
     @Test
     void testSetIndentNull() {
         OutputFormat format = new OutputFormat();
         format.setIndent(null);
-        assertNull(format.getIndent());
+        assertNull(format.getIndent(), "Indent should be null when set to null");
     }
 
-    /**
-     * Test case for setting a single space indent string.
-     */
     @Test
-    void testSetIndentSingleSpace() {
+    void testSetIndentEmptyString() {
         OutputFormat format = new OutputFormat();
-        format.setIndent(" ");
-        assertEquals(" ", format.getIndent());
+        format.setIndent("");
+        assertNull(format.getIndent(), "Indent should be null when set to an empty string");
     }
 
-    /**
-     * Test case for setting a tab character as indent.
-     */
     @Test
-    void testSetIndentTab() {
+    void testSetIndentSpaces() {
+        OutputFormat format = new OutputFormat();
+        format.setIndent("    ");
+        assertEquals("    ", format.getIndent(), "Indent should be set to four spaces");
+    }
+
+    @Test
+    void testSetIndentTabs() {
         OutputFormat format = new OutputFormat();
         format.setIndent("\t");
-        assertEquals("\t", format.getIndent());
+        assertEquals("\t", format.getIndent(), "Indent should be set to a tab character");
     }
 
-    /**
-     * Test case for setting a mixed whitespace indent string.
-     */
     @Test
-    void testSetIndentMixedWhitespace() {
+    void testSetIndentMixed() {
         OutputFormat format = new OutputFormat();
         format.setIndent(" \t ");
-        assertEquals(" \t ", format.getIndent());
+        assertEquals(" \t ", format.getIndent(), "Indent should be set to mixed spaces and tabs");
     }
 
-    /**
-     * Test case for setting a long indent string.
-     */
-    @Test
-    void testSetIndentLongString() {
-        OutputFormat format = new OutputFormat();
-        String longIndent = "          "; // 10 spaces
-        format.setIndent(longIndent);
-        assertEquals(longIndent, format.getIndent());
-    }
-
-    /**
-     * Test case for setting a non-whitespace indent string.
-     */
     @Test
     void testSetIndentNonWhitespace() {
         OutputFormat format = new OutputFormat();
         format.setIndent("abc");
-        assertEquals("abc", format.getIndent());
+        assertEquals("abc", format.getIndent(), "Indent should be set to non-whitespace characters");
     }
 
-    /**
-     * Test case for setting a special character indent string.
-     */
     @Test
-    void testSetIndentSpecialCharacters() {
+    void testSetIndentStandardIndent() {
         OutputFormat format = new OutputFormat();
-        format.setIndent("!@#");
-        assertEquals("!@#", format.getIndent());
+        format.setIndent(OutputFormat.STANDARD_INDENT);
+        assertEquals(OutputFormat.STANDARD_INDENT, format.getIndent(), "Indent should be set to standard indent");
     }
 
-    /**
-     * Test case for setting a numeric character indent string.
-     */
     @Test
-    void testSetIndentNumericCharacters() {
+    void testSetIndentSizeZero() {
         OutputFormat format = new OutputFormat();
-        format.setIndent("123");
-        assertEquals("123", format.getIndent());
+        format.setIndentSize(0);
+        assertNull(format.getIndent(), "Indent should be null when indent size is zero");
+    }
+
+    @Test
+    void testSetIndentSizePositive() {
+        OutputFormat format = new OutputFormat();
+        format.setIndentSize(3);
+        assertEquals("   ", format.getIndent(), "Indent should be set to three spaces");
+    }
+
+    @Test
+    void testSetIndentSizeNegative() {
+        OutputFormat format = new OutputFormat();
+        format.setIndentSize(-1);
+        assertNull(format.getIndent(), "Indent should be null when indent size is negative");
     }
 }

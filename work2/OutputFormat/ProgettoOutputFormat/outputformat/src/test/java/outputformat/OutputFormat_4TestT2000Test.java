@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_4Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class OutputFormat_4Test {
     /**
      * Test case for default encoding.
+     * The default encoding should be "UTF-8".
      */
     @Test
     void testDefaultEncoding() {
@@ -21,7 +21,28 @@ class OutputFormat_4Test {
     }
 
     /**
+     * Test case for setting encoding to "ISO-8859-1".
+     */
+    @Test
+    void testSetEncodingISO88591() {
+        OutputFormat format = new OutputFormat();
+        format.setEncoding("ISO-8859-1");
+        assertEquals("ISO-8859-1", format.getEncoding());
+    }
+
+    /**
+     * Test case for setting encoding to "UTF-16".
+     */
+    @Test
+    void testSetEncodingUTF16() {
+        OutputFormat format = new OutputFormat();
+        format.setEncoding("UTF-16");
+        assertEquals("UTF-16", format.getEncoding());
+    }
+
+    /**
      * Test case for setting encoding to null.
+     * The encoding should remain unchanged.
      */
     @Test
     void testSetEncodingNull() {
@@ -31,83 +52,63 @@ class OutputFormat_4Test {
     }
 
     /**
-     * Test case for setting encoding to empty string.
+     * Test case for setting encoding to an empty string.
+     * The encoding should be set to an empty string.
      */
     @Test
-    void testSetEncodingEmpty() {
+    void testSetEncodingEmptyString() {
         OutputFormat format = new OutputFormat();
         format.setEncoding("");
         assertEquals("", format.getEncoding());
     }
 
     /**
-     * Test case for setting encoding to a valid value.
+     * Test case for setting encoding to "ASCII".
      */
     @Test
-    void testSetEncodingValid() {
-        OutputFormat format = new OutputFormat();
-        format.setEncoding("ISO-8859-1");
-        assertEquals("ISO-8859-1", format.getEncoding());
-    }
-
-    /**
-     * Test case for setting encoding to a different valid value.
-     */
-    @Test
-    void testSetEncodingValidDifferent() {
-        OutputFormat format = new OutputFormat();
-        format.setEncoding("UTF-16");
-        assertEquals("UTF-16", format.getEncoding());
-    }
-
-    /**
-     * Test case for setting encoding to a non-standard value.
-     */
-    @Test
-    void testSetEncodingNonStandard() {
+    void testSetEncodingASCII() {
         OutputFormat format = new OutputFormat();
         format.setEncoding("ASCII");
         assertEquals("ASCII", format.getEncoding());
     }
 
     /**
-     * Test case for setting encoding to a mixed case value.
+     * Test case for setting encoding to "UTF-32".
      */
     @Test
-    void testSetEncodingMixedCase() {
+    void testSetEncodingUTF32() {
         OutputFormat format = new OutputFormat();
-        format.setEncoding("uTf-8");
-        assertEquals("uTf-8", format.getEncoding());
+        format.setEncoding("UTF-32");
+        assertEquals("UTF-32", format.getEncoding());
     }
 
     /**
-     * Test case for setting encoding to a numeric value.
+     * Test case for setting encoding to "Windows-1252".
      */
     @Test
-    void testSetEncodingNumeric() {
+    void testSetEncodingWindows1252() {
         OutputFormat format = new OutputFormat();
-        format.setEncoding("12345");
-        assertEquals("12345", format.getEncoding());
+        format.setEncoding("Windows-1252");
+        assertEquals("Windows-1252", format.getEncoding());
     }
 
     /**
-     * Test case for setting encoding to a special character value.
+     * Test case for setting encoding to "GB2312".
      */
     @Test
-    void testSetEncodingSpecialCharacters() {
+    void testSetEncodingGB2312() {
         OutputFormat format = new OutputFormat();
-        format.setEncoding("!@#$%^&*()");
-        assertEquals("!@#$%^&*()", format.getEncoding());
+        format.setEncoding("GB2312");
+        assertEquals("GB2312", format.getEncoding());
     }
 
     /**
-     * Test case for setting encoding to a long string value.
+     * Test case for setting encoding to "Shift_JIS".
      */
     @Test
-    void testSetEncodingLongString() {
+    void testSetEncodingShiftJIS() {
         OutputFormat format = new OutputFormat();
-        String longEncoding = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        format.setEncoding(longEncoding);
-        assertEquals(longEncoding, format.getEncoding());
+        format.setEncoding("Shift_JIS");
+        assertEquals("Shift_JIS", format.getEncoding());
     }
 }

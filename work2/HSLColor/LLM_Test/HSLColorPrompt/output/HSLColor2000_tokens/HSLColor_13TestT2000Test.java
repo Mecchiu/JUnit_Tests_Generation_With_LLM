@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_13Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#blend(int, int, int, float)} method.
 */
 class HSLColor_13Test {
+```java
     @Test
     void testBlendFullPercent() {
         HSLColor color = new HSLColor();
@@ -111,3 +111,6 @@ class HSLColor_13Test {
         assertEquals(200, color.getBlue());
     }
 }
+```
+
+These test cases cover various scenarios for the `blend` method, including blending with full, zero, and fractional percentages, as well as blending with black, white, and the same color.

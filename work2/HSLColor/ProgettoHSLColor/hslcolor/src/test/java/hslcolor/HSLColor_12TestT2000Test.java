@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_12Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,64 +10,76 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#brighten(float)} method.
 */
 class HSLColor_12Test {
+
     @Test
-    void testBrightenZeroPercent() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        int originalLuminance = color.getLuminence();
-        color.brighten(0);
-        assertEquals(originalLuminance, color.getLuminence(), "Luminance should remain unchanged when brightening by 0%");
+    void testBrighten_ZeroPercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0);
+        assertEquals(0, hslColor.getLuminence());
     }
 
     @Test
-    void testBrightenHalfPercent() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        int originalLuminance = color.getLuminence();
-        color.brighten(0.5f);
-        assertEquals(originalLuminance / 2, color.getLuminence(), "Luminance should be halved when brightening by 50%");
+    void testBrighten_PositivePercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0.5f);
+        assertTrue(hslColor.getLuminence() > 0 && hslColor.getLuminence() < 255);
     }
 
     @Test
-    void testBrightenNegativePercent() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.brighten(-0.5f);
-        assertEquals(0, color.getLuminence(), "Luminance should be 0 when brightening by a negative percent");
+    void testBrighten_MaxPercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(1);
+        assertEquals(255, hslColor.getLuminence());
     }
 
     @Test
-    void testBrightenSmallPercent() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        int originalLuminance = color.getLuminence();
-        color.brighten(0.1f);
-        assertEquals((int)(originalLuminance * 0.1f), color.getLuminence(), "Luminance should be 10% of original when brightening by 10%");
+    void testBrighten_NegativePercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(-0.5f);
+        assertTrue(hslColor.getLuminence() >= 0 && hslColor.getLuminence() < 150);
     }
 
     @Test
-    void testBrightenLargePercent() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        int originalLuminance = color.getLuminence();
-        color.brighten(0.9f);
-        assertEquals((int)(originalLuminance * 0.9f), color.getLuminence(), "Luminance should be 90% of original when brightening by 90%");
+    void testBrighten_LowerBound() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(-1);
+        assertEquals(0, hslColor.getLuminence());
     }
 
     @Test
-    void testBrightenWithZeroLuminance() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0);
-        color.brighten(0.5f);
-        assertEquals(0, color.getLuminence(), "Luminance should remain 0 when brightening a black color");
+    void testBrighten_UpperBound() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(2);
+        assertEquals(255, hslColor.getLuminence());
     }
 
     @Test
-    void testBrightenWithMidLuminance() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128);
-        int originalLuminance = color.getLuminence();
-        color.brighten(0.5f);
-        assertEquals((int)(originalLuminance * 0.5f), color.getLuminence(), "Luminance should be halved when brightening a mid-gray color by 50%");
+    void testBrighten_RoundingDown() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0.3f);
+        assertTrue(hslColor.getLuminence() > 0 && hslColor.getLuminence() < 255);
+    }
+
+    @Test
+    void testBrighten_RoundingUp() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0.7f);
+        assertTrue(hslColor.getLuminence() > 0 && hslColor.getLuminence() < 255);
+    }
+
+    @Test
+    void testBrighten_NoChange() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initHSLbyRGB(100, 150, 200);
+        hslColor.brighten(0.0f);
+        assertEquals(128, hslColor.getLuminence());
     }
 }

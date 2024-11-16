@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_1Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,93 +10,94 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#initRGBbyHSL(int, int, int)} method.
 */
 class HSLColor_1Test {
-    @Test
-    void testInitRGBbyHSL_Greyscale() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(0, 0, 128);
-        assertEquals(128, color.getRed());
-        assertEquals(128, color.getGreen());
-        assertEquals(128, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_Greyscale() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(170, 0, 127);
+    assertEquals(127, hslColor.getRed());
+    assertEquals(127, hslColor.getGreen());
+    assertEquals(127, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_Red() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(0, 255, 128);
-        assertEquals(255, color.getRed());
-        assertEquals(0, color.getGreen());
-        assertEquals(0, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_SaturatedColor() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(85, 255, 127);
+    assertEquals(255, hslColor.getRed());
+    assertEquals(0, hslColor.getGreen());
+    assertEquals(127, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_Green() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(85, 255, 128);
-        assertEquals(0, color.getRed());
-        assertEquals(255, color.getGreen());
-        assertEquals(0, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_LowSaturation() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(42, 63, 191);
+    assertEquals(191, hslColor.getRed());
+    assertEquals(191, hslColor.getGreen());
+    assertEquals(191, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_Blue() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(170, 255, 128);
-        assertEquals(0, color.getRed());
-        assertEquals(0, color.getGreen());
-        assertEquals(255, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_HighSaturation() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(127, 191, 127);
+    assertEquals(127, hslColor.getRed());
+    assertEquals(255, hslColor.getGreen());
+    assertEquals(127, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_Yellow() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(42, 255, 128);
-        assertEquals(255, color.getRed());
-        assertEquals(255, color.getGreen());
-        assertEquals(0, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_LowLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(170, 127, 63);
+    assertEquals(63, hslColor.getRed());
+    assertEquals(63, hslColor.getGreen());
+    assertEquals(63, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_Cyan() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(127, 255, 128);
-        assertEquals(0, color.getRed());
-        assertEquals(255, color.getGreen());
-        assertEquals(255, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_HighLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(170, 127, 191);
+    assertEquals(191, hslColor.getRed());
+    assertEquals(191, hslColor.getGreen());
+    assertEquals(191, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_Magenta() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(213, 255, 128);
-        assertEquals(255, color.getRed());
-        assertEquals(0, color.getGreen());
-        assertEquals(255, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_RedHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 127);
+    assertEquals(255, hslColor.getRed());
+    assertEquals(0, hslColor.getGreen());
+    assertEquals(0, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_LightnessZero() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(0, 255, 0);
-        assertEquals(0, color.getRed());
-        assertEquals(0, color.getGreen());
-        assertEquals(0, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_GreenHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(85, 255, 127);
+    assertEquals(0, hslColor.getRed());
+    assertEquals(255, hslColor.getGreen());
+    assertEquals(0, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_LightnessFull() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(0, 255, 255);
-        assertEquals(255, color.getRed());
-        assertEquals(255, color.getGreen());
-        assertEquals(255, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_BlueHue() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(170, 255, 127);
+    assertEquals(0, hslColor.getRed());
+    assertEquals(0, hslColor.getGreen());
+    assertEquals(255, hslColor.getBlue());
+}
 
-    @Test
-    void testInitRGBbyHSL_SaturationZero() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(0, 0, 128);
-        assertEquals(128, color.getRed());
-        assertEquals(128, color.getGreen());
-        assertEquals(128, color.getBlue());
-    }
+@Test
+void testInitRGBbyHSL_ReverseColor() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(0, 255, 127);
+    hslColor.reverseColor();
+    assertEquals(127, hslColor.getRed());
+    assertEquals(0, hslColor.getGreen());
+    assertEquals(255, hslColor.getBlue());
+}
 }

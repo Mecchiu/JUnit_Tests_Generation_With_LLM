@@ -1,84 +1,71 @@
 // Calcolatrice_0Test.java
 
-
-
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
-* Test class of {@link Calcolatrice}.
-* It contains ten unit test cases for the {@link Calcolatrice#add(int, int)} method.
-*/
+ * Test class of {@link Calcolatrice}.
+ * It contains ten unit test cases for the {@link Calcolatrice#add(int, int)} method.
+ */
 class Calcolatrice_0Test {
-	@Test
-			void testAdd1() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(3, calcolatrice.add(1, 2));
-			}
 
-			@Test
-			void testAdd2() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(3, calcolatrice.add(2, 1));
-			}
+    @Test
+    void testAddPositiveNumbers() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(5, calcolatrice.add(2, 3));
+    }
 
-			@Test
-			void testAdd3() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(18, calcolatrice.add(20, -2));
-			}
+    @Test
+    void testAddNegativeNumbers() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(-5, calcolatrice.add(-2, -3));
+    }
 
-			@Test
-			void testAdd4() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(-1, calcolatrice.add(2, -3));
-			}
+    @Test
+    void testAddPositiveAndNegativeNumbers() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(1, calcolatrice.add(4, -3));
+    }
 
-			@Test
-			void testAdd5() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(1, calcolatrice.add(-2, 3));
-			}
+    @Test
+    void testAddZeroAndPositiveNumber() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(3, calcolatrice.add(0, 3));
+    }
 
-			@Test
-			void testAdd6() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(-18, calcolatrice.add(-20, 2));
-			}
+    @Test
+    void testAddZeroAndNegativeNumber() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(-3, calcolatrice.add(0, -3));
+    }
 
-			@Test
-			void testAdd7() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(-3, calcolatrice.add(-1, -2));
-			}
+    @Test
+    void testAddLargeNumbers() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(1000000000, calcolatrice.add(500000000, 500000000));
+    }
 
-			@Test
-			void testAdd8() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(-3, calcolatrice.add(-2, -1));
-			}
+    @Test
+    void testAddSmallNumbers() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(2, calcolatrice.add(1, 1));
+    }
 
-			@Test
-			void testAdd9() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(1, calcolatrice.add(1, 0));
-			}
+    @Test
+    void testAddNumberToItself() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(6, calcolatrice.add(3, 3));
+    }
 
-			@Test
-			void testAdd10() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(1, calcolatrice.add(0, 1));
-			}
+    @Test
+    void testAddWithMaxInt() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(Integer.MAX_VALUE, calcolatrice.add(0, Integer.MAX_VALUE));
+    }
 
-			@Test
-			void testAdd11() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(0, calcolatrice.add(0, 0));
-			}
-
-			@Test
-			void testAdd12() {
-				Calcolatrice calcolatrice = new Calcolatrice();
-				assertEquals(0, calcolatrice.add(1, -1));
-			}
+    @Test
+    void testAddWithMinInt() {
+        Calcolatrice calcolatrice = new Calcolatrice();
+        assertEquals(Integer.MIN_VALUE, calcolatrice.add(0, Integer.MIN_VALUE));
+    }
 }

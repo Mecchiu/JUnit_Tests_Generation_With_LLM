@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_8Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,70 +11,79 @@ import static org.junit.jupiter.api.Assertions.*;
 */
 class OutputFormat_8Test {
     @Test
-    void testSuppressDeclarationDefault() {
-        OutputFormat format = new OutputFormat();
-        assertFalse(format.isSuppressDeclaration(), "Default value of suppressDeclaration should be false");
-    }
-
-    @Test
     void testSetSuppressDeclarationTrue() {
         OutputFormat format = new OutputFormat();
         format.setSuppressDeclaration(true);
-        assertTrue(format.isSuppressDeclaration(), "suppressDeclaration should be true after setting it to true");
+        assertTrue(format.isSuppressDeclaration(), "The suppressDeclaration should be true.");
     }
 
     @Test
     void testSetSuppressDeclarationFalse() {
         OutputFormat format = new OutputFormat();
-        format.setSuppressDeclaration(true);
         format.setSuppressDeclaration(false);
-        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should be false after setting it to false");
+        assertFalse(format.isSuppressDeclaration(), "The suppressDeclaration should be false.");
     }
 
     @Test
-    void testSuppressDeclarationWithPrettyPrint() {
-        OutputFormat format = OutputFormat.createPrettyPrint();
-        assertFalse(format.isSuppressDeclaration(), "Pretty print format should have suppressDeclaration as false");
+    void testDefaultSuppressDeclaration() {
+        OutputFormat format = new OutputFormat();
+        assertFalse(format.isSuppressDeclaration(), "The default suppressDeclaration should be false.");
     }
 
     @Test
-    void testSuppressDeclarationWithCompactFormat() {
-        OutputFormat format = OutputFormat.createCompactFormat();
-        assertFalse(format.isSuppressDeclaration(), "Compact format should have suppressDeclaration as false");
-    }
-
-    @Test
-    void testSuppressDeclarationAfterMultipleChanges() {
+    void testSuppressDeclarationAfterToggle() {
         OutputFormat format = new OutputFormat();
         format.setSuppressDeclaration(true);
         format.setSuppressDeclaration(false);
-        format.setSuppressDeclaration(true);
-        assertTrue(format.isSuppressDeclaration(), "suppressDeclaration should be true after multiple changes");
+        assertFalse(format.isSuppressDeclaration(), "The suppressDeclaration should be false after toggling.");
     }
 
     @Test
-    void testSuppressDeclarationWithCustomIndent() {
-        OutputFormat format = new OutputFormat("    ");
-        assertFalse(format.isSuppressDeclaration(), "Custom indent should not affect suppressDeclaration default value");
-    }
-
-    @Test
-    void testSuppressDeclarationWithNewlines() {
-        OutputFormat format = new OutputFormat("    ", true);
-        assertFalse(format.isSuppressDeclaration(), "Newlines should not affect suppressDeclaration default value");
-    }
-
-    @Test
-    void testSuppressDeclarationWithEncoding() {
-        OutputFormat format = new OutputFormat("    ", true, "ISO-8859-1");
-        assertFalse(format.isSuppressDeclaration(), "Encoding should not affect suppressDeclaration default value");
-    }
-
-    @Test
-    void testSuppressDeclarationAfterParseOptions() {
+    void testSuppressDeclarationMultipleTrue() {
         OutputFormat format = new OutputFormat();
-        String[] args = {"-suppressDeclaration"};
-        format.parseOptions(args, 0);
-        assertTrue(format.isSuppressDeclaration(), "suppressDeclaration should be true after parsing options with -suppressDeclaration");
+        format.setSuppressDeclaration(true);
+        format.setSuppressDeclaration(true);
+        assertTrue(format.isSuppressDeclaration(), "The suppressDeclaration should remain true after setting it to true multiple times.");
+    }
+
+    @Test
+    void testSuppressDeclarationMultipleFalse() {
+        OutputFormat format = new OutputFormat();
+        format.setSuppressDeclaration(false);
+        format.setSuppressDeclaration(false);
+        assertFalse(format.isSuppressDeclaration(), "The suppressDeclaration should remain false after setting it to false multiple times.");
+    }
+
+    @Test
+    void testSuppressDeclarationWithOtherSettings() {
+        OutputFormat format = new OutputFormat();
+        format.setIndentSize(4);
+        format.setNewlines(true);
+        format.setSuppressDeclaration(true);
+        assertTrue(format.isSuppressDeclaration(), "The suppressDeclaration should be true even with other settings.");
+    }
+
+    @Test
+    void testSuppressDeclarationWithEncodingChange() {
+        OutputFormat format = new OutputFormat();
+        format.setEncoding("ISO-8859-1");
+        format.setSuppressDeclaration(true);
+        assertTrue(format.isSuppressDeclaration(), "The suppressDeclaration should be true even after changing encoding.");
+    }
+
+    @Test
+    void testSuppressDeclarationWithIndentChange() {
+        OutputFormat format = new OutputFormat();
+        format.setIndent("    ");
+        format.setSuppressDeclaration(true);
+        assertTrue(format.isSuppressDeclaration(), "The suppressDeclaration should be true even after changing indent.");
+    }
+
+    @Test
+    void testSuppressDeclarationWithNewLineAfterDeclaration() {
+        OutputFormat format = new OutputFormat();
+        format.setNewLineAfterDeclaration(false);
+        format.setSuppressDeclaration(true);
+        assertTrue(format.isSuppressDeclaration(), "The suppressDeclaration should be true even after changing newLineAfterDeclaration.");
     }
 }

@@ -1,6 +1,6 @@
-package timestamp;
 // TimeStamp_11Test.java
 
+package timestamp;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -27,7 +27,7 @@ class TimeStamp_11Test {
 
     /**
      * Test case for the toString method.
-     * It tests the conversion of the minimum possible NTP timestamp to its string representation.
+     * It tests the conversion of the minimum NTP timestamp to its string representation.
      */
     @Test
     void testToStringMinValue() {
@@ -37,7 +37,7 @@ class TimeStamp_11Test {
 
     /**
      * Test case for the toString method.
-     * It tests the conversion of the maximum possible NTP timestamp to its string representation.
+     * It tests the conversion of the maximum NTP timestamp to its string representation.
      */
     @Test
     void testToStringMaxValue() {
@@ -80,7 +80,7 @@ class TimeStamp_11Test {
      * It tests the conversion of a timestamp with leading zeros in seconds to its string representation.
      */
     @Test
-    void testToStringLeadingZerosInSeconds() {
+    void testToStringLeadingZerosSeconds() {
         TimeStamp ts = new TimeStamp(0x00001234_56789abcL);
         assertEquals("00001234.56789abc", ts.toString());
     }
@@ -90,7 +90,7 @@ class TimeStamp_11Test {
      * It tests the conversion of a timestamp with leading zeros in fraction to its string representation.
      */
     @Test
-    void testToStringLeadingZerosInFraction() {
+    void testToStringLeadingZerosFraction() {
         TimeStamp ts = new TimeStamp(0x12345678_00001234L);
         assertEquals("12345678.00001234", ts.toString());
     }

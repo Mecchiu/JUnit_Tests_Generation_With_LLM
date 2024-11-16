@@ -1,6 +1,6 @@
-package timestamp;
 // TimeStamp_7Test.java
 
+package timestamp;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -73,7 +73,7 @@ class TimeStamp_7Test {
         TimeStamp currentTime = TimeStamp.getCurrentTime();
         String timeString = currentTime.toString();
         assertNotNull(timeString, "Current time string should not be null");
-        assertTrue(timeString.matches("[0-9a-f]{8}\\.[0-9a-f]{8}"), "Current time string should match the expected format");
+        assertTrue(timeString.matches("[0-9a-f]{8}\\.[0-9a-f]{8}"), "Current time string should match expected format");
     }
 
     /**

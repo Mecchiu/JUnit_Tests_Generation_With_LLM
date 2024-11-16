@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_10Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,71 +11,74 @@ import static org.junit.jupiter.api.Assertions.*;
 */
 class HSLColor_10Test {
     @Test
-    void testGetBlue_initialValue() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 255);
-        assertEquals(255, color.getBlue());
+    void testGetBlue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(120, 200, 150);
+        assertEquals(150, hslColor.getBlue());
     }
 
     @Test
-    void testGetBlue_afterSettingRGB() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        assertEquals(200, color.getBlue());
+    void testGetBlue_MaxValue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(100, 150, 255);
+        assertEquals(255, hslColor.getBlue());
     }
 
     @Test
-    void testGetBlue_afterSettingHSL() {
-        HSLColor color = new HSLColor();
-        color.initRGBbyHSL(170, 255, 128);
-        assertEquals(128, color.getBlue());
+    void testGetBlue_MinValue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(50, 100, 0);
+        assertEquals(0, hslColor.getBlue());
     }
 
     @Test
-    void testGetBlue_afterChangingHue() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setHue(85);
-        assertEquals(200, color.getBlue());
+    void testGetBlue_NegativeValue() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(200, 100, -50);
+        assertEquals(0, hslColor.getBlue());
     }
 
     @Test
-    void testGetBlue_afterChangingSaturation() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setSaturation(128);
-        assertEquals(200, color.getBlue());
+    void testGetBlue_HueZero() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(0, 100, 200);
+        assertEquals(200, hslColor.getBlue());
     }
 
     @Test
-    void testGetBlue_afterChangingLuminance() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.setLuminence(128);
-        assertEquals(200, color.getBlue());
+    void testGetBlue_SaturationZero() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(180, 0, 100);
+        assertEquals(100, hslColor.getBlue());
     }
 
     @Test
-    void testGetBlue_afterReversingColor() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.reverseColor();
-        assertEquals(200, color.getBlue());
+    void testGetBlue_LuminenceZero() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(240, 200, 0);
+        assertEquals(0, hslColor.getBlue());
     }
 
     @Test
-    void testGetBlue_afterBrightening() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.brighten(1.2f);
-        assertEquals(200, color.getBlue());
+    void testGetBlue_MaxValues() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(255, 255, 255);
+        assertEquals(255, hslColor.getBlue());
     }
 
     @Test
-    void testGetBlue_afterBlending() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(100, 150, 200);
-        color.blend(50, 100, 150, 0.5f);
-        assertEquals(175, color.getBlue());
+    void testGetBlue_Blend() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(100, 150, 200);
+        hslColor.blend(50, 100, 150, 0.5f);
+        assertEquals(175, hslColor.getBlue());
+    }
+
+    @Test
+    void testGetBlue_BlendZeroPercent() {
+        HSLColor hslColor = new HSLColor();
+        hslColor.initRGBbyHSL(100, 150, 200);
+        hslColor.blend(50, 100, 150, 0);
+        assertEquals(200, hslColor.getBlue());
     }
 }

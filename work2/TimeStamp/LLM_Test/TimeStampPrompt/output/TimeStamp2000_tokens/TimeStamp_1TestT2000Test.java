@@ -1,4 +1,3 @@
-package timestamp;
 // TimeStamp_1Test.java
 
 
@@ -15,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link TimeStamp#getSeconds()} method.
 */
 class TimeStamp_1Test {
+```java
     /**
      * Test case for verifying the seconds part of the NTP timestamp.
      * This test checks if the getSeconds() method correctly extracts
@@ -25,8 +25,7 @@ class TimeStamp_1Test {
         // Test with a known NTP timestamp value
         long ntpTime = 0xc1a089bd00000000L; // Example NTP timestamp
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        long expectedSeconds = 0xc1a089bdL; // Expected seconds part
-        assertEquals(expectedSeconds, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect.");
+        assertEquals(0xc1a089bdL, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect.");
     }
 
     /**
@@ -61,72 +60,70 @@ class TimeStamp_1Test {
 
     /**
      * Test case for verifying the seconds part of the NTP timestamp
-     * when the timestamp has only fractional seconds.
-     */
-    @Test
-    void testGetSecondsFractionOnly() {
-        long ntpTime = 0x00000000fc904f6dL; // Only fractional part
-        TimeStamp timeStamp = new TimeStamp(ntpTime);
-        assertEquals(0L, timeStamp.getSeconds(), "The seconds part of the NTP timestamp should be zero when only fractional part is present.");
-    }
-
-    /**
-     * Test case for verifying the seconds part of the NTP timestamp
-     * when the timestamp has both seconds and fractional seconds.
-     */
-    @Test
-    void testGetSecondsWithFraction() {
-        long ntpTime = 0xc1a089bd.fc904f6dL; // Example NTP timestamp with fraction
-        TimeStamp timeStamp = new TimeStamp(ntpTime);
-        long expectedSeconds = 0xc1a089bdL; // Expected seconds part
-        assertEquals(expectedSeconds, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect when fraction is present.");
-    }
-
-    /**
-     * Test case for verifying the seconds part of the NTP timestamp
-     * when the timestamp is negative.
-     */
-    @Test
-    void testGetSecondsNegative() {
-        long ntpTime = -0x1a089bd00000000L; // Negative NTP timestamp
-        TimeStamp timeStamp = new TimeStamp(ntpTime);
-        long expectedSeconds = 0xe5f97643L; // Expected seconds part after conversion
-        assertEquals(expectedSeconds, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect for negative value.");
-    }
-
-    /**
-     * Test case for verifying the seconds part of the NTP timestamp
      * when the timestamp is a random value.
      */
     @Test
     void testGetSecondsRandomValue() {
-        long ntpTime = 0x123456789abcdef0L; // Random NTP timestamp
+        long ntpTime = 0x1234567800000000L;
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        long expectedSeconds = 0x12345678L; // Expected seconds part
-        assertEquals(expectedSeconds, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect for random value.");
+        assertEquals(0x12345678L, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect for random value.");
     }
 
     /**
      * Test case for verifying the seconds part of the NTP timestamp
-     * when the timestamp is a large positive value.
+     * when the timestamp is a known value with fractional seconds.
      */
     @Test
-    void testGetSecondsLargePositive() {
-        long ntpTime = 0x7fffffffffffffffL; // Large positive NTP timestamp
+    void testGetSecondsWithFraction() {
+        long ntpTime = 0xc1a089bd.fc904f6dL;
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        long expectedSeconds = 0x7fffffffL; // Expected seconds part
-        assertEquals(expectedSeconds, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect for large positive value.");
+        assertEquals(0xc1a089bdL, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect with fraction.");
     }
 
     /**
      * Test case for verifying the seconds part of the NTP timestamp
-     * when the timestamp is a large negative value.
+     * when the timestamp is a known value with only fractional seconds.
      */
     @Test
-    void testGetSecondsLargeNegative() {
-        long ntpTime = 0x8000000000000001L; // Large negative NTP timestamp
+    void testGetSecondsOnlyFraction() {
+        long ntpTime = 0x00000000.fc904f6dL;
         TimeStamp timeStamp = new TimeStamp(ntpTime);
-        long expectedSeconds = 0x80000000L; // Expected seconds part
-        assertEquals(expectedSeconds, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect for large negative value.");
+        assertEquals(0x00000000L, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect with only fraction.");
+    }
+
+    /**
+     * Test case for verifying the seconds part of the NTP timestamp
+     * when the timestamp is a known value with no fractional seconds.
+     */
+    @Test
+    void testGetSecondsNoFraction() {
+        long ntpTime = 0xc1a089bd00000000L;
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        assertEquals(0xc1a089bdL, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect with no fraction.");
+    }
+
+    /**
+     * Test case for verifying the seconds part of the NTP timestamp
+     * when the timestamp is a known value with maximum fractional seconds.
+     */
+    @Test
+    void testGetSecondsMaxFraction() {
+        long ntpTime = 0xc1a089bd.ffffffffL;
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        assertEquals(0xc1a089bdL, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect with max fraction.");
+    }
+
+    /**
+     * Test case for verifying the seconds part of the NTP timestamp
+     * when the timestamp is a known value with minimum fractional seconds.
+     */
+    @Test
+    void testGetSecondsMinFraction() {
+        long ntpTime = 0xc1a089bd.00000001L;
+        TimeStamp timeStamp = new TimeStamp(ntpTime);
+        assertEquals(0xc1a089bdL, timeStamp.getSeconds(), "The seconds part of the NTP timestamp is incorrect with min fraction.");
     }
 }
+```
+
+This test class `TimeStamp_1Test` contains ten unit test cases for the `getSeconds()` method of the `TimeStamp` class. Each test case checks a different scenario to ensure that the method correctly extracts the high-order 32 bits representing the seconds from the NTP timestamp.

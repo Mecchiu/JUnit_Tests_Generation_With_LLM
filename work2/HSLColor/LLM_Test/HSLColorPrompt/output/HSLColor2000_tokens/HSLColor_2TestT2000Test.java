@@ -1,4 +1,3 @@
-package hslcolor;
 // HSLColor_2Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#getHue()} method.
 */
 class HSLColor_2Test {
+```java
     @Test
     void testGetHue_initialValue() {
         HSLColor color = new HSLColor();
@@ -39,8 +39,8 @@ class HSLColor_2Test {
     void testGetHue_wrapAroundNegative() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(255, 0, 0); // Red
-        color.setHue(-30);
-        assertEquals(225, color.getHue());
+        color.setHue(-85); // Wrap around
+        assertEquals(170, color.getHue());
     }
 
     @Test
@@ -72,16 +72,19 @@ class HSLColor_2Test {
     }
 
     @Test
-    void testGetHue_halfSaturation() {
+    void testGetHue_midSaturation() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(128, 255, 128); // Light Green
         assertEquals(85, color.getHue());
     }
 
     @Test
-    void testGetHue_halfLightness() {
+    void testGetHue_midLightness() {
         HSLColor color = new HSLColor();
         color.initHSLbyRGB(128, 0, 0); // Dark Red
         assertEquals(0, color.getHue());
     }
 }
+```
+
+This test class `HSLColor_2Test` contains ten unit test cases for the `getHue()` method of the `HSLColor` class. Each test case checks different scenarios, such as initial values, setting new values, handling wrap-around, and dealing with greyscale, full saturation, and lightness.

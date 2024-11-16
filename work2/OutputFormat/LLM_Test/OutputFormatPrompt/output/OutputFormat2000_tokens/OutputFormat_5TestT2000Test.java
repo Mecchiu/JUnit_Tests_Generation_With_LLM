@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_5Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setEncoding(String)} method.
 */
 class OutputFormat_5Test {
+```java
     /**
      * Test case for setting a valid encoding.
      */
@@ -46,47 +46,13 @@ class OutputFormat_5Test {
     }
 
     /**
-     * Test case for setting a valid encoding after setting a null encoding.
-     */
-    @Test
-    void testSetEncodingAfterNull() {
-        OutputFormat format = new OutputFormat();
-        format.setEncoding(null);
-        format.setEncoding("UTF-16");
-        assertEquals("UTF-16", format.getEncoding());
-    }
-
-    /**
-     * Test case for setting a valid encoding after setting an empty string.
-     */
-    @Test
-    void testSetEncodingAfterEmptyString() {
-        OutputFormat format = new OutputFormat();
-        format.setEncoding("");
-        format.setEncoding("UTF-16");
-        assertEquals("UTF-16", format.getEncoding());
-    }
-
-    /**
-     * Test case for setting a valid encoding multiple times.
-     */
-    @Test
-    void testSetEncodingMultipleTimes() {
-        OutputFormat format = new OutputFormat();
-        format.setEncoding("ISO-8859-1");
-        assertEquals("ISO-8859-1", format.getEncoding());
-        format.setEncoding("UTF-16");
-        assertEquals("UTF-16", format.getEncoding());
-    }
-
-    /**
      * Test case for setting a valid encoding with special characters.
      */
     @Test
     void testSetEncodingSpecialCharacters() {
         OutputFormat format = new OutputFormat();
-        format.setEncoding("UTF-8@123");
-        assertEquals("UTF-8@123", format.getEncoding());
+        format.setEncoding("UTF-16");
+        assertEquals("UTF-16", format.getEncoding());
     }
 
     /**
@@ -95,8 +61,8 @@ class OutputFormat_5Test {
     @Test
     void testSetEncodingWithNumbers() {
         OutputFormat format = new OutputFormat();
-        format.setEncoding("UTF-8-2021");
-        assertEquals("UTF-8-2021", format.getEncoding());
+        format.setEncoding("ISO-8859-15");
+        assertEquals("ISO-8859-15", format.getEncoding());
     }
 
     /**
@@ -111,11 +77,45 @@ class OutputFormat_5Test {
 
     /**
      * Test case for setting a valid encoding with spaces.
+     * The encoding should be set correctly.
      */
     @Test
     void testSetEncodingWithSpaces() {
         OutputFormat format = new OutputFormat();
-        format.setEncoding("UTF 8");
-        assertEquals("UTF 8", format.getEncoding());
+        format.setEncoding(" UTF-8 ");
+        assertEquals(" UTF-8 ", format.getEncoding());
+    }
+
+    /**
+     * Test case for setting a valid encoding with dashes.
+     */
+    @Test
+    void testSetEncodingWithDashes() {
+        OutputFormat format = new OutputFormat();
+        format.setEncoding("ISO-2022-JP");
+        assertEquals("ISO-2022-JP", format.getEncoding());
+    }
+
+    /**
+     * Test case for setting a valid encoding with underscores.
+     */
+    @Test
+    void testSetEncodingWithUnderscores() {
+        OutputFormat format = new OutputFormat();
+        format.setEncoding("ISO_8859_1");
+        assertEquals("ISO_8859_1", format.getEncoding());
+    }
+
+    /**
+     * Test case for setting a valid encoding with dots.
+     */
+    @Test
+    void testSetEncodingWithDots() {
+        OutputFormat format = new OutputFormat();
+        format.setEncoding("ISO.8859.1");
+        assertEquals("ISO.8859.1", format.getEncoding());
     }
 }
+```
+
+This test class `OutputFormat_5Test` contains ten unit test cases for the `setEncoding(String)` method of the `OutputFormat` class. Each test case checks a different scenario for setting the encoding, including valid encodings, null, empty strings, and encodings with special characters, numbers, mixed case, spaces, dashes, underscores, and dots.

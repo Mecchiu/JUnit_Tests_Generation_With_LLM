@@ -1,6 +1,6 @@
-package timestamp;
 // TimeStamp_12Test.java
 
+package timestamp;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -16,102 +16,113 @@ import static org.junit.jupiter.api.Assertions.*;
 */
 class TimeStamp_12Test {
     /**
-     * Test case for converting a known NTP timestamp to its string representation.
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly converts a known NTP timestamp
+     * to its expected string representation.
      */
     @Test
     void testToStringKnownValue() {
-        long ntpTime = 0xc1a089bd_fc904f6dL;
+        long ntpTime = 0xc1a089bd_fc904f6dL; // Example NTP timestamp
         String expected = "c1a089bd.fc904f6d";
         assertEquals(expected, TimeStamp.toString(ntpTime));
     }
 
     /**
-     * Test case for converting zero NTP timestamp to its string representation.
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles the minimum possible NTP timestamp.
      */
     @Test
-    void testToStringZeroValue() {
-        long ntpTime = 0x00000000_00000000L;
+    void testToStringMinValue() {
+        long ntpTime = 0x00000000_00000000L; // Minimum NTP timestamp
         String expected = "00000000.00000000";
         assertEquals(expected, TimeStamp.toString(ntpTime));
     }
 
     /**
-     * Test case for converting maximum NTP timestamp to its string representation.
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles the maximum possible NTP timestamp.
      */
     @Test
     void testToStringMaxValue() {
-        long ntpTime = 0xffffffff_ffffffffL;
+        long ntpTime = 0xffffffff_ffffffffL; // Maximum NTP timestamp
         String expected = "ffffffff.ffffffff";
         assertEquals(expected, TimeStamp.toString(ntpTime));
     }
 
     /**
-     * Test case for converting minimum NTP timestamp to its string representation.
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles a timestamp with only seconds.
      */
     @Test
-    void testToStringMinValue() {
-        long ntpTime = 0x00000000_00000001L;
-        String expected = "00000000.00000001";
-        assertEquals(expected, TimeStamp.toString(ntpTime));
-    }
-
-    /**
-     * Test case for converting a random NTP timestamp to its string representation.
-     */
-    @Test
-    void testToStringRandomValue() {
-        long ntpTime = 0x12345678_9abcdef0L;
-        String expected = "12345678.9abcdef0";
-        assertEquals(expected, TimeStamp.toString(ntpTime));
-    }
-
-    /**
-     * Test case for converting a timestamp with only fractional part.
-     */
-    @Test
-    void testToStringFractionOnly() {
-        long ntpTime = 0x00000000_12345678L;
-        String expected = "00000000.12345678";
-        assertEquals(expected, TimeStamp.toString(ntpTime));
-    }
-
-    /**
-     * Test case for converting a timestamp with only seconds part.
-     */
-    @Test
-    void testToStringSecondsOnly() {
-        long ntpTime = 0x12345678_00000000L;
+    void testToStringOnlySeconds() {
+        long ntpTime = 0x12345678_00000000L; // NTP timestamp with only seconds
         String expected = "12345678.00000000";
         assertEquals(expected, TimeStamp.toString(ntpTime));
     }
 
     /**
-     * Test case for converting a timestamp with alternating bits.
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles a timestamp with only fractional seconds.
      */
     @Test
-    void testToStringAlternatingBits() {
-        long ntpTime = 0xaaaaaaaa_55555555L;
-        String expected = "aaaaaaaa.55555555";
+    void testToStringOnlyFraction() {
+        long ntpTime = 0x00000000_12345678L; // NTP timestamp with only fractional seconds
+        String expected = "00000000.12345678";
         assertEquals(expected, TimeStamp.toString(ntpTime));
     }
 
     /**
-     * Test case for converting a timestamp with all bits set in seconds part.
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles a timestamp with both seconds and fractional seconds.
      */
     @Test
-    void testToStringAllBitsSeconds() {
-        long ntpTime = 0xffffffff_00000000L;
-        String expected = "ffffffff.00000000";
+    void testToStringSecondsAndFraction() {
+        long ntpTime = 0xabcdef12_34567890L; // NTP timestamp with both seconds and fractional seconds
+        String expected = "abcdef12.34567890";
         assertEquals(expected, TimeStamp.toString(ntpTime));
     }
 
     /**
-     * Test case for converting a timestamp with all bits set in fractional part.
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles a timestamp with leading zeros in seconds.
      */
     @Test
-    void testToStringAllBitsFraction() {
-        long ntpTime = 0x00000000_ffffffffL;
-        String expected = "00000000.ffffffff";
+    void testToStringLeadingZerosSeconds() {
+        long ntpTime = 0x00001234_56789abcL; // NTP timestamp with leading zeros in seconds
+        String expected = "00001234.56789abc";
+        assertEquals(expected, TimeStamp.toString(ntpTime));
+    }
+
+    /**
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles a timestamp with leading zeros in fraction.
+     */
+    @Test
+    void testToStringLeadingZerosFraction() {
+        long ntpTime = 0x12345678_00000abcL; // NTP timestamp with leading zeros in fraction
+        String expected = "12345678.00000abc";
+        assertEquals(expected, TimeStamp.toString(ntpTime));
+    }
+
+    /**
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles a timestamp with all zeros.
+     */
+    @Test
+    void testToStringAllZeros() {
+        long ntpTime = 0x00000000_00000000L; // NTP timestamp with all zeros
+        String expected = "00000000.00000000";
+        assertEquals(expected, TimeStamp.toString(ntpTime));
+    }
+
+    /**
+     * Test case for the toString(long) method.
+     * This test checks if the method correctly handles a timestamp with all ones.
+     */
+    @Test
+    void testToStringAllOnes() {
+        long ntpTime = 0xffffffff_ffffffffL; // NTP timestamp with all ones
+        String expected = "ffffffff.ffffffff";
         assertEquals(expected, TimeStamp.toString(ntpTime));
     }
 }

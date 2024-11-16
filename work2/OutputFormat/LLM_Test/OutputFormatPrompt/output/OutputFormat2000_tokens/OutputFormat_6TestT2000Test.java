@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_6Test.java
 
 
@@ -11,14 +10,14 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#isOmitEncoding()} method.
 */
 class OutputFormat_6Test {
+```java
     /**
      * Test case for default value of omitEncoding.
-     * The default value should be false.
      */
     @Test
     void testDefaultOmitEncoding() {
         OutputFormat format = new OutputFormat();
-        assertFalse(format.isOmitEncoding(), "Default omitEncoding should be false");
+        assertFalse(format.isOmitEncoding(), "Default value of omitEncoding should be false");
     }
 
     /**
@@ -56,30 +55,27 @@ class OutputFormat_6Test {
 
     /**
      * Test case for omitEncoding with createPrettyPrint.
-     * The omitEncoding should remain false.
      */
     @Test
     void testOmitEncodingWithPrettyPrint() {
         OutputFormat format = OutputFormat.createPrettyPrint();
-        assertFalse(format.isOmitEncoding(), "omitEncoding should be false with pretty print format");
+        assertFalse(format.isOmitEncoding(), "omitEncoding should be false in pretty print format");
     }
 
     /**
      * Test case for omitEncoding with createCompactFormat.
-     * The omitEncoding should remain false.
      */
     @Test
     void testOmitEncodingWithCompactFormat() {
         OutputFormat format = OutputFormat.createCompactFormat();
-        assertFalse(format.isOmitEncoding(), "omitEncoding should be false with compact format");
+        assertFalse(format.isOmitEncoding(), "omitEncoding should be false in compact format");
     }
 
     /**
      * Test case for omitEncoding after parsing options.
-     * The omitEncoding should be true if -omitEncoding is passed.
      */
     @Test
-    void testOmitEncodingAfterParsingOptions() {
+    void testOmitEncodingAfterParseOptions() {
         OutputFormat format = new OutputFormat();
         String[] args = {"-omitEncoding"};
         format.parseOptions(args, 0);
@@ -87,32 +83,18 @@ class OutputFormat_6Test {
     }
 
     /**
-     * Test case for omitEncoding after parsing options without -omitEncoding.
-     * The omitEncoding should remain false.
-     */
-    @Test
-    void testOmitEncodingAfterParsingOptionsWithoutOmitEncoding() {
-        OutputFormat format = new OutputFormat();
-        String[] args = {"-indent", "4"};
-        format.parseOptions(args, 0);
-        assertFalse(format.isOmitEncoding(), "omitEncoding should be false after parsing options without -omitEncoding");
-    }
-
-    /**
      * Test case for omitEncoding with invalid options.
-     * The omitEncoding should remain false.
      */
     @Test
     void testOmitEncodingWithInvalidOptions() {
         OutputFormat format = new OutputFormat();
         String[] args = {"-invalidOption"};
         format.parseOptions(args, 0);
-        assertFalse(format.isOmitEncoding(), "omitEncoding should be false after parsing invalid options");
+        assertFalse(format.isOmitEncoding(), "omitEncoding should remain false after parsing invalid options");
     }
 
     /**
      * Test case for omitEncoding with mixed valid and invalid options.
-     * The omitEncoding should be true if -omitEncoding is included.
      */
     @Test
     void testOmitEncodingWithMixedOptions() {
@@ -121,4 +103,16 @@ class OutputFormat_6Test {
         format.parseOptions(args, 0);
         assertTrue(format.isOmitEncoding(), "omitEncoding should be true after parsing mixed options with -omitEncoding");
     }
+
+    /**
+     * Test case for omitEncoding with no options.
+     */
+    @Test
+    void testOmitEncodingWithNoOptions() {
+        OutputFormat format = new OutputFormat();
+        String[] args = {};
+        format.parseOptions(args, 0);
+        assertFalse(format.isOmitEncoding(), "omitEncoding should remain false with no options");
+    }
 }
+```

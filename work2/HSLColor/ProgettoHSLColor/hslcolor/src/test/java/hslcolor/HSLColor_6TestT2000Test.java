@@ -1,7 +1,6 @@
-package hslcolor;
 // HSLColor_6Test.java
 
-
+package hslcolor;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,73 +10,81 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link HSLColor#getLuminence()} method.
 */
 class HSLColor_6Test {
-    @Test
-    void testGetLuminenceForBlack() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 0);
-        assertEquals(0, color.getLuminence(), "Luminance for black should be 0");
-    }
+@Test
+void testGetLuminence_WhenInitializedWithRGB_ExpectCorrectLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(100, 150, 200);
+    assertEquals(170, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForWhite() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 255);
-        assertEquals(255, color.getLuminence(), "Luminance for white should be 255");
-    }
+@Test
+void testGetLuminence_WhenInitializedWithHSL_ExpectCorrectLuminence() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(120, 200, 100);
+    assertEquals(100, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForRed() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 0);
-        assertEquals(128, color.getLuminence(), "Luminance for red should be 128");
-    }
+@Test
+void testSetLuminence_WhenValueWithinRange_ExpectLuminenceUpdated() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(200);
+    assertEquals(200, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForGreen() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 0);
-        assertEquals(128, color.getLuminence(), "Luminance for green should be 128");
-    }
+@Test
+void testSetLuminence_WhenValueBelowRange_ExpectLuminenceSetToMinimum() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(-50);
+    assertEquals(0, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForBlue() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 0, 255);
-        assertEquals(128, color.getLuminence(), "Luminance for blue should be 128");
-    }
+@Test
+void testSetLuminence_WhenValueAboveRange_ExpectLuminenceSetToMaximum() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(300);
+    assertEquals(255, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForGray() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(128, 128, 128);
-        assertEquals(128, color.getLuminence(), "Luminance for gray should be 128");
-    }
+@Test
+void testSetLuminence_WhenValueZero_ExpectLuminenceSetToZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(0);
+    assertEquals(0, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForCyan() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(0, 255, 255);
-        assertEquals(191, color.getLuminence(), "Luminance for cyan should be 191");
-    }
+@Test
+void testSetLuminence_WhenValueMax_ExpectLuminenceSetToMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(255);
+    assertEquals(255, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForMagenta() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 0, 255);
-        assertEquals(191, color.getLuminence(), "Luminance for magenta should be 191");
-    }
+@Test
+void testSetLuminence_WhenValueUnchanged_ExpectLuminenceUnchanged() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(150);
+    assertEquals(150, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForYellow() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(255, 255, 0);
-        assertEquals(191, color.getLuminence(), "Luminance for yellow should be 191");
-    }
+@Test
+void testSetLuminence_WhenValueNegative_ExpectLuminenceSetToZero() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(-100);
+    assertEquals(0, hslColor.getLuminence());
+}
 
-    @Test
-    void testGetLuminenceForRandomColor() {
-        HSLColor color = new HSLColor();
-        color.initHSLbyRGB(123, 234, 45);
-        assertEquals(140, color.getLuminence(), "Luminance for the color (123, 234, 45) should be 140");
-    }
+@Test
+void testSetLuminence_WhenValueExceedsMax_ExpectLuminenceSetToMax() {
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(50, 100, 150);
+    hslColor.setLuminence(300);
+    assertEquals(255, hslColor.getLuminence());
+}
 }

@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_9Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,18 +10,12 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#isSuppressDeclaration()} method.
 */
 class OutputFormat_9Test {
-    /**
-     * Test case for default value of suppressDeclaration.
-     */
     @Test
     void testDefaultSuppressDeclaration() {
         OutputFormat format = new OutputFormat();
-        assertFalse(format.isSuppressDeclaration(), "Default value of suppressDeclaration should be false");
+        assertFalse(format.isSuppressDeclaration(), "Default suppressDeclaration should be false");
     }
 
-    /**
-     * Test case for setting suppressDeclaration to true.
-     */
     @Test
     void testSetSuppressDeclarationTrue() {
         OutputFormat format = new OutputFormat();
@@ -30,9 +23,6 @@ class OutputFormat_9Test {
         assertTrue(format.isSuppressDeclaration(), "suppressDeclaration should be true after setting it to true");
     }
 
-    /**
-     * Test case for setting suppressDeclaration to false.
-     */
     @Test
     void testSetSuppressDeclarationFalse() {
         OutputFormat format = new OutputFormat();
@@ -41,76 +31,55 @@ class OutputFormat_9Test {
         assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should be false after setting it to false");
     }
 
-    /**
-     * Test case for suppressDeclaration with createPrettyPrint.
-     */
     @Test
-    void testPrettyPrintSuppressDeclaration() {
+    void testSuppressDeclarationWithPrettyPrint() {
         OutputFormat format = OutputFormat.createPrettyPrint();
-        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should be false in pretty print format");
+        assertFalse(format.isSuppressDeclaration(), "Pretty print format should have suppressDeclaration as false");
     }
 
-    /**
-     * Test case for suppressDeclaration with createCompactFormat.
-     */
     @Test
-    void testCompactFormatSuppressDeclaration() {
+    void testSuppressDeclarationWithCompactFormat() {
         OutputFormat format = OutputFormat.createCompactFormat();
-        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should be false in compact format");
+        assertFalse(format.isSuppressDeclaration(), "Compact format should have suppressDeclaration as false");
     }
 
-    /**
-     * Test case for suppressDeclaration after parsing options.
-     */
     @Test
-    void testParseOptionsSuppressDeclaration() {
+    void testSuppressDeclarationAfterParseOptions() {
         OutputFormat format = new OutputFormat();
         String[] args = {"-suppressDeclaration"};
         format.parseOptions(args, 0);
         assertTrue(format.isSuppressDeclaration(), "suppressDeclaration should be true after parsing -suppressDeclaration option");
     }
 
-    /**
-     * Test case for suppressDeclaration with multiple options.
-     */
     @Test
-    void testMultipleOptionsSuppressDeclaration() {
+    void testSuppressDeclarationAfterMultipleParseOptions() {
         OutputFormat format = new OutputFormat();
-        String[] args = {"-indent", "  ", "-suppressDeclaration", "-newlines"};
+        String[] args = {"-omitEncoding", "-suppressDeclaration", "-newlines"};
         format.parseOptions(args, 0);
         assertTrue(format.isSuppressDeclaration(), "suppressDeclaration should be true after parsing multiple options including -suppressDeclaration");
     }
 
-    /**
-     * Test case for suppressDeclaration with invalid options.
-     */
     @Test
-    void testInvalidOptionsSuppressDeclaration() {
+    void testSuppressDeclarationWithInvalidOption() {
         OutputFormat format = new OutputFormat();
         String[] args = {"-invalidOption", "-suppressDeclaration"};
         int index = format.parseOptions(args, 0);
         assertEquals(0, index, "parseOptions should return the index of the first unrecognized option");
-        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should remain false after parsing invalid options");
+        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should remain false if invalid option is encountered first");
     }
 
-    /**
-     * Test case for suppressDeclaration with no options.
-     */
     @Test
-    void testNoOptionsSuppressDeclaration() {
+    void testSuppressDeclarationWithNoOptions() {
         OutputFormat format = new OutputFormat();
         String[] args = {};
         format.parseOptions(args, 0);
-        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should remain false when no options are parsed");
+        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should remain false if no options are provided");
     }
 
-    /**
-     * Test case for suppressDeclaration with null options.
-     */
     @Test
-    void testNullOptionsSuppressDeclaration() {
+    void testSuppressDeclarationWithNullOptions() {
         OutputFormat format = new OutputFormat();
         format.parseOptions(null, 0);
-        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should remain false when null options are parsed");
+        assertFalse(format.isSuppressDeclaration(), "suppressDeclaration should remain false if null options are provided");
     }
 }

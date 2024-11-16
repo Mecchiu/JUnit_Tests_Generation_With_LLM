@@ -1,5 +1,6 @@
-package ftpfile;
 // FTPFile_14Test.java
+
+package ftpfile;
 
 
 import java.io.Serializable;

@@ -1,4 +1,3 @@
-package outputformat;
 // OutputFormat_23Test.java
 
 
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setXHTML(boolean)} method.
 */
 class OutputFormat_23Test {
+```java
     /**
      * Test case for setting XHTML to true.
      */
@@ -75,7 +75,7 @@ class OutputFormat_23Test {
         format.setIndentSize(4);
         format.setNewlines(true);
         format.setXHTML(true);
-        assertTrue(format.isXHTML(), "XHTML should be set to true");
+        assertTrue(format.isXHTML(), "XHTML should be set to true after other properties");
     }
 
     /**
@@ -87,7 +87,7 @@ class OutputFormat_23Test {
         format.setXHTML(true);
         format.setIndentSize(4);
         format.setNewlines(true);
-        assertTrue(format.isXHTML(), "XHTML should remain true");
+        assertTrue(format.isXHTML(), "XHTML should remain true after setting other properties");
     }
 
     /**
@@ -97,7 +97,7 @@ class OutputFormat_23Test {
     void testSetXHTMLWithCompactFormat() {
         OutputFormat format = OutputFormat.createCompactFormat();
         format.setXHTML(true);
-        assertTrue(format.isXHTML(), "XHTML should be set to true");
+        assertTrue(format.isXHTML(), "XHTML should be set to true with compact format");
     }
 
     /**
@@ -107,16 +107,19 @@ class OutputFormat_23Test {
     void testSetXHTMLWithPrettyPrintFormat() {
         OutputFormat format = OutputFormat.createPrettyPrint();
         format.setXHTML(true);
-        assertTrue(format.isXHTML(), "XHTML should be set to true");
+        assertTrue(format.isXHTML(), "XHTML should be set to true with pretty print format");
     }
 
     /**
-     * Test case for setting XHTML with null indent.
+     * Test case for setting XHTML with null format.
      */
     @Test
-    void testSetXHTMLWithNullIndent() {
+    void testSetXHTMLWithNullFormat() {
         OutputFormat format = new OutputFormat(null);
         format.setXHTML(true);
-        assertTrue(format.isXHTML(), "XHTML should be set to true");
+        assertTrue(format.isXHTML(), "XHTML should be set to true with null format");
     }
 }
+```
+
+This test class `OutputFormat_23Test` contains ten unit test cases for the `setXHTML(boolean)` method of the `OutputFormat` class. Each test case checks different scenarios to ensure that the `setXHTML` method behaves as expected.

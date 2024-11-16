@@ -1,7 +1,6 @@
-package outputformat;
 // OutputFormat_3Test.java
 
-
+package outputformat;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,9 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 * It contains ten unit test cases for the {@link OutputFormat#setNewlines(boolean)} method.
 */
 class OutputFormat_3Test {
-    /**
-     * Test case for setting newlines to true.
-     */
     @Test
     void testSetNewlinesTrue() {
         OutputFormat format = new OutputFormat();
@@ -21,9 +17,6 @@ class OutputFormat_3Test {
         assertTrue(format.isNewlines(), "Newlines should be set to true");
     }
 
-    /**
-     * Test case for setting newlines to false.
-     */
     @Test
     void testSetNewlinesFalse() {
         OutputFormat format = new OutputFormat();
@@ -31,18 +24,12 @@ class OutputFormat_3Test {
         assertFalse(format.isNewlines(), "Newlines should be set to false");
     }
 
-    /**
-     * Test case for default newlines value.
-     */
     @Test
     void testDefaultNewlines() {
         OutputFormat format = new OutputFormat();
         assertFalse(format.isNewlines(), "Default newlines should be false");
     }
 
-    /**
-     * Test case for setting newlines to true and then false.
-     */
     @Test
     void testSetNewlinesTrueThenFalse() {
         OutputFormat format = new OutputFormat();
@@ -51,9 +38,6 @@ class OutputFormat_3Test {
         assertFalse(format.isNewlines(), "Newlines should be set to false after being set to true");
     }
 
-    /**
-     * Test case for setting newlines to false and then true.
-     */
     @Test
     void testSetNewlinesFalseThenTrue() {
         OutputFormat format = new OutputFormat();
@@ -62,52 +46,36 @@ class OutputFormat_3Test {
         assertTrue(format.isNewlines(), "Newlines should be set to true after being set to false");
     }
 
-    /**
-     * Test case for setting newlines multiple times to true.
-     */
     @Test
-    void testSetNewlinesMultipleTrue() {
+    void testSetNewlinesMultipleTimes() {
         OutputFormat format = new OutputFormat();
         format.setNewlines(true);
+        format.setNewlines(false);
         format.setNewlines(true);
-        assertTrue(format.isNewlines(), "Newlines should remain true after being set multiple times");
+        assertTrue(format.isNewlines(), "Newlines should be set to true after multiple changes");
     }
 
-    /**
-     * Test case for setting newlines multiple times to false.
-     */
     @Test
-    void testSetNewlinesMultipleFalse() {
-        OutputFormat format = new OutputFormat();
-        format.setNewlines(false);
-        format.setNewlines(false);
-        assertFalse(format.isNewlines(), "Newlines should remain false after being set multiple times");
+    void testSetNewlinesWithIndent() {
+        OutputFormat format = new OutputFormat("  ", true);
+        assertTrue(format.isNewlines(), "Newlines should be true when set in constructor");
     }
 
-    /**
-     * Test case for setting newlines to true using constructor.
-     */
     @Test
-    void testConstructorWithNewlinesTrue() {
-        OutputFormat format = new OutputFormat(OutputFormat.STANDARD_INDENT, true);
-        assertTrue(format.isNewlines(), "Newlines should be true when set via constructor");
+    void testSetNewlinesWithIndentFalse() {
+        OutputFormat format = new OutputFormat("  ", false);
+        assertFalse(format.isNewlines(), "Newlines should be false when set in constructor");
     }
 
-    /**
-     * Test case for setting newlines to false using constructor.
-     */
     @Test
-    void testConstructorWithNewlinesFalse() {
-        OutputFormat format = new OutputFormat(OutputFormat.STANDARD_INDENT, false);
-        assertFalse(format.isNewlines(), "Newlines should be false when set via constructor");
+    void testSetNewlinesWithEncoding() {
+        OutputFormat format = new OutputFormat("  ", true, "UTF-8");
+        assertTrue(format.isNewlines(), "Newlines should be true when set in constructor with encoding");
     }
 
-    /**
-     * Test case for setting newlines to true using constructor with encoding.
-     */
     @Test
-    void testConstructorWithNewlinesTrueAndEncoding() {
-        OutputFormat format = new OutputFormat(OutputFormat.STANDARD_INDENT, true, "UTF-8");
-        assertTrue(format.isNewlines(), "Newlines should be true when set via constructor with encoding");
+    void testSetNewlinesWithEncodingFalse() {
+        OutputFormat format = new OutputFormat("  ", false, "UTF-8");
+        assertFalse(format.isNewlines(), "Newlines should be false when set in constructor with encoding");
     }
 }
